@@ -5,7 +5,7 @@ generic-service:
   replicaCount: 2
 
   ingress:
-    host: hmpps-incentives-api-dev.hmpps.service.justice.gov.uk
+    host: incentives-api-dev.hmpps.service.justice.gov.uk
     contextColour: green
 
   env:
