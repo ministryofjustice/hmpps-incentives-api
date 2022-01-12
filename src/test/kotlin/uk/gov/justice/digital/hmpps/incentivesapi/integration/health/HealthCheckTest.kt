@@ -1,8 +1,8 @@
-package uk.gov.justice.digital.hmpps.hmppsincentivesapi.integration.health
+package uk.gov.justice.digital.hmpps.incentivesapi.integration.health
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.hmppsincentivesapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.incentivesapi.integration.IntegrationTestBase
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.function.Consumer
@@ -11,6 +11,7 @@ class HealthCheckTest : IntegrationTestBase() {
 
   @Test
   fun `Health page reports ok`() {
+    stubPingWithResponse(200)
     webTestClient.get()
       .uri("/health")
       .exchange()
@@ -22,6 +23,7 @@ class HealthCheckTest : IntegrationTestBase() {
 
   @Test
   fun `Health info reports version`() {
+    stubPingWithResponse(200)
     webTestClient.get().uri("/health")
       .exchange()
       .expectStatus().isOk
@@ -63,5 +65,10 @@ class HealthCheckTest : IntegrationTestBase() {
       .isOk
       .expectBody()
       .jsonPath("status").isEqualTo("UP")
+  }
+
+  private fun stubPingWithResponse(status: Int) {
+    hmppsAuthMockServer.stubHealthPing(status)
+    prisonApiMockServer.stubHealthPing(status)
   }
 }

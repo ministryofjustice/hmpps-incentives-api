@@ -1,8 +1,8 @@
-package uk.gov.justice.digital.hmpps.hmppsincentivesapi.integration.health
+package uk.gov.justice.digital.hmpps.incentivesapi.integration.health
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.hmppsincentivesapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.incentivesapi.integration.IntegrationTestBase
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -16,7 +16,7 @@ class InfoTest : IntegrationTestBase() {
       .expectStatus()
       .isOk
       .expectBody()
-      .jsonPath("build.name").isEqualTo("hmpps-incentives-api")
+      .jsonPath("app.name").isEqualTo("Hmpps Incentives API")
   }
 
   @Test

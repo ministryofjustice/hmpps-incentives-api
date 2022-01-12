@@ -1,5 +1,5 @@
 info.app:
-  name: Hmpps Incentives Api
+  name: Hmpps Incentives API
   version: 1.0
 
 spring:
@@ -7,6 +7,17 @@ spring:
     name: hmpps-incentives-api
   codec:
     max-in-memory-size: 10MB
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${api.base.url.oauth}/.well-known/jwks.json
+
+      client:
+        provider:
+          hmpps-auth:
+            token-uri: ${api.base.url.oauth}/oauth/token
 
   jackson:
     date-format: "yyyy-MM-dd HH:mm:ss"
@@ -17,6 +28,9 @@ spring:
     group:
       test:
         - "stdout"
+
+api:
+  health-timeout-ms: 1000
 
 server:
   port: 8080
@@ -49,3 +63,8 @@ management:
     info:
       cache:
         time-to-live: 2000ms
+
+  profiles:
+    group:
+      test:
+        - "stdout"
