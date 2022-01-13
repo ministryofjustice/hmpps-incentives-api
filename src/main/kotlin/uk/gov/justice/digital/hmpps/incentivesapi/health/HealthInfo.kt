@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.hmppsincentivesapi.health
+package uk.gov.justice.digital.hmpps.incentivesapi.health
 
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator

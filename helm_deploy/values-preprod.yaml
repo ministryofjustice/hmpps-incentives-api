@@ -2,11 +2,9 @@
 # Per environment values which override defaults in hmpps-incentives-api/values.yaml
 
 generic-service:
-  replicaCount: 4
 
   ingress:
     host: incentives-api-preprod.hmpps.service.justice.gov.uk
-    contextColour: green
 
   env:
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.dev.json
