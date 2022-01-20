@@ -7,7 +7,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestHeader
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.config.withToken
