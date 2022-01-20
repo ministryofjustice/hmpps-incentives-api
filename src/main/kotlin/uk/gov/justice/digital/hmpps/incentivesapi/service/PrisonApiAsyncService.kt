@@ -16,7 +16,7 @@ class PrisonApiAsyncService(private val prisonWebAsyncClient: WebClient) {
       .bodyToFlux(PrisonerAtLocation::class.java)
       .onErrorResume(WebClientResponseException::class.java) { emptyWhenNotFound(it) }
 
-  fun getIEPSummaryPerPrisoner(bookingIds: List<Long>) : Flux<IepSummary> =
+  fun getIEPSummaryPerPrisoner(bookingIds: List<Long>): Flux<IepSummary> =
     prisonWebAsyncClient.post()
       .uri("/api/bookings/iepSummary")
       .bodyValue(bookingIds)
@@ -24,21 +24,19 @@ class PrisonApiAsyncService(private val prisonWebAsyncClient: WebClient) {
       .bodyToFlux(IepSummary::class.java)
       .onErrorResume(WebClientResponseException::class.java) { emptyWhenNotFound(it) }
 
-
-  fun retrieveCaseNoteCounts(type: String, offenderNos: List<String>) : Flux<CaseNoteUsage> =
-     prisonWebAsyncClient.post()
+  fun retrieveCaseNoteCounts(type: String, offenderNos: List<String>): Flux<CaseNoteUsage> =
+    prisonWebAsyncClient.post()
       .uri("/api/case-notes/usage")
       .bodyValue(CaseNoteUsageRequest(numMonths = 3, offenderNos = offenderNos, type = type, subType = null))
       .retrieve()
       .bodyToFlux(CaseNoteUsage::class.java)
       .onErrorResume(WebClientResponseException::class.java) { emptyWhenNotFound(it) }
 
-    fun retrieveProvenAdjudications(bookingIds: List<Long>) : Flux<ProvenAdjudication> =
-       prisonWebAsyncClient.post()
-        .uri("/api/bookings/proven-adjudications")
-        .bodyValue(bookingIds)
-        .retrieve()
-        .bodyToFlux(ProvenAdjudication::class.java)
-        .onErrorResume(WebClientResponseException::class.java) { emptyWhenNotFound(it) }
-
+  fun retrieveProvenAdjudications(bookingIds: List<Long>): Flux<ProvenAdjudication> =
+    prisonWebAsyncClient.post()
+      .uri("/api/bookings/proven-adjudications")
+      .bodyValue(bookingIds)
+      .retrieve()
+      .bodyToFlux(ProvenAdjudication::class.java)
+      .onErrorResume(WebClientResponseException::class.java) { emptyWhenNotFound(it) }
 }

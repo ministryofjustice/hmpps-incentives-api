@@ -18,7 +18,7 @@ class PrisonApiSyncService(private val prisonWebSyncClient: WebClient) {
       .block()!!
   }
 
-  fun getIEPSummaryPerPrisoner(bookingIds: List<Long>) : List<IepSummary> {
+  fun getIEPSummaryPerPrisoner(bookingIds: List<Long>): List<IepSummary> {
     return prisonWebSyncClient.post()
       .uri("/api/bookings/iepSummary")
       .bodyValue(bookingIds)
@@ -28,7 +28,7 @@ class PrisonApiSyncService(private val prisonWebSyncClient: WebClient) {
       .block()!!
   }
 
-  fun retrieveCaseNoteCounts(type: String, offenderNos: List<String>) : List<CaseNoteUsage>{
+  fun retrieveCaseNoteCounts(type: String, offenderNos: List<String>): List<CaseNoteUsage> {
     return prisonWebSyncClient.post()
       .uri("/api/case-notes/usage")
       .bodyValue(CaseNoteUsageRequest(numMonths = 3, offenderNos = offenderNos, type = type, subType = null))
@@ -38,7 +38,7 @@ class PrisonApiSyncService(private val prisonWebSyncClient: WebClient) {
       .block()!!
   }
 
-  fun retrieveProvenAdjudications(bookingIds: List<Long>) : List<ProvenAdjudication> =
+  fun retrieveProvenAdjudications(bookingIds: List<Long>): List<ProvenAdjudication> =
     prisonWebSyncClient.post()
       .uri("/api/bookings/proven-adjudications")
       .bodyValue(bookingIds)

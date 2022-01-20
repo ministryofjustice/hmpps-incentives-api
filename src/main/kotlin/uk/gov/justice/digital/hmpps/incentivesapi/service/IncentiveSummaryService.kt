@@ -50,7 +50,6 @@ class IncentiveSummaryService(
         )
       }
 
-
   fun getIncentivesSummaryByLocation2(prisonId: String, locationId: String): Mono<Any> =
     prisonApiService.findPrisonersAtLocation(prisonId, locationId)
       .collectMultimap {
@@ -60,9 +59,5 @@ class IncentiveSummaryService(
           level to prisoners.toList()
         }
       }.map {
-
       }
 }
-
-
-

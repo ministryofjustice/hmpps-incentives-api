@@ -12,8 +12,6 @@ data class PrisonerAtLocation(
   val offenderNo: String,
 )
 
-
-
 data class IepSummary(
   val bookingId: Long,
   val daysSinceReview: Int,
@@ -32,7 +30,7 @@ data class IepDetail(
   val userId: String
 )
 
-data class CaseNoteUsage (
+data class CaseNoteUsage(
   val offenderNo: String,
   val caseNoteType: String,
   val caseNoteSubType: String,
@@ -41,13 +39,13 @@ data class CaseNoteUsage (
 )
 
 data class CaseNoteUsageRequest(
-  val numMonths : Int = 1,
+  val numMonths: Int = 1,
   val offenderNos: List<String>,
   val type: String,
   val subType: String?
 )
 
-data class ProvenAdjudication (
+data class ProvenAdjudication(
   val bookingId: Long,
   val provenAdjudicationCount: Int
 )

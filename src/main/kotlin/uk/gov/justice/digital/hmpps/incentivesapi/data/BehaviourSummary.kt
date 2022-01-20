@@ -34,11 +34,11 @@ data class BehaviourSummary(
   val incentiveLevelSummary: List<IncentiveLevelSummary> = listOf()
 ) {
 
-  fun findByBookingId(bookingId : Long) = incentiveLevelSummary.filter {
+  fun findByBookingId(bookingId: Long) = incentiveLevelSummary.filter {
     it.findByBookingId(bookingId) != null
   }.map { it.findByBookingId(bookingId) }.firstOrNull()
 
-  fun findByNumber(prisonerNumber : String) = incentiveLevelSummary.filter {
+  fun findByNumber(prisonerNumber: String) = incentiveLevelSummary.filter {
     it.findByNumber(prisonerNumber) != null
   }.map { it.findByNumber(prisonerNumber) }.firstOrNull()
 }
@@ -54,9 +54,8 @@ data class IncentiveLevelSummary(
   val prisonerBehaviours: List<PrisonerIncentiveSummary> = listOf()
 ) {
 
-  fun findByBookingId(bookingId : Long) = prisonerBehaviours.firstOrNull { p -> p.bookingId == bookingId }
-  fun findByNumber(prisonerNumber : String) = prisonerBehaviours.firstOrNull { p -> p.prisonerNumber == prisonerNumber }
-
+  fun findByBookingId(bookingId: Long) = prisonerBehaviours.firstOrNull { p -> p.bookingId == bookingId }
+  fun findByNumber(prisonerNumber: String) = prisonerBehaviours.firstOrNull { p -> p.prisonerNumber == prisonerNumber }
 }
 
 data class PrisonerIncentiveSummary(
@@ -66,7 +65,7 @@ data class PrisonerIncentiveSummary(
     description = "Internal reference for a period in prison (Not to be confused with the BOOK or Book Number)",
     example = "2322121"
   )
-  val currentIepLevel : String,
+  val currentIepLevel: String,
   val bookingId: Long,
   @Schema(description = "Internal reference for looking up the prisoners latest photo", example = "112121")
   val imageId: Long,
