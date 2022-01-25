@@ -65,7 +65,7 @@ data class PrisonerIncentiveSummary(
     description = "Calculated attribute that determines the number of days the prisoner has been on their current IEP level for their current offender booking. Historical data for a prisoner IEP reviews is only available via the prison API on a per prisoner, prison or prison location (i.e Wing) basis.",
     example = "10"
   )
-  val daysOnLevel: Int?,
+  val daysOnLevel: Int,
   @Schema(
     description = "A simple calculation using the current date and calculating the number of elapsed days since the date of the prisoners last IEP review. <br/>Note: Assumption that if an IEP record exist in NOMIS then an IEP review has taken place",
     example = "50"

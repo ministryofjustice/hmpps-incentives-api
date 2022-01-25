@@ -41,7 +41,7 @@ class IncentiveSummaryService(
                   prisonerNumber = p.offenderNo,
                   bookingId = p.bookingId,
                   imageId = p.facialImageId,
-                  daysOnLevel = tuples.t2[p.bookingId]?.daysOnLevel,
+                  daysOnLevel = tuples.t2[p.bookingId]?.daysOnLevel?:0,
                   daysSinceLastReview = tuples.t2[p.bookingId]?.daysSinceReview ?: 0,
                   positiveBehaviours = tuples.t3[p.offenderNo]?.totalCaseNotes ?: 0,
                   incentiveEncouragements = tuples.t3[p.offenderNo]?.numSubTypeCount ?: 0,
@@ -107,7 +107,7 @@ class IncentiveSummaryService(
         it.bookingId
       }
 
-  private fun calcDaysOnLevel(iepSummary: IepSummary): Int? {
+  private fun calcDaysOnLevel(iepSummary: IepSummary): Int {
     val currentIepDate = iepSummary.iepDate
     var daysOnLevel: Int = getDaysOnLevel(iepSummary.iepDetails.last().iepDate, currentIepDate, iepSummary.daysSinceReview)
 
@@ -174,7 +174,7 @@ class NoPrisonersAtLocationException(prisonId: String, locationId: String) :
 data class IepResult(
   val bookingId: Long,
   val daysSinceReview: Int,
-  val daysOnLevel: Int?
+  val daysOnLevel: Int
 )
 
 data class CaseNoteSummary(
