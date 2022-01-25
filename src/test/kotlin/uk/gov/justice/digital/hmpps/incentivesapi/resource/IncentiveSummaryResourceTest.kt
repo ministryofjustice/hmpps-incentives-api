@@ -27,7 +27,7 @@ class IncentiveSummaryResourceTest : IntegrationTestBase() {
     prisonApiMockServer.stubNegativeCaseNoteSummary()
     prisonApiMockServer.stubProvenAdj()
     prisonApiMockServer.stubIEPLevels("MDI")
-    prisonApiMockServer.stubPrisonLocations("MDI")
+    prisonApiMockServer.stubLocation("MDI-1")
 
     webTestClient.get().uri("incentives-summary/prison/MDI/location/MDI-1")
       .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
@@ -35,10 +35,10 @@ class IncentiveSummaryResourceTest : IntegrationTestBase() {
       .expectStatus().isOk
       .expectBody().json(
         """
-          {
+{
    "prisonId":"MDI",
    "locationId":"MDI-1",
-   "locationDescription":"Houseblock 1",
+   "locationDescription":"MDI-1",
    "incentiveLevelSummary":[
       {
          "level":"Entry",
@@ -56,7 +56,7 @@ class IncentiveSummaryResourceTest : IntegrationTestBase() {
                "imageId":1241241,
                "firstName":"JOHN",
                "lastName":"SMITH",
-               "daysOnLevel":23,
+               "daysOnLevel":399,
                "daysSinceLastReview":35,
                "positiveBehaviours":3,
                "incentiveEncouragements":0,
@@ -70,7 +70,7 @@ class IncentiveSummaryResourceTest : IntegrationTestBase() {
                "imageId":1241244,
                "firstName":"ANTHONY",
                "lastName":"DAVIES",
-               "daysOnLevel":23,
+               "daysOnLevel":1,
                "daysSinceLastReview":2,
                "positiveBehaviours":1,
                "incentiveEncouragements":0,
@@ -90,7 +90,7 @@ class IncentiveSummaryResourceTest : IntegrationTestBase() {
                "imageId":1241242,
                "firstName":"DAVID",
                "lastName":"WHITE",
-               "daysOnLevel":23,
+               "daysOnLevel":49,
                "daysSinceLastReview":50,
                "positiveBehaviours":3,
                "incentiveEncouragements":0,
@@ -104,7 +104,7 @@ class IncentiveSummaryResourceTest : IntegrationTestBase() {
                "imageId":1241245,
                "firstName":"PAUL",
                "lastName":"RUDD",
-               "daysOnLevel":23,
+               "daysOnLevel":5,
                "daysSinceLastReview":6,
                "positiveBehaviours":5,
                "incentiveEncouragements":0,
@@ -124,7 +124,7 @@ class IncentiveSummaryResourceTest : IntegrationTestBase() {
                "imageId":1241243,
                "firstName":"TREVOR",
                "lastName":"LEE",
-               "daysOnLevel":23,
+               "daysOnLevel":11,
                "daysSinceLastReview":12,
                "positiveBehaviours":2,
                "incentiveEncouragements":0,

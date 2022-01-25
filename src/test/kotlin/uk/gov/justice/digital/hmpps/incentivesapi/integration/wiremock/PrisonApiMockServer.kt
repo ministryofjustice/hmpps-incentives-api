@@ -52,43 +52,20 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
     )
   }
 
-  fun stubPrisonLocations(prisonId: String) {
+  fun stubLocation(locationId: String) {
     stubFor(
-      get("/api/agencies/$prisonId/locations").willReturn(
+      get("/api/locations/code/$locationId").willReturn(
         aResponse()
           .withHeader("Content-Type", "application/json")
           .withBody(
             """
-              [
                 {
-                  "agencyId": "$prisonId",
+                  "agencyId": "MDI",
                   "description": "1",
-                  "locationPrefix": "MDI-1",
+                  "locationPrefix": "$locationId",
                   "locationType": "WING",
                   "userDescription": "Houseblock 1"
-                },
-                {
-                  "agencyId": "$prisonId",
-                  "description": "2",
-                  "locationPrefix": "MDI-2",
-                  "locationType": "WING",
-                  "userDescription": "Houseblock 2"
-                },
-                {
-                  "agencyId": "$prisonId",
-                  "description": "3",
-                  "locationPrefix": "MDI-3",
-                  "locationType": "WING",
-                  "userDescription": "Houseblock 3"
-                },
-                {
-                  "agencyId": "$prisonId",
-                  "description": "4",
-                  "locationPrefix": "MDI-4",
-                  "locationType": "WING",
-                  "userDescription": "Houseblock 4"
                 }
-              ]
             """.trimIndent()
           )
       )
@@ -183,6 +160,13 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                       "bookingId": 1234134,
                       "iepDate": "2021-12-02",
                       "iepLevel": "Basic",
+                      "iepTime": "2021-12-02T09:24:42.894Z"
+                    },
+                     {
+                      "agencyId": "MDI",
+                      "bookingId": 1234134,
+                      "iepDate": "2020-12-02",
+                      "iepLevel": "Entry",
                       "iepTime": "2021-12-02T09:24:42.894Z"
                     }
                   ]

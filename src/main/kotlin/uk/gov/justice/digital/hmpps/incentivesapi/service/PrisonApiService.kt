@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 import javax.validation.constraints.NotEmpty
 
 @Service
@@ -48,10 +49,10 @@ class PrisonApiService(private val prisonWebClient: WebClient) {
       .bodyToFlux(IepLevel::class.java)
       .onErrorResume(WebClientResponseException::class.java) { emptyWhenNotFound(it) }
 
-  fun getLocationForPrison(prisonId: String): Flux<PrisonLocation> =
+  fun getLocation(locationId: String): Mono<PrisonLocation> =
     prisonWebClient.get()
-      .uri("/api/agencies/$prisonId/locations")
+      .uri("/api/locations/code/$locationId")
       .retrieve()
-      .bodyToFlux(PrisonLocation::class.java)
+      .bodyToMono(PrisonLocation::class.java)
       .onErrorResume(WebClientResponseException::class.java) { emptyWhenNotFound(it) }
 }
