@@ -5,8 +5,8 @@ import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.incentivesapi.data.BehaviourSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.data.IncentiveLevelSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.data.PrisonerIncentiveSummary
+import java.time.Duration
 import java.time.LocalDate
-import java.time.Period
 
 @Service
 class IncentiveSummaryService(
@@ -55,7 +55,7 @@ class IncentiveSummaryService(
         }.map { levels ->
           Mono.zip(
             Mono.just(levels),
-            getLocation(prisonId, locationId),
+            getLocation(locationId),
             getIepLevels(prisonId),
           )
             .map { tuples ->
@@ -108,7 +108,28 @@ class IncentiveSummaryService(
       }
 
   private fun calcDaysOnLevel(iepSummary: IepSummary): Int {
-    return Period.between(iepSummary.iepDate, LocalDate.now()).days
+    val currentIepDate = iepSummary.iepDate
+    var daysOnLevel: Int = getDaysOnLevel(iepSummary.iepDetails.last().iepDate, currentIepDate, iepSummary.daysSinceReview)
+
+    run iepCheck@{
+      iepSummary.iepDetails.forEach {
+        if (it.iepLevel != iepSummary.iepLevel) {
+          daysOnLevel = getDaysOnLevel(it.iepDate, currentIepDate, iepSummary.daysSinceReview)
+          return@iepCheck
+        }
+      }
+    }
+
+    return daysOnLevel
+  }
+
+  private fun getDaysOnLevel(
+    oldIepDate: LocalDate,
+    currentIepDate: LocalDate,
+    daysSinceReview: Int
+  ): Int {
+    val daysOnLevelBetweenReview = Duration.between(oldIepDate.atStartOfDay(), currentIepDate.atStartOfDay()).toDays()
+    return daysOnLevelBetweenReview.toInt() + daysSinceReview - 1
   }
 
   fun getCaseNoteUsage(type: String, subType: String, offenderNos: List<String>): Mono<Map<String, CaseNoteSummary>> =
@@ -134,12 +155,10 @@ class IncentiveSummaryService(
       0
     }
 
-  fun getLocation(prisonId: String, locationId: String): Mono<String> =
-    prisonApiService.getLocationForPrison(prisonId)
-      .collectMap {
+  fun getLocation(locationId: String): Mono<String> =
+    prisonApiService.getLocation(locationId)
+      .map {
         it.locationPrefix
-      }.map {
-        it[locationId]?.getLocationDescription() ?: ""
       }
 
   fun getIepLevels(prisonId: String): Mono<Map<String, IepLevel>> =
