@@ -15,7 +15,6 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.util.context.Context
 
-
 class AuthTokenFilterFunction : ExchangeFilterFunction {
 
   override fun filter(request: ClientRequest, next: ExchangeFunction): Mono<ClientResponse> {
@@ -41,13 +40,12 @@ class AuthTokenResponseMono(
 @Order(1)
 class UserContextFilter : WebFilter {
   override fun filter(serverWebExchange: ServerWebExchange, webFilterChain: WebFilterChain): Mono<Void> {
-    val authHeader = serverWebExchange.request.headers[HttpHeaders.AUTHORIZATION]?.firstOrNull()?:"none"
+    val authHeader = serverWebExchange.request.headers[HttpHeaders.AUTHORIZATION]?.firstOrNull() ?: "none"
 
     return webFilterChain.filter(serverWebExchange).contextWrite {
       transferAuthHeader(authHeader, it)
     }
   }
-
 }
 
 fun <T> Flux<T>.withToken(authToken: String): Flux<T> =
