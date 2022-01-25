@@ -6,7 +6,9 @@ import org.springframework.web.reactive.function.client.ClientResponse
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction
 import org.springframework.web.reactive.function.client.ExchangeFunction
 import reactor.core.CoreSubscriber
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.util.context.Context
 
 class AuthTokenFilterFunction : ExchangeFilterFunction {
 
@@ -28,3 +30,12 @@ class AuthTokenResponseMono(
     next.exchange(mutatedRequest).subscribe(subscriber)
   }
 }
+
+fun <T> Flux<T>.withToken(authToken: String): Flux<T> =
+  this.contextWrite { transferAuthHeader(authToken, it) }
+
+fun <T> Mono<T>.withToken(authToken: String): Mono<T> =
+  this.contextWrite { transferAuthHeader(authToken, it) }
+
+private fun transferAuthHeader(authToken: String, context: Context) =
+  context.put(HttpHeaders.AUTHORIZATION, authToken)

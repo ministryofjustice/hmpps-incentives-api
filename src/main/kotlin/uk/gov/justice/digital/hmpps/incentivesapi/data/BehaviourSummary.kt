@@ -8,42 +8,44 @@ data class BehaviourSummary(
   @Schema(description = "Location within the prison", example = "A")
   val locationId: String,
   @Schema(description = "Location within the prison description", example = "A Wing")
-  val locationDescription: String,
+  val locationDescription: String = "",
+
+  @Schema(description = "Breakdown of behaviours at this location by IEP level")
+  val incentiveLevelSummary: List<IncentiveLevelSummary> = listOf()
+) {
 
   @Schema(
     description = "Total count of all the positive case note behaviour entries recorded for this location",
     example = "20"
   )
-  val totalPositiveBehaviours: Int,
+  fun getTotalPositiveBehaviours(): Int = incentiveLevelSummary.sumOf { it.prisonerBehaviours.sumOf { p -> p.positiveBehaviours } }
   @Schema(
     description = "Total count of all the negative case note behaviour entries recorded for this location",
     example = "35"
   )
-  val totalNegativeBehaviours: Int,
+  fun getTotalNegativeBehaviours(): Int = incentiveLevelSummary.sumOf { it.prisonerBehaviours.sumOf { p -> p.negativeBehaviours } }
   @Schema(
     description = "Total count of just the positive case note behaviour entries recorded of the sub type <em>Incentive Encouragements</em> for this location",
     example = "6"
   )
-  val totalIncentiveEncouragements: Int,
+  fun getTotalIncentiveEncouragements(): Int = incentiveLevelSummary.sumOf { it.prisonerBehaviours.sumOf { p -> p.incentiveEncouragements } }
   @Schema(
     description = "Total count of just the negative case note behaviour entries recorded of the sub type  <em>Incentive Warning</em> for this location",
     example = "14"
   )
-  val totalIncentiveWarnings: Int,
-  @Schema(description = "Breakdown of behaviours at this location by IEP level")
-  val incentiveLevelSummary: List<IncentiveLevelSummary>
-)
+  fun getTotalIncentiveWarnings(): Int = incentiveLevelSummary.sumOf { it.prisonerBehaviours.sumOf { p -> p.incentiveWarnings } }
+}
 
 data class IncentiveLevelSummary(
-  @Schema(description = "STD", example = "14")
+  @Schema(description = "IEP Level", example = "Standard")
   val level: String,
-  @Schema(description = "Standard", example = "14")
-  val levelDescription: String,
-  @Schema(description = "Number of prisoners at this IEP level", example = "70")
-  val numberAtThisLevel: Int,
   @Schema(description = "List of all prisoners at this location at this IEP level")
-  val prisonerBehaviours: List<PrisonerIncentiveSummary>
-)
+  val prisonerBehaviours: List<PrisonerIncentiveSummary> = listOf()
+) {
+
+  @Schema(description = "Number of prisoners at this IEP level", example = "70")
+  fun getNumberAtThisLevel() = prisonerBehaviours.size
+}
 
 data class PrisonerIncentiveSummary(
   @Schema(description = "Prisoner Number - Often called NOMS Number/ID", example = "A1234DG")
@@ -63,29 +65,29 @@ data class PrisonerIncentiveSummary(
     description = "Calculated attribute that determines the number of days the prisoner has been on their current IEP level for their current offender booking. Historical data for a prisoner IEP reviews is only available via the prison API on a per prisoner, prison or prison location (i.e Wing) basis.",
     example = "10"
   )
-  val daysOnLevel: Int,
+  val daysOnLevel: Int = 0,
   @Schema(
     description = "A simple calculation using the current date and calculating the number of elapsed days since the date of the prisoners last IEP review. <br/>Note: Assumption that if an IEP record exist in NOMIS then an IEP review has taken place",
     example = "50"
   )
-  val daysSinceLastReview: Int,
+  val daysSinceLastReview: Int = 0,
   @Schema(description = "Count of all the positive case note behaviour entries recorded", example = "7")
-  val positiveBehaviours: Int,
+  val positiveBehaviours: Int = 0,
   @Schema(
     description = "Count of just the positive case note behaviour entries recorded of the sub type <em>Incentive Encouragements</em",
     example = "1"
   )
-  val incentiveEncouragements: Int,
+  val incentiveEncouragements: Int = 0,
   @Schema(description = "Count of all the negative case note behaviour entries recorded", example = "5")
-  val negativeBehaviours: Int,
+  val negativeBehaviours: Int = 0,
   @Schema(
     description = "Count of just the negative case note behaviour entries recorded of the sub type  <em>Incentive Warning</em>",
     example = "2"
   )
-  val incentiveWarnings: Int,
+  val incentiveWarnings: Int = 0,
   @Schema(
     description = "A count of the proven adjudications for the offender at the current prison where the hearing result is <em>PROVEN</em>",
     example = "14"
   )
-  val provenAdjudications: Int
+  val provenAdjudications: Int = 0
 )
