@@ -41,7 +41,7 @@ class IncentiveSummaryService(
                   prisonerNumber = p.offenderNo,
                   bookingId = p.bookingId,
                   imageId = p.facialImageId,
-                  daysOnLevel = tuples.t2[p.bookingId]?.daysOnLevel?:0,
+                  daysOnLevel = tuples.t2[p.bookingId]?.daysOnLevel ?: 0,
                   daysSinceLastReview = tuples.t2[p.bookingId]?.daysSinceReview ?: 0,
                   positiveBehaviours = tuples.t3[p.offenderNo]?.totalCaseNotes ?: 0,
                   incentiveEncouragements = tuples.t3[p.offenderNo]?.numSubTypeCount ?: 0,
