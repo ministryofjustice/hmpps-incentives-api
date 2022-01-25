@@ -70,16 +70,16 @@ data class PrisonerIncentiveSummary(
     description = "A simple calculation using the current date and calculating the number of elapsed days since the date of the prisoners last IEP review. <br/>Note: Assumption that if an IEP record exist in NOMIS then an IEP review has taken place",
     example = "50"
   )
-  var daysSinceLastReview: Int? = 0,
+  val daysSinceLastReview: Int = 0,
   @Schema(description = "Count of all the positive case note behaviour entries recorded", example = "7")
-  var positiveBehaviours: Int = 0,
+  val positiveBehaviours: Int = 0,
   @Schema(
     description = "Count of just the positive case note behaviour entries recorded of the sub type <em>Incentive Encouragements</em",
     example = "1"
   )
   val incentiveEncouragements: Int = 0,
   @Schema(description = "Count of all the negative case note behaviour entries recorded", example = "5")
-  var negativeBehaviours: Int = 0,
+  val negativeBehaviours: Int = 0,
   @Schema(
     description = "Count of just the negative case note behaviour entries recorded of the sub type  <em>Incentive Warning</em>",
     example = "2"
