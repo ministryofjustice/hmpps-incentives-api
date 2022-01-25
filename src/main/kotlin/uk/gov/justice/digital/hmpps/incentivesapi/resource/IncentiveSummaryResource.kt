@@ -52,8 +52,9 @@ class IncentiveSummaryResource(private val incentiveSummaryService: IncentiveSum
   fun getIncentiveSummary(
     @Schema(description = "Prison Id", example = "MDI", required = true)
     @PathVariable @Size(max = 3, min = 3, message = "Prison ID must be 3 characters") prisonId: String,
-    @Schema(description = "Location Id", example = "A-1", required = true)
+    @Schema(description = "Location Id", example = "MDI-1", required = true)
     @PathVariable locationId: String,
     @RequestHeader(HttpHeaders.AUTHORIZATION) auth: String
-  ): Mono<BehaviourSummary> = incentiveSummaryService.getIncentivesSummaryByLocation(prisonId, locationId).withToken(auth)
+  ): Mono<BehaviourSummary> =
+    incentiveSummaryService.getIncentivesSummaryByLocation(prisonId, locationId).withToken(auth)
 }

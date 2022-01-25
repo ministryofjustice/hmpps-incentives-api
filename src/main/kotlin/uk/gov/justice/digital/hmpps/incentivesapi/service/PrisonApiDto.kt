@@ -26,8 +26,7 @@ data class IepDetail(
   val agencyId: String,
   val iepDate: LocalDate,
   val iepLevel: String,
-  val iepTime: LocalDateTime,
-  val userId: String
+  val iepTime: LocalDateTime
 )
 
 data class CaseNoteUsage(
@@ -49,3 +48,20 @@ data class ProvenAdjudication(
   val bookingId: Long,
   val provenAdjudicationCount: Int
 )
+
+data class IepLevel(
+  val iepLevel: String,
+  val iepDescription: String
+)
+
+data class PrisonLocation(
+
+  val agencyId: String,
+  val locationPrefix: String,
+  val description: String,
+  val locationType: String,
+  val userDescription: String?
+
+) {
+  fun getLocationDescription() = userDescription ?: description
+}
