@@ -14,7 +14,7 @@ class IncentiveSummaryService(
   private val prisonApiService: PrisonApiService
 ) {
 
-  fun getIncentivesSummaryByLocation(prisonId: String, locationId: String, sortBy : SortColumn = SortColumn.NAME, sortDirection : Sort.Direction = Sort.Direction.ASC): Mono<BehaviourSummary> {
+  fun getIncentivesSummaryByLocation(prisonId: String, locationId: String, sortBy: SortColumn = SortColumn.NAME, sortDirection: Sort.Direction = Sort.Direction.ASC): Mono<BehaviourSummary> {
 
     val result = prisonApiService.findPrisonersAtLocation(prisonId, locationId)
       .collectList()
@@ -75,8 +75,6 @@ class IncentiveSummaryService(
 
     return result.defaultIfEmpty(BehaviourSummary(prisonId = prisonId, locationId = locationId))
   }
-
-
 
   fun addMissingLevels(
     data: List<IncentiveLevelSummary>,
@@ -197,7 +195,7 @@ enum class SortColumn {
   INCENTIVE_ENCOURAGEMENTS,
   PROVEN_ADJUDICATIONS;
 
-  fun applySorting(sortDirection: Sort.Direction = Sort.Direction.ASC) : Comparator<PrisonerIncentiveSummary> {
+  fun applySorting(sortDirection: Sort.Direction = Sort.Direction.ASC): Comparator<PrisonerIncentiveSummary> {
 
     val comparator = when (this) {
       NUMBER -> compareBy(PrisonerIncentiveSummary::prisonerNumber)
