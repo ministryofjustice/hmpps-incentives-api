@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.incentivesapi.data.BehaviourSummary
@@ -13,7 +14,7 @@ class IncentiveSummaryService(
   private val prisonApiService: PrisonApiService
 ) {
 
-  fun getIncentivesSummaryByLocation(prisonId: String, locationId: String): Mono<BehaviourSummary> {
+  fun getIncentivesSummaryByLocation(prisonId: String, locationId: String, sortBy : SortColumn = SortColumn.NAME, sortDirection : Sort.Direction = Sort.Direction.ASC): Mono<BehaviourSummary> {
 
     val result = prisonApiService.findPrisonersAtLocation(prisonId, locationId)
       .collectList()
@@ -49,7 +50,7 @@ class IncentiveSummaryService(
                   incentiveWarnings = tuples.t4[p.offenderNo]?.numSubTypeCount ?: 0,
                   provenAdjudications = tuples.t5[p.bookingId]?.provenAdjudicationCount ?: 0,
                 )
-              }
+              }.sortedWith(sortBy.applySorting(sortDirection))
             )
           }.toList()
         }.map { levels ->
@@ -74,6 +75,8 @@ class IncentiveSummaryService(
 
     return result.defaultIfEmpty(BehaviourSummary(prisonId = prisonId, locationId = locationId))
   }
+
+
 
   fun addMissingLevels(
     data: List<IncentiveLevelSummary>,
@@ -182,3 +185,31 @@ data class CaseNoteSummary(
   val totalCaseNotes: Int,
   val numSubTypeCount: Int
 )
+
+enum class SortColumn {
+  NUMBER,
+  NAME,
+  DAYS_ON_LEVEL,
+  POS_BEHAVIOURS,
+  NEG_BEHAVIOURS,
+  DAYS_SINCE_LAST_REVIEW,
+  INCENTIVE_WARNINGS,
+  INCENTIVE_ENCOURAGEMENTS,
+  PROVEN_ADJUDICATIONS;
+
+  fun applySorting(sortDirection: Sort.Direction = Sort.Direction.ASC) : Comparator<PrisonerIncentiveSummary> {
+
+    val comparator = when (this) {
+      NUMBER -> compareBy(PrisonerIncentiveSummary::prisonerNumber)
+      NAME -> compareBy(PrisonerIncentiveSummary::lastName, PrisonerIncentiveSummary::firstName)
+      DAYS_ON_LEVEL -> compareBy(PrisonerIncentiveSummary::daysOnLevel)
+      POS_BEHAVIOURS -> compareBy(PrisonerIncentiveSummary::positiveBehaviours)
+      NEG_BEHAVIOURS -> compareBy(PrisonerIncentiveSummary::negativeBehaviours)
+      DAYS_SINCE_LAST_REVIEW -> compareBy(PrisonerIncentiveSummary::daysSinceLastReview)
+      INCENTIVE_WARNINGS -> compareBy(PrisonerIncentiveSummary::incentiveWarnings)
+      INCENTIVE_ENCOURAGEMENTS -> compareBy(PrisonerIncentiveSummary::incentiveEncouragements)
+      PROVEN_ADJUDICATIONS -> compareBy(PrisonerIncentiveSummary::provenAdjudications)
+    }
+    return if (sortDirection == Sort.Direction.DESC) { comparator.reversed() } else { comparator }
+  }
+}
