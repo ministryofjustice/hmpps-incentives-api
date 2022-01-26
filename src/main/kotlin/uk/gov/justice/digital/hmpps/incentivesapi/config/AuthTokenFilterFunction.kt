@@ -37,5 +37,5 @@ fun <T> Flux<T>.withToken(authToken: String): Flux<T> =
 fun <T> Mono<T>.withToken(authToken: String): Mono<T> =
   this.contextWrite { transferAuthHeader(authToken, it) }
 
-private fun transferAuthHeader(authToken: String, context: Context) =
+fun transferAuthHeader(authToken: String, context: Context) =
   context.put(HttpHeaders.AUTHORIZATION, authToken)

@@ -61,7 +61,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
             """
                 {
                   "agencyId": "MDI",
-                  "description": "1",
+                  "description": "Houseblock 1",
                   "locationPrefix": "$locationId",
                   "locationType": "WING",
                   "userDescription": "Houseblock 1"

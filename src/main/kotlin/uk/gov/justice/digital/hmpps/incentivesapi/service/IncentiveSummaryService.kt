@@ -158,7 +158,7 @@ class IncentiveSummaryService(
   fun getLocation(locationId: String): Mono<String> =
     prisonApiService.getLocation(locationId)
       .map {
-        it.locationPrefix
+        it.description
       }
 
   fun getIepLevels(prisonId: String): Mono<Map<String, IepLevel>> =

@@ -38,7 +38,7 @@ class IncentiveSummaryResourceTest : IntegrationTestBase() {
 {
    "prisonId":"MDI",
    "locationId":"MDI-1",
-   "locationDescription":"MDI-1",
+   "locationDescription":"Houseblock 1",
    "incentiveLevelSummary":[
       {
          "level":"Entry",
