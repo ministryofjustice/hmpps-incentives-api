@@ -35,7 +35,7 @@ class IncentiveSummaryService(
         ).map { tuples ->
           tuples.t1.map { prisoner ->
             IncentiveLevelSummary(
-              level = tuples.t6[prisoner.key]?.iepLevel?:prisoner.key,
+              level = tuples.t6[prisoner.key]?.iepLevel ?: prisoner.key,
               levelDescription = prisoner.key,
               prisonerBehaviours = prisoner.value.map { p ->
                 PrisonerIncentiveSummary(

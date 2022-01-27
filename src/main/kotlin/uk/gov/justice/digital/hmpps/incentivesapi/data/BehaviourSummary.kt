@@ -20,7 +20,6 @@ data class BehaviourSummary(
   )
   fun getTotalNumberOfPrisoners(): Int = incentiveLevelSummary.sumOf { it.getNumberAtThisLevel() }
 
-
   @Schema(
     description = "Average number of days a prisoner at this location has been on their current level",
     example = "234"
