@@ -39,16 +39,24 @@ class IncentiveSummaryResourceTest : IntegrationTestBase() {
    "prisonId":"MDI",
    "locationId":"MDI-1",
    "locationDescription":"Houseblock 1",
+   "averageDaysOnLevel":93,
+   "averageDaysSinceLastReview":21,
+   "totalNumberOfPrisoners":5,
+   "totalPositiveBehaviours":14,
+   "totalIncentiveWarnings":0,
+   "totalNegativeBehaviours":14,
+   "totalIncentiveEncouragements":0,
+
    "incentiveLevelSummary":[
       {
-         "level":"Entry",
-         "prisonerBehaviours":[
-            
-         ],
+         "level":"ENT",
+         "levelDescription":"Entry",
+         "prisonerBehaviours":[],
          "numberAtThisLevel":0
       },
       {
-         "level":"Basic",
+         "level":"BAS",
+         "levelDescription":"Basic",
          "prisonerBehaviours":[
             {
                "prisonerNumber":"A1234AA",
@@ -82,7 +90,8 @@ class IncentiveSummaryResourceTest : IntegrationTestBase() {
          "numberAtThisLevel":2
       },
       {
-         "level":"Standard",
+         "level":"STD",
+         "levelDescription":"Standard",
          "prisonerBehaviours":[
             {
                "prisonerNumber":"A1234AB",
@@ -116,7 +125,8 @@ class IncentiveSummaryResourceTest : IntegrationTestBase() {
          "numberAtThisLevel":2
       },
       {
-         "level":"Enhanced",
+         "level":"ENH",
+         "levelDescription":"Enhanced",
          "prisonerBehaviours":[
             {
                "prisonerNumber":"A1234AC",
@@ -135,11 +145,7 @@ class IncentiveSummaryResourceTest : IntegrationTestBase() {
          ],
          "numberAtThisLevel":1
       }
-   ],
-   "totalPositiveBehaviours":14,
-   "totalNegativeBehaviours":14,
-   "totalIncentiveEncouragements":0,
-   "totalIncentiveWarnings":0
+   ]
 }
          """
       )

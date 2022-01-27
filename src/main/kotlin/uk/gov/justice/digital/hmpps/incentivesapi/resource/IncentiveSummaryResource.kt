@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.resource
 
+import io.swagger.v3.oas.annotations.Hidden
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -33,7 +35,8 @@ class IncentiveSummaryResource(private val incentiveSummaryService: IncentiveSum
     responses = [
       ApiResponse(
         responseCode = "200",
-        description = "Incentive Information returned"
+        description = "Incentive Information returned",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = BehaviourSummary::class))]
       ),
       ApiResponse(
         responseCode = "400",
@@ -61,7 +64,7 @@ class IncentiveSummaryResource(private val incentiveSummaryService: IncentiveSum
     @RequestParam(required = false, defaultValue = "NAME") sortBy: SortColumn,
     @Schema(description = "Sort Direction", example = "ASC", required = false, defaultValue = "ASC")
     @RequestParam(required = false, defaultValue = "ASC") sortDirection: Sort.Direction,
-    @Schema(accessMode = Schema.AccessMode.READ_ONLY, hidden = true) @RequestHeader(HttpHeaders.AUTHORIZATION) auth: String
+    @Parameter(hidden = true) @Schema(accessMode = Schema.AccessMode.READ_ONLY, hidden = true) @RequestHeader(HttpHeaders.AUTHORIZATION) auth: String
   ): Mono<BehaviourSummary> =
     incentiveSummaryService.getIncentivesSummaryByLocation(prisonId, locationId, sortBy, sortDirection).withToken(auth)
 }
