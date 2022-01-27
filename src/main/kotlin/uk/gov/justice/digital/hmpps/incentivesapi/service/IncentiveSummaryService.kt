@@ -30,11 +30,13 @@ class IncentiveSummaryService(
           getIEPDetails(bookingIds),
           getCaseNoteUsage("POS", "IEP_ENC", offenderNos),
           getCaseNoteUsage("NEG", "IEP_WARN", offenderNos),
-          getProvenAdjudications(bookingIds)
+          getProvenAdjudications(bookingIds),
+          getIepLevelsByDescription(prisonId)
         ).map { tuples ->
           tuples.t1.map { prisoner ->
             IncentiveLevelSummary(
-              level = prisoner.key,
+              level = tuples.t6[prisoner.key]?.iepLevel ?: prisoner.key,
+              levelDescription = prisoner.key,
               prisonerBehaviours = prisoner.value.map { p ->
                 PrisonerIncentiveSummary(
                   firstName = p.firstName,
@@ -57,7 +59,7 @@ class IncentiveSummaryService(
           Mono.zip(
             Mono.just(levels),
             getLocation(locationId),
-            getIepLevels(prisonId),
+            getIepLevelsByCode(prisonId)
           )
             .map { tuples ->
               BehaviourSummary(
@@ -86,7 +88,7 @@ class IncentiveSummaryService(
       .filter {
         currentLevels[it.key] == null
       }.map {
-        IncentiveLevelSummary(level = it.key, prisonerBehaviours = listOf())
+        IncentiveLevelSummary(level = it.key, levelDescription = it.value.iepDescription, prisonerBehaviours = listOf())
       } + data
   }
 
@@ -162,10 +164,16 @@ class IncentiveSummaryService(
         it.description
       }
 
-  fun getIepLevels(prisonId: String): Mono<Map<String, IepLevel>> =
+  fun getIepLevelsByDescription(prisonId: String): Mono<Map<String, IepLevel>> =
     prisonApiService.getIepLevelsForPrison(prisonId)
       .collectMap {
         it.iepDescription
+      }
+
+  fun getIepLevelsByCode(prisonId: String): Mono<Map<String, IepLevel>> =
+    prisonApiService.getIepLevelsForPrison(prisonId)
+      .collectMap {
+        it.iepLevel
       }
 }
 

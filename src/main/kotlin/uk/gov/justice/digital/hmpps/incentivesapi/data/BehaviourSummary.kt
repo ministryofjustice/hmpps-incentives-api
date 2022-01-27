@@ -15,6 +15,24 @@ data class BehaviourSummary(
 ) {
 
   @Schema(
+    description = "Total number of prisoners at this location",
+    example = "150"
+  )
+  fun getTotalNumberOfPrisoners(): Int = incentiveLevelSummary.sumOf { it.getNumberAtThisLevel() }
+
+  @Schema(
+    description = "Average number of days a prisoner at this location has been on their current level",
+    example = "234"
+  )
+  fun getAverageDaysOnLevel(): Int = incentiveLevelSummary.sumOf { it.prisonerBehaviours.sumOf { p -> p.daysOnLevel } } / getTotalNumberOfPrisoners()
+
+  @Schema(
+    description = "Average number time in days a prisoner at this location had their last review",
+    example = "50"
+  )
+  fun getAverageDaysSinceLastReview(): Int = incentiveLevelSummary.sumOf { it.prisonerBehaviours.sumOf { p -> p.daysSinceLastReview } } / getTotalNumberOfPrisoners()
+
+  @Schema(
     description = "Total count of all the positive case note behaviour entries recorded for this location",
     example = "20"
   )
@@ -37,8 +55,11 @@ data class BehaviourSummary(
 }
 
 data class IncentiveLevelSummary(
-  @Schema(description = "IEP Level", example = "Standard")
+  @Schema(description = "IEP Level Code", example = "STD")
   val level: String,
+  @Schema(description = "IEP level description", example = "Standard")
+  val levelDescription: String,
+
   @Schema(description = "List of all prisoners at this location at this IEP level")
   val prisonerBehaviours: List<PrisonerIncentiveSummary> = listOf()
 ) {
@@ -56,7 +77,7 @@ data class PrisonerIncentiveSummary(
   )
   val bookingId: Long,
   @Schema(description = "Internal reference for looking up the prisoners latest photo", example = "112121")
-  val imageId: Long,
+  val imageId: Long?,
   @Schema(description = "Prisoners First Name", example = "John")
   val firstName: String,
   @Schema(description = "Prisoners Last Name", example = "Smith")
