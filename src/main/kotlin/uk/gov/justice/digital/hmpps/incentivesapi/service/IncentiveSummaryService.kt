@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
+import org.apache.commons.text.WordUtils
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
@@ -39,8 +40,8 @@ class IncentiveSummaryService(
               levelDescription = prisoner.key,
               prisonerBehaviours = prisoner.value.map { p ->
                 PrisonerIncentiveSummary(
-                  firstName = p.firstName,
-                  lastName = p.lastName,
+                  firstName = WordUtils.capitalizeFully(p.firstName),
+                  lastName = WordUtils.capitalizeFully(p.lastName),
                   prisonerNumber = p.offenderNo,
                   bookingId = p.bookingId,
                   imageId = p.facialImageId,
