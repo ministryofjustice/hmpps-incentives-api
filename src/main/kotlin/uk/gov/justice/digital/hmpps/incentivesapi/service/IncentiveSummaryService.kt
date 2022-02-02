@@ -111,29 +111,20 @@ class IncentiveSummaryService(
         it.bookingId
       }
 
-  private fun calcDaysOnLevel(iepSummary: IepSummary): Int {
-    val currentIepDate = iepSummary.iepDate
-    var daysOnLevel: Int = getDaysOnLevel(iepSummary.iepDetails.last().iepDate, currentIepDate, iepSummary.daysSinceReview)
+  fun calcDaysOnLevel(iepSummary: IepSummary): Int {
+    val currentIepDate = LocalDate.now().atStartOfDay()
+    var daysOnLevel = 0
 
     run iepCheck@{
       iepSummary.iepDetails.forEach {
         if (it.iepLevel != iepSummary.iepLevel) {
-          daysOnLevel = getDaysOnLevel(it.iepDate, currentIepDate, iepSummary.daysSinceReview)
           return@iepCheck
         }
+        daysOnLevel = Duration.between(it.iepDate.atStartOfDay(), currentIepDate).toDays().toInt()
       }
     }
 
     return daysOnLevel
-  }
-
-  private fun getDaysOnLevel(
-    oldIepDate: LocalDate,
-    currentIepDate: LocalDate,
-    daysSinceReview: Int
-  ): Int {
-    val daysOnLevelBetweenReview = Duration.between(oldIepDate.atStartOfDay(), currentIepDate.atStartOfDay()).toDays()
-    return daysOnLevelBetweenReview.toInt() + daysSinceReview - 1
   }
 
   fun getCaseNoteUsage(type: String, subType: String, offenderNos: List<String>): Mono<Map<String, CaseNoteSummary>> =
