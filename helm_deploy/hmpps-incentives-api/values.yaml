@@ -15,9 +15,9 @@ generic-service:
     tlsSecretName: hmpps-incentives-api-cert
     contextColour: green
     annotations:
-      nginx.ingress.kubernetes.io/proxy-connect-timeout: "120"
-      nginx.ingress.kubernetes.io/proxy-send-timeout: "120"
-      nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
+      nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
 
   # Environment variables to load into the deployment
   env:
