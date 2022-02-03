@@ -6,6 +6,7 @@ generic-service:
 
   ingress:
     host: incentives-api-dev.hmpps.service.justice.gov.uk
+  allowlist: null
 
   env:
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.dev.json
