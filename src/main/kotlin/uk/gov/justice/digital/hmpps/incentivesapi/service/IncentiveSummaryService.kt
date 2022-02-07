@@ -85,12 +85,13 @@ class IncentiveSummaryService(
   ): List<IncentiveLevelSummary> {
     val currentLevels = data.groupBy { it.level }
 
-    return levelMap.entries
+    val incentiveLevelSummaries = data + levelMap.entries
       .filter {
         currentLevels[it.key] == null
       }.map {
         IncentiveLevelSummary(level = it.key, levelDescription = it.value.iepDescription, prisonerBehaviours = listOf())
-      } + data
+      }
+    return incentiveLevelSummaries.sortedWith(compareBy { v -> levelMap[v.level]?.sequence })
   }
 
   fun getProvenAdjudications(bookingIds: List<Long>): Mono<Map<Long, ProvenAdjudication>> =

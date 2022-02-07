@@ -51,7 +51,8 @@ data class ProvenAdjudication(
 
 data class IepLevel(
   val iepLevel: String,
-  val iepDescription: String
+  val iepDescription: String,
+  val sequence: Int?
 )
 
 data class PrisonLocation(
