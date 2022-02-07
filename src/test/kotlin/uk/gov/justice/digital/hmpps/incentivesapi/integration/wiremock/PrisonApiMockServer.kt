@@ -31,19 +31,23 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
               [
                 {
                   "iepLevel": "BAS",
-                  "iepDescription": "Basic"
+                  "iepDescription": "Basic",
+                  "sequence": 2
                 },
                 {
                   "iepLevel": "STD",
-                  "iepDescription": "Standard"
+                  "iepDescription": "Standard",
+                  "sequence": 3
                 },
                 {
                   "iepLevel": "ENT",
-                  "iepDescription": "Entry"
+                  "iepDescription": "Entry",
+                  "sequence": 1
                 },
                 {
                   "iepLevel": "ENH",
-                  "iepDescription": "Enhanced"
+                  "iepDescription": "Enhanced",
+                  "sequence": 4
                 }
               ]
             """.trimIndent()
