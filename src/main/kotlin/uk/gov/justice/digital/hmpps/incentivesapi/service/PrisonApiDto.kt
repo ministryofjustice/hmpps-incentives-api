@@ -7,7 +7,6 @@ data class PrisonerAtLocation(
   val bookingId: Long,
   val facialImageId: Long,
   val firstName: String,
-  val iepLevel: String,
   val lastName: String,
   val offenderNo: String,
 )
