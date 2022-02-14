@@ -78,7 +78,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
 
   fun stubPrisonersOnWing(locationId: String) {
     stubFor(
-      get("/api/locations/description/$locationId/inmates?returnIep=true").willReturn(
+      get("/api/locations/description/$locationId/inmates").willReturn(
         aResponse()
           .withHeader("Content-Type", "application/json")
           .withBody(
@@ -91,7 +91,6 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                   "bookingNo": "A12121",
                   "facialImageId": 1241241,
                   "firstName": "JOHN",
-                  "iepLevel": "Basic",
                   "lastName": "SMITH",
                   "offenderNo": "A1234AA"
                 },
@@ -102,7 +101,6 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                   "bookingNo": "A12122",
                   "facialImageId": 1241242,
                   "firstName": "DAVID",
-                  "iepLevel": "Standard",
                   "lastName": "WHITE",
                   "offenderNo": "A1234AB"
                 },
@@ -113,7 +111,6 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                   "bookingNo": "A12123",
                   "facialImageId": 1241243,
                   "firstName": "TREVOR",
-                  "iepLevel": "Enhanced",
                   "lastName": "LEE",
                   "offenderNo": "A1234AC"
                 },  {
@@ -123,7 +120,6 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                   "bookingNo": "A12124",
                   "facialImageId": 1241244,
                   "firstName": "ANTHONY",
-                  "iepLevel": "Basic",
                   "lastName": "DAVIES",
                   "offenderNo": "A1234AD"
                 },  {
@@ -133,7 +129,6 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                   "bookingNo": "A12125",
                   "facialImageId": 1241245,
                   "firstName": "PAUL",
-                  "iepLevel": "Standard",
                   "lastName": "RUDD",
                   "offenderNo": "A1234AE"
                 }

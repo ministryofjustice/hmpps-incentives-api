@@ -27,35 +27,36 @@ class IncentiveSummaryService(
         if (bookingIds.isEmpty()) throw NoPrisonersAtLocationException(prisonId, locationId)
 
         Mono.zip(
-          Mono.just(it.groupBy { p -> p.iepLevel }),
+          Mono.just(it),
           getIEPDetails(bookingIds),
           getCaseNoteUsage("POS", "IEP_ENC", offenderNos),
           getCaseNoteUsage("NEG", "IEP_WARN", offenderNos),
           getProvenAdjudications(bookingIds),
           getIepLevelsByDescription(prisonId)
         ).map { tuples ->
-          tuples.t1.map { prisoner ->
-            IncentiveLevelSummary(
-              level = tuples.t6[prisoner.key]?.iepLevel ?: prisoner.key,
-              levelDescription = prisoner.key,
-              prisonerBehaviours = prisoner.value.map { p ->
-                PrisonerIncentiveSummary(
-                  firstName = WordUtils.capitalizeFully(p.firstName),
-                  lastName = WordUtils.capitalizeFully(p.lastName),
-                  prisonerNumber = p.offenderNo,
-                  bookingId = p.bookingId,
-                  imageId = p.facialImageId,
-                  daysOnLevel = tuples.t2[p.bookingId]?.daysOnLevel ?: 0,
-                  daysSinceLastReview = tuples.t2[p.bookingId]?.daysSinceReview ?: 0,
-                  positiveBehaviours = tuples.t3[p.offenderNo]?.totalCaseNotes ?: 0,
-                  incentiveEncouragements = tuples.t3[p.offenderNo]?.numSubTypeCount ?: 0,
-                  negativeBehaviours = tuples.t4[p.offenderNo]?.totalCaseNotes ?: 0,
-                  incentiveWarnings = tuples.t4[p.offenderNo]?.numSubTypeCount ?: 0,
-                  provenAdjudications = tuples.t5[p.bookingId]?.provenAdjudicationCount ?: 0,
-                )
-              }.sortedWith(sortBy.applySorting(sortDirection))
-            )
-          }.toList()
+          getPrisonersByLevel(tuples.t1, tuples.t2)
+            .map { levelMap ->
+              IncentiveLevelSummary(
+                level = tuples.t6[levelMap.key]!!.iepLevel,
+                levelDescription = levelMap.key,
+                prisonerBehaviours = levelMap.value.map { p ->
+                  PrisonerIncentiveSummary(
+                    firstName = WordUtils.capitalizeFully(p.firstName),
+                    lastName = WordUtils.capitalizeFully(p.lastName),
+                    prisonerNumber = p.offenderNo,
+                    bookingId = p.bookingId,
+                    imageId = p.facialImageId,
+                    daysOnLevel = tuples.t2[p.bookingId]?.daysOnLevel ?: 0,
+                    daysSinceLastReview = tuples.t2[p.bookingId]?.daysSinceReview ?: 0,
+                    positiveBehaviours = tuples.t3[p.offenderNo]?.totalCaseNotes ?: 0,
+                    incentiveEncouragements = tuples.t3[p.offenderNo]?.numSubTypeCount ?: 0,
+                    negativeBehaviours = tuples.t4[p.offenderNo]?.totalCaseNotes ?: 0,
+                    incentiveWarnings = tuples.t4[p.offenderNo]?.numSubTypeCount ?: 0,
+                    provenAdjudications = tuples.t5[p.bookingId]?.provenAdjudicationCount ?: 0,
+                  )
+                }.sortedWith(sortBy.applySorting(sortDirection))
+              )
+            }.toList()
         }.map { levels ->
           Mono.zip(
             Mono.just(levels),
@@ -78,6 +79,11 @@ class IncentiveSummaryService(
 
     return result.defaultIfEmpty(BehaviourSummary(prisonId = prisonId, locationId = locationId))
   }
+
+  fun getPrisonersByLevel(prisoners: List<PrisonerAtLocation>, prisonerLevels: Map<Long, IepResult>): Map<String, List<PrisonerAtLocation>> =
+    prisoners.groupBy {
+      prisonerLevels[it.bookingId]?.iepLevel ?: "OTHER"
+    }
 
   fun addMissingLevels(
     data: List<IncentiveLevelSummary>,
@@ -105,6 +111,7 @@ class IncentiveSummaryService(
       .map {
         IepResult(
           bookingId = it.bookingId,
+          iepLevel = it.iepLevel,
           daysSinceReview = it.daysSinceReview,
           daysOnLevel = calcDaysOnLevel(it)
         )
@@ -175,6 +182,7 @@ class NoPrisonersAtLocationException(prisonId: String, locationId: String) :
 
 data class IepResult(
   val bookingId: Long,
+  val iepLevel: String,
   val daysSinceReview: Int,
   val daysOnLevel: Int
 )
