@@ -12,7 +12,7 @@ class PrisonApiService(private val prisonWebClient: WebClient) {
 
   fun findPrisonersAtLocation(prisonId: String, locationId: String): Flux<PrisonerAtLocation> =
     prisonWebClient.get()
-      .uri("/api/locations/description/$locationId/inmates?returnIep=true")
+      .uri("/api/locations/description/$locationId/inmates")
       .header("Page-Limit", "3000")
       .retrieve()
       .bodyToFlux(PrisonerAtLocation::class.java)
