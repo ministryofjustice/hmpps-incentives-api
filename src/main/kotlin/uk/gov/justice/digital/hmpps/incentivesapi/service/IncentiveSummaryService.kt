@@ -105,7 +105,7 @@ class IncentiveSummaryService(
       }.map {
         IncentiveLevelSummary(level = it.key, levelDescription = it.value.iepDescription, prisonerBehaviours = listOf())
       }
-    val additionalLevels = levelMap + mapOf( missingLevel().iepLevel to missingLevel(), invalidLevel().iepLevel to invalidLevel() )
+    val additionalLevels = levelMap + mapOf(missingLevel().iepLevel to missingLevel(), invalidLevel().iepLevel to invalidLevel())
     return incentiveLevelSummaries.sortedWith(compareBy { v -> additionalLevels[v.level]?.sequence })
   }
 
@@ -188,7 +188,6 @@ class IncentiveSummaryService(
 
 fun invalidLevel() = IepLevel(iepLevel = "INV", iepDescription = "Invalid", sequence = 98)
 fun missingLevel() = IepLevel(iepLevel = "MIS", iepDescription = "Missing", sequence = 99)
-
 
 class NoPrisonersAtLocationException(prisonId: String, locationId: String) :
   Exception("No prisoners found at prison $prisonId, location $locationId")
