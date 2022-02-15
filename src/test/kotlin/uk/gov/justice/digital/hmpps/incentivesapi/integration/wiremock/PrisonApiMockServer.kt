@@ -32,22 +32,17 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                 {
                   "iepLevel": "BAS",
                   "iepDescription": "Basic",
-                  "sequence": 2
+                  "sequence": 1
                 },
                 {
                   "iepLevel": "STD",
                   "iepDescription": "Standard",
-                  "sequence": 3
-                },
-                {
-                  "iepLevel": "ENT",
-                  "iepDescription": "Entry",
-                  "sequence": 1
+                  "sequence": 2
                 },
                 {
                   "iepLevel": "ENH",
                   "iepDescription": "Enhanced",
-                  "sequence": 4
+                  "sequence": 3
                 }
               ]
             """.trimIndent()
@@ -131,7 +126,27 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                   "firstName": "PAUL",
                   "lastName": "RUDD",
                   "offenderNo": "A1234AE"
-                }
+                },
+                {
+                  "agencyId": "MDI",
+                  "assignedLivingUnitDesc": "$locationId-1-6",
+                  "bookingId": 2234134,
+                  "bookingNo": "B12121",
+                  "facialImageId": 1541241,
+                  "firstName": "MISSING",
+                  "lastName": "IEP",
+                  "offenderNo": "A1834AA"
+                },
+                {
+                  "agencyId": "MDI",
+                  "assignedLivingUnitDesc": "$locationId-1-7",
+                  "bookingId": 2734134,
+                  "bookingNo": "B12122",
+                  "facialImageId": 1241243,
+                  "firstName": "OLD",
+                  "lastName": "ENTRY",
+                  "offenderNo": "A1934AA"
+                }                                
               ]
             """.trimIndent()
           )
@@ -218,7 +233,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                     }
                   ]
                 },
-                       {
+                {
                   "bookingId": 1234138,
                   "iepLevel": "Standard",
                   "daysSinceReview": 6,
@@ -231,6 +246,22 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                       "iepDate": "2021-12-02",
                       "iepLevel": "Standard",
                       "iepTime": "2021-12-02T09:24:42.894Z"
+                    }
+                  ]
+                },
+                {
+                  "bookingId": 2734134,
+                  "iepLevel": "Entry",
+                  "daysSinceReview": 1,
+                  "iepDate": "2022-01-02T00:00:00",
+                  "iepTime": "2022-01-02T09:24:42.894Z",
+                  "iepDetails": [
+                    {
+                      "agencyId": "MDI",
+                      "bookingId": 2734134,
+                      "iepDate": "2022-01-02",
+                      "iepLevel": "Entry",
+                      "iepTime": "2022-01-02T09:24:42.894Z"
                     }
                   ]
                 }

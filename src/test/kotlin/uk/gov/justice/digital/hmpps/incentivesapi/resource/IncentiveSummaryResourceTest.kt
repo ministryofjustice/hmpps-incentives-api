@@ -39,20 +39,7 @@ class IncentiveSummaryResourceTest : IntegrationTestBase() {
    "prisonId":"MDI",
    "locationId":"MDI-1",
    "locationDescription":"Houseblock 1",
-   "averageDaysSinceLastReview":21,
-   "totalNumberOfPrisoners":5,
-   "totalPositiveBehaviours":14,
-   "totalIncentiveWarnings":0,
-   "totalNegativeBehaviours":14,
-   "totalIncentiveEncouragements":0,
-
    "incentiveLevelSummary":[
-      {
-         "level":"ENT",
-         "levelDescription":"Entry",
-         "prisonerBehaviours":[],
-         "numberAtThisLevel":0
-      },
       {
          "level":"BAS",
          "levelDescription":"Basic",
@@ -63,6 +50,7 @@ class IncentiveSummaryResourceTest : IntegrationTestBase() {
                "imageId":1241241,
                "firstName":"John",
                "lastName":"Smith",
+               "daysOnLevel":75,
                "daysSinceLastReview":35,
                "positiveBehaviours":3,
                "incentiveEncouragements":0,
@@ -76,6 +64,7 @@ class IncentiveSummaryResourceTest : IntegrationTestBase() {
                "imageId":1241244,
                "firstName":"Anthony",
                "lastName":"Davies",
+               "daysOnLevel":75,
                "daysSinceLastReview":2,
                "positiveBehaviours":1,
                "incentiveEncouragements":0,
@@ -96,6 +85,7 @@ class IncentiveSummaryResourceTest : IntegrationTestBase() {
                "imageId":1241242,
                "firstName":"David",
                "lastName":"White",
+               "daysOnLevel":75,
                "daysSinceLastReview":50,
                "positiveBehaviours":3,
                "incentiveEncouragements":0,
@@ -109,6 +99,7 @@ class IncentiveSummaryResourceTest : IntegrationTestBase() {
                "imageId":1241245,
                "firstName":"Paul",
                "lastName":"Rudd",
+               "daysOnLevel":75,
                "daysSinceLastReview":6,
                "positiveBehaviours":5,
                "incentiveEncouragements":0,
@@ -129,6 +120,7 @@ class IncentiveSummaryResourceTest : IntegrationTestBase() {
                "imageId":1241243,
                "firstName":"Trevor",
                "lastName":"Lee",
+               "daysOnLevel":75,
                "daysSinceLastReview":12,
                "positiveBehaviours":2,
                "incentiveEncouragements":0,
@@ -138,8 +130,57 @@ class IncentiveSummaryResourceTest : IntegrationTestBase() {
             }
          ],
          "numberAtThisLevel":1
+      },
+      {
+         "level":"INV",
+         "levelDescription":"Invalid",
+         "prisonerBehaviours":[
+            {
+               "prisonerNumber":"A1934AA",
+               "bookingId":2734134,
+               "imageId":1241243,
+               "firstName":"Old",
+               "lastName":"Entry",
+               "daysOnLevel":44,
+               "daysSinceLastReview":1,
+               "positiveBehaviours":0,
+               "incentiveEncouragements":0,
+               "negativeBehaviours":0,
+               "incentiveWarnings":0,
+               "provenAdjudications":0
+            }
+         ],
+         "numberAtThisLevel":1
+      },
+      {
+         "level":"MIS",
+         "levelDescription":"Missing",
+         "prisonerBehaviours":[
+            {
+               "prisonerNumber":"A1834AA",
+               "bookingId":2234134,
+               "imageId":1541241,
+               "firstName":"Missing",
+               "lastName":"Iep",
+               "daysOnLevel":0,
+               "daysSinceLastReview":0,
+               "positiveBehaviours":0,
+               "incentiveEncouragements":0,
+               "negativeBehaviours":0,
+               "incentiveWarnings":0,
+               "provenAdjudications":0
+            }
+         ],
+         "numberAtThisLevel":1
       }
-   ]
+   ],
+   "totalNumberOfPrisoners":7,
+   "averageDaysOnLevel":59,
+   "averageDaysSinceLastReview":15,
+   "totalPositiveBehaviours":14,
+   "totalNegativeBehaviours":14,
+   "totalIncentiveEncouragements":0,
+   "totalIncentiveWarnings":0
 }
          """
       )
