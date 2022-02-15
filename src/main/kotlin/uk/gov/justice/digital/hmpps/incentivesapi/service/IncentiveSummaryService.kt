@@ -35,11 +35,12 @@ class IncentiveSummaryService(
           getIepLevelsByDescription(prisonId)
         ).map { tuples ->
           getPrisonersByLevel(tuples.t1, tuples.t2)
-            .map { levelMap ->
+            .map { prisonerIepLevelMap ->
+              val iepLevel = lookupIepLevel(prisonerIepLevelMap, tuples.t6)
               IncentiveLevelSummary(
-                level = tuples.t6[levelMap.key]!!.iepLevel,
-                levelDescription = levelMap.key,
-                prisonerBehaviours = levelMap.value.map { p ->
+                level = iepLevel.iepLevel,
+                levelDescription = iepLevel.iepDescription,
+                prisonerBehaviours = prisonerIepLevelMap.value.map { p ->
                   PrisonerIncentiveSummary(
                     firstName = WordUtils.capitalizeFully(p.firstName),
                     lastName = WordUtils.capitalizeFully(p.lastName),
@@ -80,9 +81,16 @@ class IncentiveSummaryService(
     return result.defaultIfEmpty(BehaviourSummary(prisonId = prisonId, locationId = locationId))
   }
 
+  private fun lookupIepLevel(prisonerMap: Map.Entry<String, List<PrisonerAtLocation>>, levels: Map<String, IepLevel>) =
+    if (prisonerMap.key == missingLevel().iepLevel) {
+      missingLevel()
+    } else {
+      levels[prisonerMap.key] ?: invalidLevel()
+    }
+
   fun getPrisonersByLevel(prisoners: List<PrisonerAtLocation>, prisonerLevels: Map<Long, IepResult>): Map<String, List<PrisonerAtLocation>> =
     prisoners.groupBy {
-      prisonerLevels[it.bookingId]?.iepLevel ?: "OTHER"
+      prisonerLevels[it.bookingId]?.iepLevel ?: missingLevel().iepLevel
     }
 
   fun addMissingLevels(
@@ -97,7 +105,8 @@ class IncentiveSummaryService(
       }.map {
         IncentiveLevelSummary(level = it.key, levelDescription = it.value.iepDescription, prisonerBehaviours = listOf())
       }
-    return incentiveLevelSummaries.sortedWith(compareBy { v -> levelMap[v.level]?.sequence })
+    val additionalLevels = levelMap + mapOf(missingLevel().iepLevel to missingLevel(), invalidLevel().iepLevel to invalidLevel())
+    return incentiveLevelSummaries.sortedWith(compareBy { v -> additionalLevels[v.level]?.sequence })
   }
 
   fun getProvenAdjudications(bookingIds: List<Long>): Mono<Map<Long, ProvenAdjudication>> =
@@ -176,6 +185,9 @@ class IncentiveSummaryService(
         it.iepLevel
       }
 }
+
+fun invalidLevel() = IepLevel(iepLevel = "INV", iepDescription = "Invalid", sequence = 98)
+fun missingLevel() = IepLevel(iepLevel = "MIS", iepDescription = "Missing", sequence = 99)
 
 class NoPrisonersAtLocationException(prisonId: String, locationId: String) :
   Exception("No prisoners found at prison $prisonId, location $locationId")
