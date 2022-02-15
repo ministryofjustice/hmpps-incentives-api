@@ -39,20 +39,7 @@ class IncentiveSummaryResourceTest : IntegrationTestBase() {
    "prisonId":"MDI",
    "locationId":"MDI-1",
    "locationDescription":"Houseblock 1",
-   "averageDaysSinceLastReview":21,
-   "totalNumberOfPrisoners":5,
-   "totalPositiveBehaviours":14,
-   "totalIncentiveWarnings":0,
-   "totalNegativeBehaviours":14,
-   "totalIncentiveEncouragements":0,
-
    "incentiveLevelSummary":[
-      {
-         "level":"ENT",
-         "levelDescription":"Entry",
-         "prisonerBehaviours":[],
-         "numberAtThisLevel":0
-      },
       {
          "level":"BAS",
          "levelDescription":"Basic",
@@ -138,8 +125,54 @@ class IncentiveSummaryResourceTest : IntegrationTestBase() {
             }
          ],
          "numberAtThisLevel":1
+      },
+      {
+         "level":"INV",
+         "levelDescription":"Invalid",
+         "prisonerBehaviours":[
+            {
+               "prisonerNumber":"A1934AA",
+               "bookingId":2734134,
+               "imageId":1241243,
+               "firstName":"Old",
+               "lastName":"Entry",
+               "daysSinceLastReview":1,
+               "positiveBehaviours":0,
+               "incentiveEncouragements":0,
+               "negativeBehaviours":0,
+               "incentiveWarnings":0,
+               "provenAdjudications":0
+            }
+         ],
+         "numberAtThisLevel":1
+      },
+      {
+         "level":"MIS",
+         "levelDescription":"Missing",
+         "prisonerBehaviours":[
+            {
+               "prisonerNumber":"A1834AA",
+               "bookingId":2234134,
+               "imageId":1541241,
+               "firstName":"Missing",
+               "lastName":"Iep",
+               "daysSinceLastReview":0,
+               "positiveBehaviours":0,
+               "incentiveEncouragements":0,
+               "negativeBehaviours":0,
+               "incentiveWarnings":0,
+               "provenAdjudications":0
+            }
+         ],
+         "numberAtThisLevel":1
       }
-   ]
+   ],
+   "totalNumberOfPrisoners":7,
+   "averageDaysSinceLastReview":15,
+   "totalPositiveBehaviours":14,
+   "totalNegativeBehaviours":14,
+   "totalIncentiveEncouragements":0,
+   "totalIncentiveWarnings":0
 }
          """
       )
