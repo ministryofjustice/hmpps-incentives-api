@@ -1,9 +1,12 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import org.apache.commons.text.WordUtils
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.incentivesapi.data.BehaviourSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.data.IncentiveLevelSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.data.PrisonerIncentiveSummary
@@ -15,70 +18,63 @@ class IncentiveSummaryService(
   private val prisonApiService: PrisonApiService
 ) {
 
-  fun getIncentivesSummaryByLocation(prisonId: String, locationId: String, sortBy: SortColumn = SortColumn.NAME, sortDirection: Sort.Direction = Sort.Direction.ASC): Mono<BehaviourSummary> {
+  suspend fun getIncentivesSummaryByLocation(
+    prisonId: String,
+    locationId: String,
+    sortBy: SortColumn = SortColumn.NAME,
+    sortDirection: Sort.Direction = Sort.Direction.ASC
+  ): BehaviourSummary {
 
-    val result = prisonApiService.findPrisonersAtLocation(prisonId, locationId)
-      .collectList()
-      .map {
+    val prisoners = prisonApiService.findPrisonersAtLocation(prisonId, locationId).toList()
+    val bookingIds = prisoners.map { p -> p.bookingId }.toList()
+    val offenderNos = prisoners.map { p -> p.offenderNo }.toList()
 
-        val bookingIds = it.map { p -> p.bookingId }.toList()
-        val offenderNos = it.map { p -> p.offenderNo }.toList()
+    if (bookingIds.isEmpty()) throw NoPrisonersAtLocationException(prisonId, locationId)
 
-        if (bookingIds.isEmpty()) throw NoPrisonersAtLocationException(prisonId, locationId)
+    return coroutineScope {
 
-        Mono.zip(
-          Mono.just(it),
-          getIEPDetails(bookingIds),
-          getCaseNoteUsage("POS", "IEP_ENC", offenderNos),
-          getCaseNoteUsage("NEG", "IEP_WARN", offenderNos),
-          getProvenAdjudications(bookingIds),
-          getIepLevelsByDescription(prisonId)
-        ).map { tuples ->
-          getPrisonersByLevel(tuples.t1, tuples.t2)
-            .map { prisonerIepLevelMap ->
-              val iepLevel = lookupIepLevel(prisonerIepLevelMap, tuples.t6)
-              IncentiveLevelSummary(
-                level = iepLevel.iepLevel,
-                levelDescription = iepLevel.iepDescription,
-                prisonerBehaviours = prisonerIepLevelMap.value.map { p ->
-                  PrisonerIncentiveSummary(
-                    firstName = WordUtils.capitalizeFully(p.firstName),
-                    lastName = WordUtils.capitalizeFully(p.lastName),
-                    prisonerNumber = p.offenderNo,
-                    bookingId = p.bookingId,
-                    imageId = p.facialImageId,
-                    daysOnLevel = tuples.t2[p.bookingId]?.daysOnLevel ?: 0,
-                    daysSinceLastReview = tuples.t2[p.bookingId]?.daysSinceReview ?: 0,
-                    positiveBehaviours = tuples.t3[p.offenderNo]?.totalCaseNotes ?: 0,
-                    incentiveEncouragements = tuples.t3[p.offenderNo]?.numSubTypeCount ?: 0,
-                    negativeBehaviours = tuples.t4[p.offenderNo]?.totalCaseNotes ?: 0,
-                    incentiveWarnings = tuples.t4[p.offenderNo]?.numSubTypeCount ?: 0,
-                    provenAdjudications = tuples.t5[p.bookingId]?.provenAdjudicationCount ?: 0,
-                  )
-                }.sortedWith(sortBy.applySorting(sortDirection))
+      val positiveCaseNotes = async { getCaseNoteUsage("POS", "IEP_ENC", offenderNos) }
+      val negativeCaseNotes = async { getCaseNoteUsage("NEG", "IEP_WARN", offenderNos) }
+      val provenAdjudications = async { getProvenAdjudications(bookingIds) }
+      val iepDetails = getIEPDetails(bookingIds)
+
+      val levels = prisonApiService.getIepLevelsForPrison(prisonId).toList()
+
+      val prisonersByLevel = getPrisonersByLevel(prisoners, iepDetails)
+        .map { prisonerIepLevelMap ->
+          val iepLevel = lookupIepLevel(prisonerIepLevelMap, levels.associateBy { it.iepDescription })
+          IncentiveLevelSummary(
+            level = iepLevel.iepLevel,
+            levelDescription = iepLevel.iepDescription,
+            prisonerBehaviours = prisonerIepLevelMap.value.map { p ->
+              PrisonerIncentiveSummary(
+                firstName = WordUtils.capitalizeFully(p.firstName),
+                lastName = WordUtils.capitalizeFully(p.lastName),
+                prisonerNumber = p.offenderNo,
+                bookingId = p.bookingId,
+                imageId = p.facialImageId,
+                daysOnLevel = iepDetails[p.bookingId]?.daysOnLevel ?: 0,
+                daysSinceLastReview = iepDetails[p.bookingId]?.daysSinceReview ?: 0,
+                positiveBehaviours = positiveCaseNotes.await()[p.offenderNo]?.totalCaseNotes ?: 0,
+                incentiveEncouragements = positiveCaseNotes.await()[p.offenderNo]?.numSubTypeCount ?: 0,
+                negativeBehaviours = negativeCaseNotes.await()[p.offenderNo]?.totalCaseNotes ?: 0,
+                incentiveWarnings = negativeCaseNotes.await()[p.offenderNo]?.numSubTypeCount ?: 0,
+                provenAdjudications = provenAdjudications.await()[p.bookingId]?.provenAdjudicationCount ?: 0,
               )
-            }.toList()
-        }.map { levels ->
-          Mono.zip(
-            Mono.just(levels),
-            getLocation(locationId),
-            getIepLevelsByCode(prisonId)
+            }.sortedWith(sortBy.applySorting(sortDirection))
           )
-            .map { tuples ->
-              BehaviourSummary(
-                prisonId = prisonId,
-                locationId = locationId,
-                locationDescription = tuples.t2,
-                incentiveLevelSummary = addMissingLevels(tuples.t1, tuples.t3)
-              )
-            }
-        }
-      }.flatMap { bs ->
-        bs
-          .flatMap { t -> t }
-      }
+        }.toList()
 
-    return result.defaultIfEmpty(BehaviourSummary(prisonId = prisonId, locationId = locationId))
+      val location = async { getLocation(locationId) }
+      val iepLevelsByCode = levels.associateBy { it.iepLevel }
+
+      BehaviourSummary(
+        prisonId = prisonId,
+        locationId = locationId,
+        locationDescription = location.await(),
+        incentiveLevelSummary = addMissingLevels(prisonersByLevel, iepLevelsByCode)
+      )
+    }
   }
 
   private fun lookupIepLevel(prisonerMap: Map.Entry<String, List<PrisonerAtLocation>>, levels: Map<String, IepLevel>) =
@@ -88,7 +84,10 @@ class IncentiveSummaryService(
       levels[prisonerMap.key] ?: invalidLevel()
     }
 
-  fun getPrisonersByLevel(prisoners: List<PrisonerAtLocation>, prisonerLevels: Map<Long, IepResult>): Map<String, List<PrisonerAtLocation>> =
+  fun getPrisonersByLevel(
+    prisoners: List<PrisonerAtLocation>,
+    prisonerLevels: Map<Long, IepResult>
+  ): Map<String, List<PrisonerAtLocation>> =
     prisoners.groupBy {
       prisonerLevels[it.bookingId]?.iepLevel ?: missingLevel().iepLevel
     }
@@ -105,17 +104,18 @@ class IncentiveSummaryService(
       }.map {
         IncentiveLevelSummary(level = it.key, levelDescription = it.value.iepDescription, prisonerBehaviours = listOf())
       }
-    val additionalLevels = levelMap + mapOf(missingLevel().iepLevel to missingLevel(), invalidLevel().iepLevel to invalidLevel())
+    val additionalLevels =
+      levelMap + mapOf(missingLevel().iepLevel to missingLevel(), invalidLevel().iepLevel to invalidLevel())
     return incentiveLevelSummaries.sortedWith(compareBy { v -> additionalLevels[v.level]?.sequence })
   }
 
-  fun getProvenAdjudications(bookingIds: List<Long>): Mono<Map<Long, ProvenAdjudication>> =
+  suspend fun getProvenAdjudications(bookingIds: List<Long>): Map<Long, ProvenAdjudication> =
     prisonApiService.retrieveProvenAdjudications(bookingIds)
-      .collectMap {
+      .toList().associateBy {
         it.bookingId
       }
 
-  fun getIEPDetails(bookingIds: List<Long>): Mono<Map<Long, IepResult>> =
+  suspend fun getIEPDetails(bookingIds: List<Long>): Map<Long, IepResult> =
     prisonApiService.getIEPSummaryPerPrisoner(bookingIds)
       .map {
         IepResult(
@@ -124,7 +124,7 @@ class IncentiveSummaryService(
           daysSinceReview = it.daysSinceReview,
           daysOnLevel = calcDaysOnLevel(it)
         )
-      }.collectMap {
+      }.toList().associateBy {
         it.bookingId
       }
 
@@ -144,20 +144,18 @@ class IncentiveSummaryService(
     return daysOnLevel
   }
 
-  fun getCaseNoteUsage(type: String, subType: String, offenderNos: List<String>): Mono<Map<String, CaseNoteSummary>> =
+  suspend fun getCaseNoteUsage(type: String, subType: String, offenderNos: List<String>): Map<String, CaseNoteSummary> =
     prisonApiService.retrieveCaseNoteCounts(type, offenderNos)
-      .collectMultimap {
+      .toList().groupBy {
         it.offenderNo
-      }.map {
-        it.entries.map { cn ->
-          CaseNoteSummary(
-            offenderNo = cn.key,
-            totalCaseNotes = calcTypeCount(cn.value.toList()),
-            numSubTypeCount = calcTypeCount(cn.value.filter { cnc -> cnc.caseNoteSubType == subType }.toList())
-          )
-        }
-      }.map {
-        it.associateBy({ cn -> cn.offenderNo }, { cn -> cn })
+      }.map { cn ->
+        CaseNoteSummary(
+          offenderNo = cn.key,
+          totalCaseNotes = calcTypeCount(cn.value.toList()),
+          numSubTypeCount = calcTypeCount(cn.value.filter { cnc -> cnc.caseNoteSubType == subType }.toList())
+        )
+      }.associateBy {
+        it.offenderNo
       }
 
   private fun calcTypeCount(caseNoteUsage: List<CaseNoteUsage>): Int =
@@ -167,23 +165,8 @@ class IncentiveSummaryService(
       0
     }
 
-  fun getLocation(locationId: String): Mono<String> =
-    prisonApiService.getLocation(locationId)
-      .map {
-        it.description
-      }
-
-  fun getIepLevelsByDescription(prisonId: String): Mono<Map<String, IepLevel>> =
-    prisonApiService.getIepLevelsForPrison(prisonId)
-      .collectMap {
-        it.iepDescription
-      }
-
-  fun getIepLevelsByCode(prisonId: String): Mono<Map<String, IepLevel>> =
-    prisonApiService.getIepLevelsForPrison(prisonId)
-      .collectMap {
-        it.iepLevel
-      }
+  suspend fun getLocation(locationId: String): String =
+    prisonApiService.getLocation(locationId).description
 }
 
 fun invalidLevel() = IepLevel(iepLevel = "INV", iepDescription = "Invalid", sequence = 98)
