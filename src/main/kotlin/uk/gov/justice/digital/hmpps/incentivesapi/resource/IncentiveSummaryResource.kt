@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorResponse
-import uk.gov.justice.digital.hmpps.incentivesapi.config.withToken
 import uk.gov.justice.digital.hmpps.incentivesapi.data.BehaviourSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveSummaryService
 import uk.gov.justice.digital.hmpps.incentivesapi.service.SortColumn
@@ -65,5 +64,5 @@ class IncentiveSummaryResource(private val incentiveSummaryService: IncentiveSum
     @RequestParam(required = false, defaultValue = "ASC") sortDirection: Sort.Direction,
     @Parameter(hidden = true) @Schema(accessMode = Schema.AccessMode.READ_ONLY, hidden = true) @RequestHeader(HttpHeaders.AUTHORIZATION) auth: String
   ): Mono<BehaviourSummary> =
-    incentiveSummaryService.getIncentivesSummaryByLocation(prisonId, locationId, sortBy, sortDirection).withToken(auth)
+    incentiveSummaryService.getIncentivesSummaryByLocation(prisonId, locationId, sortBy, sortDirection)
 }
