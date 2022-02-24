@@ -13,7 +13,7 @@ class AuthHeaderWebFilter : WebFilter {
     val authHeader = serverWebExchange.request.headers[HttpHeaders.AUTHORIZATION]?.firstOrNull() ?: "none"
 
     return webFilterChain.filter(serverWebExchange).contextWrite {
-      transferAuthHeader(authHeader, it)
+      it.put(HttpHeaders.AUTHORIZATION, authHeader)
     }
   }
 }

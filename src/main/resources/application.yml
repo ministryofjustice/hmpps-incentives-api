@@ -26,10 +26,31 @@ spring:
     serialization:
       WRITE_DATES_AS_TIMESTAMPS: false
 
+  devtools:
+    add-properties: false
+
+    data:
+      web:
+        pageable:
+          max-page-size: 20000
+
   profiles:
     group:
       test:
         - "stdout"
+
+  flyway:
+    enabled: true
+    url: jdbc:postgresql://${DATABASE_ENDPOINT}/${DATABASE_NAME}?sslmode=verify-full
+
+  r2dbc:
+    url: r2dbc:postgresql://${DATABASE_ENDPOINT}/${DATABASE_NAME}
+    pool:
+      max-create-connection-time: 500
+      max-acquire-time: 1000
+    properties:
+      ssl: true
+      sslRootCert: /home/appuser/.postgresql/root.crt
 
 api:
   health-timeout-ms: 1000
@@ -73,3 +94,8 @@ management:
     group:
       test:
         - "stdout"
+
+azure:
+  application-insights:
+    web:
+      enabled: false

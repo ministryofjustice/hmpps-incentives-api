@@ -10,3 +10,22 @@ api:
     url:
       oauth: http://localhost:8090/auth
       prison: http://localhost:8093
+
+spring:
+  flyway:
+    url: jdbc:postgresql://localhost:5432/incentives?sslmode=prefer
+    user: incentives
+    password: incentives
+
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/incentives
+    username: incentives
+    password: incentives
+    properties:
+      sslMode: DISABLE
+      sslRootCert:
+
+logging:
+  level:
+    io.r2dbc.postgresql.QUERY: DEBUG # for queries
+    io.r2dbc.postgresql.PARAM: INFO # for parameters
