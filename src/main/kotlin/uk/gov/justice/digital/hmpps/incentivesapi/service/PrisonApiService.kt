@@ -1,9 +1,14 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.emptyFlow
 import org.springframework.stereotype.Service
-import org.springframework.web.reactive.function.client.*
+import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException.NotFound
+import org.springframework.web.reactive.function.client.awaitBody
+import org.springframework.web.reactive.function.client.bodyToFlow
 import javax.validation.constraints.NotEmpty
 
 @Service
