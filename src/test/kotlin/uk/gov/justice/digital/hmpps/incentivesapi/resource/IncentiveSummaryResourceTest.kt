@@ -26,7 +26,6 @@ class IncentiveSummaryResourceTest : IntegrationTestBase() {
     prisonApiMockServer.stubPositiveCaseNoteSummary()
     prisonApiMockServer.stubNegativeCaseNoteSummary()
     prisonApiMockServer.stubProvenAdj()
-    prisonApiMockServer.stubIEPLevels("MDI")
     prisonApiMockServer.stubLocation("MDI-1")
 
     webTestClient.get().uri("incentives-summary/prison/MDI/location/MDI-1?sortBy=DAYS_ON_LEVEL&sortDirection=DESC")

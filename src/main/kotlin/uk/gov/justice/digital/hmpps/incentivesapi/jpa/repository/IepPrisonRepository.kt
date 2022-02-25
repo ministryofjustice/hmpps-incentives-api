@@ -7,5 +7,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IepPrison
 
 @Repository
 interface IepPrisonRepository : CoroutineCrudRepository<IepPrison, Long> {
-  suspend fun findAllByPrisonIdAndActive(prisonId: String): Flow<IepPrison>
+  suspend fun findAllByPrisonIdAndIepCode(prisonId: String, iepCode: String): IepPrison?
+  suspend fun findAllByPrisonIdAndActiveIsTrue(prisonId: String): Flow<IepPrison>
 }

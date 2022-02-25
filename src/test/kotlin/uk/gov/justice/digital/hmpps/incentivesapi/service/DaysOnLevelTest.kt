@@ -4,11 +4,15 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IepLevelRepository
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IepPrisonRepository
 import java.time.LocalDateTime
 
 class DaysOnLevelTest {
   private val prisonApiService: PrisonApiService = mock()
-  private val incentiveSummaryService = IncentiveSummaryService(prisonApiService)
+  private val iepLevelRepository: IepLevelRepository = mock()
+  private val iepPrisonRepository: IepPrisonRepository = mock()
+  private val incentiveSummaryService = IncentiveSummaryService(prisonApiService, iepLevelRepository, iepPrisonRepository)
 
   @Nested
   inner class GetDaysOnLevel {
