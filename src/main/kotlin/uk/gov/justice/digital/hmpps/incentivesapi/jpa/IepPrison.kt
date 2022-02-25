@@ -9,14 +9,13 @@ import java.time.LocalDateTime
 
 data class IepPrison(
   @Id
-  val id : Long,
+  val id : Long = 0,
 
   val iepCode: String,
   val prisonId: String,
   val active: Boolean = true,
-
-  val expiryDate : LocalDate,
-  val
+  val expiryDate : LocalDate? = null,
+  val defaultIep : Boolean = false,
 
   @Transient
   @Value("false")
@@ -24,11 +23,11 @@ data class IepPrison(
 
   val whenCreated: LocalDateTime? = null
 
-) : Persistable<String> {
+) : Persistable<Long> {
 
 
 
   override fun isNew(): Boolean = new
 
-  override fun getId(): String = iepCode
+  override fun getId(): Long = id
 }
