@@ -1,58 +1,71 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.emptyFlow
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.WebClientResponseException
-import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
+import org.springframework.web.reactive.function.client.WebClientResponseException.NotFound
+import org.springframework.web.reactive.function.client.awaitBody
+import org.springframework.web.reactive.function.client.bodyToFlow
 import javax.validation.constraints.NotEmpty
 
 @Service
 class PrisonApiService(private val prisonWebClient: WebClient) {
 
-  fun findPrisonersAtLocation(prisonId: String, locationId: String): Flux<PrisonerAtLocation> =
+  suspend fun findPrisonersAtLocation(prisonId: String, locationId: String): Flow<PrisonerAtLocation> =
     prisonWebClient.get()
       .uri("/api/locations/description/$locationId/inmates")
       .header("Page-Limit", "3000")
       .retrieve()
-      .bodyToFlux(PrisonerAtLocation::class.java)
-      .onErrorResume(WebClientResponseException::class.java) { emptyWhenNotFound(it) }
+      .bodyToFlow<PrisonerAtLocation>()
+      .catch {
+        if (it is NotFound) { emitAll(emptyFlow()) } else { throw it }
+      }
 
-  fun getIEPSummaryPerPrisoner(@NotEmpty bookingIds: List<Long>): Flux<IepSummary> =
+  fun getIEPSummaryPerPrisoner(@NotEmpty bookingIds: List<Long>): Flow<IepSummary> =
     prisonWebClient.post()
       .uri("/api/bookings/iepSummary")
       .bodyValue(bookingIds)
       .retrieve()
-      .bodyToFlux(IepSummary::class.java)
-      .onErrorResume(WebClientResponseException::class.java) { emptyWhenNotFound(it) }
+      .bodyToFlow<IepSummary>()
+      .catch {
+        if (it is NotFound) { emitAll(emptyFlow()) } else { throw it }
+      }
 
-  fun retrieveCaseNoteCounts(type: String, @NotEmpty offenderNos: List<String>): Flux<CaseNoteUsage> =
+  suspend fun retrieveCaseNoteCounts(type: String, @NotEmpty offenderNos: List<String>): Flow<CaseNoteUsage> =
     prisonWebClient.post()
       .uri("/api/case-notes/usage")
       .bodyValue(CaseNoteUsageRequest(numMonths = 3, offenderNos = offenderNos, type = type, subType = null))
       .retrieve()
-      .bodyToFlux(CaseNoteUsage::class.java)
-      .onErrorResume(WebClientResponseException::class.java) { emptyWhenNotFound(it) }
+      .bodyToFlow<CaseNoteUsage>()
+      .catch {
+        if (it is NotFound) { emitAll(emptyFlow()) } else { throw it }
+      }
 
-  fun retrieveProvenAdjudications(@NotEmpty bookingIds: List<Long>): Flux<ProvenAdjudication> =
+  suspend fun retrieveProvenAdjudications(@NotEmpty bookingIds: List<Long>): Flow<ProvenAdjudication> =
     prisonWebClient.post()
       .uri("/api/bookings/proven-adjudications")
       .bodyValue(bookingIds)
       .retrieve()
-      .bodyToFlux(ProvenAdjudication::class.java)
-      .onErrorResume(WebClientResponseException::class.java) { emptyWhenNotFound(it) }
+      .bodyToFlow<ProvenAdjudication>()
+      .catch {
+        if (it is NotFound) { emitAll(emptyFlow()) } else { throw it }
+      }
 
-  fun getIepLevelsForPrison(prisonId: String): Flux<IepLevel> =
+  suspend fun getIepLevelsForPrison(prisonId: String): Flow<IepLevel> =
     prisonWebClient.get()
       .uri("/api/agencies/$prisonId/iepLevels")
       .retrieve()
-      .bodyToFlux(IepLevel::class.java)
-      .onErrorResume(WebClientResponseException::class.java) { emptyWhenNotFound(it) }
+      .bodyToFlow<IepLevel>()
+      .catch {
+        if (it is NotFound) { emitAll(emptyFlow()) } else { throw it }
+      }
 
-  fun getLocation(locationId: String): Mono<PrisonLocation> =
+  suspend fun getLocation(locationId: String): PrisonLocation =
     prisonWebClient.get()
       .uri("/api/locations/code/$locationId")
       .retrieve()
-      .bodyToMono(PrisonLocation::class.java)
-      .onErrorResume(WebClientResponseException::class.java) { emptyWhenNotFound(it) }
+      .awaitBody()
 }

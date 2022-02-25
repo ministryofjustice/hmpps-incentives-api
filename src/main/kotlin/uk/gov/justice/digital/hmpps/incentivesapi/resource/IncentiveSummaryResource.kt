@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.data.BehaviourSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveSummaryService
@@ -53,7 +52,7 @@ class IncentiveSummaryResource(private val incentiveSummaryService: IncentiveSum
       )
     ]
   )
-  fun getIncentiveSummary(
+  suspend fun getIncentiveSummary(
     @Schema(description = "Prison Id", example = "MDI", required = true)
     @PathVariable @Size(max = 3, min = 3, message = "Prison ID must be 3 characters") prisonId: String,
     @Schema(description = "Location Id", example = "MDI-1", required = true)
@@ -63,6 +62,6 @@ class IncentiveSummaryResource(private val incentiveSummaryService: IncentiveSum
     @Schema(description = "Sort Direction", example = "ASC", required = false, defaultValue = "ASC")
     @RequestParam(required = false, defaultValue = "ASC") sortDirection: Sort.Direction,
     @Parameter(hidden = true) @Schema(accessMode = Schema.AccessMode.READ_ONLY, hidden = true) @RequestHeader(HttpHeaders.AUTHORIZATION) auth: String
-  ): Mono<BehaviourSummary> =
+  ): BehaviourSummary =
     incentiveSummaryService.getIncentivesSummaryByLocation(prisonId, locationId, sortBy, sortDirection)
 }
