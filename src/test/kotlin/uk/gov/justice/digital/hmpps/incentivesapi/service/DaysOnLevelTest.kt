@@ -4,8 +4,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IepLevelRepository
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IepPrisonRepository
 import java.time.LocalDateTime
 
 class DaysOnLevelTest {
