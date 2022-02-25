@@ -26,27 +26,28 @@ class IncentiveSummaryService(
   ): BehaviourSummary {
 
     val prisoners = prisonApiService.findPrisonersAtLocation(prisonId, locationId).toList()
-    val bookingIds = prisoners.map { p -> p.bookingId }.toList()
-    val offenderNos = prisoners.map { p -> p.offenderNo }.toList()
-
-    if (bookingIds.isEmpty()) throw NoPrisonersAtLocationException(prisonId, locationId)
+    if (prisoners.isEmpty()) throw NoPrisonersAtLocationException(prisonId, locationId)
 
     return coroutineScope {
 
+      val offenderNos = prisoners.map { p -> p.offenderNo }.toList()
       val positiveCaseNotes = async { getCaseNoteUsage("POS", "IEP_ENC", offenderNos) }
       val negativeCaseNotes = async { getCaseNoteUsage("NEG", "IEP_WARN", offenderNos) }
+
+      val bookingIds = prisoners.map { p -> p.bookingId }.toList()
       val provenAdjudications = async { getProvenAdjudications(bookingIds) }
       val iepDetails = getIEPDetails(bookingIds)
 
-      val levels = prisonApiService.getIepLevelsForPrison(prisonId).toList()
+      val levels = async { prisonApiService.getIepLevelsForPrison(prisonId) }
 
       val prisonersByLevel = getPrisonersByLevel(prisoners, iepDetails)
         .map { prisonerIepLevelMap ->
-          val iepLevel = lookupIepLevel(prisonerIepLevelMap, levels.associateBy { it.iepDescription })
+          val iepLevel = lookupIepLevel(prisonerIepLevelMap, levels.await().toList().associateBy { it.iepDescription })
           IncentiveLevelSummary(
             level = iepLevel.iepLevel,
             levelDescription = iepLevel.iepDescription,
             prisonerBehaviours = prisonerIepLevelMap.value.map { p ->
+
               PrisonerIncentiveSummary(
                 firstName = WordUtils.capitalizeFully(p.firstName),
                 lastName = WordUtils.capitalizeFully(p.lastName),
@@ -66,7 +67,7 @@ class IncentiveSummaryService(
         }.toList()
 
       val location = async { getLocation(locationId) }
-      val iepLevelsByCode = levels.associateBy { it.iepLevel }
+      val iepLevelsByCode = levels.await().toList().associateBy { it.iepLevel }
 
       BehaviourSummary(
         prisonId = prisonId,
