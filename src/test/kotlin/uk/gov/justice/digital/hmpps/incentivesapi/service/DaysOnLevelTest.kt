@@ -8,7 +8,8 @@ import java.time.LocalDateTime
 
 class DaysOnLevelTest {
   private val prisonApiService: PrisonApiService = mock()
-  private val incentiveSummaryService = IncentiveSummaryService(prisonApiService)
+  private val iepLevelService: IepLevelService = mock()
+  private val incentiveSummaryService = IncentiveSummaryService(prisonApiService, iepLevelService)
 
   @Nested
   inner class GetDaysOnLevel {

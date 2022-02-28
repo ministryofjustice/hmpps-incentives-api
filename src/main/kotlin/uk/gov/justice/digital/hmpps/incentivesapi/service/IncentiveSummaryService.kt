@@ -15,7 +15,8 @@ import java.time.LocalDate
 
 @Service
 class IncentiveSummaryService(
-  private val prisonApiService: PrisonApiService
+  private val prisonApiService: PrisonApiService,
+  private val iepLevelService: IepLevelService
 ) {
 
   suspend fun getIncentivesSummaryByLocation(
@@ -25,10 +26,14 @@ class IncentiveSummaryService(
     sortDirection: Sort.Direction = Sort.Direction.ASC
   ): BehaviourSummary {
 
-    val prisoners = prisonApiService.findPrisonersAtLocation(prisonId, locationId).toList()
-    if (prisoners.isEmpty()) throw NoPrisonersAtLocationException(prisonId, locationId)
-
     return coroutineScope {
+
+      val levels = iepLevelService.getIepLevelsForPrison(prisonId)
+
+      val prisonerList = async { prisonApiService.findPrisonersAtLocation(prisonId, locationId) }
+      val prisoners = prisonerList.await().toList()
+
+      if (prisoners.isEmpty()) throw NoPrisonersAtLocationException(prisonId, locationId)
 
       val offenderNos = prisoners.map { p -> p.offenderNo }.toList()
       val positiveCaseNotes = async { getCaseNoteUsage("POS", "IEP_ENC", offenderNos) }
@@ -38,11 +43,13 @@ class IncentiveSummaryService(
       val provenAdjudications = async { getProvenAdjudications(bookingIds) }
       val iepDetails = getIEPDetails(bookingIds)
 
-      val levels = async { prisonApiService.getIepLevelsForPrison(prisonId) }
+      val iepLevels = levels.toList()
+      val positiveCount = positiveCaseNotes.await()
+      val negativeCount = negativeCaseNotes.await()
 
       val prisonersByLevel = getPrisonersByLevel(prisoners, iepDetails)
         .map { prisonerIepLevelMap ->
-          val iepLevel = lookupIepLevel(prisonerIepLevelMap, levels.await().toList().associateBy { it.iepDescription })
+          val iepLevel = lookupIepLevel(prisonerIepLevelMap, iepLevels.associateBy { it.iepDescription })
           IncentiveLevelSummary(
             level = iepLevel.iepLevel,
             levelDescription = iepLevel.iepDescription,
@@ -56,10 +63,10 @@ class IncentiveSummaryService(
                 imageId = p.facialImageId,
                 daysOnLevel = iepDetails[p.bookingId]?.daysOnLevel ?: 0,
                 daysSinceLastReview = iepDetails[p.bookingId]?.daysSinceReview ?: 0,
-                positiveBehaviours = positiveCaseNotes.await()[p.offenderNo]?.totalCaseNotes ?: 0,
-                incentiveEncouragements = positiveCaseNotes.await()[p.offenderNo]?.numSubTypeCount ?: 0,
-                negativeBehaviours = negativeCaseNotes.await()[p.offenderNo]?.totalCaseNotes ?: 0,
-                incentiveWarnings = negativeCaseNotes.await()[p.offenderNo]?.numSubTypeCount ?: 0,
+                positiveBehaviours = positiveCount[p.offenderNo]?.totalCaseNotes ?: 0,
+                incentiveEncouragements = positiveCount[p.offenderNo]?.numSubTypeCount ?: 0,
+                negativeBehaviours = negativeCount[p.offenderNo]?.totalCaseNotes ?: 0,
+                incentiveWarnings = negativeCount[p.offenderNo]?.numSubTypeCount ?: 0,
                 provenAdjudications = provenAdjudications.await()[p.bookingId]?.provenAdjudicationCount ?: 0,
               )
             }.sortedWith(sortBy.applySorting(sortDirection))
@@ -67,7 +74,7 @@ class IncentiveSummaryService(
         }.toList()
 
       val location = async { getLocation(locationId) }
-      val iepLevelsByCode = levels.await().toList().associateBy { it.iepLevel }
+      val iepLevelsByCode = iepLevels.associateBy { it.iepLevel }
 
       BehaviourSummary(
         prisonId = prisonId,
@@ -213,6 +220,10 @@ enum class SortColumn {
       INCENTIVE_ENCOURAGEMENTS -> compareBy(PrisonerIncentiveSummary::incentiveEncouragements)
       PROVEN_ADJUDICATIONS -> compareBy(PrisonerIncentiveSummary::provenAdjudications)
     }
-    return if (sortDirection == Sort.Direction.DESC) { comparator.reversed() } else { comparator }
+    return if (sortDirection == Sort.Direction.DESC) {
+      comparator.reversed()
+    } else {
+      comparator
+    }
   }
 }

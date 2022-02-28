@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
+import io.swagger.v3.oas.annotations.media.Schema
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -49,9 +50,14 @@ data class ProvenAdjudication(
 )
 
 data class IepLevel(
+  @Schema(description = "IEP Code for an IEP level", example = "STD")
   val iepLevel: String,
+  @Schema(description = "Description of the IEP Level", example = "Standard")
   val iepDescription: String,
-  val sequence: Int?
+  @Schema(description = "Sequence to display the IEP Levels for this prison in LOV or other tables", example = "1")
+  val sequence: Int?,
+  @Schema(description = "Indicates that this IEP level is the default for this prison", example = "true")
+  val default: Boolean = false
 )
 
 data class PrisonLocation(
