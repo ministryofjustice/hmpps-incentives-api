@@ -21,36 +21,6 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
     )
   }
 
-  fun stubIEPLevels(prisonId: String) {
-    stubFor(
-      get("/api/agencies/$prisonId/iepLevels").willReturn(
-        aResponse()
-          .withHeader("Content-Type", "application/json")
-          .withBody(
-            """
-              [
-                {
-                  "iepLevel": "BAS",
-                  "iepDescription": "Basic",
-                  "sequence": 1
-                },
-                {
-                  "iepLevel": "STD",
-                  "iepDescription": "Standard",
-                  "sequence": 2
-                },
-                {
-                  "iepLevel": "ENH",
-                  "iepDescription": "Enhanced",
-                  "sequence": 3
-                }
-              ]
-            """.trimIndent()
-          )
-      )
-    )
-  }
-
   fun stubLocation(locationId: String) {
     stubFor(
       get("/api/locations/code/$locationId").willReturn(

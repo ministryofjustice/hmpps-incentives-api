@@ -54,15 +54,6 @@ class PrisonApiService(private val prisonWebClient: WebClient) {
         if (it is NotFound) { emitAll(emptyFlow()) } else { throw it }
       }
 
-  suspend fun getIepLevelsForPrison(prisonId: String): Flow<IepLevel> =
-    prisonWebClient.get()
-      .uri("/api/agencies/$prisonId/iepLevels")
-      .retrieve()
-      .bodyToFlow<IepLevel>()
-      .catch {
-        if (it is NotFound) { emitAll(emptyFlow()) } else { throw it }
-      }
-
   suspend fun getLocation(locationId: String): PrisonLocation =
     prisonWebClient.get()
       .uri("/api/locations/code/$locationId")
