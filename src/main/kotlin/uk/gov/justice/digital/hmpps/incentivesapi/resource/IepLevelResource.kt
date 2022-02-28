@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.resource
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -26,7 +27,7 @@ class IepLevelResource(private val iepLevelService: IepLevelService) {
       ApiResponse(
         responseCode = "200",
         description = "IEP Level Information returned",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = BehaviourSummary::class))]
+        content = [Content(mediaType = "application/json", array = ArraySchema(schema = Schema(implementation = IepLevel::class)))]
       ),
       ApiResponse(
         responseCode = "400",

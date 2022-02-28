@@ -25,7 +25,7 @@ class IepLevelService(
         iepPrisonRepository.findAllByPrisonIdAndActiveIsTrue(prisonId)
           .map {
             val iepLevel = iepLevelMap[it.iepCode]!!
-            IepLevel(iepLevel = it.iepCode, iepDescription = iepLevel.iepDescription, sequence = iepLevel.sequence)
+            IepLevel(iepLevel = it.iepCode, iepDescription = iepLevel.iepDescription, sequence = iepLevel.sequence, default = it.defaultIep)
           }
       }.toList().sortedWith(compareBy(IepLevel::sequence))
     }
