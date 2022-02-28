@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorResponse
-import uk.gov.justice.digital.hmpps.incentivesapi.data.BehaviourSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IepLevelService
 import javax.validation.constraints.Size
