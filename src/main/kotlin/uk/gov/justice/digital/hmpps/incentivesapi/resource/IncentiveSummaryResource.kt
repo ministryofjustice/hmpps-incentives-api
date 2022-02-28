@@ -29,8 +29,7 @@ class IncentiveSummaryResource(private val incentiveSummaryService: IncentiveSum
     responses = [
       ApiResponse(
         responseCode = "200",
-        description = "Incentive Information returned",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = BehaviourSummary::class))]
+        description = "Incentive Information returned"
       ),
       ApiResponse(
         responseCode = "400",
