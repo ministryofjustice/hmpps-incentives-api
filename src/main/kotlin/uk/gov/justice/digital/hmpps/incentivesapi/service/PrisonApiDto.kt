@@ -22,11 +22,15 @@ data class IepSummary(
 )
 
 data class IepDetail(
-
-  val agencyId: String,
+  val bookingId: Long,
+  val sequence: Long,
   val iepDate: LocalDate,
+  val iepTime: LocalDateTime,
+  val agencyId: String,
   val iepLevel: String,
-  val iepTime: LocalDateTime
+  val comments: String? = null,
+  val userId: String?,
+  val auditModuleName: String? = null
 )
 
 data class CaseNoteUsage(
