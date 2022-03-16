@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import org.apache.commons.text.WordUtils
@@ -173,7 +172,7 @@ class IncentiveSummaryService(
           previousEntry != null && (
             previousEntry.auditModuleName in admissionAndTransferEntries &&
               Duration.between(previousEntry.iepDate.atStartOfDay(), element.iepDate.atStartOfDay())
-                .toDays() < CORRECTION_DAY_WINDOW &&
+              .toDays() < CORRECTION_DAY_WINDOW &&
               previousEntry.iepLevel != element.iepLevel
             ) &&
             (previousPreviousEntry != null && (previousPreviousEntry.agencyId != element.agencyId && previousPreviousEntry.iepLevel == element.iepLevel))
