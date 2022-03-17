@@ -13,28 +13,11 @@ import uk.gov.justice.digital.hmpps.incentivesapi.data.PrisonerIncentiveSummary
 import java.time.Duration
 import java.time.LocalDate
 
-private const val CORRECTION_DAY_WINDOW = 30
-
 @Service
 class IncentiveSummaryService(
   private val prisonApiService: PrisonApiService,
   private val iepLevelService: IepLevelService
 ) {
-
-  val userIepEntries = listOf(
-    "OIDOIEPS",
-    "PRISON_API",
-    "ELITE2_API",
-    "JDBC Thin Client"
-  )
-
-  val admissionAndTransferEntries = listOf(
-    "OIDADMIS",
-    "OIDITRAN",
-    "OCUWARNG",
-    "OMUAVBED",
-    "OIINAMES"
-  )
 
   suspend fun getIncentivesSummaryByLocation(
     prisonId: String,
@@ -143,59 +126,15 @@ class IncentiveSummaryService(
   suspend fun getIEPDetails(bookingIds: List<Long>): Map<Long, IepResult> =
     prisonApiService.getIEPSummaryPerPrisoner(bookingIds)
       .map {
-        val (daysSinceReview, daysOnLevel) = calcReviewAndDaysOnLevel(it)
         IepResult(
           bookingId = it.bookingId,
           iepLevel = it.iepLevel,
-          daysSinceReview = daysSinceReview,
-          daysOnLevel = daysOnLevel
+          daysSinceReview = it.daysSinceReview,
+          daysOnLevel = calcDaysOnLevel(it)
         )
       }.toList().associateBy {
         it.bookingId
       }
-
-  fun calcReviewAndDaysOnLevel(iepSummary: IepSummary): Pair<Int, Int> {
-    val currentIepDate = LocalDate.now().atStartOfDay()
-
-    val filteredIepDetails: MutableList<IepDetail> = mutableListOf()
-
-    // identify which IEP reviews are "real"
-    // 1. only IEP review entries that came from DPS or NOMIS screens (in the list userIepEntries)
-    // 2. where a move into a new prison occurred less than 30 days ago and has a value change - consider this to be a correction
-
-    iepSummary.iepDetails.forEachIndexed { index, element ->
-      if (element.auditModuleName in userIepEntries) {
-        val previousEntry = if (index + 1 < iepSummary.iepDetails.size) { iepSummary.iepDetails[index + 1] } else { null }
-        val previousPreviousEntry = if (index + 2 < iepSummary.iepDetails.size) { iepSummary.iepDetails[index + 2] } else { null }
-
-        if (!(
-          previousEntry != null && (
-            previousEntry.auditModuleName in admissionAndTransferEntries &&
-              Duration.between(previousEntry.iepDate.atStartOfDay(), element.iepDate.atStartOfDay())
-              .toDays() < CORRECTION_DAY_WINDOW &&
-              previousEntry.iepLevel != element.iepLevel
-            ) &&
-            (previousPreviousEntry != null && (previousPreviousEntry.agencyId != element.agencyId && previousPreviousEntry.iepLevel == element.iepLevel))
-          )
-        ) {
-          filteredIepDetails.add(element)
-        }
-      }
-    }
-
-    filteredIepDetails.sortedWith(compareBy(IepDetail::iepDate, IepDetail::iepTime).reversed())
-    val filteredIepSummary = iepSummary.copy(iepDetails = filteredIepDetails)
-
-    if (filteredIepDetails.isEmpty()) return Pair(
-      Duration.between(iepSummary.iepDetails.first().iepDate.atStartOfDay(), currentIepDate).toDays().toInt(),
-      calcDaysOnLevel(iepSummary.copy(iepDetails = listOf(iepSummary.iepDetails.first())))
-    )
-
-    return Pair(
-      Duration.between(filteredIepSummary.iepDetails.first().iepDate.atStartOfDay(), currentIepDate).toDays().toInt(),
-      calcDaysOnLevel(filteredIepSummary)
-    )
-  }
 
   fun calcDaysOnLevel(iepSummary: IepSummary): Int {
     val currentIepDate = LocalDate.now().atStartOfDay()
