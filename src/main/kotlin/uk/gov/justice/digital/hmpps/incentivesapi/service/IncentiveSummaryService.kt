@@ -126,15 +126,24 @@ class IncentiveSummaryService(
   suspend fun getIEPDetails(bookingIds: List<Long>): Map<Long, IepResult> =
     prisonApiService.getIEPSummaryPerPrisoner(bookingIds)
       .map {
+        val (daysSinceReview, daysOnLevel) = calcReviewAndDaysOnLevel(it)
         IepResult(
           bookingId = it.bookingId,
           iepLevel = it.iepLevel,
-          daysSinceReview = it.daysSinceReview,
-          daysOnLevel = calcDaysOnLevel(it)
+          daysSinceReview = daysSinceReview,
+          daysOnLevel = daysOnLevel
         )
       }.toList().associateBy {
         it.bookingId
       }
+
+  fun calcReviewAndDaysOnLevel(iepSummary: IepSummary): Pair<Int, Int> {
+    val currentIepDate = LocalDate.now().atStartOfDay()
+    return Pair(
+      Duration.between(iepSummary.iepDetails.first().iepDate.atStartOfDay(), currentIepDate).toDays().toInt(),
+      calcDaysOnLevel(iepSummary)
+    )
+  }
 
   fun calcDaysOnLevel(iepSummary: IepSummary): Int {
     val currentIepDate = LocalDate.now().atStartOfDay()
