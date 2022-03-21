@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import io.swagger.v3.oas.annotations.media.Schema
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class PrisonerAtLocation(
@@ -10,27 +9,14 @@ data class PrisonerAtLocation(
   val firstName: String,
   val lastName: String,
   val offenderNo: String,
-)
-
-data class IepSummary(
-  val bookingId: Long,
-  val daysSinceReview: Int,
-  val iepDate: LocalDate,
-  val iepLevel: String,
-  val iepTime: LocalDateTime,
-  val iepDetails: List<IepDetail>
-)
-
-data class IepDetail(
-  val bookingId: Long,
-  val sequence: Long,
-  val iepDate: LocalDate,
-  val iepTime: LocalDateTime,
   val agencyId: String,
-  val iepLevel: String,
-  val comments: String? = null,
-  val userId: String?,
-  val auditModuleName: String? = null
+  val assignedLivingUnitId: Long,
+)
+
+data class Location(
+  val agencyId: String,
+  val locationId: Long,
+  val description: String,
 )
 
 data class CaseNoteUsage(
