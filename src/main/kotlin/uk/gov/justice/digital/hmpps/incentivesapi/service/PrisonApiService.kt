@@ -7,8 +7,11 @@ import kotlinx.coroutines.flow.emptyFlow
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException.NotFound
+import org.springframework.web.reactive.function.client.awaitBodilessEntity
 import org.springframework.web.reactive.function.client.awaitBody
 import org.springframework.web.reactive.function.client.bodyToFlow
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
 import javax.validation.constraints.NotEmpty
 
 @Service
@@ -57,6 +60,31 @@ class PrisonApiService(private val prisonWebClient: WebClient) {
   suspend fun getLocation(locationId: String): PrisonLocation =
     prisonWebClient.get()
       .uri("/api/locations/code/$locationId")
+      .retrieve()
+      .awaitBody()
+
+  suspend fun addIepReview(bookingId: Long, iepReview: IepReview) =
+    prisonWebClient.post()
+      .uri("/api/bookings/$bookingId/iepLevels")
+      .bodyValue(iepReview)
+      .retrieve()
+      .awaitBodilessEntity()
+
+  suspend fun getPrisonerInfo(prisonerNumber: String): PrisonerAtLocation =
+    prisonWebClient.get()
+      .uri("/api/bookings/offenderNo/$prisonerNumber")
+      .retrieve()
+      .awaitBody()
+
+  suspend fun getPrisonerInfo(bookingId: Long): PrisonerAtLocation =
+    prisonWebClient.get()
+      .uri("/api/bookings/$bookingId?basicInfo=true")
+      .retrieve()
+      .awaitBody()
+
+  suspend fun getLocationById(locationId: Long): Location =
+    prisonWebClient.get()
+      .uri("/api/locations/$locationId")
       .retrieve()
       .awaitBody()
 }

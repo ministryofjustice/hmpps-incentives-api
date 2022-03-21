@@ -2,7 +2,10 @@ package uk.gov.justice.digital.hmpps.incentivesapi.resource
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.IntegrationTestBase
+import java.time.LocalDate.now
+import java.time.format.DateTimeFormatter
 
 class IepLevelResourceTest : IntegrationTestBase() {
   @BeforeEach
@@ -73,6 +76,111 @@ class IepLevelResourceTest : IntegrationTestBase() {
                    "userId":"TEST_USER",
                    "auditModuleName":"PRISON_API"
                 }
+             ]
+          }
+          """
+      )
+  }
+
+  @Test
+  fun `add IEP Level for a prisoner by booking Id`() {
+    val bookingId = 3330000L
+    val prisonerNumber = "A1234AC"
+
+    prisonApiMockServer.stubGetPrisonerInfoByBooking(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = 77778L)
+    prisonApiMockServer.stubGetLocationById(locationId = 77778L, locationDesc = "1-2-003")
+    prisonApiMockServer.stubAddIep(bookingId = bookingId)
+
+    webTestClient.post().uri("/iep/reviews/booking/$bookingId")
+      .headers(setAuthorisation())
+      .bodyValue(IepReview("STD", "A comment"))
+      .exchange()
+      .expectStatus().isNoContent
+
+    val today = now().format(DateTimeFormatter.ISO_DATE)
+    webTestClient.get().uri("/iep/reviews/booking/$bookingId?use-nomis-data=false")
+      .headers(setAuthorisation())
+      .exchange()
+      .expectStatus().isOk
+      .expectBody().json(
+        """
+            {
+             "bookingId":$bookingId,
+             "daysSinceReview":0,
+             "iepDate":"$today",
+             "iepLevel":"Standard",
+             "iepDetails":[
+                {
+                   "bookingId":$bookingId,
+                   "sequence":1,
+                   "iepDate":"$today",
+                   "agencyId":"MDI",
+                   "iepLevel":"Standard",
+                   "comments":"A comment",
+                   "userId":"INCENTIVES_ADM",
+                   "auditModuleName":"Incentives-API"
+                }
+             ]
+          }
+          """
+      )
+  }
+
+  @Test
+  fun `add IEP Level for a prisoner by noms`() {
+    val bookingId = 1234134L
+    val prisonerNumber = "A1234AB"
+
+    prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = 77777L)
+    prisonApiMockServer.stubGetLocationById(locationId = 77777L, locationDesc = "1-2-003")
+    prisonApiMockServer.stubAddIep(bookingId = bookingId)
+
+    webTestClient.post().uri("/iep/reviews/prisoner/$prisonerNumber")
+      .headers(setAuthorisation())
+      .bodyValue(IepReview("BAS", "Basic Level"))
+      .exchange()
+      .expectStatus().isNoContent
+
+    webTestClient.post().uri("/iep/reviews/prisoner/$prisonerNumber")
+      .headers(setAuthorisation())
+      .bodyValue(IepReview("ENH", "A different comment"))
+      .exchange()
+      .expectStatus().isNoContent
+
+    val today = now().format(DateTimeFormatter.ISO_DATE)
+    webTestClient.get().uri("/iep/reviews/prisoner/$prisonerNumber?use-nomis-data=false")
+      .headers(setAuthorisation())
+      .exchange()
+      .expectStatus().isOk
+      .expectBody().json(
+        """
+            {
+             "bookingId":$bookingId,
+             "daysSinceReview":0,
+             "iepDate":"$today",
+             "iepLevel":"Enhanced",
+             "iepDetails":[
+                {
+                   "bookingId":$bookingId,
+                   "sequence":2,
+                   "iepDate":"$today",
+                   "agencyId":"MDI",
+                   "iepLevel":"Enhanced",
+                   "comments":"A different comment",
+                   "userId":"INCENTIVES_ADM",
+                   "auditModuleName":"Incentives-API"
+                },
+                {
+                   "bookingId":$bookingId,
+                   "sequence":1,
+                   "iepDate":"$today",
+                   "agencyId":"MDI",
+                   "iepLevel":"Basic",
+                   "comments":"Basic Level",
+                   "userId":"INCENTIVES_ADM",
+                   "auditModuleName":"Incentives-API"
+                }
+
              ]
           }
           """
