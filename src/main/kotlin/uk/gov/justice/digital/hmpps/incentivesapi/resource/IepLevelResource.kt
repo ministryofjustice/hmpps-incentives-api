@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -129,6 +130,7 @@ class IepLevelResource(
     prisonerIepLevelReviewService.getPrisonerIepLevelHistory(prisonerNumber, useNomisData)
 
   @PostMapping("/reviews/booking/{bookingId}")
+  @PreAuthorize("hasRole('MAINTAIN_IEP') and hasAuthority('SCOPE_write')")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Adds a new IEP Review for this specific prisoner by booking Id",
@@ -164,6 +166,7 @@ class IepLevelResource(
   ) = prisonerIepLevelReviewService.addIepReview(bookingId, iepReview)
 
   @PostMapping("/reviews/prisoner/{prisonerNumber}")
+  @PreAuthorize("hasRole('MAINTAIN_IEP') and hasAuthority('SCOPE_write')")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Adds a new IEP Review for this specific prisoner by prisoner number",

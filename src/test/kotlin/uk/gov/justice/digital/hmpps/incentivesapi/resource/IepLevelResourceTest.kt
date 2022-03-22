@@ -83,6 +83,28 @@ class IepLevelResourceTest : IntegrationTestBase() {
   }
 
   @Test
+  fun `add IEP Level fails without write scope`() {
+    val bookingId = 3330000L
+
+    webTestClient.post().uri("/iep/reviews/booking/$bookingId")
+      .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read")))
+      .bodyValue(IepReview("STD", "A comment"))
+      .exchange()
+      .expectStatus().isForbidden
+  }
+
+  @Test
+  fun `add IEP Level fails without correct role`() {
+    val bookingId = 3330000L
+
+    webTestClient.post().uri("/iep/reviews/booking/$bookingId")
+      .headers(setAuthorisation(roles = listOf("ROLE_DUMMY"), scopes = listOf("read", "write")))
+      .bodyValue(IepReview("STD", "A comment"))
+      .exchange()
+      .expectStatus().isForbidden
+  }
+
+  @Test
   fun `add IEP Level for a prisoner by booking Id`() {
     val bookingId = 3330000L
     val prisonerNumber = "A1234AC"
@@ -92,7 +114,7 @@ class IepLevelResourceTest : IntegrationTestBase() {
     prisonApiMockServer.stubAddIep(bookingId = bookingId)
 
     webTestClient.post().uri("/iep/reviews/booking/$bookingId")
-      .headers(setAuthorisation())
+      .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
       .bodyValue(IepReview("STD", "A comment"))
       .exchange()
       .expectStatus().isNoContent
@@ -136,13 +158,13 @@ class IepLevelResourceTest : IntegrationTestBase() {
     prisonApiMockServer.stubAddIep(bookingId = bookingId)
 
     webTestClient.post().uri("/iep/reviews/prisoner/$prisonerNumber")
-      .headers(setAuthorisation())
+      .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
       .bodyValue(IepReview("BAS", "Basic Level"))
       .exchange()
       .expectStatus().isNoContent
 
     webTestClient.post().uri("/iep/reviews/prisoner/$prisonerNumber")
-      .headers(setAuthorisation())
+      .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
       .bodyValue(IepReview("ENH", "A different comment"))
       .exchange()
       .expectStatus().isNoContent
