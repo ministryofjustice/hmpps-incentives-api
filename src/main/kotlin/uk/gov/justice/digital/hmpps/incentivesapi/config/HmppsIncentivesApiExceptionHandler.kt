@@ -1,19 +1,56 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.config
 
+import com.fasterxml.jackson.annotation.JsonInclude
+import io.swagger.v3.oas.annotations.media.Schema
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatus.BAD_REQUEST
+import org.springframework.http.HttpStatus.FORBIDDEN
 import org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
+import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.AccessDeniedException
+import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.bind.support.WebExchangeBindException
 import uk.gov.justice.digital.hmpps.incentivesapi.service.NoPrisonersAtLocationException
 import javax.validation.ValidationException
 
 @RestControllerAdvice
 class HmppsIncentivesApiExceptionHandler {
+
+  @ExceptionHandler(MethodArgumentNotValidException::class)
+  fun handleValidationException(e: MethodArgumentNotValidException): ResponseEntity<ErrorResponse> {
+    log.debug("Validation error (400) returned: {}", e.message)
+    val message = if (e.hasFieldErrors()) { e.fieldError?.defaultMessage } else { e.message }
+    return ResponseEntity
+      .status(BAD_REQUEST)
+      .body(
+        ErrorResponse(
+          status = (BAD_REQUEST.value()),
+          userMessage = "Validation failure: $message",
+          developerMessage = (e.message)
+        )
+      )
+  }
+
+  @ExceptionHandler(AccessDeniedException::class)
+  fun handleAccessDeniedException(e: AccessDeniedException): ResponseEntity<ErrorResponse> {
+    log.debug("Forbidden (403) returned with message {}", e.message)
+    return ResponseEntity
+      .status(FORBIDDEN)
+      .body(
+        ErrorResponse(
+          status = FORBIDDEN,
+          userMessage = "Forbidden: ${e.message}",
+          developerMessage = e.message
+        )
+      )
+  }
+
   @ExceptionHandler(ValidationException::class)
-  fun handleValidationException(e: Exception): ResponseEntity<ErrorResponse> {
+  fun handleValidationException(e: ValidationException): ResponseEntity<ErrorResponse> {
     log.info("Validation exception: {}", e.message)
     return ResponseEntity
       .status(BAD_REQUEST)
@@ -26,15 +63,44 @@ class HmppsIncentivesApiExceptionHandler {
       )
   }
 
+  @ExceptionHandler(WebExchangeBindException::class)
+  fun handleWebExchangeBindException(e: WebExchangeBindException): ResponseEntity<ErrorResponse> {
+    log.info("Validation exception: {}", e.message)
+    val message = if (e.hasFieldErrors()) { e.fieldError?.defaultMessage } else { e.message }
+    return ResponseEntity
+      .status(BAD_REQUEST)
+      .body(
+        ErrorResponse(
+          status = BAD_REQUEST,
+          userMessage = "Validation failure: $message",
+          developerMessage = e.message
+        )
+      )
+  }
+
   @ExceptionHandler(NoPrisonersAtLocationException::class)
   fun handleRoleNotFoundException(e: NoPrisonersAtLocationException): ResponseEntity<ErrorResponse?>? {
     log.debug("No prisoners found exception caught: {}", e.message)
     return ResponseEntity
-      .status(HttpStatus.NOT_FOUND)
+      .status(NOT_FOUND)
       .body(
         ErrorResponse(
-          status = HttpStatus.NOT_FOUND,
-          userMessage = "Unexpected error: ${e.message}",
+          status = NOT_FOUND,
+          userMessage = "Not Found: ${e.message}",
+          developerMessage = e.message
+        )
+      )
+  }
+
+  @ExceptionHandler(NoDataFoundException::class)
+  fun handleRoleNotFoundException(e: NoDataFoundException): ResponseEntity<ErrorResponse?>? {
+    log.debug("No data found exception caught: {}", e.message)
+    return ResponseEntity
+      .status(NOT_FOUND)
+      .body(
+        ErrorResponse(
+          status = NOT_FOUND,
+          userMessage = "Not Found: ${e.message}",
           developerMessage = e.message
         )
       )
@@ -59,11 +125,21 @@ class HmppsIncentivesApiExceptionHandler {
   }
 }
 
+class NoDataFoundException(id: Long) :
+  Exception("No Data found for ID $id")
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Error Response")
 data class ErrorResponse(
+  @Schema(description = "Status of Error", example = "500", required = true)
   val status: Int,
+  @Schema(description = "Error Code", example = "500", required = false)
   val errorCode: Int? = null,
+  @Schema(description = "User Message of error", example = "Bad Data", required = false)
   val userMessage: String? = null,
+  @Schema(description = "More detailed error message", example = "This is a stack trace", required = false)
   val developerMessage: String? = null,
+  @Schema(description = "More information about the error", example = "More info", required = false)
   val moreInfo: String? = null
 ) {
   constructor(

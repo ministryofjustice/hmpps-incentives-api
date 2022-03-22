@@ -83,6 +83,69 @@ class IepLevelResourceTest : IntegrationTestBase() {
   }
 
   @Test
+  fun `get IEP Levels for a list of prisoners`() {
+    prisonApiMockServer.stubIEPSummary()
+
+    webTestClient.post().uri("/iep/reviews/bookings")
+      .headers(setAuthorisation())
+      .bodyValue(listOf(1234134, 1234135, 1234136, 1234137, 1234138, 2734134))
+      .exchange()
+      .expectStatus().isOk
+      .expectBody().json(
+        """
+          [
+            {
+             "bookingId": 1234134,
+             "iepLevel": "Basic"
+             },
+               {
+             "bookingId": 1234135,
+             "iepLevel": "Standard"
+             },
+               {
+             "bookingId": 1234136,
+             "iepLevel": "Enhanced"
+             },
+               {
+             "bookingId": 1234137,
+             "iepLevel": "Basic"
+             },
+               {
+             "bookingId": 1234138,
+             "iepLevel": "Standard"
+             },
+               {
+             "bookingId": 2734134,
+             "iepLevel": "Entry"
+             }
+          ]
+          """
+      )
+  }
+
+  @Test
+  fun `add IEP Level fails without write scope`() {
+    val bookingId = 3330000L
+
+    webTestClient.post().uri("/iep/reviews/booking/$bookingId")
+      .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read")))
+      .bodyValue(IepReview("STD", "A comment"))
+      .exchange()
+      .expectStatus().isForbidden
+  }
+
+  @Test
+  fun `add IEP Level fails without correct role`() {
+    val bookingId = 3330000L
+
+    webTestClient.post().uri("/iep/reviews/booking/$bookingId")
+      .headers(setAuthorisation(roles = listOf("ROLE_DUMMY"), scopes = listOf("read", "write")))
+      .bodyValue(IepReview("STD", "A comment"))
+      .exchange()
+      .expectStatus().isForbidden
+  }
+
+  @Test
   fun `add IEP Level for a prisoner by booking Id`() {
     val bookingId = 3330000L
     val prisonerNumber = "A1234AC"
@@ -92,10 +155,10 @@ class IepLevelResourceTest : IntegrationTestBase() {
     prisonApiMockServer.stubAddIep(bookingId = bookingId)
 
     webTestClient.post().uri("/iep/reviews/booking/$bookingId")
-      .headers(setAuthorisation())
+      .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
       .bodyValue(IepReview("STD", "A comment"))
       .exchange()
-      .expectStatus().isNoContent
+      .expectStatus().isCreated
 
     val today = now().format(DateTimeFormatter.ISO_DATE)
     webTestClient.get().uri("/iep/reviews/booking/$bookingId?use-nomis-data=false")
@@ -128,24 +191,24 @@ class IepLevelResourceTest : IntegrationTestBase() {
 
   @Test
   fun `add IEP Level for a prisoner by noms`() {
-    val bookingId = 1234134L
-    val prisonerNumber = "A1234AB"
+    val bookingId = 1294134L
+    val prisonerNumber = "A1244AB"
 
     prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = 77777L)
     prisonApiMockServer.stubGetLocationById(locationId = 77777L, locationDesc = "1-2-003")
     prisonApiMockServer.stubAddIep(bookingId = bookingId)
 
     webTestClient.post().uri("/iep/reviews/prisoner/$prisonerNumber")
-      .headers(setAuthorisation())
+      .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
       .bodyValue(IepReview("BAS", "Basic Level"))
       .exchange()
-      .expectStatus().isNoContent
+      .expectStatus().isCreated
 
     webTestClient.post().uri("/iep/reviews/prisoner/$prisonerNumber")
-      .headers(setAuthorisation())
+      .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
       .bodyValue(IepReview("ENH", "A different comment"))
       .exchange()
-      .expectStatus().isNoContent
+      .expectStatus().isCreated
 
     val today = now().format(DateTimeFormatter.ISO_DATE)
     webTestClient.get().uri("/iep/reviews/prisoner/$prisonerNumber?use-nomis-data=false")
@@ -156,11 +219,13 @@ class IepLevelResourceTest : IntegrationTestBase() {
         """
             {
              "bookingId":$bookingId,
+             "prisonerNumber": $prisonerNumber,
              "daysSinceReview":0,
              "iepDate":"$today",
              "iepLevel":"Enhanced",
              "iepDetails":[
                 {
+                   "prisonerNumber": $prisonerNumber,
                    "bookingId":$bookingId,
                    "sequence":2,
                    "iepDate":"$today",
@@ -168,21 +233,87 @@ class IepLevelResourceTest : IntegrationTestBase() {
                    "iepLevel":"Enhanced",
                    "comments":"A different comment",
                    "userId":"INCENTIVES_ADM",
+                   "locationId": "1-2-003",
                    "auditModuleName":"Incentives-API"
                 },
                 {
+                    "prisonerNumber": $prisonerNumber,
                    "bookingId":$bookingId,
                    "sequence":1,
                    "iepDate":"$today",
                    "agencyId":"MDI",
                    "iepLevel":"Basic",
                    "comments":"Basic Level",
+                   "locationId": "1-2-003",
                    "userId":"INCENTIVES_ADM",
                    "auditModuleName":"Incentives-API"
                 }
 
              ]
           }
+          """
+      )
+  }
+
+  @Test
+  fun `Retrieve list of IEP Reviews from incentives DB`() {
+    val bookingId = 3330000L
+    val prisonerNumber = "A1234AC"
+
+    prisonApiMockServer.stubGetPrisonerInfoByBooking(
+      bookingId = bookingId,
+      prisonerNumber = prisonerNumber,
+      locationId = 77778L
+    )
+    prisonApiMockServer.stubGetLocationById(locationId = 77778L, locationDesc = "1-2-003")
+    prisonApiMockServer.stubAddIep(bookingId = bookingId)
+
+    webTestClient.post().uri("/iep/reviews/booking/$bookingId")
+      .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
+      .bodyValue(IepReview("BAS", "Basic Level"))
+      .exchange()
+      .expectStatus().isCreated
+
+    webTestClient.post().uri("/iep/reviews/booking/$bookingId")
+      .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
+      .bodyValue(IepReview("STD", "Standard Level"))
+      .exchange()
+      .expectStatus().isCreated
+
+    val bookingId2 = 3330001L
+    val prisonerNumber2 = "A1234AD"
+
+    prisonApiMockServer.stubGetPrisonerInfoByBooking(
+      bookingId = bookingId2,
+      prisonerNumber = prisonerNumber2,
+      locationId = 77779L
+    )
+    prisonApiMockServer.stubGetLocationById(locationId = 77779L, locationDesc = "1-2-004")
+    prisonApiMockServer.stubAddIep(bookingId = bookingId2)
+
+    webTestClient.post().uri("/iep/reviews/booking/$bookingId2")
+      .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
+      .bodyValue(IepReview("ENH", "Standard Level"))
+      .exchange()
+      .expectStatus().isCreated
+
+    webTestClient.post().uri("/iep/reviews/bookings?use-nomis-data=false")
+      .headers(setAuthorisation())
+      .bodyValue(listOf(3330000L, 3330001L))
+      .exchange()
+      .expectStatus().isOk
+      .expectBody().json(
+        """
+          [
+            {
+             "bookingId": 3330000,
+             "iepLevel": "Standard"
+             },
+               {
+             "bookingId": 3330001,
+             "iepLevel": "Enhanced"
+              }
+          ]
           """
       )
   }

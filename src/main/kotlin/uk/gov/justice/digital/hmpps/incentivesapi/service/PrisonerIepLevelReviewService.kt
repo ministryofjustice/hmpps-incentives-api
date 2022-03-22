@@ -1,11 +1,14 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.incentivesapi.config.AuthenticationFacade
+import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataFoundException
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.CurrentIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
@@ -26,61 +29,79 @@ class PrisonerIepLevelReviewService(
     return if (useNomisData) {
       prisonApiService.getIEPSummaryPerPrisoner(listOf(bookingId)).first()
     } else {
-      buildIepSummary(bookingId)
+      buildIepSummary(prisonerIepLevelRepository.findAllByBookingIdOrderBySequenceDesc(bookingId))
     }
   }
 
-  private suspend fun buildIepSummary(bookingId: Long): IepSummary {
-    val iepLevels = prisonerIepLevelRepository.findAllByBookingIdOrderBySequenceDesc(bookingId)
-      .map {
-        with(it) {
-          IepDetail(
-            bookingId = bookingId,
-            sequence = sequence.toLong(),
-            iepDate = reviewTime.toLocalDate(),
-            iepTime = reviewTime,
-            agencyId = prisonId,
-            iepLevel = iepLevelRepository.findById(iepCode)?.iepDescription ?: "Unmapped",
-            comments = commentText,
-            userId = reviewedBy,
-            auditModuleName = "Incentives-API"
-          )
-        }
-      }
+  suspend fun getPrisonerIepLevelHistory(prisonerNumber: String, useNomisData: Boolean = true): IepSummary {
 
-    val iepDetails = iepLevels.toList()
-    val currentIep = iepDetails.first()
+    return if (useNomisData) {
+      val prisonerInfo = prisonApiService.getPrisonerInfo(prisonerNumber)
+      prisonApiService.getIEPSummaryPerPrisoner(listOf(prisonerInfo.bookingId)).first()
+    } else {
+      buildIepSummary(prisonerIepLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDescSequenceDesc(prisonerNumber))
+    }
+  }
+
+  @Transactional
+  suspend fun addIepReview(prisonerNumber: String, iepReview: IepReview): IepDetail {
+    val prisonerInfo = prisonApiService.getPrisonerInfo(prisonerNumber)
+    return addIepLevel(prisonerInfo, iepReview)
+  }
+
+  @Transactional
+  suspend fun addIepReview(bookingId: Long, iepReview: IepReview): IepDetail {
+    val prisonerInfo = prisonApiService.getPrisonerInfo(bookingId)
+    return addIepLevel(prisonerInfo, iepReview)
+  }
+
+  fun getCurrentIEPLevelForPrisoners(bookingIds: List<Long>, useNomisData: Boolean): Flow<CurrentIepLevel> {
+    return if (useNomisData) {
+      prisonApiService.getIEPSummaryPerPrisoner(bookingIds)
+        .map {
+          CurrentIepLevel(iepLevel = it.iepLevel, bookingId = it.bookingId)
+        }
+    } else {
+      prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrue(bookingIds)
+        .map {
+          CurrentIepLevel(iepLevel = iepLevelRepository.findById(it.iepCode)?.iepDescription ?: "Unmapped", bookingId = it.bookingId)
+        }
+    }
+  }
+
+  suspend fun getReviewById(id: Long): IepDetail =
+    prisonerIepLevelRepository.findById(id)
+      ?.let {
+        with(it) {
+          translate()
+        }
+      } ?: throw NoDataFoundException(id)
+
+  private suspend fun buildIepSummary(levels: Flow<PrisonerIepLevel>): IepSummary {
+    val iepLevels = levels.map {
+      with(it) {
+        translate()
+      }
+    }.toList()
+
+    val currentIep = iepLevels.first()
     return IepSummary(
-      bookingId = bookingId,
+      bookingId = currentIep.bookingId,
       iepDate = currentIep.iepDate,
       iepTime = currentIep.iepTime,
       iepLevel = currentIep.iepLevel,
-      iepDetails = iepDetails,
-      daysSinceReview = daysSinceReview(iepDetails)
+      id = currentIep.id,
+      prisonerNumber = currentIep.prisonerNumber,
+      locationId = currentIep.locationId,
+      iepDetails = iepLevels,
+      daysSinceReview = daysSinceReview(iepLevels)
     )
-  }
-
-  suspend fun getPrisonerIepLevelHistory(prisonerNumber: String, useNomisData: Boolean = true): IepSummary {
-    val prisonerInfo = prisonApiService.getPrisonerInfo(prisonerNumber)
-    return getPrisonerIepLevelHistory(prisonerInfo.bookingId, useNomisData)
-  }
-
-  @Transactional
-  suspend fun addIepReview(prisonerNumber: String, iepReview: IepReview) {
-    val prisonerInfo = prisonApiService.getPrisonerInfo(prisonerNumber)
-    addIepLevel(prisonerInfo, iepReview)
-  }
-
-  @Transactional
-  suspend fun addIepReview(bookingId: Long, iepReview: IepReview) {
-    val prisonerInfo = prisonApiService.getPrisonerInfo(bookingId)
-    addIepLevel(prisonerInfo, iepReview)
   }
 
   private suspend fun addIepLevel(
     prisonerInfo: PrisonerAtLocation,
     iepReview: IepReview
-  ) {
+  ): IepDetail {
     val locationInfo = prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId)
     var nextSequence = 1
 
@@ -90,7 +111,7 @@ class PrisonerIepLevelReviewService(
         nextSequence = it.sequence + 1
       }
 
-    prisonerIepLevelRepository.save(
+    val newIepReview = prisonerIepLevelRepository.save(
       PrisonerIepLevel(
         iepCode = iepReview.iepLevel,
         commentText = iepReview.comment,
@@ -103,7 +124,26 @@ class PrisonerIepLevelReviewService(
         reviewTime = LocalDateTime.now(),
         prisonerNumber = prisonerInfo.offenderNo
       )
-    )
+    ).translate()
+
     prisonApiService.addIepReview(prisonerInfo.bookingId, iepReview)
+
+    return newIepReview
   }
+
+  private suspend fun PrisonerIepLevel.translate() =
+    IepDetail(
+      id = id,
+      bookingId = bookingId,
+      sequence = sequence.toLong(),
+      iepDate = reviewTime.toLocalDate(),
+      iepTime = reviewTime,
+      agencyId = prisonId,
+      iepLevel = iepLevelRepository.findById(iepCode)?.iepDescription ?: "Unmapped",
+      comments = commentText,
+      userId = reviewedBy,
+      locationId = locationId,
+      prisonerNumber = prisonerNumber,
+      auditModuleName = "Incentives-API"
+    )
 }
