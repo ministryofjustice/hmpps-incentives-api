@@ -134,7 +134,7 @@ class IepLevelResource(
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Adds a new IEP Review for this specific prisoner by booking Id",
-    description = "Booking ID is an internal ID for a prisoner in NOMIS",
+    description = "Booking ID is an internal ID for a prisoner in NOMIS, requires MAINTAIN_IEP role and write scope",
     responses = [
       ApiResponse(
         responseCode = "204",
@@ -170,7 +170,7 @@ class IepLevelResource(
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
     summary = "Adds a new IEP Review for this specific prisoner by prisoner number",
-    description = "Prisoner Number is an unique reference for a prisoner in NOMIS",
+    description = "Prisoner Number is an unique reference for a prisoner in NOMIS, requires MAINTAIN_IEP role and write scope",
     responses = [
       ApiResponse(
         responseCode = "204",
