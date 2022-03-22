@@ -10,8 +10,6 @@ import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.incentivesapi.data.BehaviourSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.data.IncentiveLevelSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.data.PrisonerIncentiveSummary
-import java.time.Duration
-import java.time.LocalDate
 
 @Service
 class IncentiveSummaryService(
@@ -126,40 +124,16 @@ class IncentiveSummaryService(
   suspend fun getIEPDetails(bookingIds: List<Long>): Map<Long, IepResult> =
     prisonApiService.getIEPSummaryPerPrisoner(bookingIds)
       .map {
-        val (daysSinceReview, daysOnLevel) = calcReviewAndDaysOnLevel(it)
+
         IepResult(
           bookingId = it.bookingId,
           iepLevel = it.iepLevel,
-          daysSinceReview = daysSinceReview,
-          daysOnLevel = daysOnLevel
+          daysSinceReview = it.daysSinceReview(),
+          daysOnLevel = it.daysOnLevel()
         )
       }.toList().associateBy {
         it.bookingId
       }
-
-  fun calcReviewAndDaysOnLevel(iepSummary: IepSummary): Pair<Int, Int> {
-    val currentIepDate = LocalDate.now().atStartOfDay()
-    return Pair(
-      Duration.between(iepSummary.iepDetails.first().iepDate.atStartOfDay(), currentIepDate).toDays().toInt(),
-      calcDaysOnLevel(iepSummary)
-    )
-  }
-
-  fun calcDaysOnLevel(iepSummary: IepSummary): Int {
-    val currentIepDate = LocalDate.now().atStartOfDay()
-    var daysOnLevel = 0
-
-    run iepCheck@{
-      iepSummary.iepDetails.forEach {
-        if (it.iepLevel != iepSummary.iepLevel) {
-          return@iepCheck
-        }
-        daysOnLevel = Duration.between(it.iepDate.atStartOfDay(), currentIepDate).toDays().toInt()
-      }
-    }
-
-    return daysOnLevel
-  }
 
   suspend fun getCaseNoteUsage(type: String, subType: String, offenderNos: List<String>): Map<String, CaseNoteSummary> =
     prisonApiService.retrieveCaseNoteCounts(type, offenderNos)

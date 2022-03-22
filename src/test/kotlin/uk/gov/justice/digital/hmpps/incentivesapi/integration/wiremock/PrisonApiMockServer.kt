@@ -413,4 +413,77 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
       )
     )
   }
+
+  fun stubAddIep(bookingId: Long) {
+    stubFor(
+      post("/api/bookings/$bookingId/iepLevels").willReturn(
+        aResponse()
+          .withHeader("Content-Type", "application/json")
+          .withStatus(204)
+      )
+    )
+  }
+
+  fun stubGetPrisonerInfoByNoms(prisonerNumber: String, bookingId: Long, locationId: Long) {
+    stubFor(
+      get("/api/bookings/offenderNo/$prisonerNumber").willReturn(
+        aResponse()
+          .withHeader("Content-Type", "application/json")
+          .withBody(
+            """
+                  {
+                  "agencyId": "MDI",
+                  "assignedLivingUnitId": $locationId,
+                  "bookingId": $bookingId,
+                  "bookingNo": "A12121",
+                  "firstName": "JOHN",
+                  "lastName": "SMITH",
+                  "offenderNo": "$prisonerNumber"
+                }
+            """.trimIndent()
+          )
+      )
+    )
+  }
+
+  fun stubGetPrisonerInfoByBooking(bookingId: Long, prisonerNumber: String, locationId: Long) {
+    stubFor(
+      get("/api/bookings/$bookingId?basicInfo=true").willReturn(
+        aResponse()
+          .withHeader("Content-Type", "application/json")
+          .withBody(
+            """
+                    {
+                  "agencyId": "MDI",
+                  "assignedLivingUnitId": $locationId,
+                  "bookingId": $bookingId,
+                  "bookingNo": "A12121",
+                  "firstName": "JOHN",
+                  "lastName": "SMITH",
+                  "offenderNo": "$prisonerNumber"
+                }
+            """.trimIndent()
+          )
+      )
+    )
+  }
+
+  fun stubGetLocationById(locationId: Long, locationDesc: String) {
+    stubFor(
+      get("/api/locations/$locationId").willReturn(
+        aResponse()
+          .withHeader("Content-Type", "application/json")
+          .withBody(
+            """
+                {
+                  "agencyId": "MDI",
+                  "locationId": $locationId,
+                  "description": "$locationDesc",
+                  "locationType": "CELL"
+                }
+            """.trimIndent()
+          )
+      )
+    )
+  }
 }
