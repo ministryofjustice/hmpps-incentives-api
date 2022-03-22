@@ -191,8 +191,8 @@ class IepLevelResourceTest : IntegrationTestBase() {
 
   @Test
   fun `add IEP Level for a prisoner by noms`() {
-    val bookingId = 1234134L
-    val prisonerNumber = "A1234AB"
+    val bookingId = 1294134L
+    val prisonerNumber = "A1244AB"
 
     prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = 77777L)
     prisonApiMockServer.stubGetLocationById(locationId = 77777L, locationDesc = "1-2-003")
@@ -219,11 +219,13 @@ class IepLevelResourceTest : IntegrationTestBase() {
         """
             {
              "bookingId":$bookingId,
+             "prisonerNumber": $prisonerNumber,
              "daysSinceReview":0,
              "iepDate":"$today",
              "iepLevel":"Enhanced",
              "iepDetails":[
                 {
+                   "prisonerNumber": $prisonerNumber,
                    "bookingId":$bookingId,
                    "sequence":2,
                    "iepDate":"$today",
@@ -231,15 +233,18 @@ class IepLevelResourceTest : IntegrationTestBase() {
                    "iepLevel":"Enhanced",
                    "comments":"A different comment",
                    "userId":"INCENTIVES_ADM",
+                   "locationId": "1-2-003",
                    "auditModuleName":"Incentives-API"
                 },
                 {
+                    "prisonerNumber": $prisonerNumber,
                    "bookingId":$bookingId,
                    "sequence":1,
                    "iepDate":"$today",
                    "agencyId":"MDI",
                    "iepLevel":"Basic",
                    "comments":"Basic Level",
+                   "locationId": "1-2-003",
                    "userId":"INCENTIVES_ADM",
                    "auditModuleName":"Incentives-API"
                 }
