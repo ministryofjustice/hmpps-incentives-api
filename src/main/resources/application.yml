@@ -36,7 +36,10 @@ spring:
 
   profiles:
     group:
+      dev:
+        - "localstack"
       test:
+        - "localstack"
         - "stdout"
 
   flyway:
@@ -89,11 +92,6 @@ management:
     info:
       cache:
         time-to-live: 2000ms
-
-  profiles:
-    group:
-      test:
-        - "stdout"
 
 azure:
   application-insights:

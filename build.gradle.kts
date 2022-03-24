@@ -21,6 +21,8 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-security")
   implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
 
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:1.0.6")
+
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.6.0")
 
@@ -40,6 +42,7 @@ dependencies {
   implementation("org.apache.commons:commons-lang3:3.12.0")
   implementation("org.apache.commons:commons-text:1.9")
   implementation("commons-codec:commons-codec:1.15")
+  implementation("com.google.code.gson:gson:2.9.0")
 
   implementation("com.pauldijou:jwt-core_2.11:5.0.0")
 
@@ -52,6 +55,7 @@ dependencies {
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
   testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
+  testImplementation("org.testcontainers:localstack:1.16.3")
   testImplementation("org.testcontainers:postgresql:1.16.3")
   testImplementation("io.projectreactor:reactor-test")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.0")

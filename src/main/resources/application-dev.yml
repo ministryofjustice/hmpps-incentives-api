@@ -1,3 +1,6 @@
+server:
+  shutdown: immediate
+
 api:
   base:
     url:
