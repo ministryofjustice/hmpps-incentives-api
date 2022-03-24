@@ -2,9 +2,9 @@ package uk.gov.justice.digital.hmpps.incentivesapi.resource
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.incentivesapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
 
-class IncentiveSummaryResourceTest : IntegrationTestBase() {
+class IncentiveSummaryResourceTest : SqsIntegrationTestBase() {
   @BeforeEach
   internal fun setUp() {
     prisonApiMockServer.resetAll()

@@ -3,11 +3,11 @@ package uk.gov.justice.digital.hmpps.incentivesapi.resource
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
-import uk.gov.justice.digital.hmpps.incentivesapi.integration.IntegrationTestBase
+import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
 import java.time.LocalDate.now
 import java.time.format.DateTimeFormatter
 
-class IepLevelResourceTest : IntegrationTestBase() {
+class IepLevelResourceTest : SqsIntegrationTestBase() {
   @BeforeEach
   internal fun setUp() {
     prisonApiMockServer.resetAll()

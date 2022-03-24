@@ -21,9 +21,12 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.CurrentIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
+import uk.gov.justice.digital.hmpps.incentivesapi.service.AuditService
+import uk.gov.justice.digital.hmpps.incentivesapi.service.AuditType
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IepLevelService
 import uk.gov.justice.digital.hmpps.incentivesapi.service.PrisonerIepLevelReviewService
+import uk.gov.justice.digital.hmpps.incentivesapi.service.SnsService
 import javax.validation.Valid
 import javax.validation.constraints.NotEmpty
 import javax.validation.constraints.Size
@@ -32,7 +35,9 @@ import javax.validation.constraints.Size
 @RequestMapping("/iep", produces = [MediaType.APPLICATION_JSON_VALUE])
 class IepLevelResource(
   private val iepLevelService: IepLevelService,
-  private val prisonerIepLevelReviewService: PrisonerIepLevelReviewService
+  private val prisonerIepLevelReviewService: PrisonerIepLevelReviewService,
+  private val snsService: SnsService,
+  private val auditService: AuditService
 ) {
   @GetMapping("/levels/{prisonId}")
   @Operation(
@@ -232,7 +237,11 @@ class IepLevelResource(
     @Schema(description = "IEP Review", required = true)
     @RequestBody @Valid iepReview: IepReview,
 
-  ): IepDetail = prisonerIepLevelReviewService.addIepReview(bookingId, iepReview)
+  ): IepDetail {
+    val iepDetail = prisonerIepLevelReviewService.addIepReview(bookingId, iepReview)
+    sendEventAndAudit(iepDetail)
+    return iepDetail
+  }
 
   @PostMapping("/reviews/prisoner/{prisonerNumber}")
   @PreAuthorize("hasRole('MAINTAIN_IEP') and hasAuthority('SCOPE_write')")
@@ -268,5 +277,19 @@ class IepLevelResource(
     @Schema(description = "IEP Review", required = true)
     @RequestBody @Valid iepReview: IepReview,
 
-  ): IepDetail = prisonerIepLevelReviewService.addIepReview(prisonerNumber, iepReview)
+  ): IepDetail {
+    val iepDetail = prisonerIepLevelReviewService.addIepReview(prisonerNumber, iepReview)
+    sendEventAndAudit(iepDetail)
+    return iepDetail
+  }
+
+  private suspend fun sendEventAndAudit(iepDetail: IepDetail) {
+    snsService.sendIepReviewEvent(iepDetail.id!!, iepDetail.iepTime)
+
+    auditService.sendMessage(
+      AuditType.IEP_REVIEW_ADDED,
+      iepDetail.id.toString(),
+      iepDetail
+    )
+  }
 }

@@ -50,6 +50,11 @@ abstract class IntegrationTestBase : TestBase() {
     }
   }
 
+  init {
+    // Resolves an issue where Wiremock keeps previous sockets open from other tests causing connection resets
+    System.setProperty("http.keepAlive", "false")
+  }
+
   internal fun setAuthorisation(
     user: String = "INCENTIVES_ADM",
     roles: List<String> = listOf(),

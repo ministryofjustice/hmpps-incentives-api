@@ -20,9 +20,10 @@ class ResourceServerConfiguration {
       .csrf { it.disable() } // crst not needed an rest api
       .authorizeExchange {
         it.pathMatchers(
-          "/favicon.ico", "/csrf",
-          "/health/**", "/info",
-          "/v3/api-docs/**", "/webjars/swagger-ui/**", "/swagger-ui.html"
+          "/webjars/**", "/favicon.ico", "/csrf",
+          "/health/**", "/info", "/h2-console/**",
+          "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html",
+          "/queue-admin/retry-all-dlqs"
         ).permitAll()
           .anyExchange().authenticated()
       }

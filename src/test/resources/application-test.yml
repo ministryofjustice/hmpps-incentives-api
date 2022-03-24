@@ -1,6 +1,9 @@
 server:
   shutdown: immediate
 
+aws:
+  provider: localstack
+
 management.endpoint:
   health.cache.time-to-live: 0
   info.cache.time-to-live: 0
@@ -29,3 +32,12 @@ logging:
   level:
     io.r2dbc.postgresql.QUERY: DEBUG # for queries
     io.r2dbc.postgresql.PARAM: INFO # for parameters
+
+hmpps.sqs:
+  provider: localstack
+  queues:
+    audit:
+      queueName: ${random.uuid}
+  topics:
+    domainevents:
+      arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
