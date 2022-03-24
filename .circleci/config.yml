@@ -16,10 +16,9 @@ jobs:
     executor:
       name: hmpps/java_localstack_postgres
       jdk_tag: "17.0"
+      localstack_tag: "0.14.0"
       services: "sns,sqs"
       postgres_tag: "14"
-      localstack_tag: "0.14.0"
-      postgres_db: "incentives"
       postgres_username: "incentives"
       postgres_password: "incentives"
     steps:
