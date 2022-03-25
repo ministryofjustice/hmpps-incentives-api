@@ -30,9 +30,9 @@ API_BASE_URL_PRISON=https://api-dev.prison.service.justice.gov.uk
 
 ## Running integration tests
 
-Before running integration test you need to start test db and localstack instances
+Before running integration tests you need to start a localstack instance
 
-`docker-compose -f docker-compose-local.yaml up`
+`docker-compose up localstack`
 
 ### Runbook
 
