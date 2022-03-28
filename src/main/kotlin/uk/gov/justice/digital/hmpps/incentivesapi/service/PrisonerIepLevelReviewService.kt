@@ -1,7 +1,5 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
-import com.fasterxml.jackson.annotation.JsonInclude
-import io.swagger.v3.oas.annotations.media.Schema
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -19,8 +17,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IepLevelRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import java.time.LocalDateTime
-import javax.validation.constraints.NotBlank
-import javax.validation.constraints.Size
 
 @Service
 class PrisonerIepLevelReviewService(
@@ -133,12 +129,15 @@ class PrisonerIepLevelReviewService(
       )
     ).translate()
 
-    prisonApiService.addIepReview(prisonerInfo.bookingId, IepReviewInNomis(
-      iepLevel = iepReview.iepLevel,
-      comment = iepReview.comment,
-      reviewTime = reviewTime,
-      reviewerUserName = reviewerUserName
-    ))
+    prisonApiService.addIepReview(
+      prisonerInfo.bookingId,
+      IepReviewInNomis(
+        iepLevel = iepReview.iepLevel,
+        comment = iepReview.comment,
+        reviewTime = reviewTime,
+        reviewerUserName = reviewerUserName
+      )
+    )
 
     return newIepReview
   }
@@ -159,7 +158,6 @@ class PrisonerIepLevelReviewService(
       auditModuleName = "Incentives-API"
     )
 }
-
 
 data class IepReviewInNomis(
   val iepLevel: String,
