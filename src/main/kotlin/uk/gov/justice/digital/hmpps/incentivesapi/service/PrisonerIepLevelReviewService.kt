@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
+import com.fasterxml.jackson.annotation.JsonInclude
+import io.swagger.v3.oas.annotations.media.Schema
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -17,6 +19,8 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IepLevelRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import java.time.LocalDateTime
+import javax.validation.constraints.NotBlank
+import javax.validation.constraints.Size
 
 @Service
 class PrisonerIepLevelReviewService(
@@ -111,6 +115,9 @@ class PrisonerIepLevelReviewService(
         nextSequence = it.sequence + 1
       }
 
+    val reviewTime = LocalDateTime.now()
+    val reviewerUserName = authenticationFacade.getUsername()
+
     val newIepReview = prisonerIepLevelRepository.save(
       PrisonerIepLevel(
         iepCode = iepReview.iepLevel,
@@ -120,13 +127,18 @@ class PrisonerIepLevelReviewService(
         locationId = locationInfo.description,
         sequence = nextSequence,
         current = true,
-        reviewedBy = authenticationFacade.getUsername(),
-        reviewTime = LocalDateTime.now(),
+        reviewedBy = reviewerUserName,
+        reviewTime = reviewTime,
         prisonerNumber = prisonerInfo.offenderNo
       )
     ).translate()
 
-    prisonApiService.addIepReview(prisonerInfo.bookingId, iepReview)
+    prisonApiService.addIepReview(prisonerInfo.bookingId, IepReviewInNomis(
+      iepLevel = iepReview.iepLevel,
+      comment = iepReview.comment,
+      reviewTime = reviewTime,
+      reviewerUserName = reviewerUserName
+    ))
 
     return newIepReview
   }
@@ -147,3 +159,11 @@ class PrisonerIepLevelReviewService(
       auditModuleName = "Incentives-API"
     )
 }
+
+
+data class IepReviewInNomis(
+  val iepLevel: String,
+  val comment: String,
+  val reviewTime: LocalDateTime,
+  val reviewerUserName: String,
+)

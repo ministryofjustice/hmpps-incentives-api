@@ -63,7 +63,7 @@ class PrisonApiService(private val prisonWebClient: WebClient) {
       .retrieve()
       .awaitBody()
 
-  suspend fun addIepReview(bookingId: Long, iepReview: IepReview) =
+  suspend fun addIepReview(bookingId: Long, iepReview: IepReviewInNomis) =
     prisonWebClient.post()
       .uri("/api/bookings/$bookingId/iepLevels")
       .bodyValue(iepReview)
