@@ -111,6 +111,9 @@ class PrisonerIepLevelReviewService(
         nextSequence = it.sequence + 1
       }
 
+    val reviewTime = LocalDateTime.now()
+    val reviewerUserName = authenticationFacade.getUsername()
+
     val newIepReview = prisonerIepLevelRepository.save(
       PrisonerIepLevel(
         iepCode = iepReview.iepLevel,
@@ -120,13 +123,21 @@ class PrisonerIepLevelReviewService(
         locationId = locationInfo.description,
         sequence = nextSequence,
         current = true,
-        reviewedBy = authenticationFacade.getUsername(),
-        reviewTime = LocalDateTime.now(),
+        reviewedBy = reviewerUserName,
+        reviewTime = reviewTime,
         prisonerNumber = prisonerInfo.offenderNo
       )
     ).translate()
 
-    prisonApiService.addIepReview(prisonerInfo.bookingId, iepReview)
+    prisonApiService.addIepReview(
+      prisonerInfo.bookingId,
+      IepReviewInNomis(
+        iepLevel = iepReview.iepLevel,
+        comment = iepReview.comment,
+        reviewTime = reviewTime,
+        reviewerUserName = reviewerUserName
+      )
+    )
 
     return newIepReview
   }
@@ -147,3 +158,10 @@ class PrisonerIepLevelReviewService(
       auditModuleName = "Incentives-API"
     )
 }
+
+data class IepReviewInNomis(
+  val iepLevel: String,
+  val comment: String,
+  val reviewTime: LocalDateTime,
+  val reviewerUserName: String,
+)
