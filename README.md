@@ -14,7 +14,7 @@ For running locally against docker instances of the following services:
 - [prison-api](https://github.com/ministryofjustice/prison-api)
 - run this application independently e.g. in IntelliJ
 
-`docker-compose up hmpps-auth prison-api`
+`docker-compose up --scale hmpps-incentives-api=0`
 
 ## Running all services including this service
 
