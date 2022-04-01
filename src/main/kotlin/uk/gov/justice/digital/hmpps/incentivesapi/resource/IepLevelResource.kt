@@ -101,9 +101,11 @@ class IepLevelResource(
     @Schema(description = "Booking Id", example = "2342342", required = true)
     @PathVariable bookingId: Long,
     @Schema(description = "Use NOMIS data", example = "true", required = false, defaultValue = "true", hidden = true)
-    @RequestParam(defaultValue = "true", value = "use-nomis-data", required = false) useNomisData: Boolean = true
+    @RequestParam(defaultValue = "true", value = "use-nomis-data", required = false) useNomisData: Boolean = true,
+    @Schema(description = "Toggle to return IEP detail entries in response (or not)", example = "true", required = false, defaultValue = "true")
+    @RequestParam(defaultValue = "true", value = "with-details", required = false) withDetails: Boolean = true,
   ): IepSummary =
-    prisonerIepLevelReviewService.getPrisonerIepLevelHistory(bookingId, useNomisData)
+    prisonerIepLevelReviewService.getPrisonerIepLevelHistory(bookingId, useNomisData, withDetails)
 
   @GetMapping("/reviews/id/{id}")
   @Operation(

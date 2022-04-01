@@ -25,11 +25,14 @@ class PrisonerIepLevelReviewService(
   private val iepLevelRepository: IepLevelRepository,
   private val authenticationFacade: AuthenticationFacade
 ) {
-  suspend fun getPrisonerIepLevelHistory(bookingId: Long, useNomisData: Boolean = true): IepSummary {
+  suspend fun getPrisonerIepLevelHistory(bookingId: Long, useNomisData: Boolean = true, withDetails: Boolean = true): IepSummary {
     return if (useNomisData) {
-      prisonApiService.getIEPSummaryPerPrisoner(listOf(bookingId)).first()
+      val result = prisonApiService.getIEPSummaryPerPrisoner(listOf(bookingId)).first()
+      result.copy(
+        iepDetails = if (withDetails) result.iepDetails else emptyList()
+      )
     } else {
-      buildIepSummary(prisonerIepLevelRepository.findAllByBookingIdOrderBySequenceDesc(bookingId))
+      buildIepSummary(prisonerIepLevelRepository.findAllByBookingIdOrderBySequenceDesc(bookingId), withDetails)
     }
   }
 
@@ -77,7 +80,7 @@ class PrisonerIepLevelReviewService(
         }
       } ?: throw NoDataFoundException(id)
 
-  private suspend fun buildIepSummary(levels: Flow<PrisonerIepLevel>): IepSummary {
+  private suspend fun buildIepSummary(levels: Flow<PrisonerIepLevel>, withDetails: Boolean = true): IepSummary {
     val iepLevels = levels.map {
       with(it) {
         translate()
@@ -93,7 +96,7 @@ class PrisonerIepLevelReviewService(
       id = currentIep.id,
       prisonerNumber = currentIep.prisonerNumber,
       locationId = currentIep.locationId,
-      iepDetails = iepLevels,
+      iepDetails = if (withDetails) iepLevels else emptyList(),
       daysSinceReview = daysSinceReview(iepLevels)
     )
   }
