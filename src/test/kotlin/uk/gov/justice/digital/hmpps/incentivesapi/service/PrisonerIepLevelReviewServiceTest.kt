@@ -39,15 +39,14 @@ class PrisonerIepLevelReviewServiceTest {
     fun `will call prison api if useNomisData is true`(): Unit = runBlocking {
       coroutineScope {
         // Given
-        whenever(prisonApiService.getIEPSummaryPerPrisoner(any())).thenReturn(flowOf(iepSummaryWithDetail))
+        whenever(prisonApiService.getIEPSummaryForPrisoner(any(), any())).thenReturn(iepSummaryWithDetail)
 
         // When
-        val result = prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567, useNomisData = true)
+        prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567, useNomisData = true)
 
         // Then
-        verify(prisonApiService, times(1)).getIEPSummaryPerPrisoner(listOf(1234567))
+        verify(prisonApiService, times(1)).getIEPSummaryForPrisoner(1234567, true)
         verifyNoInteractions(prisonerIepLevelRepository)
-        assertThat(result).isEqualTo(iepSummaryWithDetail)
       }
     }
 
@@ -55,15 +54,14 @@ class PrisonerIepLevelReviewServiceTest {
     fun `will call prison api if useNomisData is true and will not return iep details if withDetails is false`(): Unit = runBlocking {
       coroutineScope {
         // Given
-        whenever(prisonApiService.getIEPSummaryPerPrisoner(any())).thenReturn(flowOf(iepSummaryWithDetail))
+        whenever(prisonApiService.getIEPSummaryForPrisoner(any(), any())).thenReturn(iepSummary)
 
         // When
-        val result = prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567, useNomisData = true, withDetails = false)
+        prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567, useNomisData = true, withDetails = false)
 
         // Then
-        verify(prisonApiService, times(1)).getIEPSummaryPerPrisoner(listOf(1234567))
+        verify(prisonApiService, times(1)).getIEPSummaryForPrisoner(1234567, false)
         verifyNoInteractions(prisonerIepLevelRepository)
-        assertThat(result).isEqualTo(iepSummary)
       }
     }
 

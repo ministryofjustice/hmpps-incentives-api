@@ -36,6 +36,12 @@ class PrisonApiService(private val prisonWebClient: WebClient) {
         if (it is NotFound) { emitAll(emptyFlow()) } else { throw it }
       }
 
+  suspend fun getIEPSummaryForPrisoner(bookingId: Long, withDetails: Boolean): IepSummary =
+    prisonWebClient.get()
+      .uri("/api/bookings/$bookingId/iepSummary?withDetails=$withDetails")
+      .retrieve()
+      .awaitBody()
+
   suspend fun retrieveCaseNoteCounts(type: String, @NotEmpty offenderNos: List<String>): Flow<CaseNoteUsage> =
     prisonWebClient.post()
       .uri("/api/case-notes/usage")
