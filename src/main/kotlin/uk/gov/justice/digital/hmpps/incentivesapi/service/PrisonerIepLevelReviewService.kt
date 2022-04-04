@@ -27,10 +27,7 @@ class PrisonerIepLevelReviewService(
 ) {
   suspend fun getPrisonerIepLevelHistory(bookingId: Long, useNomisData: Boolean = true, withDetails: Boolean = true): IepSummary {
     return if (useNomisData) {
-      val result = prisonApiService.getIEPSummaryPerPrisoner(listOf(bookingId)).first()
-      result.copy(
-        iepDetails = if (withDetails) result.iepDetails else emptyList()
-      )
+      prisonApiService.getIEPSummaryForPrisoner(bookingId, withDetails)
     } else {
       buildIepSummary(prisonerIepLevelRepository.findAllByBookingIdOrderBySequenceDesc(bookingId), withDetails)
     }
