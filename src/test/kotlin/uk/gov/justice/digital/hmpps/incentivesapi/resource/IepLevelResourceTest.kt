@@ -41,7 +41,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
 
   @Test
   fun `get IEP Levels for a prisoner`() {
-    prisonApiMockServer.stubIEPSummary()
+    prisonApiMockServer.stubIEPSummaryForBooking()
 
     webTestClient.get().uri("/iep/reviews/booking/1234134")
       .headers(setAuthorisation())
