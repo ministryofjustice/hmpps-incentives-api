@@ -270,6 +270,50 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
     )
   }
 
+  fun stubIEPSummaryForBooking(bookingId: Long = 1234134) {
+    stubFor(
+      get("/api/bookings/$bookingId/iepSummary?withDetails=true").willReturn(
+        aResponse()
+          .withHeader("Content-Type", "application/json")
+          .withBody(
+            """
+              {
+                "bookingId": 1234134,
+                "iepLevel": "Basic",
+                "daysSinceReview": 35,
+                "iepDate": "2021-12-02T00:00:00",
+                "iepTime": "2021-12-02T09:24:42.894Z",
+                "iepDetails": [
+                  {
+                    "agencyId": "MDI",
+                    "bookingId": 1234134,
+                    "sequence": 2,
+                    "iepDate": "2021-12-02",
+                    "iepLevel": "Basic",
+                    "iepTime": "2021-12-02T09:24:42.894Z",
+                    "comment": "A new Review",
+                    "userId": "TEST_USER",
+                    "auditModuleName": "PRISON_API"
+                  },
+                   {
+                    "agencyId": "MDI",
+                    "bookingId": 1234134,
+                    "sequence": 1,
+                    "iepDate": "2020-11-02",
+                    "iepLevel": "Entry",
+                    "iepTime": "2021-11-02T09:00:42.894Z",
+                    "comment": "A new Review",
+                    "userId": "TEST_USER",
+                    "auditModuleName": "PRISON_API"
+                  }
+                ]
+              }
+            """.trimIndent()
+          )
+      )
+    )
+  }
+
   fun stubPositiveCaseNoteSummary() {
     stubFor(
       post("/api/case-notes/usage").willReturn(

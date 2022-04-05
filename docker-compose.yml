@@ -9,7 +9,7 @@ services:
     depends_on:
       - hmpps-auth
     ports:
-      - "8081:8080"
+      - "8080:8080"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health/ping"]
     environment:
@@ -20,7 +20,7 @@ services:
     image: quay.io/hmpps/hmpps-auth:latest
     networks:
       - hmpps
-    container_name: hmpps-auth
+    container_name: hmpps-auth-incentives-api
     ports:
       - "9090:8080"
     healthcheck:
@@ -34,11 +34,11 @@ services:
     image: quay.io/hmpps/nomis-user-roles-api:latest
     networks:
       - hmpps
-    container_name: nomis-user-roles-api
+    container_name: nomis-user-roles-api-incentives-api
     depends_on:
       - hmpps-auth
     ports:
-      - "8082:8080"
+      - "8084:8080"
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8080/health" ]
     environment:
@@ -50,11 +50,11 @@ services:
     image: quay.io/hmpps/prison-api:latest
     networks:
       - hmpps
-    container_name: prison-api
+    container_name: prison-api-incentives-api
     depends_on:
       - hmpps-auth
     ports:
-      - "8080:8080"
+      - "8082:8080"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/auth/health"]
     environment:
@@ -78,7 +78,7 @@ services:
     image: localstack/localstack:0.14.0
     networks:
       - hmpps
-    container_name: localstack
+    container_name: localstack-incentives-api
     ports:
       - "4566-4597:4566-4597"
       - "8999:8080"
