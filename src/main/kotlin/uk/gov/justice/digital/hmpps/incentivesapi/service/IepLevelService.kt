@@ -20,7 +20,7 @@ class IepLevelService(
   @Transactional(readOnly = true)
   suspend fun getIepLevelsForPrison(prisonId: String): List<IepLevel> {
     return coroutineScope {
-      val iepLevelMap = iepLevelRepository.findAll().toList().associateBy { it.iepCode }
+      val iepLevelMap = iepLevelRepository.findAllOrderBySequence().toList().associateBy { it.iepCode }
 
       withContext(Dispatchers.Default) {
         iepPrisonRepository.findAllByPrisonIdAndActiveIsTrue(prisonId)

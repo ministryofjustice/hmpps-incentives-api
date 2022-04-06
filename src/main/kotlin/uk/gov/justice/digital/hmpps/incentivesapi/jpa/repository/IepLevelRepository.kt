@@ -9,4 +9,5 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IepLevel
 interface IepLevelRepository : CoroutineCrudRepository<IepLevel, String> {
   suspend fun findOneByIepDescription(iepCode: String): IepLevel?
   fun findAllByActiveIsTrueOrderBySequence(): Flow<IepLevel>
+  fun findAllOrderBySequence(): Flow<IepLevel>
 }
