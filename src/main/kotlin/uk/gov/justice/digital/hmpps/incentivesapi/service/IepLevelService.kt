@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.withContext
@@ -19,13 +20,19 @@ class IepLevelService(
   @Transactional(readOnly = true)
   suspend fun getIepLevelsForPrison(prisonId: String): List<IepLevel> {
     return coroutineScope {
-      val iepLevelMap = iepLevelRepository.findAllByActiveIsTrueOrderBySequence().toList().associateBy { it.iepCode }
+      val iepLevelMap = iepLevelRepository.findAll().toList().associateBy { it.iepCode }
 
       withContext(Dispatchers.Default) {
         iepPrisonRepository.findAllByPrisonIdAndActiveIsTrue(prisonId)
+          .filter { iepLevelMap[it.iepCode] != null && iepLevelMap[it.iepCode]!!.active }
           .map {
             val iepLevel = iepLevelMap[it.iepCode]!!
-            IepLevel(iepLevel = it.iepCode, iepDescription = iepLevel.iepDescription, sequence = iepLevel.sequence, default = it.defaultIep)
+            IepLevel(
+              iepLevel = it.iepCode,
+              iepDescription = iepLevel.iepDescription,
+              sequence = iepLevel.sequence,
+              default = it.defaultIep
+            )
           }
       }.toList().sortedWith(compareBy(IepLevel::sequence))
     }
