@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
 import java.time.LocalDate.now
 import java.time.format.DateTimeFormatter
 
@@ -200,7 +201,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
 
     webTestClient.post().uri("/iep/reviews/prisoner/$prisonerNumber")
       .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
-      .bodyValue(IepReview("BAS", "Basic Level"))
+      .bodyValue(IepReview(iepLevel = "BAS", comment = "Basic Level", reviewType = ReviewType.INITIAL))
       .exchange()
       .expectStatus().isCreated
 
@@ -234,6 +235,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
                    "comments":"A different comment",
                    "userId":"INCENTIVES_ADM",
                    "locationId": "1-2-003",
+                   "reviewType": "REVIEW",
                    "auditModuleName":"Incentives-API"
                 },
                 {
@@ -246,6 +248,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
                    "comments":"Basic Level",
                    "locationId": "1-2-003",
                    "userId":"INCENTIVES_ADM",
+                   "reviewType": "INITIAL",
                    "auditModuleName":"Incentives-API"
                 }
 

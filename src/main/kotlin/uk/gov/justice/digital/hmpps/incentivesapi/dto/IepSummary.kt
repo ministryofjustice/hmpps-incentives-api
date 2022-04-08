@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.dto
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -82,6 +83,8 @@ data class IepDetail(
   val locationId: String? = null,
   @Schema(description = "Username of the reviewer", example = "AJONES", required = true)
   val userId: String?,
+  @Schema(description = "Type of IEP Level change", example = "REVIEW", required = true)
+  val reviewType: ReviewType? = null,
   @Schema(description = "Internal audit field holding which system/screen recorded the review", example = "Prison-API", required = true)
   val auditModuleName: String? = null,
 )
@@ -107,4 +110,6 @@ data class IepReview(
   @Schema(description = "Comment about review", example = "This is a comment", required = true)
   @field:NotBlank(message = "Comment on IEP Level review is required")
   val comment: String,
+  @Schema(description = "Review Type", example = "Type of review", required = false, defaultValue = "REVIEW")
+  val reviewType: ReviewType? = ReviewType.REVIEW,
 )
