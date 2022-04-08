@@ -20,6 +20,7 @@ data class PrisonerIepLevel(
   val iepCode: String,
   val commentText: String? = null,
   val current: Boolean = true,
+  val reviewType: ReviewType = ReviewType.REVIEW,
 
   @Transient
   @Value("false")
@@ -32,4 +33,8 @@ data class PrisonerIepLevel(
   override fun isNew(): Boolean = new
 
   override fun getId(): Long = id
+}
+
+enum class ReviewType {
+  INITIAL, REVIEW, TRANSFER, ADJUSTMENT
 }
