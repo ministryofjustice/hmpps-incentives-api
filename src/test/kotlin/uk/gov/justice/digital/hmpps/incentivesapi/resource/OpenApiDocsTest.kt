@@ -76,7 +76,7 @@ class OpenApiDocsTest : SqsIntegrationTestBase() {
       .expectStatus().isOk
       .expectBody()
       .jsonPath("$.components.securitySchemes.bearer-jwt")
-      .isEqualTo(mapOf("type" to "http", "scheme" to "bearer", "bearerFormat" to "JWT"))
+      .isEqualTo(mapOf("type" to "http", "scheme" to "bearer", "bearerFormat" to "JWT", "name" to "Authorization", "in" to "header"))
       .jsonPath("$.security[0].bearer-jwt")
       .isEqualTo(bearerJwts)
   }
