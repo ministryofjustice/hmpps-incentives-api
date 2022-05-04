@@ -47,13 +47,15 @@ class SnsService(hmppsQueueService: HmppsQueueService, private val objectMapper:
 }
 
 data class AdditionalInformation(
-  val id: Long
+  val id: Long,
+  val nomsNumber: String? = null,
+  val reason: String? = null,
 )
 
 data class HMPPSDomainEvent(
-  val eventType: String,
+  val eventType: String? = null,
   val additionalInformation: AdditionalInformation,
-  val version: Int,
+  val version: String,
   val occurredAt: String,
   val description: String
 ) {
@@ -65,7 +67,7 @@ data class HMPPSDomainEvent(
   ) : this(
     eventType,
     additionalInformation,
-    1,
+    "1.0",
     occurredAt.toOffsetDateFormat(),
     description
   )

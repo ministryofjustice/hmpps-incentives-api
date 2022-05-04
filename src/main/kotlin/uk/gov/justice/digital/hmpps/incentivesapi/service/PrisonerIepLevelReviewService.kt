@@ -4,6 +4,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.incentivesapi.config.AuthenticationFacade
@@ -24,8 +26,12 @@ class PrisonerIepLevelReviewService(
   private val prisonApiService: PrisonApiService,
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository,
   private val iepLevelRepository: IepLevelRepository,
+  private val iepLevelService: IepLevelService,
   private val authenticationFacade: AuthenticationFacade
 ) {
+  companion object {
+    val log: Logger = LoggerFactory.getLogger(this::class.java)
+  }
   suspend fun getPrisonerIepLevelHistory(bookingId: Long, useNomisData: Boolean = true, withDetails: Boolean = true): IepSummary {
     return if (useNomisData) {
       prisonApiService.getIEPSummaryForPrisoner(bookingId, withDetails)
@@ -77,6 +83,28 @@ class PrisonerIepLevelReviewService(
           translate()
         }
       } ?: throw NoDataFoundException(id)
+
+  @Transactional
+  suspend fun processReceivedPrisoner(prisonOffenderEvent: HMPPSDomainEvent) {
+    when (prisonOffenderEvent.additionalInformation.reason) {
+      "ADMISSION" -> createIep(prisonOffenderEvent, ReviewType.INITIAL)
+      "TRANSFERRED" -> createIep(prisonOffenderEvent, ReviewType.TRANSFER)
+    }
+  }
+
+  private suspend fun createIep(prisonOffenderEvent: HMPPSDomainEvent, reviewType: ReviewType) =
+    prisonOffenderEvent.additionalInformation.nomsNumber?.let {
+      val prisonerInfo = prisonApiService.getPrisonerInfo(it)
+      val iepLevelsForPrison = iepLevelService.getIepLevelsForPrison(prisonerInfo.agencyId)
+      val iepReview = IepReview(
+        iepLevel = iepLevelsForPrison.first { iep -> iep.default }.iepLevel,
+        comment = prisonOffenderEvent.description,
+        reviewType = reviewType
+      )
+      addIepLevel(prisonerInfo, iepReview)
+    } ?: run {
+      log.warn("prisonerNumber null for prisonOffenderEvent: $prisonOffenderEvent ")
+    }
 
   private suspend fun buildIepSummary(levels: Flow<PrisonerIepLevel>, withDetails: Boolean = true): IepSummary {
     val iepLevels = levels.map {

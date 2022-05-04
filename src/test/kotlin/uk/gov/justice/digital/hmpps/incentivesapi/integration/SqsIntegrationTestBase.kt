@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.integration
 
 import com.amazonaws.services.sqs.model.PurgeQueueRequest
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -9,9 +10,11 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.LocalStackContainer.setLocalStackProperties
+import uk.gov.justice.digital.hmpps.incentivesapi.service.PrisonOffenderEventListenerTest
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.HmppsSqsProperties
+import uk.gov.justice.hmpps.sqs.MissingQueueException
 import uk.gov.justice.hmpps.sqs.MissingTopicException
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -24,17 +27,23 @@ class SqsIntegrationTestBase : IntegrationTestBase() {
   @SpyBean
   protected lateinit var hmppsSqsPropertiesSpy: HmppsSqsProperties
 
-  internal val registersQueue by lazy { hmppsQueueService.findByQueueId("audit") as HmppsQueue }
+  @Autowired
+  protected lateinit var objectMapper: ObjectMapper
 
-  internal val awsSqsClient by lazy { registersQueue.sqsClient }
-  internal val queueUrl by lazy { registersQueue.queueUrl }
+  private val domainEventsTopic by lazy { hmppsQueueService.findByTopicId("domainevents") ?: throw MissingQueueException("HmppsTopic domainevents not found") }
+  protected val domainEventsTopicSnsClient by lazy { domainEventsTopic.snsClient }
+  protected val domainEventsTopicArn by lazy { domainEventsTopic.arn }
+
+  internal val auditQueue by lazy { hmppsQueueService.findByQueueId("audit") as HmppsQueue }
+  internal val incentivesQueue by lazy { hmppsQueueService.findByQueueId("incentives") as HmppsQueue }
 
   fun HmppsSqsProperties.domaineventsTopicConfig() =
     topics["domainevents"] ?: throw MissingTopicException("domainevents has not been loaded from configuration properties")
 
   @BeforeEach
   fun cleanQueue() {
-    awsSqsClient.purgeQueue(PurgeQueueRequest(queueUrl))
+    auditQueue.sqsClient.purgeQueue(PurgeQueueRequest(auditQueue.queueUrl))
+    incentivesQueue.sqsClient.purgeQueue(PurgeQueueRequest(incentivesQueue.queueUrl))
   }
 
   companion object {
@@ -45,5 +54,15 @@ class SqsIntegrationTestBase : IntegrationTestBase() {
     fun testcontainers(registry: DynamicPropertyRegistry) {
       localStackContainer?.also { setLocalStackProperties(it, registry) }
     }
+  }
+
+  protected fun jsonString(any: Any) = objectMapper.writeValueAsString(any) as String
+  protected fun String.readResourceAsText(): String {
+    return PrisonOffenderEventListenerTest::class.java.getResource(this)?.readText() ?: throw AssertionError("can not find file")
+  }
+
+  fun getNumberOfMessagesCurrentlyOnQueue(): Int? {
+    val queueAttributes = incentivesQueue.sqsClient.getQueueAttributes(incentivesQueue.queueUrl, listOf("ApproximateNumberOfMessages"))
+    return queueAttributes.attributes["ApproximateNumberOfMessages"]?.toInt()
   }
 }

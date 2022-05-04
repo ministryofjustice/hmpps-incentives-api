@@ -25,11 +25,13 @@ class PrisonerIepLevelReviewServiceTest {
   private val prisonApiService: PrisonApiService = mock()
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository = mock()
   private val iepLevelRepository: IepLevelRepository = mock()
+  private val iepLevelService: IepLevelService = mock()
   private val authenticationFacade: AuthenticationFacade = mock()
   private val prisonerIepLevelReviewService = PrisonerIepLevelReviewService(
     prisonApiService,
     prisonerIepLevelRepository,
     iepLevelRepository,
+    iepLevelService,
     authenticationFacade
   )
 
@@ -95,6 +97,13 @@ class PrisonerIepLevelReviewServiceTest {
         verifyNoInteractions(prisonApiService)
         assertThat(result.iepDetails.size).isZero()
       }
+    }
+  }
+
+  @Nested
+  inner class processReceivedPrisoner {
+    @Test
+    fun `will call prison api if useNomisData is true`(): Unit = runBlocking {
     }
   }
 
