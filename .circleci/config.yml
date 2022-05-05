@@ -17,12 +17,12 @@ parameters:
 executors:
   hmpps/java:
     parameters:
-      jdk_tag:
+      tag:
         type: string
         default: << pipeline.parameters.java-version >>
   hmpps/node:
     parameters:
-      node_tag:
+      tag:
         type: string
         default: "16.15-browsers"
 
