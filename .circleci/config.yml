@@ -10,13 +10,16 @@ parameters:
   releases-slack-channel:
     type: string
     default: dps-releases
+  java-version:
+    type: string
+    default: "17.0"
 
 executors:
   hmpps/java:
     parameters:
       jdk_tag:
         type: string
-        default: "11.0"
+        default: << pipeline.parameters.java-version >>
   hmpps/node:
     parameters:
       node_tag:
@@ -27,7 +30,7 @@ jobs:
   validate:
     executor:
       name: hmpps/java_localstack_postgres
-      jdk_tag: "17.0"
+      jdk_tag: << pipeline.parameters.java-version >>
       localstack_tag: "0.14.0"
       services: "sns,sqs"
       postgres_tag: "14"
