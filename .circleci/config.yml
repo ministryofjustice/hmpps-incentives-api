@@ -10,6 +10,9 @@ parameters:
   releases-slack-channel:
     type: string
     default: dps-releases
+  node-version:
+    type: string
+    default: 16.15-browsers
 
 jobs:
   validate:
@@ -113,6 +116,9 @@ workflows:
           context:
             - hmpps-common-vars
           cache_key: "v2_0"
+          executor:
+            name: hmpps/java
+            tag: 11.0
       - hmpps/trivy_latest_scan:
           slack_channel: << pipeline.parameters.alerts-slack-channel >>
           context:
@@ -122,6 +128,9 @@ workflows:
           context:
             - veracode-credentials
             - hmpps-common-vars
+          executor:
+            name: hmpps/node
+            tag: << pipeline.parameters.node-version >>
   security-weekly:
     triggers:
       - schedule:
@@ -136,5 +145,6 @@ workflows:
           context:
             - veracode-credentials
             - hmpps-common-vars
-
-
+          executor:
+            name: hmpps/node
+            tag: << pipeline.parameters.node-version >>
