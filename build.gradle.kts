@@ -30,7 +30,7 @@ dependencies {
   implementation("com.vladmihalcea:hibernate-types-52:2.16.2")
   runtimeOnly("io.r2dbc:r2dbc-postgresql")
   runtimeOnly("org.springframework.boot:spring-boot-starter-jdbc")
-  runtimeOnly("org.postgresql:postgresql:42.3.4")
+  runtimeOnly("org.postgresql:postgresql:42.3.5")
   implementation("com.zaxxer:HikariCP:5.0.1")
 
   implementation("org.springdoc:springdoc-openapi-webflux-ui:1.6.8")
