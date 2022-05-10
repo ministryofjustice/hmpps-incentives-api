@@ -1,0 +1,19 @@
+{
+  "extends": [
+    "config:base",
+    ":disableDependencyDashboard"
+  ],
+  "assigneesFromCodeOwners": true,
+  "timezone": "Europe/London",
+  "schedule": [
+    "after 9am every weekday",
+    "before 5pm every weekday"
+  ],
+  "enabledManagers": ["gradle", "gradle-wrapper", "dockerfile", "docker-compose", "helmv3", "helm-values", "circleci"],
+  "packageRules": [
+    {
+      "matchDatasources": ["docker"],
+      "allowedVersions": "17-slim"
+    }
+  ]
+}
