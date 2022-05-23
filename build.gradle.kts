@@ -1,5 +1,7 @@
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.1.7"
+  id("jacoco")
+  id("org.sonarqube") version "3.3"
   kotlin("plugin.spring") version "1.6.21"
   kotlin("plugin.jpa") version "1.6.21"
 }
@@ -70,5 +72,16 @@ tasks {
     kotlinOptions {
       jvmTarget = "17"
     }
+  }
+}
+
+tasks.test {
+  finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+  dependsOn(tasks.test)
+  reports {
+    xml.required.set(true)
   }
 }
