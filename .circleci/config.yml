@@ -29,7 +29,10 @@ jobs:
             - gradle-
       - hmpps/wait_till_ready_postgres
       - run:
-          command: ./gradlew check
+          name: Run check & send results to sonarcloud
+          command: |
+            export GRADLE_OPTS="--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED"
+            ./gradlew check sonarqube
       - save_cache:
           paths:
             - ~/.gradle
@@ -38,6 +41,8 @@ jobs:
           path: build/test-results
       - store_artifacts:
           path: build/reports/tests
+      - store_artifacts:
+          path: build/reports/jacoco/test/html
 
 workflows:
   version: 2
