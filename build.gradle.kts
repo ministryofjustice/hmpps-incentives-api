@@ -52,7 +52,7 @@ dependencies {
 
   testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
   testImplementation("io.jsonwebtoken:jjwt:0.9.1")
-  testImplementation("org.mockito:mockito-inline:4.5.1")
+  testImplementation("org.mockito:mockito-inline:4.6.0")
   testImplementation("io.swagger.parser.v3:swagger-parser:2.0.33")
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
