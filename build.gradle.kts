@@ -60,7 +60,7 @@ dependencies {
   testImplementation("org.testcontainers:localstack:1.17.2")
   testImplementation("org.testcontainers:postgresql:1.17.2")
   testImplementation("io.projectreactor:reactor-test")
-  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.1")
+  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.2")
 }
 
 java {
