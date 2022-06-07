@@ -1,4 +1,4 @@
- 
+
 package uk.gov.justice.digital.hmpps.incentivesapi.resource
 
 import io.swagger.v3.parser.OpenAPIV3Parser
