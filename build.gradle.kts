@@ -36,7 +36,7 @@ dependencies {
   implementation("com.zaxxer:HikariCP:5.0.1")
 
   implementation("org.springdoc:springdoc-openapi-webflux-ui:1.6.9")
-  implementation("org.springdoc:springdoc-openapi-kotlin:1.6.8")
+  implementation("org.springdoc:springdoc-openapi-kotlin:1.6.9")
 
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.3")
   implementation("io.opentelemetry:opentelemetry-api:1.14.0")
