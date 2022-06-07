@@ -35,7 +35,7 @@ dependencies {
   runtimeOnly("org.postgresql:postgresql:42.3.6")
   implementation("com.zaxxer:HikariCP:5.0.1")
 
-  implementation("org.springdoc:springdoc-openapi-webflux-ui:1.6.8")
+  implementation("org.springdoc:springdoc-openapi-webflux-ui:1.6.9")
   implementation("org.springdoc:springdoc-openapi-kotlin:1.6.8")
 
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.3")
