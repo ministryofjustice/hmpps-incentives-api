@@ -39,7 +39,7 @@ dependencies {
   implementation("org.springdoc:springdoc-openapi-kotlin:1.6.9")
 
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.3")
-  implementation("io.opentelemetry:opentelemetry-api:1.14.0")
+  implementation("io.opentelemetry:opentelemetry-api:1.15.0")
 
   implementation("org.apache.commons:commons-lang3:3.12.0")
   implementation("org.apache.commons:commons-text:1.9")
