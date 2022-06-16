@@ -28,7 +28,7 @@ dependencies {
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.6.2")
 
-  implementation("org.flywaydb:flyway-core:8.5.12")
+  implementation("org.flywaydb:flyway-core:8.5.13")
   implementation("com.vladmihalcea:hibernate-types-52:2.16.2")
   runtimeOnly("io.r2dbc:r2dbc-postgresql")
   runtimeOnly("org.springframework.boot:spring-boot-starter-jdbc")
