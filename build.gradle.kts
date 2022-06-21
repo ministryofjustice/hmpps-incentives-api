@@ -8,6 +8,8 @@ plugins {
 
 dependencyCheck {
   suppressionFiles.add("reactive-suppressions.xml")
+  // Please remove the below suppressions once it has been suppressed in the DependencyCheck plugin (see this issue: https://github.com/jeremylong/DependencyCheck/issues/4616)
+  suppressionFiles.add("postgres-suppressions.xml")
 }
 
 configurations {
@@ -29,11 +31,9 @@ dependencies {
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.6.3")
 
   implementation("org.flywaydb:flyway-core:8.5.13")
-  implementation("com.vladmihalcea:hibernate-types-52:2.16.2")
   runtimeOnly("org.postgresql:r2dbc-postgresql:0.9.1.RELEASE")
   runtimeOnly("org.springframework.boot:spring-boot-starter-jdbc")
   runtimeOnly("org.postgresql:postgresql:42.4.0")
-  implementation("com.zaxxer:HikariCP:5.0.1")
 
   implementation("org.springdoc:springdoc-openapi-webflux-ui:1.6.9")
   implementation("org.springdoc:springdoc-openapi-kotlin:1.6.9")
@@ -60,7 +60,7 @@ dependencies {
   testImplementation("org.testcontainers:localstack:1.17.2")
   testImplementation("org.testcontainers:postgresql:1.17.2")
   testImplementation("io.projectreactor:reactor-test")
-  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.2")
+  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.3")
 }
 
 java {
