@@ -8,6 +8,8 @@ plugins {
 
 dependencyCheck {
   suppressionFiles.add("reactive-suppressions.xml")
+  // Please remove the below suppressions once it has been suppressed in the DependencyCheck plugin (see this issue: https://github.com/jeremylong/DependencyCheck/issues/4616)
+  suppressionFiles.add("postgres-suppressions.xml")
 }
 
 configurations {
@@ -25,15 +27,13 @@ dependencies {
 
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:1.1.3")
 
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2")
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.6.2")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.3")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.6.3")
 
-  implementation("org.flywaydb:flyway-core:8.5.12")
-  implementation("com.vladmihalcea:hibernate-types-52:2.16.2")
-  runtimeOnly("io.r2dbc:r2dbc-postgresql")
+  implementation("org.flywaydb:flyway-core:8.5.13")
+  runtimeOnly("org.postgresql:r2dbc-postgresql:0.9.1.RELEASE")
   runtimeOnly("org.springframework.boot:spring-boot-starter-jdbc")
   runtimeOnly("org.postgresql:postgresql:42.4.0")
-  implementation("com.zaxxer:HikariCP:5.0.1")
 
   implementation("org.springdoc:springdoc-openapi-webflux-ui:1.6.9")
   implementation("org.springdoc:springdoc-openapi-kotlin:1.6.9")
@@ -53,14 +53,14 @@ dependencies {
   testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
   testImplementation("io.jsonwebtoken:jjwt:0.9.1")
   testImplementation("org.mockito:mockito-inline:4.6.1")
-  testImplementation("io.swagger.parser.v3:swagger-parser:2.0.33")
+  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.1")
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
   testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
   testImplementation("org.testcontainers:localstack:1.17.2")
   testImplementation("org.testcontainers:postgresql:1.17.2")
   testImplementation("io.projectreactor:reactor-test")
-  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.2")
+  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.3")
 }
 
 java {
