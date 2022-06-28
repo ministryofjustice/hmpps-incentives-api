@@ -1,9 +1,10 @@
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.3.0"
-  id("jacoco")
+  // enable when gradle 7.5 is released which includes JaCoCo 0.8.8 that supports Java 18
+  // id("jacoco")
   id("org.sonarqube") version "3.4.0.2513"
-  kotlin("plugin.spring") version "1.6.21"
-  kotlin("plugin.jpa") version "1.6.21"
+  kotlin("plugin.spring") version "1.7.0"
+  kotlin("plugin.jpa") version "1.7.0"
 }
 
 dependencyCheck {
@@ -64,24 +65,25 @@ dependencies {
 }
 
 java {
-  toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+  toolchain.languageVersion.set(JavaLanguageVersion.of(18))
 }
 
 tasks {
   withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions {
-      jvmTarget = "17"
+      jvmTarget = "18"
     }
   }
 }
 
-tasks.test {
-  finalizedBy(tasks.jacocoTestReport)
-}
-
-tasks.jacocoTestReport {
-  dependsOn(tasks.test)
-  reports {
-    xml.required.set(true)
-  }
-}
+// enable when gradle 7.5 is released which includes JaCoCo 0.8.8 that supports Java 18
+// tasks.test {
+//   finalizedBy(tasks.jacocoTestReport)
+// }
+//
+// tasks.jacocoTestReport {
+//   dependsOn(tasks.test)
+//   reports {
+//     xml.required.set(true)
+//   }
+// }
