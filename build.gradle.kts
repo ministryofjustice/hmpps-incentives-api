@@ -59,7 +59,7 @@ dependencies {
   testImplementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
   testImplementation("com.github.tomakehurst:wiremock-standalone:2.27.2")
   testImplementation("org.testcontainers:localstack:1.17.2")
-  testImplementation("org.testcontainers:postgresql:1.17.2")
+  testImplementation("org.testcontainers:postgresql:1.17.3")
   testImplementation("io.projectreactor:reactor-test")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.3")
 }
