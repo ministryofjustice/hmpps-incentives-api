@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  hmpps: ministryofjustice/hmpps@3.14
+  hmpps: ministryofjustice/hmpps@5.1.0
 
 parameters:
   alerts-slack-channel:
@@ -15,7 +15,7 @@ jobs:
   validate:
     executor:
       name: hmpps/java_localstack_postgres
-      jdk_tag: "17.0"
+      jdk_tag: "18.0"
       localstack_tag: "0.14.0"
       services: "sns,sqs"
       postgres_tag: "14"
@@ -29,7 +29,10 @@ jobs:
             - gradle-
       - hmpps/wait_till_ready_postgres
       - run:
-          command: ./gradlew check
+          name: Run check & send results to sonarcloud
+          command: |
+            export GRADLE_OPTS="--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED"
+            ./gradlew check sonarqube
       - save_cache:
           paths:
             - ~/.gradle
@@ -38,6 +41,9 @@ jobs:
           path: build/test-results
       - store_artifacts:
           path: build/reports/tests
+# enable when gradle 7.5 is released which includes JaCoCo 0.8.8 that supports Java 18
+#      - store_artifacts:
+#          path: build/reports/jacoco/test/html
 
 workflows:
   version: 2
@@ -117,11 +123,12 @@ workflows:
           slack_channel: << pipeline.parameters.alerts-slack-channel >>
           context:
             - hmpps-common-vars
-      - hmpps/veracode_pipeline_scan:
-          slack_channel: << pipeline.parameters.alerts-slack-channel >>
-          context:
-            - veracode-credentials
-            - hmpps-common-vars
+# currently disabled as veracode doesn't yet support jdk 18 or kotlin 1.7
+#      - hmpps/veracode_pipeline_scan:
+#          slack_channel: << pipeline.parameters.alerts-slack-channel >>
+#          context:
+#            - hmpps-common-vars
+#            - veracode-credentials
   security-weekly:
     triggers:
       - schedule:
@@ -136,5 +143,3 @@ workflows:
           context:
             - veracode-credentials
             - hmpps-common-vars
-
-
