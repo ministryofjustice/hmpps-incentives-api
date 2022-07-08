@@ -14,7 +14,10 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
 import javax.validation.constraints.NotEmpty
 
 @Service
-class PrisonApiService(private val prisonWebClient: WebClient) {
+class PrisonApiService(
+  private val prisonWebClient: WebClient,
+  private val prisonWebClientClientCredentials: WebClient,
+) {
 
   suspend fun findPrisonersAtLocation(prisonId: String, locationId: String): Flow<PrisonerAtLocation> =
     prisonWebClient.get()
@@ -75,11 +78,19 @@ class PrisonApiService(private val prisonWebClient: WebClient) {
       .retrieve()
       .awaitBodilessEntity()
 
-  suspend fun getPrisonerInfo(prisonerNumber: String): PrisonerAtLocation =
-    prisonWebClient.get()
-      .uri("/api/bookings/offenderNo/$prisonerNumber")
-      .retrieve()
-      .awaitBody()
+  suspend fun getPrisonerInfo(prisonerNumber: String, useClientCredentials: Boolean = false): PrisonerAtLocation {
+    return if (useClientCredentials) {
+      prisonWebClientClientCredentials.get()
+        .uri("/api/bookings/offenderNo/$prisonerNumber")
+        .retrieve()
+        .awaitBody()
+    } else {
+      prisonWebClient.get()
+        .uri("/api/bookings/offenderNo/$prisonerNumber")
+        .retrieve()
+        .awaitBody()
+    }
+  }
 
   suspend fun getPrisonerInfo(bookingId: Long): PrisonerAtLocation =
     prisonWebClient.get()
@@ -87,9 +98,17 @@ class PrisonApiService(private val prisonWebClient: WebClient) {
       .retrieve()
       .awaitBody()
 
-  suspend fun getLocationById(locationId: Long): Location =
-    prisonWebClient.get()
-      .uri("/api/locations/$locationId")
-      .retrieve()
-      .awaitBody()
+  suspend fun getLocationById(locationId: Long, useClientCredentials: Boolean = false): Location {
+    return if (useClientCredentials) {
+      prisonWebClientClientCredentials.get()
+        .uri("/api/locations/$locationId")
+        .retrieve()
+        .awaitBody()
+    } else {
+      prisonWebClient.get()
+        .uri("/api/locations/$locationId")
+        .retrieve()
+        .awaitBody()
+    }
+  }
 }

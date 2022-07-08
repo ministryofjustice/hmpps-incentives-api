@@ -41,6 +41,8 @@ generic-service:
   namespace_secrets:
     hmpps-incentives-api:
       APPINSIGHTS_INSTRUMENTATIONKEY: "APPINSIGHTS_INSTRUMENTATIONKEY"
+      INCENTIVES_API_CLIENT_ID: "INCENTIVES_API_CLIENT_ID"
+      INCENTIVES_API_CLIENT_SECRET: "INCENTIVES_API_CLIENT_SECRET"
     dps-rds-instance-output:
       SPRING_FLYWAY_USER: "database_username"
       SPRING_FLYWAY_PASSWORD: "database_password"

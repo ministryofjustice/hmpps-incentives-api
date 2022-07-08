@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IepLevelRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
+import java.time.Clock
 import java.time.LocalDateTime
 
 @Service
@@ -27,11 +28,13 @@ class PrisonerIepLevelReviewService(
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository,
   private val iepLevelRepository: IepLevelRepository,
   private val iepLevelService: IepLevelService,
-  private val authenticationFacade: AuthenticationFacade
+  private val authenticationFacade: AuthenticationFacade,
+  private val clock: Clock,
 ) {
   companion object {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
   }
+
   suspend fun getPrisonerIepLevelHistory(bookingId: Long, useNomisData: Boolean = true, withDetails: Boolean = true): IepSummary {
     return if (useNomisData) {
       prisonApiService.getIEPSummaryForPrisoner(bookingId, withDetails)
@@ -85,26 +88,52 @@ class PrisonerIepLevelReviewService(
       } ?: throw NoDataFoundException(id)
 
   @Transactional
-  suspend fun processReceivedPrisoner(prisonOffenderEvent: HMPPSDomainEvent) {
+  suspend fun processReceivedPrisoner(prisonOffenderEvent: HMPPSDomainEvent) =
     when (prisonOffenderEvent.additionalInformation.reason) {
-      "ADMISSION" -> createIep(prisonOffenderEvent, ReviewType.INITIAL)
-      "TRANSFERRED" -> createIep(prisonOffenderEvent, ReviewType.TRANSFER)
+      "ADMISSION" -> createIepForReceivedPrisoner(prisonOffenderEvent, ReviewType.INITIAL)
+      "TRANSFERRED" -> createIepForReceivedPrisoner(prisonOffenderEvent, ReviewType.TRANSFER)
+      else -> {
+        log.debug("Ignoring prisonOffenderEvent with reason ${prisonOffenderEvent.additionalInformation.reason}")
+      }
     }
-  }
 
-  private suspend fun createIep(prisonOffenderEvent: HMPPSDomainEvent, reviewType: ReviewType) =
+  private suspend fun createIepForReceivedPrisoner(prisonOffenderEvent: HMPPSDomainEvent, reviewType: ReviewType) {
     prisonOffenderEvent.additionalInformation.nomsNumber?.let {
-      val prisonerInfo = prisonApiService.getPrisonerInfo(it)
-      val iepLevelsForPrison = iepLevelService.getIepLevelsForPrison(prisonerInfo.agencyId)
+      val prisonerInfo = prisonApiService.getPrisonerInfo(it, true)
+      val iepLevel = getIepLevelForReviewType(prisonerInfo, reviewType)
+
       val iepReview = IepReview(
-        iepLevel = iepLevelsForPrison.first { iep -> iep.default }.iepLevel,
+        iepLevel = iepLevel,
         comment = prisonOffenderEvent.description,
         reviewType = reviewType
       )
-      addIepLevel(prisonerInfo, iepReview)
+
+      val locationInfo = prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId, true)
+      persistIepLevel(
+        prisonerInfo,
+        iepReview,
+        locationInfo,
+        LocalDateTime.now(clock),
+        "incentives-api"
+      )
     } ?: run {
       log.warn("prisonerNumber null for prisonOffenderEvent: $prisonOffenderEvent ")
     }
+  }
+
+  private suspend fun getIepLevelForReviewType(prisonerInfo: PrisonerAtLocation, reviewType: ReviewType): String {
+    return when (reviewType) {
+      ReviewType.INITIAL -> {
+        val iepLevelsForPrison = iepLevelService.getIepLevelsForPrison(prisonerInfo.agencyId)
+        iepLevelsForPrison.first { iep -> iep.default }.iepLevel
+      }
+      ReviewType.TRANSFER -> {
+        prisonerIepLevelRepository.findOneByBookingIdAndCurrentIsTrue(prisonerInfo.bookingId)?.iepCode
+          ?: throw NoDataFoundException(prisonerInfo.bookingId)
+      }
+      else -> throw NotImplementedError("Not implemented for $reviewType")
+    }
+  }
 
   private suspend fun buildIepSummary(levels: Flow<PrisonerIepLevel>, withDetails: Boolean = true): IepSummary {
     val iepLevels = levels.map {
@@ -132,31 +161,16 @@ class PrisonerIepLevelReviewService(
     iepReview: IepReview
   ): IepDetail {
     val locationInfo = prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId)
-    var nextSequence = 1
 
-    prisonerIepLevelRepository.findOneByBookingIdAndCurrentIsTrue(prisonerInfo.bookingId)
-      ?.let {
-        prisonerIepLevelRepository.save(it.copy(current = false))
-        nextSequence = it.sequence + 1
-      }
-
-    val reviewTime = LocalDateTime.now()
+    val reviewTime = LocalDateTime.now(clock)
     val reviewerUserName = authenticationFacade.getUsername()
 
-    val newIepReview = prisonerIepLevelRepository.save(
-      PrisonerIepLevel(
-        iepCode = iepReview.iepLevel,
-        commentText = iepReview.comment,
-        bookingId = prisonerInfo.bookingId,
-        prisonId = locationInfo.agencyId,
-        locationId = locationInfo.description,
-        sequence = nextSequence,
-        current = true,
-        reviewedBy = reviewerUserName,
-        reviewTime = reviewTime,
-        reviewType = iepReview.reviewType ?: ReviewType.REVIEW,
-        prisonerNumber = prisonerInfo.offenderNo
-      )
+    val newIepReview = persistIepLevel(
+      prisonerInfo,
+      iepReview,
+      locationInfo,
+      reviewTime,
+      reviewerUserName
     ).translate()
 
     prisonApiService.addIepReview(
@@ -170,6 +184,37 @@ class PrisonerIepLevelReviewService(
     )
 
     return newIepReview
+  }
+
+  suspend fun persistIepLevel(
+    prisonerInfo: PrisonerAtLocation,
+    iepReview: IepReview,
+    locationInfo: Location,
+    reviewTime: LocalDateTime,
+    reviewerUserName: String,
+  ): PrisonerIepLevel {
+    var nextSequence = 1
+    prisonerIepLevelRepository.findOneByBookingIdAndCurrentIsTrue(prisonerInfo.bookingId)
+      ?.let {
+        prisonerIepLevelRepository.save(it.copy(current = false))
+        nextSequence = it.sequence + 1
+      }
+
+    return prisonerIepLevelRepository.save(
+      PrisonerIepLevel(
+        iepCode = iepReview.iepLevel,
+        commentText = iepReview.comment,
+        bookingId = prisonerInfo.bookingId,
+        prisonId = locationInfo.agencyId,
+        locationId = locationInfo.description,
+        sequence = nextSequence,
+        current = true,
+        reviewedBy = reviewerUserName,
+        reviewTime = reviewTime,
+        reviewType = iepReview.reviewType ?: ReviewType.REVIEW,
+        prisonerNumber = prisonerInfo.offenderNo
+      )
+    )
   }
 
   private suspend fun PrisonerIepLevel.translate() =

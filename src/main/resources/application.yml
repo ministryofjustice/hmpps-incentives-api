@@ -16,6 +16,17 @@ spring:
         jwt:
           jwk-set-uri: ${api.base.url.oauth}/.well-known/jwks.json
 
+      client:
+        registration:
+          incentives-api:
+            provider: hmpps-auth
+            client-id: ${incentives.api.client.id}
+            client-secret: ${incentives.api.client.secret}
+            authorization-grant-type: client_credentials
+        provider:
+          hmpps-auth:
+            token-uri: ${api.base.url.oauth}/oauth/token
+
   jackson:
     date-format: "yyyy-MM-dd HH:mm:ss"
     serialization:

@@ -28,10 +28,21 @@ class PrisonOffenderEventListenerTest {
   }
 
   @Test
-  fun `process received prisoner message`(): Unit = runBlocking {
+  fun `process admission prisoner message`(): Unit = runBlocking {
     coroutineScope {
       // When
       listener.onPrisonOffenderEvent("/messages/prisonerReceivedReasonAdmission.json".readResourceAsText())
+
+      // Then
+      verify(prisonerIepLevelReviewService, times(1)).processReceivedPrisoner(any())
+    }
+  }
+
+  @Test
+  fun `process transferred prisoner message`(): Unit = runBlocking {
+    coroutineScope {
+      // When
+      listener.onPrisonOffenderEvent("/messages/prisonerReceivedReasonTransferred.json".readResourceAsText())
 
       // Then
       verify(prisonerIepLevelReviewService, times(1)).processReceivedPrisoner(any())
