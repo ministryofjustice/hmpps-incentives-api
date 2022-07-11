@@ -7,7 +7,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
-import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
@@ -22,7 +22,7 @@ internal class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
   @Autowired
   private lateinit var repository: PrisonerIepLevelRepository
 
-  @AfterEach
+  @BeforeEach
   fun setUp(): Unit = runBlocking {
     prisonApiMockServer.resetRequests()
     repository.deleteAll()
@@ -43,6 +43,7 @@ internal class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
     await untilCallTo { prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber") } matches { it == 1 }
     await untilCallTo { prisonApiMockServer.getCountFor("/api/locations/$locationId") } matches { it == 1 }
+    repository.count()
 
     // Then
     val booking = repository.findFirstByBookingIdOrderBySequenceDesc(bookingId)
