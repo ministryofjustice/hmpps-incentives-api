@@ -1,17 +1,31 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.resource
 
+import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import java.time.LocalDate.now
 import java.time.format.DateTimeFormatter
 
 class IepLevelResourceTest : SqsIntegrationTestBase() {
+  @Autowired
+  private lateinit var repository: PrisonerIepLevelRepository
+
   @BeforeEach
-  internal fun setUp() {
+  fun setUp(): Unit = runBlocking {
     prisonApiMockServer.resetAll()
+    repository.deleteAll()
+  }
+
+  @AfterEach
+  fun tearDown(): Unit = runBlocking {
+    prisonApiMockServer.resetRequests()
+    repository.deleteAll()
   }
 
   val matchByIepCode = "$.[?(@.iepLevel == '%s')]"
