@@ -16,6 +16,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.service.AdditionalInformation
 import uk.gov.justice.digital.hmpps.incentivesapi.service.HMPPSDomainEvent
+import java.time.Duration
 import java.time.Instant
 
 internal class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
@@ -50,11 +51,14 @@ internal class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
     await untilCallTo { prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber") } matches { it == 1 }
     await untilCallTo { prisonApiMockServer.getCountFor("/api/locations/$locationId") } matches { it == 1 }
-    repository.count()
 
     // Then
-    val booking = repository.findFirstByBookingIdOrderBySequenceDesc(bookingId)
-    assertThat(booking?.reviewType).isEqualTo(ReviewType.INITIAL)
+    await.atMost(Duration.ofSeconds(30)) untilCallTo {
+      runBlocking {
+        val booking = repository.findFirstByBookingIdOrderBySequenceDesc(bookingId)
+        assertThat(booking?.reviewType).isEqualTo(ReviewType.INITIAL)
+      }
+    }
   }
 
   private fun publishPrisonerReceivedMessage(reason: String) =
