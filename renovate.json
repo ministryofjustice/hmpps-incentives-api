@@ -14,6 +14,24 @@
     {
       "matchDatasources": ["docker"],
       "allowedVersions": "18-slim"
+    },
+    {
+      "groupName": "kotlin plugin",
+      "matchPackagePrefixes": [
+        "org.jetbrains.kotlin.plugin"
+      ]
+    },
+    {
+      "groupName": "kotlinx coroutines",
+      "matchPackagePrefixes": [
+        "org.jetbrains.kotlinx:"
+      ]
+    },
+    {
+      "groupName": "test containers",
+      "matchPackagePrefixes": [
+        "org.testcontainers:"
+      ]
     }
   ]
 }
