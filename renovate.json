@@ -18,19 +18,25 @@
     {
       "groupName": "kotlin plugin",
       "matchPackagePrefixes": [
-        "org.jetbrains.kotlin.plugin"
+        "org.jetbrains.kotlin.plugin*"
       ]
     },
     {
       "groupName": "kotlinx coroutines",
       "matchPackagePrefixes": [
-        "org.jetbrains.kotlinx:"
+        "org.jetbrains.kotlinx*"
+      ]
+    },
+    {
+      "groupName": "spring doc",
+      "matchPackagePrefixes": [
+        "org.springdoc*"
       ]
     },
     {
       "groupName": "test containers",
       "matchPackagePrefixes": [
-        "org.testcontainers:"
+        "org.testcontainers*"
       ]
     }
   ]
