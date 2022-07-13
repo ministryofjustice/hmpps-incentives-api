@@ -3,7 +3,7 @@ plugins {
   // enable when gradle 7.5 is released which includes JaCoCo 0.8.8 that supports Java 18
   // id("jacoco")
   id("org.sonarqube") version "3.4.0.2513"
-  kotlin("plugin.spring") version "1.7.0"
+  kotlin("plugin.spring") version "1.7.10"
   kotlin("plugin.jpa") version "1.7.0"
 }
 
