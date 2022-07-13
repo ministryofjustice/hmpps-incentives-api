@@ -28,6 +28,12 @@
       ]
     },
     {
+      "groupName": "spring doc",
+      "matchPackagePrefixes": [
+        "org.springdoc*"
+      ]
+    },
+    {
       "groupName": "test containers",
       "matchPackagePrefixes": [
         "org.testcontainers*"
