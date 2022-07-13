@@ -28,7 +28,7 @@ dependencies {
 
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:1.1.6")
 
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.3")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.6.3")
 
   implementation("org.flywaydb:flyway-core:8.5.13")
