@@ -14,7 +14,10 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
 import javax.validation.constraints.NotEmpty
 
 @Service
-class PrisonApiService(private val prisonWebClient: WebClient) {
+class PrisonApiService(
+  private val prisonWebClient: WebClient,
+  private val prisonWebClientClientCredentials: WebClient,
+) {
 
   suspend fun findPrisonersAtLocation(prisonId: String, locationId: String): Flow<PrisonerAtLocation> =
     prisonWebClient.get()
@@ -75,11 +78,14 @@ class PrisonApiService(private val prisonWebClient: WebClient) {
       .retrieve()
       .awaitBodilessEntity()
 
-  suspend fun getPrisonerInfo(prisonerNumber: String): PrisonerAtLocation =
-    prisonWebClient.get()
+  suspend fun getPrisonerInfo(prisonerNumber: String, useClientCredentials: Boolean = false): PrisonerAtLocation {
+    val webClient = if (useClientCredentials) prisonWebClientClientCredentials else prisonWebClient
+
+    return webClient.get()
       .uri("/api/bookings/offenderNo/$prisonerNumber")
       .retrieve()
       .awaitBody()
+  }
 
   suspend fun getPrisonerInfo(bookingId: Long): PrisonerAtLocation =
     prisonWebClient.get()
@@ -87,9 +93,12 @@ class PrisonApiService(private val prisonWebClient: WebClient) {
       .retrieve()
       .awaitBody()
 
-  suspend fun getLocationById(locationId: Long): Location =
-    prisonWebClient.get()
+  suspend fun getLocationById(locationId: Long, useClientCredentials: Boolean = false): Location {
+    val webClient = if (useClientCredentials) prisonWebClientClientCredentials else prisonWebClient
+
+    return webClient.get()
       .uri("/api/locations/$locationId")
       .retrieve()
       .awaitBody()
+  }
 }

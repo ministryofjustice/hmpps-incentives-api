@@ -35,6 +35,33 @@ Before running integration tests you need to start a localstack instance
 
 `docker-compose up localstack`
 
+## Publishing a received message to your local instance
+
+This assumes you have the [AWS CLI](https://aws.amazon.com/cli/) installed
+
+1. Follow [Running Locally](#running-locally) to bring up the service and docker containers
+2. Find the ARN of the Domain Events topic created in your localstack instance and update the `topic-arn` parameter in the command below
+```
+aws --endpoint-url=http://localhost:4566 sns publish \
+    --topic-arn arn:aws:sns:eu-west-2:000000000000:[find this in the Incentives API log for HmppsTopicFactory] \
+    --message-attributes '{
+      "eventType": { "DataType": "String", "StringValue": "prison-offender-events.prisoner.received" }
+    }' \
+    --message '{
+      "version":"1.0",
+      "occurredAt":"2020-02-12T15:14:24.125533Z",
+      "publishedAt":"2020-02-12T15:15:09.902048716Z",
+      "description":"A prisoner has been received into prison",
+      "additionalInformation": {
+        "nomsNumber":"A0289IR",
+        "prisonId":"MDI",
+        "reason":"ADMISSION",
+        "details":"ecall referral date 2021-05-12"
+      }
+    }'
+```
+3. Paste the command into your terminal
+
 ### Runbook
 
 
