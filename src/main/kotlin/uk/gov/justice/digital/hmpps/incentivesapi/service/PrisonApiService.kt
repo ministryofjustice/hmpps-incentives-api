@@ -79,17 +79,12 @@ class PrisonApiService(
       .awaitBodilessEntity()
 
   suspend fun getPrisonerInfo(prisonerNumber: String, useClientCredentials: Boolean = false): PrisonerAtLocation {
-    return if (useClientCredentials) {
-      prisonWebClientClientCredentials.get()
-        .uri("/api/bookings/offenderNo/$prisonerNumber")
-        .retrieve()
-        .awaitBody()
-    } else {
-      prisonWebClient.get()
-        .uri("/api/bookings/offenderNo/$prisonerNumber")
-        .retrieve()
-        .awaitBody()
-    }
+    val webClient = if (useClientCredentials) prisonWebClientClientCredentials else prisonWebClient
+
+    return webClient.get()
+      .uri("/api/bookings/offenderNo/$prisonerNumber")
+      .retrieve()
+      .awaitBody()
   }
 
   suspend fun getPrisonerInfo(bookingId: Long): PrisonerAtLocation =
@@ -99,16 +94,11 @@ class PrisonApiService(
       .awaitBody()
 
   suspend fun getLocationById(locationId: Long, useClientCredentials: Boolean = false): Location {
-    return if (useClientCredentials) {
-      prisonWebClientClientCredentials.get()
-        .uri("/api/locations/$locationId")
-        .retrieve()
-        .awaitBody()
-    } else {
-      prisonWebClient.get()
-        .uri("/api/locations/$locationId")
-        .retrieve()
-        .awaitBody()
-    }
+    val webClient = if (useClientCredentials) prisonWebClientClientCredentials else prisonWebClient
+
+    return webClient.get()
+      .uri("/api/locations/$locationId")
+      .retrieve()
+      .awaitBody()
   }
 }
