@@ -28,32 +28,32 @@ dependencies {
 
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:1.1.6")
 
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.6.4")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 
-  implementation("org.flywaydb:flyway-core:8.5.13")
-  runtimeOnly("org.postgresql:r2dbc-postgresql:0.9.1.RELEASE")
+  runtimeOnly("org.flywaydb:flyway-core")
+  runtimeOnly("org.postgresql:r2dbc-postgresql")
   runtimeOnly("org.springframework.boot:spring-boot-starter-jdbc")
-  runtimeOnly("org.postgresql:postgresql:42.4.0")
+  runtimeOnly("org.postgresql:postgresql")
 
   implementation("org.springdoc:springdoc-openapi-webflux-ui:1.6.9")
   implementation("org.springdoc:springdoc-openapi-kotlin:1.6.9")
 
-  implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.3")
+  implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("io.opentelemetry:opentelemetry-api:1.16.0")
 
-  implementation("org.apache.commons:commons-lang3:3.12.0")
+  implementation("org.apache.commons:commons-lang3")
   implementation("org.apache.commons:commons-text:1.9")
-  implementation("commons-codec:commons-codec:1.15")
-  implementation("com.google.code.gson:gson:2.9.0")
+  implementation("commons-codec:commons-codec")
+  implementation("com.google.code.gson:gson")
 
   implementation("com.pauldijou:jwt-core_2.11:5.0.0")
 
   developmentOnly("org.springframework.boot:spring-boot-devtools")
 
-  testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
+  testImplementation("org.awaitility:awaitility-kotlin")
   testImplementation("io.jsonwebtoken:jjwt:0.9.1")
-  testImplementation("org.mockito:mockito-inline:4.6.1")
+  testImplementation("org.mockito:mockito-inline")
   testImplementation("io.swagger.parser.v3:swagger-parser:2.1.1")
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
@@ -61,7 +61,7 @@ dependencies {
   testImplementation("org.testcontainers:localstack:1.17.3")
   testImplementation("org.testcontainers:postgresql:1.17.3")
   testImplementation("io.projectreactor:reactor-test")
-  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4")
+  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
 }
 
 java {

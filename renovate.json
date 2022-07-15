@@ -22,12 +22,6 @@
       ]
     },
     {
-      "groupName": "kotlinx coroutines",
-      "matchPackagePrefixes": [
-        "org.jetbrains.kotlinx*"
-      ]
-    },
-    {
       "groupName": "spring doc",
       "matchPackagePrefixes": [
         "org.springdoc*"
