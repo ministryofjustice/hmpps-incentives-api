@@ -6,7 +6,6 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
@@ -14,7 +13,6 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.incentivesapi.config.AuthenticationFacade
-import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
@@ -116,6 +114,7 @@ class PrisonerIepLevelReviewServiceTest {
       val prisonOffenderEvent = prisonOffenderEvent("ADMISSION")
       whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(prisonerAtLocation)
       whenever(prisonApiService.getLocationById(prisonerAtLocation.assignedLivingUnitId, true)).thenReturn(location)
+      // Enhanced is the default for this prison so use that
       whenever(iepLevelService.getIepLevelsForPrison(prisonerAtLocation.agencyId)).thenReturn(
         listOf(
           IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 1, default = false),
@@ -150,7 +149,11 @@ class PrisonerIepLevelReviewServiceTest {
       val prisonOffenderEvent = prisonOffenderEvent("TRANSFERRED")
       whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(prisonerAtLocation)
       whenever(prisonApiService.getLocationById(prisonerAtLocation.assignedLivingUnitId, true)).thenReturn(location)
-      whenever(prisonerIepLevelRepository.findOneByBookingIdAndCurrentIsTrue(prisonerAtLocation.bookingId)).thenReturn(prisonerIepLevel)
+      whenever(iepLevelService.getIepLevelsForPrison(prisonerAtLocation.agencyId)).thenReturn(
+        listOf(
+          IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 1, default = true),
+        )
+      )
 
       // When
       prisonerIepLevelReviewService.processReceivedPrisoner(prisonOffenderEvent)
@@ -165,7 +168,7 @@ class PrisonerIepLevelReviewServiceTest {
           bookingId = prisonerAtLocation.bookingId,
           prisonId = location.agencyId,
           locationId = location.description,
-          sequence = 3,
+          sequence = 1,
           current = true,
           reviewedBy = "incentives-api",
           reviewTime = LocalDateTime.now(clock),
@@ -174,20 +177,6 @@ class PrisonerIepLevelReviewServiceTest {
         )
       )
     }
-
-    @Test
-    fun `when processing TRANSFERRED throw exception if we cannot find existing incentive level for prisoner`(): Unit =
-      runBlocking {
-        // Given - we do not mock prisonerIepLevelRepository.findOneByBookingIdAndCurrentIsTrue
-        val prisonOffenderEvent = prisonOffenderEvent("TRANSFERRED")
-        whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(prisonerAtLocation)
-
-        // When
-        val exception = assertThrows<NoDataFoundException> {
-          prisonerIepLevelReviewService.processReceivedPrisoner(prisonOffenderEvent)
-        }
-        assertThat(exception.message).isEqualTo("No Data found for ID ${prisonerAtLocation.bookingId}")
-      }
 
     @Test
     fun `do not process reason RETURN_FROM_COURT`(): Unit = runBlocking {

@@ -100,7 +100,8 @@ class PrisonerIepLevelReviewService(
   private suspend fun createIepForReceivedPrisoner(prisonOffenderEvent: HMPPSDomainEvent, reviewType: ReviewType) {
     prisonOffenderEvent.additionalInformation.nomsNumber?.let {
       val prisonerInfo = prisonApiService.getPrisonerInfo(it, true)
-      val iepLevel = getIepLevelForReviewType(prisonerInfo, reviewType)
+      val iepLevelsForPrison = iepLevelService.getIepLevelsForPrison(prisonerInfo.agencyId)
+      val iepLevel = iepLevelsForPrison.first { iep -> iep.default }.iepLevel
 
       val iepReview = IepReview(
         iepLevel = iepLevel,
@@ -118,20 +119,6 @@ class PrisonerIepLevelReviewService(
       )
     } ?: run {
       log.warn("prisonerNumber null for prisonOffenderEvent: $prisonOffenderEvent ")
-    }
-  }
-
-  private suspend fun getIepLevelForReviewType(prisonerInfo: PrisonerAtLocation, reviewType: ReviewType): String {
-    return when (reviewType) {
-      ReviewType.INITIAL -> {
-        val iepLevelsForPrison = iepLevelService.getIepLevelsForPrison(prisonerInfo.agencyId)
-        iepLevelsForPrison.first { iep -> iep.default }.iepLevel
-      }
-      ReviewType.TRANSFER -> {
-        prisonerIepLevelRepository.findOneByBookingIdAndCurrentIsTrue(prisonerInfo.bookingId)?.iepCode
-          ?: throw NoDataFoundException(prisonerInfo.bookingId)
-      }
-      else -> throw NotImplementedError("Not implemented for $reviewType")
     }
   }
 
