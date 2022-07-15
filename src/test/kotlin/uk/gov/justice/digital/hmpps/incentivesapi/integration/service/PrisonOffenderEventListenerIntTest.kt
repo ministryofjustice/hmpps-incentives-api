@@ -61,6 +61,30 @@ internal class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     }
   }
 
+  @Test
+  fun `prisoner with TRANSFERRED reason is processed`(): Unit = runBlocking {
+    // Given
+    val bookingId = 1294134L
+    val prisonerNumber = "A1244AB"
+    val locationId = 77777L
+    prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = locationId)
+    prisonApiMockServer.stubGetLocationById(locationId = locationId, locationDesc = "1-2-003")
+
+    // When
+    publishPrisonerReceivedMessage("TRANSFERRED")
+    await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
+    await untilCallTo { prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber") } matches { it == 1 }
+    await untilCallTo { prisonApiMockServer.getCountFor("/api/locations/$locationId") } matches { it == 1 }
+
+    // Then
+    await.atMost(Duration.ofSeconds(30)) untilCallTo {
+      runBlocking {
+        val booking = repository.findFirstByBookingIdOrderBySequenceDesc(bookingId)
+        assertThat(booking?.reviewType).isEqualTo(ReviewType.TRANSFER)
+      }
+    }
+  }
+
   private fun publishPrisonerReceivedMessage(reason: String) =
     domainEventsTopicSnsClient.publish(
       PublishRequest(
