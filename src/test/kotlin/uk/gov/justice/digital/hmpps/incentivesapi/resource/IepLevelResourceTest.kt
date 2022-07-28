@@ -98,6 +98,14 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
   }
 
   @Test
+  fun `handle undefined path variable`() {
+    webTestClient.get().uri("/iep/reviews/booking/undefined")
+      .headers(setAuthorisation())
+      .exchange()
+      .expectStatus().isBadRequest
+  }
+
+  @Test
   fun `get IEP Levels for a list of prisoners`() {
     prisonApiMockServer.stubIEPSummary()
 

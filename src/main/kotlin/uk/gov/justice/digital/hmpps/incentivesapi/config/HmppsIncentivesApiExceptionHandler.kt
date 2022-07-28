@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.config
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import org.slf4j.LoggerFactory
+import org.springframework.beans.TypeMismatchException
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatus.BAD_REQUEST
 import org.springframework.http.HttpStatus.FORBIDDEN
@@ -14,6 +15,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.bind.support.WebExchangeBindException
+import org.springframework.web.server.ServerWebInputException
 import uk.gov.justice.digital.hmpps.incentivesapi.service.NoPrisonersAtLocationException
 import javax.validation.ValidationException
 
@@ -115,6 +117,34 @@ class HmppsIncentivesApiExceptionHandler {
         ErrorResponse(
           status = INTERNAL_SERVER_ERROR,
           userMessage = "Unexpected error: ${e.message}",
+          developerMessage = e.message
+        )
+      )
+  }
+
+  @ExceptionHandler(ServerWebInputException::class)
+  fun handleServerWebInputException(e: ServerWebInputException): ResponseEntity<ErrorResponse> {
+    log.error("Parameter conversion exception: {}", e.message)
+    return ResponseEntity
+      .status(BAD_REQUEST)
+      .body(
+        ErrorResponse(
+          status = BAD_REQUEST,
+          userMessage = "Parameter conversion failure: ${e.message}",
+          developerMessage = e.message
+        )
+      )
+  }
+
+  @ExceptionHandler(TypeMismatchException::class)
+  fun handleValidationException(e: TypeMismatchException): ResponseEntity<ErrorResponse> {
+    log.error("Parameter conversion exception: {}", e.message)
+    return ResponseEntity
+      .status(BAD_REQUEST)
+      .body(
+        ErrorResponse(
+          status = BAD_REQUEST,
+          userMessage = "Parameter conversion failure: ${e.message}",
           developerMessage = e.message
         )
       )
