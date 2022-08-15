@@ -97,7 +97,7 @@ class PrisonApiService(
     val webClient = if (useClientCredentials) prisonWebClientClientCredentials else prisonWebClient
 
     return webClient.get()
-      .uri("/api/locations/$locationId")
+      .uri("/api/locations/$locationId?includeInactive=true")
       .retrieve()
       .awaitBody()
   }

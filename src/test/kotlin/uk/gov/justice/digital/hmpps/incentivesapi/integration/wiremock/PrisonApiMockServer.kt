@@ -517,7 +517,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
 
   fun stubGetLocationById(locationId: Long, locationDesc: String) {
     stubFor(
-      get("/api/locations/$locationId").willReturn(
+      get("/api/locations/$locationId?includeInactive=true").willReturn(
         aResponse()
           .withHeader("Content-Type", "application/json")
           .withBody(
