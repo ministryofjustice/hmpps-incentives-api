@@ -16,21 +16,15 @@
       "allowedVersions": "18-slim"
     },
     {
-      "groupName": "kotlin plugin",
-      "matchPackagePrefixes": [
-        "org.jetbrains.kotlin.plugin*"
-      ]
-    },
-    {
       "groupName": "spring doc",
       "matchPackagePrefixes": [
-        "org.springdoc*"
+        "org.springdoc"
       ]
     },
     {
       "groupName": "test containers",
       "matchPackagePrefixes": [
-        "org.testcontainers*"
+        "org.testcontainers"
       ]
     }
   ]
