@@ -34,7 +34,7 @@ dependencies {
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("org.postgresql:r2dbc-postgresql")
   runtimeOnly("org.springframework.boot:spring-boot-starter-jdbc")
-  runtimeOnly("org.postgresql:postgresql:42.4.1")
+  runtimeOnly("org.postgresql:postgresql:42.4.2")
 
   implementation("org.springdoc:springdoc-openapi-webflux-ui:1.6.10")
   implementation("org.springdoc:springdoc-openapi-kotlin:1.6.10")
