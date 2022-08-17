@@ -69,12 +69,14 @@ internal class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     val locationId = 77777L
     prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = locationId)
     prisonApiMockServer.stubGetLocationById(locationId = locationId, locationDesc = "1-2-003")
+    prisonApiMockServer.stubIEPSummary()
 
     // When
     publishPrisonerReceivedMessage("TRANSFERRED")
     await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
     await untilCallTo { prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber") } matches { it == 1 }
     await untilCallTo { prisonApiMockServer.getCountFor("/api/locations/$locationId?includeInactive=true") } matches { it == 1 }
+    await untilCallTo { prisonApiMockServer.postCountFor("/api/bookings/iepSummary") } matches { it == 1 }
 
     // Then
     await.atMost(Duration.ofSeconds(30)) untilCallTo {

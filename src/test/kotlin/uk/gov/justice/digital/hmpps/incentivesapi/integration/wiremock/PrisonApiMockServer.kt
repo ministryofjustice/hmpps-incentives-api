@@ -12,6 +12,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
   }
 
   fun getCountFor(url: String) = this.findAll(WireMock.getRequestedFor(WireMock.urlEqualTo(url))).count()
+  fun postCountFor(url: String) = this.findAll(WireMock.postRequestedFor(WireMock.urlEqualTo(url))).count()
 
   fun stubHealthPing(status: Int) {
     stubFor(

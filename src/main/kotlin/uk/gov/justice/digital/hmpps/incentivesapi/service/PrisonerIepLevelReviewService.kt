@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import org.slf4j.Logger
@@ -65,9 +66,9 @@ class PrisonerIepLevelReviewService(
     return addIepLevel(prisonerInfo, iepReview)
   }
 
-  fun getCurrentIEPLevelForPrisoners(bookingIds: List<Long>, useNomisData: Boolean): Flow<CurrentIepLevel> {
+  fun getCurrentIEPLevelForPrisoners(bookingIds: List<Long>, useNomisData: Boolean, useClientCredentials: Boolean = false): Flow<CurrentIepLevel> {
     return if (useNomisData) {
-      prisonApiService.getIEPSummaryPerPrisoner(bookingIds)
+      prisonApiService.getIEPSummaryPerPrisoner(bookingIds, useClientCredentials)
         .map {
           CurrentIepLevel(iepLevel = it.iepLevel, bookingId = it.bookingId)
         }
@@ -100,8 +101,7 @@ class PrisonerIepLevelReviewService(
   private suspend fun createIepForReceivedPrisoner(prisonOffenderEvent: HMPPSDomainEvent, reviewType: ReviewType) {
     prisonOffenderEvent.additionalInformation.nomsNumber?.let {
       val prisonerInfo = prisonApiService.getPrisonerInfo(it, true)
-      val iepLevelsForPrison = iepLevelService.getIepLevelsForPrison(prisonerInfo.agencyId)
-      val iepLevel = iepLevelsForPrison.first { iep -> iep.default }.iepLevel
+      val iepLevel = getIepLevelForReviewType(prisonerInfo, reviewType)
 
       val iepReview = IepReview(
         iepLevel = iepLevel,
@@ -119,6 +119,28 @@ class PrisonerIepLevelReviewService(
       )
     } ?: run {
       log.warn("prisonerNumber null for prisonOffenderEvent: $prisonOffenderEvent ")
+    }
+  }
+
+  private suspend fun getIepLevelForReviewType(prisonerInfo: PrisonerAtLocation, reviewType: ReviewType): String {
+    val iepLevelsForPrison = iepLevelService.getIepLevelsForPrison(prisonerInfo.agencyId)
+    when (reviewType) {
+      ReviewType.INITIAL -> {
+        return iepLevelsForPrison.first(IepLevel::default).iepLevel
+      }
+
+      ReviewType.TRANSFER -> {
+        val currentIepLevelForPrisoner = getCurrentIEPLevelForPrisoners(bookingIds = listOf(prisonerInfo.bookingId), useNomisData = true, useClientCredentials = true)
+          .firstOrNull() ?: throw NoDataFoundException(prisonerInfo.bookingId)
+        return iepLevelsForPrison.find { it.iepDescription == currentIepLevelForPrisoner.iepLevel }
+          ?.iepLevel
+          ?: run {
+            val highestIepLevelForPrison = iepLevelsForPrison.last()
+            highestIepLevelForPrison.iepLevel
+          }
+      }
+
+      else -> throw NotImplementedError("Not implemented for $reviewType")
     }
   }
 

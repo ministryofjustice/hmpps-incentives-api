@@ -29,8 +29,10 @@ class PrisonApiService(
         if (it is NotFound) { emitAll(emptyFlow()) } else { throw it }
       }
 
-  fun getIEPSummaryPerPrisoner(@NotEmpty bookingIds: List<Long>): Flow<IepSummary> =
-    prisonWebClient.post()
+  fun getIEPSummaryPerPrisoner(@NotEmpty bookingIds: List<Long>, useClientCredentials: Boolean = false): Flow<IepSummary> {
+    val webClient = if (useClientCredentials) prisonWebClientClientCredentials else prisonWebClient
+
+    return webClient.post()
       .uri("/api/bookings/iepSummary")
       .bodyValue(bookingIds)
       .retrieve()
@@ -38,6 +40,7 @@ class PrisonApiService(
       .catch {
         if (it is NotFound) { emitAll(emptyFlow()) } else { throw it }
       }
+  }
 
   suspend fun getIEPSummaryForPrisoner(bookingId: Long, withDetails: Boolean): IepSummary =
     prisonWebClient.get()

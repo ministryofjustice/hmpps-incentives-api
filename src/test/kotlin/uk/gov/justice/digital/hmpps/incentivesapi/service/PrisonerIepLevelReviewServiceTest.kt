@@ -1,9 +1,11 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.Assert
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -13,6 +15,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.incentivesapi.config.AuthenticationFacade
+import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
@@ -62,7 +65,7 @@ class PrisonerIepLevelReviewServiceTest {
     fun `will call prison api if useNomisData is true and will not return iep details if withDetails is false`(): Unit = runBlocking {
       coroutineScope {
         // Given
-        whenever(prisonApiService.getIEPSummaryForPrisoner(any(), any())).thenReturn(iepSummary)
+        whenever(prisonApiService.getIEPSummaryForPrisoner(any(), any())).thenReturn(iepSummary())
 
         // When
         prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567, useNomisData = true, withDetails = false)
@@ -144,23 +147,18 @@ class PrisonerIepLevelReviewServiceTest {
     }
 
     @Test
-    fun `process TRANSFERRED`(): Unit = runBlocking {
+    fun `process TRANSFERRED when offender stays on same level`(): Unit = runBlocking {
       // Given
       val prisonOffenderEvent = prisonOffenderEvent("TRANSFERRED")
       whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(prisonerAtLocation)
       whenever(prisonApiService.getLocationById(prisonerAtLocation.assignedLivingUnitId, true)).thenReturn(location)
-      whenever(iepLevelService.getIepLevelsForPrison(prisonerAtLocation.agencyId)).thenReturn(
-        listOf(
-          IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 1, default = true),
-        )
-      )
+      whenever(iepLevelService.getIepLevelsForPrison(prisonerAtLocation.agencyId)).thenReturn(basicStandardEnhanced)
+      whenever(prisonApiService.getIEPSummaryPerPrisoner(listOf(prisonerAtLocation.bookingId), true)).thenReturn(flowOf(iepSummary("Standard")))
 
       // When
       prisonerIepLevelReviewService.processReceivedPrisoner(prisonOffenderEvent)
 
-      // Then
-
-      // Then
+      // Then - this prison hase STD configured so the offender stays on the same level
       verify(prisonerIepLevelRepository, times(1)).save(
         PrisonerIepLevel(
           iepCode = "STD",
@@ -176,6 +174,51 @@ class PrisonerIepLevelReviewServiceTest {
           prisonerNumber = prisonerAtLocation.offenderNo
         )
       )
+    }
+
+    @Test
+    fun `process TRANSFERRED when prison does not support existing level`(): Unit = runBlocking {
+      // Given
+      val prisonOffenderEvent = prisonOffenderEvent("TRANSFERRED")
+      whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(prisonerAtLocation)
+      whenever(prisonApiService.getLocationById(prisonerAtLocation.assignedLivingUnitId, true)).thenReturn(location)
+      whenever(iepLevelService.getIepLevelsForPrison(prisonerAtLocation.agencyId)).thenReturn(basicStandardEnhanced)
+      whenever(prisonApiService.getIEPSummaryPerPrisoner(listOf(prisonerAtLocation.bookingId), true)).thenReturn(flowOf(iepSummary("Enhanced 2")))
+
+      // When
+      prisonerIepLevelReviewService.processReceivedPrisoner(prisonOffenderEvent)
+
+      // Then - this prison does not support ENH2 so fallback to ENH
+      verify(prisonerIepLevelRepository, times(1)).save(
+        PrisonerIepLevel(
+          iepCode = "ENH",
+          commentText = prisonOffenderEvent.description,
+          bookingId = prisonerAtLocation.bookingId,
+          prisonId = location.agencyId,
+          locationId = location.description,
+          sequence = 1,
+          current = true,
+          reviewedBy = "incentives-api",
+          reviewTime = LocalDateTime.now(clock),
+          reviewType = ReviewType.TRANSFER,
+          prisonerNumber = prisonerAtLocation.offenderNo
+        )
+      )
+    }
+
+    @Test
+    fun `process TRANSFERRED when cannot find current IEP level`(): Unit = runBlocking {
+      // Given
+      val prisonOffenderEvent = prisonOffenderEvent("TRANSFERRED")
+      whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(prisonerAtLocation)
+      whenever(prisonApiService.getLocationById(prisonerAtLocation.assignedLivingUnitId, true)).thenReturn(location)
+      whenever(iepLevelService.getIepLevelsForPrison(prisonerAtLocation.agencyId)).thenReturn(basicStandardEnhanced)
+      whenever(prisonApiService.getIEPSummaryPerPrisoner(listOf(prisonerAtLocation.bookingId), true)).thenReturn(emptyFlow())
+
+      // When
+      Assert.assertThrows(NoDataFoundException::class.java) {
+        runBlocking { prisonerIepLevelReviewService.processReceivedPrisoner(prisonOffenderEvent) }
+      }
     }
 
     @Test
@@ -209,15 +252,15 @@ class PrisonerIepLevelReviewServiceTest {
   }
 
   private val iepTime: LocalDateTime = LocalDateTime.now().minusDays(10)
-  private val iepSummary = IepSummary(
+  private fun iepSummary(iepLevel: String = "Enhanced") = IepSummary(
     bookingId = 1L,
     daysSinceReview = 60,
     iepDate = iepTime.toLocalDate(),
-    iepLevel = "Enhanced",
+    iepLevel = iepLevel,
     iepTime = iepTime,
     iepDetails = emptyList(),
   )
-  private val iepSummaryWithDetail = iepSummary.copy(
+  private val iepSummaryWithDetail = iepSummary().copy(
     iepDetails = listOf(
       IepDetail(
         bookingId = 1L,
@@ -287,16 +330,9 @@ class PrisonerIepLevelReviewServiceTest {
     agencyId = "MDI", locationId = 77777L, description = "Houseblock 1"
   )
 
-  private val prisonerIepLevel =
-    PrisonerIepLevel(
-      iepCode = "STD",
-      prisonId = "MDI",
-      locationId = "MDI-1-1-004",
-      bookingId = 1234567,
-      sequence = 2,
-      current = true,
-      reviewedBy = "TEST_STAFF1",
-      reviewTime = LocalDateTime.now(),
-      prisonerNumber = "A1234AA"
-    )
+  private val basicStandardEnhanced = listOf(
+    IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1, default = false),
+    IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2, default = true),
+    IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3, default = false),
+  )
 }
