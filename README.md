@@ -62,6 +62,10 @@ aws --endpoint-url=http://localhost:4566 sns publish \
 ```
 3. Paste the command into your terminal
 
+**NOTE**: If you get a `Topic does not exist` error, it may mean your default AWS profile points to a different region,
+be sure it points to `eu-west-2` either by changing your default profile or by passing `--region eu-west-1` to the
+command above.
+
 ### Runbook
 
 
