@@ -158,7 +158,7 @@ class PrisonerIepLevelReviewServiceTest {
         iepDetail("LEI", "BAS", LocalDateTime.now().minusDays(2)),
       )
       val iepSummary = iepSummary(iepDetails = iepDetails)
-      whenever(prisonApiService.getIEPSummaryForPrisoner(prisonerAtLocation.bookingId, true)).thenReturn(iepSummary)
+      whenever(prisonApiService.getIEPSummaryForPrisoner(prisonerAtLocation.bookingId, withDetails = true, useClientCredentials = true)).thenReturn(iepSummary)
 
       // When
       prisonerIepLevelReviewService.processReceivedPrisoner(prisonOffenderEvent)
@@ -195,7 +195,7 @@ class PrisonerIepLevelReviewServiceTest {
         iepDetail("LEI", "BAS", LocalDateTime.now().minusDays(2)),
       )
       val iepSummary = iepSummary(iepDetails = iepDetails)
-      whenever(prisonApiService.getIEPSummaryForPrisoner(prisonerAtLocation.bookingId, true)).thenReturn(iepSummary)
+      whenever(prisonApiService.getIEPSummaryForPrisoner(prisonerAtLocation.bookingId, withDetails = true, useClientCredentials = true)).thenReturn(iepSummary)
 
       // When
       prisonerIepLevelReviewService.processReceivedPrisoner(prisonOffenderEvent)
@@ -226,7 +226,7 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(prisonerAtLocation)
       whenever(prisonApiService.getLocationById(prisonerAtLocation.assignedLivingUnitId, true)).thenReturn(location)
       whenever(iepLevelService.getIepLevelsForPrison(prisonerAtLocation.agencyId)).thenReturn(basicStandardEnhanced)
-      whenever(prisonApiService.getIEPSummaryForPrisoner(prisonerAtLocation.bookingId, true)).thenReturn(iepSummary(iepDetails = emptyList()))
+      whenever(prisonApiService.getIEPSummaryForPrisoner(prisonerAtLocation.bookingId, withDetails = true, useClientCredentials = true)).thenReturn(iepSummary(iepDetails = emptyList()))
 
       // When
       Assert.assertThrows(NoDataFoundException::class.java) {
