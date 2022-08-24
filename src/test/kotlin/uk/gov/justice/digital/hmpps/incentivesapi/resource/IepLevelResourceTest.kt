@@ -86,7 +86,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
                    "sequence":1,
                    "iepDate":"2020-11-02",
                    "iepTime":"2021-11-02T09:00:42.894",
-                   "agencyId":"MDI",
+                   "agencyId":"BXI",
                    "iepLevel":"Entry",
                    "userId":"TEST_USER",
                    "auditModuleName":"PRISON_API"

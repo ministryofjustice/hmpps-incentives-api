@@ -7,7 +7,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.Assert
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
@@ -49,7 +48,7 @@ class PrisonerIepLevelReviewServiceTest {
     fun `will call prison api if useNomisData is true`(): Unit = runBlocking {
       coroutineScope {
         // Given
-        whenever(prisonApiService.getIEPSummaryForPrisoner(any(), any())).thenReturn(iepSummaryWithDetail)
+        whenever(prisonApiService.getIEPSummaryForPrisoner(1234567, withDetails = true)).thenReturn(iepSummaryWithDetail)
 
         // When
         prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567, useNomisData = true)
@@ -64,7 +63,7 @@ class PrisonerIepLevelReviewServiceTest {
     fun `will call prison api if useNomisData is true and will not return iep details if withDetails is false`(): Unit = runBlocking {
       coroutineScope {
         // Given
-        whenever(prisonApiService.getIEPSummaryForPrisoner(any(), any())).thenReturn(iepSummary())
+        whenever(prisonApiService.getIEPSummaryForPrisoner(1234567, withDetails = false)).thenReturn(iepSummary())
 
         // When
         prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567, useNomisData = true, withDetails = false)
@@ -79,7 +78,7 @@ class PrisonerIepLevelReviewServiceTest {
     fun `will query incentives db if useNomisData is false`(): Unit = runBlocking {
       coroutineScope {
         // Given
-        whenever(prisonerIepLevelRepository.findAllByBookingIdOrderBySequenceDesc(any())).thenReturn(currentAndPreviousLevels)
+        whenever(prisonerIepLevelRepository.findAllByBookingIdOrderBySequenceDesc(1234567)).thenReturn(currentAndPreviousLevels)
 
         // When
         val result = prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567, useNomisData = false)
@@ -95,7 +94,7 @@ class PrisonerIepLevelReviewServiceTest {
     fun `will query incentives db if useNomisData is false and will not return iep details if withDetails is false`(): Unit = runBlocking {
       coroutineScope {
         // Given
-        whenever(prisonerIepLevelRepository.findAllByBookingIdOrderBySequenceDesc(any())).thenReturn(currentAndPreviousLevels)
+        whenever(prisonerIepLevelRepository.findAllByBookingIdOrderBySequenceDesc(1234567)).thenReturn(currentAndPreviousLevels)
 
         // When
         val result = prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567, useNomisData = false, withDetails = false)
