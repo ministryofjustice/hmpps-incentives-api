@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import org.slf4j.Logger
@@ -36,9 +35,14 @@ class PrisonerIepLevelReviewService(
     val log: Logger = LoggerFactory.getLogger(this::class.java)
   }
 
-  suspend fun getPrisonerIepLevelHistory(bookingId: Long, useNomisData: Boolean = true, withDetails: Boolean = true): IepSummary {
+  suspend fun getPrisonerIepLevelHistory(
+    bookingId: Long,
+    useNomisData: Boolean = true,
+    withDetails: Boolean = true,
+    useClientCredentials: Boolean = false,
+  ): IepSummary {
     return if (useNomisData) {
-      prisonApiService.getIEPSummaryForPrisoner(bookingId, withDetails)
+      prisonApiService.getIEPSummaryForPrisoner(bookingId, withDetails, useClientCredentials)
     } else {
       buildIepSummary(prisonerIepLevelRepository.findAllByBookingIdOrderBySequenceDesc(bookingId), withDetails)
     }
@@ -66,9 +70,9 @@ class PrisonerIepLevelReviewService(
     return addIepLevel(prisonerInfo, iepReview)
   }
 
-  fun getCurrentIEPLevelForPrisoners(bookingIds: List<Long>, useNomisData: Boolean, useClientCredentials: Boolean = false): Flow<CurrentIepLevel> {
+  fun getCurrentIEPLevelForPrisoners(bookingIds: List<Long>, useNomisData: Boolean): Flow<CurrentIepLevel> {
     return if (useNomisData) {
-      prisonApiService.getIEPSummaryPerPrisoner(bookingIds, useClientCredentials)
+      prisonApiService.getIEPSummaryPerPrisoner(bookingIds)
         .map {
           CurrentIepLevel(iepLevel = it.iepLevel, bookingId = it.bookingId)
         }
@@ -124,24 +128,21 @@ class PrisonerIepLevelReviewService(
 
   private suspend fun getIepLevelForReviewType(prisonerInfo: PrisonerAtLocation, reviewType: ReviewType): String {
     val iepLevelsForPrison = iepLevelService.getIepLevelsForPrison(prisonerInfo.agencyId)
-    when (reviewType) {
-      ReviewType.INITIAL -> {
-        return iepLevelsForPrison.first(IepLevel::default).iepLevel
-      }
+    val iepLevel = when (reviewType) {
+      ReviewType.INITIAL -> iepLevelsForPrison.first(IepLevel::default)
 
       ReviewType.TRANSFER -> {
-        val currentIepLevelForPrisoner = getCurrentIEPLevelForPrisoners(bookingIds = listOf(prisonerInfo.bookingId), useNomisData = true, useClientCredentials = true)
-          .firstOrNull() ?: throw NoDataFoundException(prisonerInfo.bookingId)
-        return iepLevelsForPrison.find { it.iepDescription == currentIepLevelForPrisoner.iepLevel }
-          ?.iepLevel
-          ?: run {
-            val highestIepLevelForPrison = iepLevelsForPrison.last()
-            highestIepLevelForPrison.iepLevel
-          }
+        val iepHistory = getPrisonerIepLevelHistory(prisonerInfo.bookingId, useNomisData = true, withDetails = true, useClientCredentials = true).iepDetails
+        val iepLevelBeforeTransfer = iepHistory.sortedBy(IepDetail::iepTime).lastOrNull { it.agencyId != prisonerInfo.agencyId }
+          ?: throw NoDataFoundException(prisonerInfo.bookingId)
+        iepLevelsForPrison.find { it.iepLevel == iepLevelBeforeTransfer.iepLevel }
+          // ...or the highest level in the prison
+          ?: iepLevelsForPrison.last()
       }
 
       else -> throw NotImplementedError("Not implemented for $reviewType")
     }
+    return iepLevel.iepLevel
   }
 
   private suspend fun buildIepSummary(levels: Flow<PrisonerIepLevel>, withDetails: Boolean = true): IepSummary {
