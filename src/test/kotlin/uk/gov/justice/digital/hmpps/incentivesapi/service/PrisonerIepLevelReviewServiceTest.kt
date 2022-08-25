@@ -153,7 +153,7 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonApiService.getLocationById(prisonerAtLocation.assignedLivingUnitId, true)).thenReturn(location)
       whenever(iepLevelService.getIepLevelsForPrison(prisonerAtLocation.agencyId)).thenReturn(basicStandardEnhanced)
       val iepDetails = listOf(
-        iepDetail(prisonerAtLocation.agencyId, "STD", LocalDateTime.now()),
+        iepDetail(prisonerAtLocation.agencyId, "BAS", LocalDateTime.now()),
         iepDetail("BXI", "STD", LocalDateTime.now().minusDays(1)),
         iepDetail("LEI", "BAS", LocalDateTime.now().minusDays(2)),
       )
@@ -163,7 +163,7 @@ class PrisonerIepLevelReviewServiceTest {
       // When
       prisonerIepLevelReviewService.processReceivedPrisoner(prisonOffenderEvent)
 
-      // Then - this prison has STD configured so the offender stays on the same level
+      // Then - the prisoner was on STD at BXI so they on this level
       verify(prisonerIepLevelRepository, times(1)).save(
         PrisonerIepLevel(
           iepCode = "STD",
@@ -200,7 +200,7 @@ class PrisonerIepLevelReviewServiceTest {
       // When
       prisonerIepLevelReviewService.processReceivedPrisoner(prisonOffenderEvent)
 
-      // Then - this prison does not support ENH2 so fallback to ENH
+      // Then - MDI prison does not support ENH2 (which they were on in BXI) so fallback to ENH
       verify(prisonerIepLevelRepository, times(1)).save(
         PrisonerIepLevel(
           iepCode = "ENH",
