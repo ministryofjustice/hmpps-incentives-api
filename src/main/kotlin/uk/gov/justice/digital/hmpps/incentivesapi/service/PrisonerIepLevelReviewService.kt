@@ -35,9 +35,14 @@ class PrisonerIepLevelReviewService(
     val log: Logger = LoggerFactory.getLogger(this::class.java)
   }
 
-  suspend fun getPrisonerIepLevelHistory(bookingId: Long, useNomisData: Boolean = true, withDetails: Boolean = true): IepSummary {
+  suspend fun getPrisonerIepLevelHistory(
+    bookingId: Long,
+    useNomisData: Boolean = true,
+    withDetails: Boolean = true,
+    useClientCredentials: Boolean = false,
+  ): IepSummary {
     return if (useNomisData) {
-      prisonApiService.getIEPSummaryForPrisoner(bookingId, withDetails)
+      prisonApiService.getIEPSummaryForPrisoner(bookingId, withDetails, useClientCredentials)
     } else {
       buildIepSummary(prisonerIepLevelRepository.findAllByBookingIdOrderBySequenceDesc(bookingId), withDetails)
     }
@@ -100,8 +105,7 @@ class PrisonerIepLevelReviewService(
   private suspend fun createIepForReceivedPrisoner(prisonOffenderEvent: HMPPSDomainEvent, reviewType: ReviewType) {
     prisonOffenderEvent.additionalInformation.nomsNumber?.let {
       val prisonerInfo = prisonApiService.getPrisonerInfo(it, true)
-      val iepLevelsForPrison = iepLevelService.getIepLevelsForPrison(prisonerInfo.agencyId)
-      val iepLevel = iepLevelsForPrison.first { iep -> iep.default }.iepLevel
+      val iepLevel = getIepLevelForReviewType(prisonerInfo, reviewType)
 
       val iepReview = IepReview(
         iepLevel = iepLevel,
@@ -120,6 +124,25 @@ class PrisonerIepLevelReviewService(
     } ?: run {
       log.warn("prisonerNumber null for prisonOffenderEvent: $prisonOffenderEvent ")
     }
+  }
+
+  private suspend fun getIepLevelForReviewType(prisonerInfo: PrisonerAtLocation, reviewType: ReviewType): String {
+    val iepLevelsForPrison = iepLevelService.getIepLevelsForPrison(prisonerInfo.agencyId)
+    val iepLevel = when (reviewType) {
+      ReviewType.INITIAL -> iepLevelsForPrison.first(IepLevel::default)
+
+      ReviewType.TRANSFER -> {
+        val iepHistory = getPrisonerIepLevelHistory(prisonerInfo.bookingId, useNomisData = true, withDetails = true, useClientCredentials = true).iepDetails
+        val iepLevelBeforeTransfer = iepHistory.sortedBy(IepDetail::iepTime).lastOrNull { it.agencyId != prisonerInfo.agencyId }
+          ?: throw NoDataFoundException(prisonerInfo.bookingId)
+        iepLevelsForPrison.find { it.iepLevel == iepLevelBeforeTransfer.iepLevel }
+          // ...or the highest level in the prison
+          ?: iepLevelsForPrison.last()
+      }
+
+      else -> throw NotImplementedError("Not implemented for $reviewType")
+    }
+    return iepLevel.iepLevel
   }
 
   private suspend fun buildIepSummary(levels: Flow<PrisonerIepLevel>, withDetails: Boolean = true): IepSummary {

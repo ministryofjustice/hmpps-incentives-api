@@ -299,7 +299,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                     "auditModuleName": "PRISON_API"
                   },
                    {
-                    "agencyId": "MDI",
+                    "agencyId": "BXI",
                     "bookingId": 1234134,
                     "sequence": 1,
                     "iepDate": "2020-11-02",
