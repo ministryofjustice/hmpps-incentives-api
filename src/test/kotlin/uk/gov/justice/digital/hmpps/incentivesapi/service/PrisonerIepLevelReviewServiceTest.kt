@@ -24,6 +24,7 @@ import java.time.Clock
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 class PrisonerIepLevelReviewServiceTest {
 
@@ -137,7 +138,7 @@ class PrisonerIepLevelReviewServiceTest {
           sequence = 1,
           current = true,
           reviewedBy = "incentives-api",
-          reviewTime = LocalDateTime.now(clock),
+          reviewTime = LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
           reviewType = ReviewType.INITIAL,
           prisonerNumber = prisonerAtLocation().offenderNo
         )
@@ -174,7 +175,7 @@ class PrisonerIepLevelReviewServiceTest {
           sequence = 1,
           current = true,
           reviewedBy = "incentives-api",
-          reviewTime = LocalDateTime.now(clock),
+          reviewTime = LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
           reviewType = ReviewType.TRANSFER,
           prisonerNumber = prisonerAtLocation.offenderNo
         )
@@ -211,7 +212,7 @@ class PrisonerIepLevelReviewServiceTest {
           sequence = 1,
           current = true,
           reviewedBy = "incentives-api",
-          reviewTime = LocalDateTime.now(clock),
+          reviewTime = LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
           reviewType = ReviewType.TRANSFER,
           prisonerNumber = prisonerAtLocation.offenderNo
         )
