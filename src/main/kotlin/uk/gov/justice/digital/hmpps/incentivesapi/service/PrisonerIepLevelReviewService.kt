@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IepLevelReposit
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import java.time.Clock
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @Service
 class PrisonerIepLevelReviewService(
@@ -118,7 +119,7 @@ class PrisonerIepLevelReviewService(
         prisonerInfo,
         iepReview,
         locationInfo,
-        LocalDateTime.now(clock),
+        LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
         "incentives-api"
       )
     } ?: run {
