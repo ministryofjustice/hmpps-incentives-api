@@ -113,3 +113,36 @@ data class IepReview(
   @Schema(description = "Review Type", example = "Type of review", required = false, defaultValue = "REVIEW")
   val reviewType: ReviewType? = ReviewType.REVIEW,
 )
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Request to migrate an IEP Review from NOMIS")
+data class IepMigration(
+  @Schema(description = "Date and time when the review took place", required = true)
+  val iepTime: LocalDateTime,
+
+  @Schema(description = "Establishment Code", example = "MDI", required = true)
+  @field:NotBlank(message = "Establishment on IEP Level migration is required")
+  val establishmentCode: String,
+
+  @Schema(description = "Location of prisoner when review took place within prison (i.e. their cell)", example = "1-2-003", required = true)
+  @field:NotBlank(message = "Location ID on IEP Level migration is required")
+  val locationId: String,
+
+  @Schema(description = "IEP Level", example = "STD", required = true, allowableValues = ["STD", "BAS", "ENH", "EN2", "EN3", "ENT"])
+  @field:Size(
+    max = 6,
+    min = 2,
+    message = "IEP Level must be between 2 and 6"
+  ) @field:NotBlank(message = "IEP Level is required") val iepLevel: String,
+
+  @Schema(description = "Comment about review", example = "This is a comment", required = true)
+  @field:NotBlank(message = "Comment on IEP Level migration is required")
+  val comment: String,
+
+  @Schema(description = "NOMIS User Id who performed the review", example = "XYZ_GEN", required = true)
+  @field:NotBlank(message = "User ID on IEP Level migration is required")
+  val userId: String,
+
+  @Schema(description = "Review Type", example = "Type of review", required = true)
+  val reviewType: ReviewType,
+)

@@ -7,6 +7,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.Assert
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
@@ -15,6 +16,7 @@ import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.incentivesapi.config.AuthenticationFacade
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepMigration
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
@@ -265,6 +267,38 @@ class PrisonerIepLevelReviewServiceTest {
     }
   }
 
+  @Nested
+  inner class addIepMigration {
+
+    @Test
+    fun `process migration`(): Unit = runBlocking {
+      // Given
+      val bookingId = 1234567L
+      whenever(prisonApiService.getPrisonerInfo(bookingId)).thenReturn(prisonerAtLocation())
+      whenever(prisonerIepLevelRepository.save(any())).thenAnswer { i -> i.arguments[0] }
+
+      // When
+      prisonerIepLevelReviewService.addIepMigration(bookingId, iepMigration)
+
+      // Then
+      verify(prisonerIepLevelRepository, times(1)).save(
+        PrisonerIepLevel(
+          iepCode = iepMigration.iepLevel,
+          commentText = iepMigration.comment,
+          bookingId = bookingId,
+          prisonId = iepMigration.establishmentCode,
+          locationId = iepMigration.locationId,
+          sequence = 0,
+          current = false,
+          reviewedBy = iepMigration.userId,
+          reviewTime = iepMigration.iepTime,
+          reviewType = ReviewType.REVIEW,
+          prisonerNumber = prisonerAtLocation().offenderNo
+        )
+      )
+    }
+  }
+
   private val iepTime: LocalDateTime = LocalDateTime.now().minusDays(10)
   private fun iepSummary(iepLevel: String = "Enhanced", iepDetails: List<IepDetail> = emptyList()) = IepSummary(
     bookingId = 1L,
@@ -358,5 +392,15 @@ class PrisonerIepLevelReviewServiceTest {
     IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1, default = false),
     IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2, default = true),
     IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3, default = false),
+  )
+
+  private val iepMigration = IepMigration(
+    iepTime = LocalDateTime.now(),
+    establishmentCode = "MDI",
+    locationId = "1-2-003",
+    iepLevel = "STD",
+    comment = "A comment",
+    userId = "XYZ_GEN",
+    reviewType = ReviewType.REVIEW
   )
 }

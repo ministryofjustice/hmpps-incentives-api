@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.config.AuthenticationFacade
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.CurrentIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepMigration
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.daysSinceReview
@@ -69,6 +70,26 @@ class PrisonerIepLevelReviewService(
   suspend fun addIepReview(bookingId: Long, iepReview: IepReview): IepDetail {
     val prisonerInfo = prisonApiService.getPrisonerInfo(bookingId)
     return addIepLevel(prisonerInfo, iepReview)
+  }
+
+  @Transactional
+  suspend fun addIepMigration(bookingId: Long, iepMigration: IepMigration): IepDetail {
+    val prisonerInfo = prisonApiService.getPrisonerInfo(bookingId)
+    return prisonerIepLevelRepository.save(
+      PrisonerIepLevel(
+        iepCode = iepMigration.iepLevel,
+        commentText = iepMigration.comment,
+        bookingId = prisonerInfo.bookingId,
+        prisonId = iepMigration.establishmentCode,
+        locationId = iepMigration.locationId,
+        sequence = 0,
+        current = false,
+        reviewedBy = iepMigration.userId,
+        reviewTime = iepMigration.iepTime,
+        reviewType = iepMigration.reviewType,
+        prisonerNumber = prisonerInfo.offenderNo
+      )
+    ).translate()
   }
 
   fun getCurrentIEPLevelForPrisoners(bookingIds: List<Long>, useNomisData: Boolean): Flow<CurrentIepLevel> {
