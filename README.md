@@ -49,8 +49,8 @@ aws --endpoint-url=http://localhost:4566 sns publish \
     }' \
     --message '{
       "version":"1.0",
-      "occurredAt":"2020-02-12T15:14:24.125533Z",
-      "publishedAt":"2020-02-12T15:15:09.902048716Z",
+      "occurredAt":"2020-02-12T15:14:24.125533+00:00",
+      "publishedAt":"2020-02-12T15:15:09.902048716+00:00",
       "description":"A prisoner has been received into prison",
       "additionalInformation": {
         "nomsNumber":"A0289IR",
