@@ -24,7 +24,7 @@ class IepLevelService(
 
       withContext(Dispatchers.Default) {
         iepPrisonRepository.findAllByPrisonIdAndActiveIsTrue(prisonId)
-          .filter { iepLevelMap[it.iepCode] != null && iepLevelMap[it.iepCode]!!.active }
+          .filter { iepLevelMap[it.iepCode]?.active == true }
           .map {
             val iepLevel = iepLevelMap[it.iepCode]!!
             IepLevel(

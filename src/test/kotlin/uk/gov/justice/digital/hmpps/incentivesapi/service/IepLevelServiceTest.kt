@@ -101,6 +101,36 @@ class IepLevelServiceTest {
     }
   }
 
+  @Test
+  fun `doesn't return unknown IepLevels (not present in IepLevel table)`() {
+    runBlocking {
+      coroutineScope {
+        // Given
+        val prisonId = "XXX"
+        whenever(iepLevelRepository.findAll()).thenReturn(
+          flowOf(
+            IepLevel(iepCode = "BAS", iepDescription = "Basic", sequence = 1),
+            IepLevel(iepCode = "STD", iepDescription = "Standard", sequence = 2, active = false),
+          )
+        )
+        whenever(iepPrisonRepository.findAllByPrisonIdAndActiveIsTrue(prisonId)).thenReturn(
+          flowOf(
+            IepPrison(iepCode = "BAS", prisonId = prisonId, defaultIep = true),
+            IepPrison(iepCode = "STD", prisonId = prisonId, defaultIep = false),
+            // Unknown IEP level
+            IepPrison(iepCode = "UNK", prisonId = prisonId, defaultIep = false),
+          )
+        )
+
+        // When
+        val iepLevelsForPrison = iepLevelService.getIepLevelsForPrison(prisonId)
+
+        // Then - only BAS is returned as STD is inactive and "UNK" is not in the IepLevels table
+        assertThat(iepLevelsForPrison.map { it.iepLevel }).isEqualTo(listOf("BAS"))
+      }
+    }
+  }
+
   private val fiveIepLevels = flowOf(
     IepLevel(iepCode = "BAS", iepDescription = "Basic", sequence = 1),
     IepLevel(iepCode = "STD", iepDescription = "Standard", sequence = 2),
