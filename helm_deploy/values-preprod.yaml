@@ -4,7 +4,8 @@
 generic-service:
 
   ingress:
-    host: incentives-api-preprod.hmpps.service.justice.gov.uk
+    hosts:
+    - incentives-api-preprod.hmpps.service.justice.gov.uk
 
   env:
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.dev.json
