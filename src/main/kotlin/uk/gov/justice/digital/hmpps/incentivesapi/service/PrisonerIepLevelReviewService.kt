@@ -83,7 +83,7 @@ class PrisonerIepLevelReviewService(
         prisonId = iepMigration.establishmentCode,
         locationId = iepMigration.locationId,
         sequence = 0,
-        current = false,
+        current = iepMigration.current,
         reviewedBy = iepMigration.userId,
         reviewTime = iepMigration.iepTime,
         reviewType = iepMigration.reviewType,

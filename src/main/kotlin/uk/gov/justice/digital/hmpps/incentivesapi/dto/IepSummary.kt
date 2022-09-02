@@ -145,4 +145,7 @@ data class IepMigration(
 
   @Schema(description = "Review Type", example = "Type of review", required = true)
   val reviewType: ReviewType,
+
+  @Schema(description = "Flag to indicate this is the current review for the risoner", example = "true", required = true)
+  val current: Boolean,
 )

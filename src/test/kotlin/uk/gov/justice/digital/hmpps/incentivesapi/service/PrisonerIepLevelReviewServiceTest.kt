@@ -289,7 +289,7 @@ class PrisonerIepLevelReviewServiceTest {
           prisonId = iepMigration.establishmentCode,
           locationId = iepMigration.locationId,
           sequence = 0,
-          current = false,
+          current = iepMigration.current,
           reviewedBy = iepMigration.userId,
           reviewTime = iepMigration.iepTime,
           reviewType = ReviewType.REVIEW,
@@ -401,6 +401,7 @@ class PrisonerIepLevelReviewServiceTest {
     iepLevel = "STD",
     comment = "A comment",
     userId = "XYZ_GEN",
-    reviewType = ReviewType.REVIEW
+    reviewType = ReviewType.REVIEW,
+    current = true,
   )
 }

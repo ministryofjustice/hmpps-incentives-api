@@ -444,7 +444,8 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
       iepLevel = iepLevel,
       comment = "A comment",
       userId = "XYZ_GEN",
-      reviewType = ReviewType.REVIEW
+      reviewType = ReviewType.REVIEW,
+      current = true,
     )
   }
 }
