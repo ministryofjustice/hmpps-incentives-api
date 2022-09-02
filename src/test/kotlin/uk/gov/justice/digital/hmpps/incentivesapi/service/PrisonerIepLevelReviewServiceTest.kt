@@ -286,7 +286,7 @@ class PrisonerIepLevelReviewServiceTest {
           iepCode = iepMigration.iepLevel,
           commentText = iepMigration.comment,
           bookingId = bookingId,
-          prisonId = iepMigration.establishmentCode,
+          prisonId = iepMigration.prisonId,
           locationId = iepMigration.locationId,
           sequence = 0,
           current = iepMigration.current,
@@ -396,7 +396,7 @@ class PrisonerIepLevelReviewServiceTest {
 
   private val iepMigration = IepMigration(
     iepTime = LocalDateTime.now(),
-    establishmentCode = "MDI",
+    prisonId = "MDI",
     locationId = "1-2-003",
     iepLevel = "STD",
     comment = "A comment",

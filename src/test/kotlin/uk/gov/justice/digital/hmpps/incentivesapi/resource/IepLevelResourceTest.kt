@@ -382,7 +382,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
                    "bookingId":$bookingId,
                    "sequence":0,
                    "iepDate":"${iepMigration.iepTime.toLocalDate()}",
-                   "agencyId":"${iepMigration.establishmentCode}",
+                   "agencyId":"${iepMigration.prisonId}",
                    "locationId":"${iepMigration.locationId}",
                    "iepLevel":"Standard",
                    "comments":"${iepMigration.comment}",
@@ -439,7 +439,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
 
     private fun iepMigration(iepLevel: String = "STD") = IepMigration(
       iepTime = LocalDateTime.now(),
-      establishmentCode = "MDI",
+      prisonId = "MDI",
       locationId = "1-2-003",
       iepLevel = iepLevel,
       comment = "A comment",

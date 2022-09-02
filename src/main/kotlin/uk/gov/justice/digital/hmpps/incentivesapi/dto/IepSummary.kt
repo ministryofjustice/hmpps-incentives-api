@@ -120,9 +120,9 @@ data class IepMigration(
   @Schema(description = "Date and time when the review took place", required = true)
   val iepTime: LocalDateTime,
 
-  @Schema(description = "Establishment Code", example = "MDI", required = true)
-  @field:NotBlank(message = "Establishment on IEP Level migration is required")
-  val establishmentCode: String,
+  @Schema(description = "Prison ID", example = "MDI", required = true)
+  @field:NotBlank(message = "Prison ID on IEP Level migration is required")
+  val prisonId: String,
 
   @Schema(description = "Location of prisoner when review took place within prison (i.e. their cell)", example = "1-2-003", required = true)
   @field:NotBlank(message = "Location ID on IEP Level migration is required")
@@ -146,6 +146,6 @@ data class IepMigration(
   @Schema(description = "Review Type", example = "Type of review", required = true)
   val reviewType: ReviewType,
 
-  @Schema(description = "Flag to indicate this is the current review for the risoner", example = "true", required = true)
+  @Schema(description = "Flag to indicate this is the current review for the prisoner", example = "true", required = true)
   val current: Boolean,
 )

@@ -214,7 +214,7 @@ class IepLevelResource(
     description = "Booking ID is an internal ID for a prisoner in NOMIS, requires MAINTAIN_IEP role and write scope",
     responses = [
       ApiResponse(
-        responseCode = "204",
+        responseCode = "201",
         description = "IEP Review Added"
       ),
       ApiResponse(
@@ -294,7 +294,7 @@ class IepLevelResource(
     description = "Booking ID is an internal ID for a prisoner in NOMIS, requires MAINTAIN_IEP role and write scope",
     responses = [
       ApiResponse(
-        responseCode = "204",
+        responseCode = "201",
         description = "IEP Review Migrated"
       ),
       ApiResponse(

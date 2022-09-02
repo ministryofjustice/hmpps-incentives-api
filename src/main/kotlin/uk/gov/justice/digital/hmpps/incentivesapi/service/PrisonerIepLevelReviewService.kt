@@ -80,7 +80,7 @@ class PrisonerIepLevelReviewService(
         iepCode = iepMigration.iepLevel,
         commentText = iepMigration.comment,
         bookingId = prisonerInfo.bookingId,
-        prisonId = iepMigration.establishmentCode,
+        prisonId = iepMigration.prisonId,
         locationId = iepMigration.locationId,
         sequence = 0,
         current = iepMigration.current,
