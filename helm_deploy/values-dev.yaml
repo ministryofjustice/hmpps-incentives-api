@@ -5,7 +5,8 @@ generic-service:
   replicaCount: 2
 
   ingress:
-    host: incentives-api-dev.hmpps.service.justice.gov.uk
+    hosts:
+      - incentives-api-dev.hmpps.service.justice.gov.uk
   allowlist: null
 
   env:

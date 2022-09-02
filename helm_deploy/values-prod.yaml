@@ -4,7 +4,8 @@
 generic-service:
 
   ingress:
-    host: incentives-api.hmpps.service.justice.gov.uk
+    hosts:
+      - incentives-api.hmpps.service.justice.gov.uk
 
   env:
     API_BASE_URL_OAUTH: https://sign-in.hmpps.service.justice.gov.uk/auth
