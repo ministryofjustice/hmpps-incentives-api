@@ -3,13 +3,16 @@ package uk.gov.justice.digital.hmpps.incentivesapi.resource
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepMigration
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import java.time.LocalDate.now
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 class IepLevelResourceTest : SqsIntegrationTestBase() {
@@ -341,5 +344,108 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
           ]
           """
       )
+  }
+
+  @Nested
+  inner class migrateIepReview {
+
+    @Test
+    fun `store IEP Level for a prisoner`() {
+      // Given
+      val bookingId = 3330000L
+      val prisonerNumber = "A1234AC"
+      val iepMigration = iepMigration()
+      prisonApiMockServer.stubGetPrisonerInfoByBooking(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = 77778L)
+
+      // When
+      val migrationRequest = webTestClient.post().uri("/iep/migration/booking/$bookingId")
+        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
+        .bodyValue(iepMigration)
+        .exchange()
+
+      // Then
+      migrationRequest.expectStatus().isCreated
+
+      webTestClient.get().uri("/iep/reviews/booking/$bookingId?use-nomis-data=false")
+        .headers(setAuthorisation())
+        .exchange()
+        .expectStatus().isOk
+        .expectBody().json(
+          """
+            {
+             "bookingId":$bookingId,
+             "daysSinceReview":0,
+             "iepDate":"${iepMigration.iepTime.toLocalDate()}",
+             "iepLevel":"Standard",
+             "iepDetails":[
+                {
+                   "bookingId":$bookingId,
+                   "sequence":0,
+                   "iepDate":"${iepMigration.iepTime.toLocalDate()}",
+                   "agencyId":"${iepMigration.prisonId}",
+                   "locationId":"${iepMigration.locationId}",
+                   "iepLevel":"Standard",
+                   "comments":"${iepMigration.comment}",
+                   "userId":"${iepMigration.userId}",
+                   "auditModuleName":"Incentives-API"
+                }
+             ]
+          }
+          """
+        )
+    }
+
+    @Test
+    fun `handle undefined path variable`() {
+      webTestClient.post().uri("/iep/migration/booking/undefined")
+        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("write")))
+        .bodyValue(iepMigration())
+        .exchange()
+        .expectStatus().isBadRequest
+    }
+
+    @Test
+    fun `handle bad payload`() {
+      val bookingId = 3330000L
+
+      webTestClient.post().uri("/iep/migration/booking/$bookingId")
+        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("write")))
+        .bodyValue(iepMigration("Standard")) // fails validation because it's > 6 length
+        .exchange()
+        .expectStatus().isBadRequest
+    }
+
+    @Test
+    fun `fails without write scope`() {
+      val bookingId = 3330000L
+
+      webTestClient.post().uri("/iep/migration/booking/$bookingId")
+        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read")))
+        .bodyValue(iepMigration())
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `fails without correct role`() {
+      val bookingId = 3330000L
+
+      webTestClient.post().uri("/iep/migration/booking/$bookingId")
+        .headers(setAuthorisation(roles = listOf("ROLE_DUMMY"), scopes = listOf("read", "write")))
+        .bodyValue(iepMigration())
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    private fun iepMigration(iepLevel: String = "STD") = IepMigration(
+      iepTime = LocalDateTime.now(),
+      prisonId = "MDI",
+      locationId = "1-2-003",
+      iepLevel = iepLevel,
+      comment = "A comment",
+      userId = "XYZ_GEN",
+      reviewType = ReviewType.REVIEW,
+      current = true,
+    )
   }
 }
