@@ -15,6 +15,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.bind.support.WebExchangeBindException
+import org.springframework.web.reactive.function.client.WebClientResponseException.NotFound
 import org.springframework.web.server.ServerWebInputException
 import uk.gov.justice.digital.hmpps.incentivesapi.service.NoPrisonersAtLocationException
 import javax.validation.ValidationException
@@ -75,6 +76,20 @@ class HmppsIncentivesApiExceptionHandler {
         ErrorResponse(
           status = BAD_REQUEST,
           userMessage = "Validation failure: $message",
+          developerMessage = e.message
+        )
+      )
+  }
+
+  @ExceptionHandler(NotFound::class)
+  fun handleNotFoundException(e: NotFound): ResponseEntity<ErrorResponse?>? {
+    log.debug("Not found exception caught: {}", e.message)
+    return ResponseEntity
+      .status(NOT_FOUND)
+      .body(
+        ErrorResponse(
+          status = NOT_FOUND,
+          userMessage = "Not Found: ${e.message}",
           developerMessage = e.message
         )
       )

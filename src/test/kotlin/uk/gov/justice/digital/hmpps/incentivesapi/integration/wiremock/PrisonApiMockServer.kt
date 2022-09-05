@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.post
+import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorResponse
 
 class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
   companion object {
@@ -313,6 +314,25 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
               }
             """.trimIndent()
           )
+      )
+    )
+  }
+
+  fun stubApi404for(url: String = "/api/bookings/1234134/iepSummary?withDetails=true") {
+    stubFor(
+      get(url).willReturn(
+        aResponse()
+          .withHeader("Content-Type", "application/json")
+          .withStatus(404)
+          .withBody("""
+            {
+              "status": 404,
+              "userMessage": "Entity Not Found",
+              "errorCode": 42,
+              "developerMessage": "This is a test 404 Not Found response",
+              "moreInfo": "This is a test 404 Not Found response"
+            }
+          """.trimIndent())
       )
     )
   }

@@ -43,6 +43,18 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
   }
 
   @Test
+  fun `Prison API '404 Not Found' responses are handled instead of responding 500 Internal Server Error`() {
+    val bookingId: Long = 1234134
+
+    prisonApiMockServer.stubApi404for("/api/bookings/$bookingId/iepSummary?withDetails=true")
+
+    webTestClient.get().uri("/iep/reviews/booking/$bookingId")
+      .headers(setAuthorisation())
+      .exchange()
+      .expectStatus().isNotFound
+  }
+
+  @Test
   fun `get IEP Levels for a prison`() {
 
     webTestClient.get().uri("/iep/levels/MDI")
