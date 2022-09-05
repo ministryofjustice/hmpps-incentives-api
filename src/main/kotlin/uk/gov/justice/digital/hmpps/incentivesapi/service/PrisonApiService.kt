@@ -1,12 +1,8 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.emitAll
-import kotlinx.coroutines.flow.emptyFlow
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.WebClientResponseException.NotFound
 import org.springframework.web.reactive.function.client.awaitBodilessEntity
 import org.springframework.web.reactive.function.client.awaitBody
 import org.springframework.web.reactive.function.client.bodyToFlow
@@ -25,9 +21,6 @@ class PrisonApiService(
       .header("Page-Limit", "3000")
       .retrieve()
       .bodyToFlow<PrisonerAtLocation>()
-      .catch {
-        if (it is NotFound) { emitAll(emptyFlow()) } else { throw it }
-      }
 
   fun getIEPSummaryPerPrisoner(@NotEmpty bookingIds: List<Long>): Flow<IepSummary> =
     prisonWebClient.post()
@@ -35,9 +28,6 @@ class PrisonApiService(
       .bodyValue(bookingIds)
       .retrieve()
       .bodyToFlow<IepSummary>()
-      .catch {
-        if (it is NotFound) { emitAll(emptyFlow()) } else { throw it }
-      }
 
   suspend fun getIEPSummaryForPrisoner(bookingId: Long, withDetails: Boolean, useClientCredentials: Boolean = false): IepSummary {
     val webClient = if (useClientCredentials) prisonWebClientClientCredentials else prisonWebClient
@@ -54,9 +44,6 @@ class PrisonApiService(
       .bodyValue(CaseNoteUsageRequest(numMonths = 3, offenderNos = offenderNos, type = type, subType = null))
       .retrieve()
       .bodyToFlow<CaseNoteUsage>()
-      .catch {
-        if (it is NotFound) { emitAll(emptyFlow()) } else { throw it }
-      }
 
   suspend fun retrieveProvenAdjudications(@NotEmpty bookingIds: List<Long>): Flow<ProvenAdjudication> =
     prisonWebClient.post()
@@ -64,9 +51,6 @@ class PrisonApiService(
       .bodyValue(bookingIds)
       .retrieve()
       .bodyToFlow<ProvenAdjudication>()
-      .catch {
-        if (it is NotFound) { emitAll(emptyFlow()) } else { throw it }
-      }
 
   suspend fun getLocation(locationId: String): PrisonLocation =
     prisonWebClient.get()
