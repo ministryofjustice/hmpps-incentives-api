@@ -5,7 +5,6 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.post
-import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorResponse
 
 class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
   companion object {
@@ -324,7 +323,8 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
         aResponse()
           .withHeader("Content-Type", "application/json")
           .withStatus(404)
-          .withBody("""
+          .withBody(
+            """
             {
               "status": 404,
               "userMessage": "Entity Not Found",
@@ -332,7 +332,8 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
               "developerMessage": "This is a test 404 Not Found response",
               "moreInfo": "This is a test 404 Not Found response"
             }
-          """.trimIndent())
+            """.trimIndent()
+          )
       )
     )
   }
