@@ -22,65 +22,59 @@ class IncentiveSummaryService(
     locationId: String,
     sortBy: SortColumn = SortColumn.NAME,
     sortDirection: Sort.Direction = Sort.Direction.ASC
-  ): BehaviourSummary {
+  ): BehaviourSummary = coroutineScope {
+    val iepLevels = iepLevelService.getIepLevelsForPrison(prisonId)
 
-    return coroutineScope {
+    val prisoners = prisonApiService.findPrisonersAtLocation(prisonId, locationId).toList()
 
-      val levels = iepLevelService.getIepLevelsForPrison(prisonId)
+    if (prisoners.isEmpty()) throw NoPrisonersAtLocationException(prisonId, locationId)
 
-      val prisonerList = async { prisonApiService.findPrisonersAtLocation(prisonId, locationId) }
-      val prisoners = prisonerList.await().toList()
+    val offenderNos = prisoners.map { p -> p.offenderNo }
+    val positiveCaseNotes = async { getCaseNoteUsage("POS", "IEP_ENC", offenderNos) }
+    val negativeCaseNotes = async { getCaseNoteUsage("NEG", "IEP_WARN", offenderNos) }
 
-      if (prisoners.isEmpty()) throw NoPrisonersAtLocationException(prisonId, locationId)
+    val bookingIds = prisoners.map { p -> p.bookingId }
+    val provenAdjudications = async { getProvenAdjudications(bookingIds) }
+    val iepDetails = getIEPDetails(bookingIds)
 
-      val offenderNos = prisoners.map { p -> p.offenderNo }.toList()
-      val positiveCaseNotes = async { getCaseNoteUsage("POS", "IEP_ENC", offenderNos) }
-      val negativeCaseNotes = async { getCaseNoteUsage("NEG", "IEP_WARN", offenderNos) }
+    val positiveCount = positiveCaseNotes.await()
+    val negativeCount = negativeCaseNotes.await()
 
-      val bookingIds = prisoners.map { p -> p.bookingId }.toList()
-      val provenAdjudications = async { getProvenAdjudications(bookingIds) }
-      val iepDetails = getIEPDetails(bookingIds)
+    val prisonersByLevel = getPrisonersByLevel(prisoners, iepDetails)
+      .map { prisonerIepLevelMap ->
+        val iepLevel = lookupIepLevel(prisonerIepLevelMap, iepLevels.associateBy { it.iepDescription })
+        IncentiveLevelSummary(
+          level = iepLevel.iepLevel,
+          levelDescription = iepLevel.iepDescription,
+          prisonerBehaviours = prisonerIepLevelMap.value.map { p ->
 
-      val iepLevels = levels.toList()
-      val positiveCount = positiveCaseNotes.await()
-      val negativeCount = negativeCaseNotes.await()
+            PrisonerIncentiveSummary(
+              firstName = WordUtils.capitalizeFully(p.firstName),
+              lastName = WordUtils.capitalizeFully(p.lastName),
+              prisonerNumber = p.offenderNo,
+              bookingId = p.bookingId,
+              imageId = p.facialImageId,
+              daysOnLevel = iepDetails[p.bookingId]?.daysOnLevel ?: 0,
+              daysSinceLastReview = iepDetails[p.bookingId]?.daysSinceReview ?: 0,
+              positiveBehaviours = positiveCount[p.offenderNo]?.totalCaseNotes ?: 0,
+              incentiveEncouragements = positiveCount[p.offenderNo]?.numSubTypeCount ?: 0,
+              negativeBehaviours = negativeCount[p.offenderNo]?.totalCaseNotes ?: 0,
+              incentiveWarnings = negativeCount[p.offenderNo]?.numSubTypeCount ?: 0,
+              provenAdjudications = provenAdjudications.await()[p.bookingId]?.provenAdjudicationCount ?: 0,
+            )
+          }.sortedWith(sortBy.applySorting(sortDirection))
+        )
+      }
 
-      val prisonersByLevel = getPrisonersByLevel(prisoners, iepDetails)
-        .map { prisonerIepLevelMap ->
-          val iepLevel = lookupIepLevel(prisonerIepLevelMap, iepLevels.associateBy { it.iepDescription })
-          IncentiveLevelSummary(
-            level = iepLevel.iepLevel,
-            levelDescription = iepLevel.iepDescription,
-            prisonerBehaviours = prisonerIepLevelMap.value.map { p ->
+    val location = async { getLocation(locationId) }
+    val iepLevelsByCode = iepLevels.associateBy { it.iepLevel }
 
-              PrisonerIncentiveSummary(
-                firstName = WordUtils.capitalizeFully(p.firstName),
-                lastName = WordUtils.capitalizeFully(p.lastName),
-                prisonerNumber = p.offenderNo,
-                bookingId = p.bookingId,
-                imageId = p.facialImageId,
-                daysOnLevel = iepDetails[p.bookingId]?.daysOnLevel ?: 0,
-                daysSinceLastReview = iepDetails[p.bookingId]?.daysSinceReview ?: 0,
-                positiveBehaviours = positiveCount[p.offenderNo]?.totalCaseNotes ?: 0,
-                incentiveEncouragements = positiveCount[p.offenderNo]?.numSubTypeCount ?: 0,
-                negativeBehaviours = negativeCount[p.offenderNo]?.totalCaseNotes ?: 0,
-                incentiveWarnings = negativeCount[p.offenderNo]?.numSubTypeCount ?: 0,
-                provenAdjudications = provenAdjudications.await()[p.bookingId]?.provenAdjudicationCount ?: 0,
-              )
-            }.sortedWith(sortBy.applySorting(sortDirection))
-          )
-        }.toList()
-
-      val location = async { getLocation(locationId) }
-      val iepLevelsByCode = iepLevels.associateBy { it.iepLevel }
-
-      BehaviourSummary(
-        prisonId = prisonId,
-        locationId = locationId,
-        locationDescription = location.await(),
-        incentiveLevelSummary = addMissingLevels(prisonersByLevel, iepLevelsByCode)
-      )
-    }
+    BehaviourSummary(
+      prisonId = prisonId,
+      locationId = locationId,
+      locationDescription = location.await(),
+      incentiveLevelSummary = addMissingLevels(prisonersByLevel, iepLevelsByCode)
+    )
   }
 
   private fun lookupIepLevel(prisonerMap: Map.Entry<String, List<PrisonerAtLocation>>, levels: Map<String, IepLevel>) =
