@@ -40,8 +40,8 @@ class IncentiveSummaryService(
     val negativeCount = negativeCaseNotes.await()
 
     val iepLevels = iepLevelsDeferred.await()
-    val iepLevelsByCode = iepLevels.associateBy { it.iepLevel }
-    val iepLevelsByDescription = iepLevels.associateBy { it.iepDescription }
+    val iepLevelsByCode = iepLevels.associateBy(IepLevel::iepLevel)
+    val iepLevelsByDescription = iepLevels.associateBy(IepLevel::iepDescription)
 
     val prisonersByLevel = getPrisonersByLevel(prisoners, iepDetails)
       .map { prisonerIepLevelMap ->
@@ -98,7 +98,7 @@ class IncentiveSummaryService(
     data: List<IncentiveLevelSummary>,
     levelMap: Map<String, IepLevel>
   ): List<IncentiveLevelSummary> {
-    val currentLevels = data.groupBy { it.level }
+    val currentLevels = data.groupBy(IncentiveLevelSummary::level)
 
     val incentiveLevelSummaries = data + levelMap.entries
       .filter {
@@ -113,9 +113,7 @@ class IncentiveSummaryService(
 
   suspend fun getProvenAdjudications(bookingIds: List<Long>): Map<Long, ProvenAdjudication> =
     prisonApiService.retrieveProvenAdjudications(bookingIds)
-      .toList().associateBy {
-        it.bookingId
-      }
+      .toList().associateBy(ProvenAdjudication::bookingId)
 
   suspend fun getIEPDetails(bookingIds: List<Long>): Map<Long, IepResult> =
     prisonApiService.getIEPSummaryPerPrisoner(bookingIds)
@@ -127,23 +125,19 @@ class IncentiveSummaryService(
           daysSinceReview = it.daysSinceReview(),
           daysOnLevel = it.daysOnLevel()
         )
-      }.toList().associateBy {
-        it.bookingId
-      }
+      }.toList().associateBy(IepResult::bookingId)
 
   suspend fun getCaseNoteUsage(type: String, subType: String, offenderNos: List<String>): Map<String, CaseNoteSummary> =
     prisonApiService.retrieveCaseNoteCounts(type, offenderNos)
-      .toList().groupBy {
-        it.offenderNo
-      }.map { cn ->
+      .toList()
+      .groupBy(CaseNoteUsage::offenderNo)
+      .map { cn ->
         CaseNoteSummary(
           offenderNo = cn.key,
           totalCaseNotes = calcTypeCount(cn.value.toList()),
           numSubTypeCount = calcTypeCount(cn.value.filter { cnc -> cnc.caseNoteSubType == subType }.toList())
         )
-      }.associateBy {
-        it.offenderNo
-      }
+      }.associateBy(CaseNoteSummary::offenderNo)
 
   private fun calcTypeCount(caseNoteUsage: List<CaseNoteUsage>): Int =
     caseNoteUsage.map { it.numCaseNotes }.fold(0) { acc, next -> acc + next }
