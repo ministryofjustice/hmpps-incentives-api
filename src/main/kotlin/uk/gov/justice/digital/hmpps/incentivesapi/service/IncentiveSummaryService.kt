@@ -146,11 +146,7 @@ class IncentiveSummaryService(
       }
 
   private fun calcTypeCount(caseNoteUsage: List<CaseNoteUsage>): Int =
-    if (caseNoteUsage.isNotEmpty()) {
-      caseNoteUsage.map { it.numCaseNotes }.reduce { acc, next -> acc + next }
-    } else {
-      0
-    }
+    caseNoteUsage.map { it.numCaseNotes }.fold(0) { acc, next -> acc + next }
 
   suspend fun getLocation(locationId: String): String =
     prisonApiService.getLocation(locationId).description
