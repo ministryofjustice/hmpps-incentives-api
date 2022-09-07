@@ -48,7 +48,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
 
     prisonApiMockServer.stubApi404for("/api/bookings/$bookingId/iepSummary?withDetails=true")
 
-    webTestClient.get().uri("/iep/reviews/booking/$bookingId")
+    webTestClient.get().uri("/iep/reviews/booking/$bookingId?use-nomis-data=true")
       .headers(setAuthorisation())
       .exchange()
       .expectStatus().isNotFound
