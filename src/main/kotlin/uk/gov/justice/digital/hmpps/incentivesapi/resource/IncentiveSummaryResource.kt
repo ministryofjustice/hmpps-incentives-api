@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorResponse
-import uk.gov.justice.digital.hmpps.incentivesapi.data.BehaviourSummary
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.BehaviourSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveSummaryService
 import uk.gov.justice.digital.hmpps.incentivesapi.service.SortColumn
 import javax.validation.constraints.Size

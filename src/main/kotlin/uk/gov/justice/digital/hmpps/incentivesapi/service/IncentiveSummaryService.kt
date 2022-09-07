@@ -7,9 +7,9 @@ import kotlinx.coroutines.flow.toList
 import org.apache.commons.text.WordUtils
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.incentivesapi.data.BehaviourSummary
-import uk.gov.justice.digital.hmpps.incentivesapi.data.IncentiveLevelSummary
-import uk.gov.justice.digital.hmpps.incentivesapi.data.PrisonerIncentiveSummary
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.BehaviourSummary
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevelSummary
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonerIncentiveSummary
 
 @Service
 class IncentiveSummaryService(

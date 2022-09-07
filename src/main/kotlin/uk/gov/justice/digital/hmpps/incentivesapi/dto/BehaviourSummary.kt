@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.incentivesapi.data
+package uk.gov.justice.digital.hmpps.incentivesapi.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
 
