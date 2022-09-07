@@ -317,6 +317,27 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
     )
   }
 
+  fun stubApi404for(url: String = "/api/bookings/1234134/iepSummary?withDetails=true") {
+    stubFor(
+      get(url).willReturn(
+        aResponse()
+          .withHeader("Content-Type", "application/json")
+          .withStatus(404)
+          .withBody(
+            """
+            {
+              "status": 404,
+              "userMessage": "Entity Not Found",
+              "errorCode": 42,
+              "developerMessage": "This is a test 404 Not Found response",
+              "moreInfo": "This is a test 404 Not Found response"
+            }
+            """.trimIndent()
+          )
+      )
+    )
+  }
+
   fun stubPositiveCaseNoteSummary() {
     stubFor(
       post("/api/case-notes/usage").willReturn(
