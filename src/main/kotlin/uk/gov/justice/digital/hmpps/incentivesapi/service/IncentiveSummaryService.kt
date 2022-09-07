@@ -23,11 +23,10 @@ class IncentiveSummaryService(
     sortBy: SortColumn = SortColumn.NAME,
     sortDirection: Sort.Direction = Sort.Direction.ASC
   ): BehaviourSummary = coroutineScope {
-    val iepLevels = iepLevelService.getIepLevelsForPrison(prisonId)
-
     val prisoners = prisonApiService.findPrisonersAtLocation(prisonId, locationId).toList()
-
     if (prisoners.isEmpty()) throw NoPrisonersAtLocationException(prisonId, locationId)
+
+    val iepLevelsDeferred = async { iepLevelService.getIepLevelsForPrison(prisonId) }
 
     val offenderNos = prisoners.map { p -> p.offenderNo }
     val positiveCaseNotes = async { getCaseNoteUsage("POS", "IEP_ENC", offenderNos) }
@@ -40,9 +39,13 @@ class IncentiveSummaryService(
     val positiveCount = positiveCaseNotes.await()
     val negativeCount = negativeCaseNotes.await()
 
+    val iepLevels = iepLevelsDeferred.await()
+    val iepLevelsByCode = iepLevels.associateBy { it.iepLevel }
+    val iepLevelsByDescription = iepLevels.associateBy { it.iepDescription }
+
     val prisonersByLevel = getPrisonersByLevel(prisoners, iepDetails)
       .map { prisonerIepLevelMap ->
-        val iepLevel = lookupIepLevel(prisonerIepLevelMap, iepLevels.associateBy { it.iepDescription })
+        val iepLevel = lookupIepLevel(prisonerIepLevelMap, iepLevelsByDescription)
         IncentiveLevelSummary(
           level = iepLevel.iepLevel,
           levelDescription = iepLevel.iepDescription,
@@ -66,13 +69,12 @@ class IncentiveSummaryService(
         )
       }
 
-    val location = async { getLocation(locationId) }
-    val iepLevelsByCode = iepLevels.associateBy { it.iepLevel }
+    val location = getLocation(locationId)
 
     BehaviourSummary(
       prisonId = prisonId,
       locationId = locationId,
-      locationDescription = location.await(),
+      locationDescription = location,
       incentiveLevelSummary = addMissingLevels(prisonersByLevel, iepLevelsByCode)
     )
   }
