@@ -107,12 +107,7 @@ class PrisonerIepLevelReviewService(
   }
 
   suspend fun getReviewById(id: Long): IepDetail =
-    prisonerIepLevelRepository.findById(id)
-      ?.let {
-        with(it) {
-          translate()
-        }
-      } ?: throw NoDataFoundException(id)
+    prisonerIepLevelRepository.findById(id)?.translate() ?: throw NoDataFoundException(id)
 
   @Transactional
   suspend fun processReceivedPrisoner(prisonOffenderEvent: HMPPSDomainEvent) =
@@ -168,11 +163,7 @@ class PrisonerIepLevelReviewService(
   }
 
   private suspend fun buildIepSummary(levels: Flow<PrisonerIepLevel>, withDetails: Boolean = true): IepSummary {
-    val iepLevels = levels.map {
-      with(it) {
-        translate()
-      }
-    }.toList()
+    val iepLevels = levels.map { it.translate() }.toList()
 
     val currentIep = iepLevels.first()
     return IepSummary(
