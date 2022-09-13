@@ -135,7 +135,7 @@ class IncentiveSummaryService(
         CaseNoteSummary(
           offenderNo = cn.key,
           totalCaseNotes = calcTypeCount(cn.value.toList()),
-          numSubTypeCount = calcTypeCount(cn.value.filter { cnc -> cnc.caseNoteSubType == subType }.toList())
+          numSubTypeCount = calcTypeCount(cn.value.filter { cnc -> cnc.caseNoteSubType == subType })
         )
       }.associateBy(CaseNoteSummary::offenderNo)
 
