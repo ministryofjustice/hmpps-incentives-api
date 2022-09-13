@@ -322,6 +322,45 @@ class IepLevelResource(
   ): IepDetail =
     prisonerIepLevelReviewService.addIepMigration(bookingId, iepMigration)
 
+  @PostMapping("/sync/booking/{bookingId}")
+  @PreAuthorize("hasRole('MAINTAIN_IEP') and hasAuthority('SCOPE_write')")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Synchronise (NOMIS -> Incentives) an IEP Review for this specific prisoner by booking Id",
+    description = "Booking ID is an internal ID for a prisoner in NOMIS, requires MAINTAIN_IEP role and write scope",
+    responses = [
+      ApiResponse(
+        responseCode = "201",
+        description = "IEP Review Synchronised"
+      ),
+      ApiResponse(
+        responseCode = "400",
+        description = "Incorrect data specified to add new IEP review",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Incorrect permissions to use this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      )
+    ]
+  )
+  suspend fun syncPostIepReview(
+    @Schema(description = "Booking Id", example = "2342342", required = true)
+    @PathVariable bookingId: Long,
+    @Schema(description = "IEP Review", required = true)
+    @RequestBody @Valid iepMigration: IepMigration,
+  ): IepDetail {
+    val iepDetail = prisonerIepLevelReviewService.syncPostIepReview(bookingId, iepMigration)
+    sendEventAndAudit(iepDetail)
+    return iepDetail
+  }
+
   private suspend fun sendEventAndAudit(iepDetail: IepDetail) {
     snsService.sendIepReviewEvent(iepDetail.id!!, iepDetail.iepTime)
 
