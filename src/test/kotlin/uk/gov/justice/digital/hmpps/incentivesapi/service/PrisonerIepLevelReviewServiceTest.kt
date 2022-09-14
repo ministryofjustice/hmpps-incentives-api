@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepMigration
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IepLevelRepository
@@ -122,8 +123,8 @@ class PrisonerIepLevelReviewServiceTest {
     fun setUp(): Unit = runBlocking {
       // This ensures save works and an id is set on the PrisonerIepLevel
       whenever(prisonerIepLevelRepository.save(any())).thenAnswer { i -> i.arguments[0] }
-      whenever(iepLevelRepository.findById("STD")).thenReturn(uk.gov.justice.digital.hmpps.incentivesapi.jpa.IepLevel(iepCode = "STD", iepDescription = "Standard"))
-      whenever(iepLevelRepository.findById("ENH")).thenReturn(uk.gov.justice.digital.hmpps.incentivesapi.jpa.IepLevel(iepCode = "ENH", iepDescription = "Enhanced"))
+      whenever(iepLevelRepository.findById("STD")).thenReturn(IepLevel(iepCode = "STD", iepDescription = "Standard"))
+      whenever(iepLevelRepository.findById("ENH")).thenReturn(IepLevel(iepCode = "ENH", iepDescription = "Enhanced"))
     }
 
     @Test
@@ -160,7 +161,13 @@ class PrisonerIepLevelReviewServiceTest {
 
       verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
       verify(snsService, times(1)).sendIepReviewEvent(0, expectedPrisonerIepLevel.reviewTime)
-      verify(auditService, times(1)).sendMessage(AuditType.IEP_REVIEW_ADDED, "0", iepDetailFromIepLevel(expectedPrisonerIepLevel, "Enhanced"))
+      verify(auditService, times(1))
+        .sendMessage(
+          AuditType.IEP_REVIEW_ADDED,
+          "0",
+          iepDetailFromIepLevel(expectedPrisonerIepLevel, "Enhanced"),
+          expectedPrisonerIepLevel.reviewedBy,
+        )
     }
 
     @Test
@@ -199,7 +206,13 @@ class PrisonerIepLevelReviewServiceTest {
 
       verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
       verify(snsService, times(1)).sendIepReviewEvent(0, expectedPrisonerIepLevel.reviewTime)
-      verify(auditService, times(1)).sendMessage(AuditType.IEP_REVIEW_ADDED, "0", iepDetailFromIepLevel(expectedPrisonerIepLevel, "Standard"))
+      verify(auditService, times(1))
+        .sendMessage(
+          AuditType.IEP_REVIEW_ADDED,
+          "0",
+          iepDetailFromIepLevel(expectedPrisonerIepLevel, "Standard"),
+          expectedPrisonerIepLevel.reviewedBy,
+        )
     }
 
     @Test
@@ -238,7 +251,13 @@ class PrisonerIepLevelReviewServiceTest {
 
       verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
       verify(snsService, times(1)).sendIepReviewEvent(0, expectedPrisonerIepLevel.reviewTime)
-      verify(auditService, times(1)).sendMessage(AuditType.IEP_REVIEW_ADDED, "0", iepDetailFromIepLevel(expectedPrisonerIepLevel, "Enhanced"))
+      verify(auditService, times(1))
+        .sendMessage(
+          AuditType.IEP_REVIEW_ADDED,
+          "0",
+          iepDetailFromIepLevel(expectedPrisonerIepLevel, "Enhanced"),
+          expectedPrisonerIepLevel.reviewedBy,
+        )
     }
 
     @Test
