@@ -443,7 +443,6 @@ class PrisonerIepLevelReviewServiceTest {
       bookingId = prisonerIepLevel.bookingId,
       agencyId = prisonerIepLevel.prisonId,
       locationId = prisonerIepLevel.locationId,
-      sequence = prisonerIepLevel.sequence.toLong(),
       userId = prisonerIepLevel.reviewedBy,
       iepDate = prisonerIepLevel.reviewTime.toLocalDate(),
       iepTime = prisonerIepLevel.reviewTime,
