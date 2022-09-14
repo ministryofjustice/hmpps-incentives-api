@@ -250,7 +250,8 @@ class PrisonerIepLevelReviewService(
     auditService.sendMessage(
       AuditType.IEP_REVIEW_ADDED,
       iepDetail.id.toString(),
-      iepDetail
+      iepDetail,
+      iepDetail.userId,
     )
   }
 
