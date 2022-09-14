@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Assert
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -36,11 +37,16 @@ class PrisonerIepLevelReviewServiceTest {
   private val iepLevelService: IepLevelService = mock()
   private val authenticationFacade: AuthenticationFacade = mock()
   private var clock: Clock = Clock.fixed(Instant.ofEpochMilli(0), ZoneId.systemDefault())
+  private val snsService: SnsService = mock()
+  private val auditService: AuditService = mock()
+
   private val prisonerIepLevelReviewService = PrisonerIepLevelReviewService(
     prisonApiService,
     prisonerIepLevelRepository,
     iepLevelRepository,
     iepLevelService,
+    snsService,
+    auditService,
     authenticationFacade,
     clock,
   )
@@ -112,6 +118,14 @@ class PrisonerIepLevelReviewServiceTest {
 
   @Nested
   inner class processReceivedPrisoner {
+    @BeforeEach
+    fun setUp(): Unit = runBlocking {
+      // This ensures save works and an id is set on the PrisonerIepLevel
+      whenever(prisonerIepLevelRepository.save(any())).thenAnswer { i -> i.arguments[0] }
+      whenever(iepLevelRepository.findById("STD")).thenReturn(uk.gov.justice.digital.hmpps.incentivesapi.jpa.IepLevel(iepCode = "STD", iepDescription = "Standard"))
+      whenever(iepLevelRepository.findById("ENH")).thenReturn(uk.gov.justice.digital.hmpps.incentivesapi.jpa.IepLevel(iepCode = "ENH", iepDescription = "Enhanced"))
+    }
+
     @Test
     fun `process ADMISSION`(): Unit = runBlocking {
       // Given - default for that prison is Enhanced
@@ -122,7 +136,7 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(iepLevelService.getIepLevelsForPrison(prisonerAtLocation().agencyId)).thenReturn(
         listOf(
           IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 1, default = false),
-          IepLevel(iepLevel = "ENC", iepDescription = "Enhanced", sequence = 1, default = true),
+          IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 1, default = true),
         )
       )
 
@@ -130,21 +144,23 @@ class PrisonerIepLevelReviewServiceTest {
       prisonerIepLevelReviewService.processReceivedPrisoner(prisonOffenderEvent)
 
       // Then
-      verify(prisonerIepLevelRepository, times(1)).save(
-        PrisonerIepLevel(
-          iepCode = "ENC",
-          commentText = prisonOffenderEvent.description,
-          bookingId = prisonerAtLocation().bookingId,
-          prisonId = location.agencyId,
-          locationId = location.description,
-          sequence = 1,
-          current = true,
-          reviewedBy = "incentives-api",
-          reviewTime = LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
-          reviewType = ReviewType.INITIAL,
-          prisonerNumber = prisonerAtLocation().offenderNo
-        )
+      val expectedPrisonerIepLevel = PrisonerIepLevel(
+        iepCode = "ENH",
+        commentText = prisonOffenderEvent.description,
+        bookingId = prisonerAtLocation().bookingId,
+        prisonId = location.agencyId,
+        locationId = location.description,
+        sequence = 1,
+        current = true,
+        reviewedBy = "incentives-api",
+        reviewTime = LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
+        reviewType = ReviewType.INITIAL,
+        prisonerNumber = prisonerAtLocation().offenderNo
       )
+
+      verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
+      verify(snsService, times(1)).sendIepReviewEvent(0, expectedPrisonerIepLevel.reviewTime)
+      verify(auditService, times(1)).sendMessage(AuditType.IEP_REVIEW_ADDED, "0", iepDetailFromIepLevel(expectedPrisonerIepLevel, "Enhanced"))
     }
 
     @Test
@@ -167,21 +183,23 @@ class PrisonerIepLevelReviewServiceTest {
       prisonerIepLevelReviewService.processReceivedPrisoner(prisonOffenderEvent)
 
       // Then - the prisoner was on STD at BXI so they on this level
-      verify(prisonerIepLevelRepository, times(1)).save(
-        PrisonerIepLevel(
-          iepCode = "STD",
-          commentText = prisonOffenderEvent.description,
-          bookingId = prisonerAtLocation.bookingId,
-          prisonId = location.agencyId,
-          locationId = location.description,
-          sequence = 1,
-          current = true,
-          reviewedBy = "incentives-api",
-          reviewTime = LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
-          reviewType = ReviewType.TRANSFER,
-          prisonerNumber = prisonerAtLocation.offenderNo
-        )
+      val expectedPrisonerIepLevel = PrisonerIepLevel(
+        iepCode = "STD",
+        commentText = prisonOffenderEvent.description,
+        bookingId = prisonerAtLocation.bookingId,
+        prisonId = location.agencyId,
+        locationId = location.description,
+        sequence = 1,
+        current = true,
+        reviewedBy = "incentives-api",
+        reviewTime = LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
+        reviewType = ReviewType.TRANSFER,
+        prisonerNumber = prisonerAtLocation.offenderNo
       )
+
+      verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
+      verify(snsService, times(1)).sendIepReviewEvent(0, expectedPrisonerIepLevel.reviewTime)
+      verify(auditService, times(1)).sendMessage(AuditType.IEP_REVIEW_ADDED, "0", iepDetailFromIepLevel(expectedPrisonerIepLevel, "Standard"))
     }
 
     @Test
@@ -204,21 +222,23 @@ class PrisonerIepLevelReviewServiceTest {
       prisonerIepLevelReviewService.processReceivedPrisoner(prisonOffenderEvent)
 
       // Then - MDI prison does not support ENH2 (which they were on in BXI) so fallback to ENH
-      verify(prisonerIepLevelRepository, times(1)).save(
-        PrisonerIepLevel(
-          iepCode = "ENH",
-          commentText = prisonOffenderEvent.description,
-          bookingId = prisonerAtLocation.bookingId,
-          prisonId = location.agencyId,
-          locationId = location.description,
-          sequence = 1,
-          current = true,
-          reviewedBy = "incentives-api",
-          reviewTime = LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
-          reviewType = ReviewType.TRANSFER,
-          prisonerNumber = prisonerAtLocation.offenderNo
-        )
+      val expectedPrisonerIepLevel = PrisonerIepLevel(
+        iepCode = "ENH",
+        commentText = prisonOffenderEvent.description,
+        bookingId = prisonerAtLocation.bookingId,
+        prisonId = location.agencyId,
+        locationId = location.description,
+        sequence = 1,
+        current = true,
+        reviewedBy = "incentives-api",
+        reviewTime = LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
+        reviewType = ReviewType.TRANSFER,
+        prisonerNumber = prisonerAtLocation.offenderNo
       )
+
+      verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
+      verify(snsService, times(1)).sendIepReviewEvent(0, expectedPrisonerIepLevel.reviewTime)
+      verify(auditService, times(1)).sendMessage(AuditType.IEP_REVIEW_ADDED, "0", iepDetailFromIepLevel(expectedPrisonerIepLevel, "Enhanced"))
     }
 
     @Test
@@ -404,4 +424,21 @@ class PrisonerIepLevelReviewServiceTest {
     reviewType = ReviewType.REVIEW,
     current = true,
   )
+
+  private fun iepDetailFromIepLevel(prisonerIepLevel: PrisonerIepLevel, iepDescription: String) =
+    IepDetail(
+      id = 0,
+      iepLevel = iepDescription,
+      comments = prisonerIepLevel.commentText,
+      bookingId = prisonerIepLevel.bookingId,
+      agencyId = prisonerIepLevel.prisonId,
+      locationId = prisonerIepLevel.locationId,
+      sequence = prisonerIepLevel.sequence.toLong(),
+      userId = prisonerIepLevel.reviewedBy,
+      iepDate = prisonerIepLevel.reviewTime.toLocalDate(),
+      iepTime = prisonerIepLevel.reviewTime,
+      reviewType = prisonerIepLevel.reviewType,
+      prisonerNumber = prisonerIepLevel.prisonerNumber,
+      auditModuleName = "Incentives-API",
+    )
 }

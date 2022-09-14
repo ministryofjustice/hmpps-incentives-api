@@ -30,6 +30,8 @@ class PrisonerIepLevelReviewService(
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository,
   private val iepLevelRepository: IepLevelRepository,
   private val iepLevelService: IepLevelService,
+  private val snsService: SnsService,
+  private val auditService: AuditService,
   private val authenticationFacade: AuthenticationFacade,
   private val clock: Clock,
 ) {
@@ -131,13 +133,15 @@ class PrisonerIepLevelReviewService(
       )
 
       val locationInfo = prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId, true)
-      persistIepLevel(
+      val prisonerIepLevel = persistIepLevel(
         prisonerInfo,
         iepReview,
         locationInfo,
         LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
         "incentives-api"
       )
+
+      sendEventAndAudit(prisonerIepLevel.translate())
     } ?: run {
       log.warn("prisonerNumber null for prisonOffenderEvent: $prisonOffenderEvent ")
     }
@@ -237,6 +241,16 @@ class PrisonerIepLevelReviewService(
         reviewType = iepReview.reviewType ?: ReviewType.REVIEW,
         prisonerNumber = prisonerInfo.offenderNo
       )
+    )
+  }
+
+  private suspend fun sendEventAndAudit(iepDetail: IepDetail) {
+    snsService.sendIepReviewEvent(iepDetail.id!!, iepDetail.iepTime)
+
+    auditService.sendMessage(
+      AuditType.IEP_REVIEW_ADDED,
+      iepDetail.id.toString(),
+      iepDetail
     )
   }
 
