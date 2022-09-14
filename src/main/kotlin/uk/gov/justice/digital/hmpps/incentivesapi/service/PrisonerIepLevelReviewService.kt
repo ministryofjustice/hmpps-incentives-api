@@ -245,14 +245,18 @@ class PrisonerIepLevelReviewService(
   }
 
   private suspend fun sendEventAndAudit(iepDetail: IepDetail) {
-    snsService.sendIepReviewEvent(iepDetail.id!!, iepDetail.iepTime)
+    iepDetail.id?.let {
+      snsService.sendIepReviewEvent(iepDetail.id, iepDetail.iepTime)
 
-    auditService.sendMessage(
-      AuditType.IEP_REVIEW_ADDED,
-      iepDetail.id.toString(),
-      iepDetail,
-      iepDetail.userId,
-    )
+      auditService.sendMessage(
+        AuditType.IEP_REVIEW_ADDED,
+        iepDetail.id.toString(),
+        iepDetail,
+        iepDetail.userId,
+      )
+    } ?: run {
+      log.warn("id null for iepDetail: $iepDetail")
+    }
   }
 
   private suspend fun PrisonerIepLevel.translate() =
