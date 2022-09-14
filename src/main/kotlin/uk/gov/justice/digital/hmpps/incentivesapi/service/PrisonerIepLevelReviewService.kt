@@ -48,7 +48,7 @@ class PrisonerIepLevelReviewService(
     return if (useNomisData) {
       prisonApiService.getIEPSummaryForPrisoner(bookingId, withDetails, useClientCredentials)
     } else {
-      buildIepSummary(prisonerIepLevelRepository.findAllByBookingIdOrderBySequenceDesc(bookingId), withDetails)
+      buildIepSummary(prisonerIepLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(bookingId), withDetails)
     }
   }
 
@@ -58,7 +58,7 @@ class PrisonerIepLevelReviewService(
       val prisonerInfo = prisonApiService.getPrisonerInfo(prisonerNumber)
       prisonApiService.getIEPSummaryPerPrisoner(listOf(prisonerInfo.bookingId)).first()
     } else {
-      buildIepSummary(prisonerIepLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDescSequenceDesc(prisonerNumber))
+      buildIepSummary(prisonerIepLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(prisonerNumber))
     }
   }
 

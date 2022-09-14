@@ -88,13 +88,13 @@ class PrisonerIepLevelReviewServiceTest {
     fun `will query incentives db if useNomisData is false`(): Unit = runBlocking {
       coroutineScope {
         // Given
-        whenever(prisonerIepLevelRepository.findAllByBookingIdOrderBySequenceDesc(1234567)).thenReturn(currentAndPreviousLevels)
+        whenever(prisonerIepLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(1234567)).thenReturn(currentAndPreviousLevels)
 
         // When
         val result = prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567, useNomisData = false)
 
         // Then
-        verify(prisonerIepLevelRepository, times(1)).findAllByBookingIdOrderBySequenceDesc(1234567)
+        verify(prisonerIepLevelRepository, times(1)).findAllByBookingIdOrderByReviewTimeDesc(1234567)
         verifyNoInteractions(prisonApiService)
         assertThat(result.iepDetails.size).isEqualTo(2)
       }
@@ -104,13 +104,13 @@ class PrisonerIepLevelReviewServiceTest {
     fun `will query incentives db if useNomisData is false and will not return iep details if withDetails is false`(): Unit = runBlocking {
       coroutineScope {
         // Given
-        whenever(prisonerIepLevelRepository.findAllByBookingIdOrderBySequenceDesc(1234567)).thenReturn(currentAndPreviousLevels)
+        whenever(prisonerIepLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(1234567)).thenReturn(currentAndPreviousLevels)
 
         // When
         val result = prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567, useNomisData = false, withDetails = false)
 
         // Then
-        verify(prisonerIepLevelRepository, times(1)).findAllByBookingIdOrderBySequenceDesc(1234567)
+        verify(prisonerIepLevelRepository, times(1)).findAllByBookingIdOrderByReviewTimeDesc(1234567)
         verifyNoInteractions(prisonApiService)
         assertThat(result.iepDetails.size).isZero()
       }
