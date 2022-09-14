@@ -84,7 +84,6 @@ class PrisonerIepLevelReviewService(
         bookingId = prisonerInfo.bookingId,
         prisonId = iepMigration.prisonId,
         locationId = iepMigration.locationId,
-        sequence = 0,
         current = iepMigration.current,
         reviewedBy = iepMigration.userId,
         reviewTime = iepMigration.iepTime,
@@ -220,11 +219,9 @@ class PrisonerIepLevelReviewService(
     reviewTime: LocalDateTime,
     reviewerUserName: String,
   ): PrisonerIepLevel {
-    var nextSequence = 1
     prisonerIepLevelRepository.findOneByBookingIdAndCurrentIsTrue(prisonerInfo.bookingId)
       ?.let {
         prisonerIepLevelRepository.save(it.copy(current = false))
-        nextSequence = it.sequence + 1
       }
 
     return prisonerIepLevelRepository.save(
@@ -234,7 +231,6 @@ class PrisonerIepLevelReviewService(
         bookingId = prisonerInfo.bookingId,
         prisonId = locationInfo.agencyId,
         locationId = locationInfo.description,
-        sequence = nextSequence,
         current = true,
         reviewedBy = reviewerUserName,
         reviewTime = reviewTime,
