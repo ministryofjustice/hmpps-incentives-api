@@ -151,7 +151,6 @@ class PrisonerIepLevelReviewServiceTest {
         bookingId = prisonerAtLocation().bookingId,
         prisonId = location.agencyId,
         locationId = location.description,
-        sequence = 1,
         current = true,
         reviewedBy = "incentives-api",
         reviewTime = LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
@@ -196,7 +195,6 @@ class PrisonerIepLevelReviewServiceTest {
         bookingId = prisonerAtLocation.bookingId,
         prisonId = location.agencyId,
         locationId = location.description,
-        sequence = 1,
         current = true,
         reviewedBy = "incentives-api",
         reviewTime = LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
@@ -241,7 +239,6 @@ class PrisonerIepLevelReviewServiceTest {
         bookingId = prisonerAtLocation.bookingId,
         prisonId = location.agencyId,
         locationId = location.description,
-        sequence = 1,
         current = true,
         reviewedBy = "incentives-api",
         reviewTime = LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
@@ -327,7 +324,6 @@ class PrisonerIepLevelReviewServiceTest {
           bookingId = bookingId,
           prisonId = iepMigration.prisonId,
           locationId = iepMigration.locationId,
-          sequence = 0,
           current = iepMigration.current,
           reviewedBy = iepMigration.userId,
           reviewTime = iepMigration.iepTime,
@@ -351,7 +347,6 @@ class PrisonerIepLevelReviewServiceTest {
     iepDetails = listOf(
       IepDetail(
         bookingId = 1L,
-        sequence = 2,
         agencyId = "MDI",
         iepLevel = "Enhanced",
         iepDate = iepTime.toLocalDate(),
@@ -361,7 +356,6 @@ class PrisonerIepLevelReviewServiceTest {
       ),
       IepDetail(
         bookingId = 1L,
-        sequence = 1,
         agencyId = "LEI",
         iepLevel = "Standard",
         iepDate = iepTime.minusDays(100).toLocalDate(),
@@ -373,7 +367,6 @@ class PrisonerIepLevelReviewServiceTest {
   )
   private fun iepDetail(agencyId: String, iepLevel: String, iepTime: LocalDateTime) = IepDetail(
     bookingId = 1L,
-    sequence = 2,
     agencyId = agencyId,
     iepLevel = iepLevel,
     iepDate = iepTime.toLocalDate(),
@@ -387,7 +380,6 @@ class PrisonerIepLevelReviewServiceTest {
     prisonId = "LEI",
     locationId = "LEI-1-1-001",
     bookingId = 1234567,
-    sequence = 1,
     current = false,
     reviewedBy = "TEST_STAFF1",
     reviewTime = LocalDateTime.now().minusDays(2),
@@ -399,7 +391,6 @@ class PrisonerIepLevelReviewServiceTest {
     prisonId = "MDI",
     locationId = "MDI-1-1-004",
     bookingId = 1234567,
-    sequence = 2,
     current = true,
     reviewedBy = "TEST_STAFF1",
     reviewTime = LocalDateTime.now(),

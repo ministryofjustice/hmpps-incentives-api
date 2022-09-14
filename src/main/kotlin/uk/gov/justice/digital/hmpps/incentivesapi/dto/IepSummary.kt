@@ -71,8 +71,6 @@ data class IepDetail(
   val prisonerNumber: String? = null,
   @Schema(description = "Booking ID", example = "1231232", required = true)
   val bookingId: Long,
-  @Schema(description = "Sequence of history of reviews", example = "12", required = true)
-  val sequence: Long,
   @Schema(description = "Date when last review took place", example = "2022-08-12", required = true)
   val iepDate: LocalDate,
   @Schema(description = "Date and time when last review took place", required = true)

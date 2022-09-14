@@ -259,7 +259,6 @@ class PrisonerIepLevelReviewService(
     IepDetail(
       id = id,
       bookingId = bookingId,
-      sequence = sequence.toLong(),
       iepDate = reviewTime.toLocalDate(),
       iepTime = reviewTime,
       agencyId = prisonId,
