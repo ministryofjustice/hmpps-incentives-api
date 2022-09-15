@@ -80,6 +80,11 @@ server:
   error:
     include-message: always
 
+hmpps:
+  sqs:
+    reactiveApi: true
+    queueAdminRole: ROLE_INCENTIVES_API_QUEUE_ADMIN
+
 management:
   endpoints:
     web:
