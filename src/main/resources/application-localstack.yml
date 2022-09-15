@@ -1,4 +1,5 @@
 hmpps.sqs:
+  reactiveApi: true
   provider: localstack
   queues:
     audit:

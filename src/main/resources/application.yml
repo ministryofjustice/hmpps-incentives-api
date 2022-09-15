@@ -80,6 +80,10 @@ server:
   error:
     include-message: always
 
+hmpps:
+  sqs:
+    reactiveApi: true
+
 management:
   endpoints:
     web:
