@@ -329,8 +329,37 @@ class PrisonerIepLevelReviewServiceTest {
           locationId = iepMigration.locationId,
           sequence = 0,
           current = iepMigration.current,
-          reviewedBy = iepMigration.userId,
+          reviewedBy = iepMigration.userId!!,
           reviewTime = iepMigration.iepTime,
+          reviewType = ReviewType.REVIEW,
+          prisonerNumber = prisonerAtLocation().offenderNo
+        )
+      )
+    }
+
+    @Test
+    fun `process migration when userId is not provided`(): Unit = runBlocking {
+      // Given
+      val iepMigrationNullUserId = iepMigration.copy(userId = null)
+      val bookingId = 1234567L
+      whenever(prisonApiService.getPrisonerInfo(bookingId)).thenReturn(prisonerAtLocation())
+      whenever(prisonerIepLevelRepository.save(any())).thenAnswer { i -> i.arguments[0] }
+
+      // When
+      prisonerIepLevelReviewService.addIepMigration(bookingId, iepMigrationNullUserId)
+
+      // Then
+      verify(prisonerIepLevelRepository, times(1)).save(
+        PrisonerIepLevel(
+          iepCode = iepMigrationNullUserId.iepLevel,
+          commentText = iepMigrationNullUserId.comment,
+          bookingId = bookingId,
+          prisonId = iepMigrationNullUserId.prisonId,
+          locationId = iepMigrationNullUserId.locationId,
+          sequence = 0,
+          current = iepMigrationNullUserId.current,
+          reviewedBy = "NOMIS",
+          reviewTime = iepMigrationNullUserId.iepTime,
           reviewType = ReviewType.REVIEW,
           prisonerNumber = prisonerAtLocation().offenderNo
         )

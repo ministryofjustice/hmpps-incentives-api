@@ -139,9 +139,8 @@ data class IepMigration(
   @field:NotBlank(message = "Comment on IEP Level migration is required")
   val comment: String,
 
-  @Schema(description = "NOMIS User Id who performed the review", example = "XYZ_GEN", required = true)
-  @field:NotBlank(message = "User ID on IEP Level migration is required")
-  val userId: String,
+  @Schema(description = "NOMIS User Id who performed the review", example = "XYZ_GEN", required = false)
+  val userId: String?,
 
   @Schema(description = "Review Type", example = "Type of review", required = true)
   val reviewType: ReviewType,
