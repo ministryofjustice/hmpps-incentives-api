@@ -352,7 +352,6 @@ class PrisonerIepLevelReviewServiceTest {
           bookingId = bookingId,
           prisonId = iepMigrationNullUserId.prisonId,
           locationId = iepMigrationNullUserId.locationId,
-          sequence = 0,
           current = iepMigrationNullUserId.current,
           reviewedBy = null,
           reviewTime = iepMigrationNullUserId.iepTime,
