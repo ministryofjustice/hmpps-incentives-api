@@ -329,7 +329,7 @@ class PrisonerIepLevelReviewServiceTest {
           locationId = iepMigration.locationId,
           sequence = 0,
           current = iepMigration.current,
-          reviewedBy = iepMigration.userId!!,
+          reviewedBy = iepMigration.userId,
           reviewTime = iepMigration.iepTime,
           reviewType = ReviewType.REVIEW,
           prisonerNumber = prisonerAtLocation().offenderNo
