@@ -104,7 +104,6 @@ class PrisonerIepLevelReviewService(
         bookingId = prisonerInfo.bookingId,
         prisonId = iepMigration.prisonId,
         locationId = iepMigration.locationId,
-        sequence = 0,
         current = iepMigration.current,
         reviewedBy = iepMigration.userId,
         reviewTime = iepMigration.iepTime,
