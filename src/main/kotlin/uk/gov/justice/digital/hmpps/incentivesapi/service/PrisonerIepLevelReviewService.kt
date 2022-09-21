@@ -48,7 +48,7 @@ class PrisonerIepLevelReviewService(
     return if (useNomisData) {
       prisonApiService.getIEPSummaryForPrisoner(bookingId, withDetails, useClientCredentials)
     } else {
-      buildIepSummary(prisonerIepLevelRepository.findAllByBookingIdOrderBySequenceDesc(bookingId), withDetails)
+      buildIepSummary(prisonerIepLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(bookingId), withDetails)
     }
   }
 
@@ -58,7 +58,7 @@ class PrisonerIepLevelReviewService(
       val prisonerInfo = prisonApiService.getPrisonerInfo(prisonerNumber)
       prisonApiService.getIEPSummaryPerPrisoner(listOf(prisonerInfo.bookingId)).first()
     } else {
-      buildIepSummary(prisonerIepLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDescSequenceDesc(prisonerNumber))
+      buildIepSummary(prisonerIepLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(prisonerNumber))
     }
   }
 
@@ -84,7 +84,6 @@ class PrisonerIepLevelReviewService(
         bookingId = prisonerInfo.bookingId,
         prisonId = iepMigration.prisonId,
         locationId = iepMigration.locationId,
-        sequence = 0,
         current = iepMigration.current,
         reviewedBy = iepMigration.userId,
         reviewTime = iepMigration.iepTime,
@@ -220,11 +219,9 @@ class PrisonerIepLevelReviewService(
     reviewTime: LocalDateTime,
     reviewerUserName: String,
   ): PrisonerIepLevel {
-    var nextSequence = 1
     prisonerIepLevelRepository.findOneByBookingIdAndCurrentIsTrue(prisonerInfo.bookingId)
       ?.let {
         prisonerIepLevelRepository.save(it.copy(current = false))
-        nextSequence = it.sequence + 1
       }
 
     return prisonerIepLevelRepository.save(
@@ -234,7 +231,6 @@ class PrisonerIepLevelReviewService(
         bookingId = prisonerInfo.bookingId,
         prisonId = locationInfo.agencyId,
         locationId = locationInfo.description,
-        sequence = nextSequence,
         current = true,
         reviewedBy = reviewerUserName,
         reviewTime = reviewTime,
@@ -263,7 +259,6 @@ class PrisonerIepLevelReviewService(
     IepDetail(
       id = id,
       bookingId = bookingId,
-      sequence = sequence.toLong(),
       iepDate = reviewTime.toLocalDate(),
       iepTime = reviewTime,
       agencyId = prisonId,

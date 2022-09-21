@@ -88,7 +88,6 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
              "iepDetails":[
                 {
                    "bookingId":1234134,
-                   "sequence":2,
                    "iepDate":"2021-12-02",
                    "iepTime":"2021-12-02T09:24:42.894",
                    "agencyId":"MDI",
@@ -98,7 +97,6 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
                 },
                 {
                    "bookingId":1234134,
-                   "sequence":1,
                    "iepDate":"2020-11-02",
                    "iepTime":"2021-11-02T09:00:42.894",
                    "agencyId":"BXI",
@@ -213,7 +211,6 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
              "iepDetails":[
                 {
                    "bookingId":$bookingId,
-                   "sequence":1,
                    "iepDate":"$today",
                    "agencyId":"MDI",
                    "iepLevel":"Standard",
@@ -265,7 +262,6 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
                 {
                    "prisonerNumber": $prisonerNumber,
                    "bookingId":$bookingId,
-                   "sequence":2,
                    "iepDate":"$today",
                    "agencyId":"MDI",
                    "iepLevel":"Enhanced",
@@ -278,7 +274,6 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
                 {
                     "prisonerNumber": $prisonerNumber,
                    "bookingId":$bookingId,
-                   "sequence":1,
                    "iepDate":"$today",
                    "agencyId":"MDI",
                    "iepLevel":"Basic",
@@ -392,7 +387,6 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
              "iepDetails":[
                 {
                    "bookingId":$bookingId,
-                   "sequence":0,
                    "iepDate":"${iepMigration.iepTime.toLocalDate()}",
                    "agencyId":"${iepMigration.prisonId}",
                    "locationId":"${iepMigration.locationId}",

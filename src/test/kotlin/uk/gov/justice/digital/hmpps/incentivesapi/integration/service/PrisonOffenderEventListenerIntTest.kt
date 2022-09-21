@@ -55,7 +55,7 @@ internal class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     // Then
     await.atMost(Duration.ofSeconds(30)) untilCallTo {
       runBlocking {
-        val booking = repository.findFirstByBookingIdOrderBySequenceDesc(bookingId)
+        val booking = repository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId)
         assertThat(booking?.reviewType).isEqualTo(ReviewType.INITIAL)
       }
     }
@@ -81,7 +81,7 @@ internal class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     // Then
     await.atMost(Duration.ofSeconds(30)) untilCallTo {
       runBlocking {
-        val booking = repository.findFirstByBookingIdOrderBySequenceDesc(bookingId)
+        val booking = repository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId)
         assertThat(booking?.reviewType).isEqualTo(ReviewType.TRANSFER)
       }
     }

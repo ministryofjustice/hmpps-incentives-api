@@ -11,7 +11,6 @@ data class PrisonerIepLevel(
   val id: Long = 0,
 
   val bookingId: Long,
-  val sequence: Int,
   val prisonerNumber: String,
   val prisonId: String,
   val locationId: String,
