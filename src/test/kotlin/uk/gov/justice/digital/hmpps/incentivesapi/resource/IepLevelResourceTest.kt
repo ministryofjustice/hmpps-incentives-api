@@ -393,6 +393,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
                    "iepLevel":"Standard",
                    "comments":"${iepMigration.comment}",
                    "userId":"${iepMigration.userId}",
+                   "reviewType":"${iepMigration.reviewType}",
                    "auditModuleName":"Incentives-API"
                 }
              ]
@@ -450,7 +451,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
       iepLevel = iepLevel,
       comment = "A comment",
       userId = "XYZ_GEN",
-      reviewType = ReviewType.REVIEW,
+      reviewType = ReviewType.MIGRATED,
       current = true,
     )
   }
