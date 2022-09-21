@@ -16,7 +16,7 @@ data class PrisonerIepLevel(
   val prisonId: String,
   val locationId: String,
   val reviewTime: LocalDateTime,
-  val reviewedBy: String,
+  val reviewedBy: String? = null,
   val iepCode: String,
   val commentText: String? = null,
   val current: Boolean = true,

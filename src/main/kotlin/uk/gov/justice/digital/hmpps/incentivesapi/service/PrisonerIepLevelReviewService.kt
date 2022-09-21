@@ -86,7 +86,7 @@ class PrisonerIepLevelReviewService(
         locationId = iepMigration.locationId,
         sequence = 0,
         current = iepMigration.current,
-        reviewedBy = iepMigration.userId ?: "NOMIS",
+        reviewedBy = iepMigration.userId,
         reviewTime = iepMigration.iepTime,
         reviewType = iepMigration.reviewType,
         prisonerNumber = prisonerInfo.offenderNo
