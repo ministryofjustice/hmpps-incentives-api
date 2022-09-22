@@ -93,24 +93,10 @@ class PrisonerIepLevelReviewService(
     ).translate()
   }
 
-  @Transactional
-  suspend fun syncPostIepReview(bookingId: Long, iepMigration: IepMigration): IepDetail {
-    val prisonerInfo = prisonApiService.getPrisonerInfo(bookingId)
-
-    return prisonerIepLevelRepository.save(
-      PrisonerIepLevel(
-        iepCode = iepMigration.iepLevel,
-        commentText = iepMigration.comment,
-        bookingId = prisonerInfo.bookingId,
-        prisonId = iepMigration.prisonId,
-        locationId = iepMigration.locationId,
-        current = iepMigration.current,
-        reviewedBy = iepMigration.userId,
-        reviewTime = iepMigration.iepTime,
-        reviewType = iepMigration.reviewType,
-        prisonerNumber = prisonerInfo.offenderNo
-      )
-    ).translate()
+  suspend fun handleSyncPostIepReviewRequest(bookingId: Long, iepMigration: IepMigration): IepDetail {
+    val iepDetail = addIepMigration(bookingId, iepMigration)
+    sendEventAndAudit(iepDetail)
+    return iepDetail
   }
 
   fun getCurrentIEPLevelForPrisoners(bookingIds: List<Long>, useNomisData: Boolean): Flow<CurrentIepLevel> {

@@ -355,11 +355,7 @@ class IepLevelResource(
     @PathVariable bookingId: Long,
     @Schema(description = "IEP Review", required = true)
     @RequestBody @Valid iepMigration: IepMigration,
-  ): IepDetail {
-    val iepDetail = prisonerIepLevelReviewService.syncPostIepReview(bookingId, iepMigration)
-    sendEventAndAudit(iepDetail)
-    return iepDetail
-  }
+  ): IepDetail = prisonerIepLevelReviewService.handleSyncPostIepReviewRequest(bookingId, iepMigration)
 
   private suspend fun sendEventAndAudit(iepDetail: IepDetail) {
     snsService.sendIepReviewEvent(iepDetail.id!!, iepDetail.iepTime)
