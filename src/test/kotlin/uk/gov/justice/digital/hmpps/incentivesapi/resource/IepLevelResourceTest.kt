@@ -6,7 +6,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepMigration
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
@@ -357,7 +357,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
   inner class SyncIepReview {
 
     private val bookingId = 3330000L
-    private val requestBody = iepMigration()
+    private val requestBody = syncPostRequest()
     private val prisonerNumber = "A1234AC"
 
     private val syncCreateEndpoint = "/iep/sync/booking/$bookingId"
@@ -470,7 +470,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
         )
     }
 
-    private fun iepMigration(iepLevel: String = "STD") = IepMigration(
+    private fun syncPostRequest(iepLevel: String = "STD") = SyncPostRequest(
       iepTime = LocalDateTime.now(),
       prisonId = "MDI",
       locationId = "1-2-003",
@@ -490,17 +490,17 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
       // Given
       val bookingId = 3330000L
       val prisonerNumber = "A1234AC"
-      val iepMigration = iepMigration()
+      val migrationRequest = syncPostRequest()
       prisonApiMockServer.stubGetPrisonerInfoByBooking(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = 77778L)
 
       // When
-      val migrationRequest = webTestClient.post().uri("/iep/migration/booking/$bookingId")
+      val response = webTestClient.post().uri("/iep/migration/booking/$bookingId")
         .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
-        .bodyValue(iepMigration)
+        .bodyValue(migrationRequest)
         .exchange()
 
       // Then
-      migrationRequest.expectStatus().isCreated
+      response.expectStatus().isCreated
 
       webTestClient.get().uri("/iep/reviews/booking/$bookingId?use-nomis-data=false")
         .headers(setAuthorisation())
@@ -511,18 +511,18 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
             {
              "bookingId":$bookingId,
              "daysSinceReview":0,
-             "iepDate":"${iepMigration.iepTime.toLocalDate()}",
+             "iepDate":"${migrationRequest.iepTime.toLocalDate()}",
              "iepLevel":"Standard",
              "iepDetails":[
                 {
                    "bookingId":$bookingId,
-                   "iepDate":"${iepMigration.iepTime.toLocalDate()}",
-                   "agencyId":"${iepMigration.prisonId}",
-                   "locationId":"${iepMigration.locationId}",
+                   "iepDate":"${migrationRequest.iepTime.toLocalDate()}",
+                   "agencyId":"${migrationRequest.prisonId}",
+                   "locationId":"${migrationRequest.locationId}",
                    "iepLevel":"Standard",
-                   "comments":"${iepMigration.comment}",
-                   "userId":"${iepMigration.userId}",
-                   "reviewType":"${iepMigration.reviewType}",
+                   "comments":"${migrationRequest.comment}",
+                   "userId":"${migrationRequest.userId}",
+                   "reviewType":"${migrationRequest.reviewType}",
                    "auditModuleName":"Incentives-API"
                 }
              ]
@@ -535,7 +535,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
     fun `handle undefined path variable`() {
       webTestClient.post().uri("/iep/migration/booking/undefined")
         .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("write")))
-        .bodyValue(iepMigration())
+        .bodyValue(syncPostRequest())
         .exchange()
         .expectStatus().isBadRequest
     }
@@ -546,7 +546,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
 
       webTestClient.post().uri("/iep/migration/booking/$bookingId")
         .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("write")))
-        .bodyValue(iepMigration("Standard")) // fails validation because it's > 6 length
+        .bodyValue(syncPostRequest("Standard")) // fails validation because it's > 6 length
         .exchange()
         .expectStatus().isBadRequest
     }
@@ -557,7 +557,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
 
       webTestClient.post().uri("/iep/migration/booking/$bookingId")
         .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read")))
-        .bodyValue(iepMigration())
+        .bodyValue(syncPostRequest())
         .exchange()
         .expectStatus().isForbidden
     }
@@ -568,12 +568,12 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
 
       webTestClient.post().uri("/iep/migration/booking/$bookingId")
         .headers(setAuthorisation(roles = listOf("ROLE_DUMMY"), scopes = listOf("read", "write")))
-        .bodyValue(iepMigration())
+        .bodyValue(syncPostRequest())
         .exchange()
         .expectStatus().isForbidden
     }
 
-    private fun iepMigration(iepLevel: String = "STD") = IepMigration(
+    private fun syncPostRequest(iepLevel: String = "STD") = SyncPostRequest(
       iepTime = LocalDateTime.now(),
       prisonId = "MDI",
       locationId = "1-2-003",

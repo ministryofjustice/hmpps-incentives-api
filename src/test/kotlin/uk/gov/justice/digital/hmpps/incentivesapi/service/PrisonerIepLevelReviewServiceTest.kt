@@ -17,7 +17,7 @@ import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.incentivesapi.config.AuthenticationFacade
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepMigration
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
@@ -304,9 +304,9 @@ class PrisonerIepLevelReviewServiceTest {
   }
 
   @Nested
-  inner class addIepMigration {
+  inner class AddIepMigration {
 
-    private val iepMigration = iepMigration(iepLevelCode = "STD", reviewType = ReviewType.MIGRATED)
+    private val migrationRequest = syncPostRequest(iepLevelCode = "STD", reviewType = ReviewType.MIGRATED)
 
     @Test
     fun `process migration`(): Unit = runBlocking {
@@ -316,20 +316,20 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonerIepLevelRepository.save(any())).thenAnswer { i -> i.arguments[0] }
 
       // When
-      prisonerIepLevelReviewService.addIepMigration(bookingId, iepMigration)
+      prisonerIepLevelReviewService.persistPrisonerIepLevel(bookingId, migrationRequest)
 
       // Then
       verify(prisonerIepLevelRepository, times(1)).save(
         PrisonerIepLevel(
-          iepCode = iepMigration.iepLevel,
-          commentText = iepMigration.comment,
+          iepCode = migrationRequest.iepLevel,
+          commentText = migrationRequest.comment,
           bookingId = bookingId,
-          prisonId = iepMigration.prisonId,
-          locationId = iepMigration.locationId,
-          current = iepMigration.current,
-          reviewedBy = iepMigration.userId,
-          reviewTime = iepMigration.iepTime,
-          reviewType = iepMigration.reviewType,
+          prisonId = migrationRequest.prisonId,
+          locationId = migrationRequest.locationId,
+          current = migrationRequest.current,
+          reviewedBy = migrationRequest.userId,
+          reviewTime = migrationRequest.iepTime,
+          reviewType = migrationRequest.reviewType,
           prisonerNumber = prisonerAtLocation().offenderNo
         )
       )
@@ -338,26 +338,26 @@ class PrisonerIepLevelReviewServiceTest {
     @Test
     fun `process migration when userId is not provided`(): Unit = runBlocking {
       // Given
-      val iepMigrationNullUserId = iepMigration.copy(userId = null)
+      val migrationRequestWithNullUserId = migrationRequest.copy(userId = null)
       val bookingId = 1234567L
       whenever(prisonApiService.getPrisonerInfo(bookingId)).thenReturn(prisonerAtLocation())
       whenever(prisonerIepLevelRepository.save(any())).thenAnswer { i -> i.arguments[0] }
 
       // When
-      prisonerIepLevelReviewService.addIepMigration(bookingId, iepMigrationNullUserId)
+      prisonerIepLevelReviewService.persistPrisonerIepLevel(bookingId, migrationRequestWithNullUserId)
 
       // Then
       verify(prisonerIepLevelRepository, times(1)).save(
         PrisonerIepLevel(
-          iepCode = iepMigrationNullUserId.iepLevel,
-          commentText = iepMigrationNullUserId.comment,
+          iepCode = migrationRequestWithNullUserId.iepLevel,
+          commentText = migrationRequestWithNullUserId.comment,
           bookingId = bookingId,
-          prisonId = iepMigrationNullUserId.prisonId,
-          locationId = iepMigrationNullUserId.locationId,
-          current = iepMigrationNullUserId.current,
+          prisonId = migrationRequestWithNullUserId.prisonId,
+          locationId = migrationRequestWithNullUserId.locationId,
+          current = migrationRequestWithNullUserId.current,
           reviewedBy = null,
-          reviewTime = iepMigrationNullUserId.iepTime,
-          reviewType = iepMigrationNullUserId.reviewType,
+          reviewTime = migrationRequestWithNullUserId.iepTime,
+          reviewType = migrationRequestWithNullUserId.reviewType,
           prisonerNumber = prisonerAtLocation().offenderNo
         )
       )
@@ -371,34 +371,34 @@ class PrisonerIepLevelReviewServiceTest {
     private val offenderNo = "A1234AA"
     private val iepLevelCode = "ENH"
     private val iepLevelDescription = "Enhanced"
-    private val iepMigration = iepMigration(iepLevelCode, reviewType = ReviewType.REVIEW)
+    private val syncPostRequest = syncPostRequest(iepLevelCode, reviewType = ReviewType.REVIEW)
 
     private val iepReviewId = 42L
     private val iepReview = PrisonerIepLevel(
-      iepCode = iepMigration.iepLevel,
-      commentText = iepMigration.comment,
+      iepCode = syncPostRequest.iepLevel,
+      commentText = syncPostRequest.comment,
       bookingId = bookingId,
-      prisonId = iepMigration.prisonId,
-      locationId = iepMigration.locationId,
-      current = iepMigration.current,
-      reviewedBy = iepMigration.userId,
-      reviewTime = iepMigration.iepTime,
-      reviewType = iepMigration.reviewType,
+      prisonId = syncPostRequest.prisonId,
+      locationId = syncPostRequest.locationId,
+      current = syncPostRequest.current,
+      reviewedBy = syncPostRequest.userId,
+      reviewTime = syncPostRequest.iepTime,
+      reviewType = syncPostRequest.reviewType,
       prisonerNumber = offenderNo,
     )
 
     private val iepDetail = IepDetail(
       id=iepReviewId,
       iepLevel = iepLevelDescription,
-      comments = iepMigration.comment,
+      comments = syncPostRequest.comment,
       prisonerNumber = offenderNo,
       bookingId = bookingId,
-      iepDate = iepMigration.iepTime.toLocalDate(),
-      iepTime = iepMigration.iepTime,
-      agencyId = iepMigration.prisonId,
-      locationId = iepMigration.locationId,
-      userId = iepMigration.userId,
-      reviewType = iepMigration.reviewType,
+      iepDate = syncPostRequest.iepTime.toLocalDate(),
+      iepTime = syncPostRequest.iepTime,
+      agencyId = syncPostRequest.prisonId,
+      locationId = syncPostRequest.locationId,
+      userId = syncPostRequest.userId,
+      reviewType = syncPostRequest.reviewType,
       auditModuleName = "Incentives-API",
     )
 
@@ -422,7 +422,7 @@ class PrisonerIepLevelReviewServiceTest {
     @Test
     fun `persists a new IEP review`(): Unit = runBlocking {
       // When
-      val result = prisonerIepLevelReviewService.handleSyncPostIepReviewRequest(bookingId, iepMigration)
+      val result = prisonerIepLevelReviewService.handleSyncPostIepReviewRequest(bookingId, syncPostRequest)
 
       // Then check it's saved
       verify(prisonerIepLevelRepository, times(1))
@@ -435,10 +435,10 @@ class PrisonerIepLevelReviewServiceTest {
     @Test
     fun `sends IepReview event and audit message`(): Unit = runBlocking {
       // When sync POST request is handled
-      prisonerIepLevelReviewService.handleSyncPostIepReviewRequest(bookingId, iepMigration)
+      prisonerIepLevelReviewService.handleSyncPostIepReviewRequest(bookingId, syncPostRequest)
 
       // SNS event is sent
-      verify(snsService, times(1)).sendIepReviewEvent(iepReviewId, iepMigration.iepTime)
+      verify(snsService, times(1)).sendIepReviewEvent(iepReviewId, syncPostRequest.iepTime)
 
       // audit message is sent
       verify(auditService, times(1))
@@ -446,7 +446,7 @@ class PrisonerIepLevelReviewServiceTest {
           AuditType.IEP_REVIEW_ADDED,
           "$iepReviewId",
           iepDetail,
-          iepMigration.userId,
+          syncPostRequest.userId,
         )
     }
   }
@@ -541,7 +541,7 @@ class PrisonerIepLevelReviewServiceTest {
     IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3, default = false),
   )
 
-  private fun iepMigration(iepLevelCode: String = "STD", reviewType: ReviewType) = IepMigration(
+  private fun syncPostRequest(iepLevelCode: String = "STD", reviewType: ReviewType) = SyncPostRequest(
     iepTime = LocalDateTime.now(),
     prisonId = "MDI",
     locationId = "1-2-003",

@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.CurrentIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepMigration
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.service.AuditService
@@ -318,9 +318,9 @@ class IepLevelResource(
     @Schema(description = "Booking Id", example = "2342342", required = true)
     @PathVariable bookingId: Long,
     @Schema(description = "IEP Review", required = true)
-    @RequestBody @Valid iepMigration: IepMigration,
+    @RequestBody @Valid syncPostRequest: SyncPostRequest,
   ): IepDetail =
-    prisonerIepLevelReviewService.addIepMigration(bookingId, iepMigration)
+    prisonerIepLevelReviewService.persistPrisonerIepLevel(bookingId, syncPostRequest)
 
   @PostMapping("/sync/booking/{bookingId}")
   @PreAuthorize("hasRole('MAINTAIN_IEP') and hasAuthority('SCOPE_write')")
@@ -354,8 +354,8 @@ class IepLevelResource(
     @Schema(description = "Booking Id", example = "2342342", required = true)
     @PathVariable bookingId: Long,
     @Schema(description = "IEP Review", required = true)
-    @RequestBody @Valid iepMigration: IepMigration,
-  ): IepDetail = prisonerIepLevelReviewService.handleSyncPostIepReviewRequest(bookingId, iepMigration)
+    @RequestBody @Valid syncPostRequest: SyncPostRequest,
+  ): IepDetail = prisonerIepLevelReviewService.handleSyncPostIepReviewRequest(bookingId, syncPostRequest)
 
   private suspend fun sendEventAndAudit(iepDetail: IepDetail) {
     snsService.sendIepReviewEvent(iepDetail.id!!, iepDetail.iepTime)

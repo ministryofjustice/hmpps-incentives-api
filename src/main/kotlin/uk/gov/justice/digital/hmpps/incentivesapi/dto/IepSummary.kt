@@ -113,17 +113,17 @@ data class IepReview(
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Request to migrate an IEP Review from NOMIS")
-data class IepMigration(
+@Schema(description = "Request to synchronise an IEP Review from NOMIS")
+data class SyncPostRequest(
   @Schema(description = "Date and time when the review took place", required = true)
   val iepTime: LocalDateTime,
 
   @Schema(description = "Prison ID", example = "MDI", required = true)
-  @field:NotBlank(message = "Prison ID on IEP Level migration is required")
+  @field:NotBlank(message = "Prison ID is required")
   val prisonId: String,
 
   @Schema(description = "Location of prisoner when review took place within prison (i.e. their cell)", example = "1-2-003", required = true)
-  @field:NotBlank(message = "Location ID on IEP Level migration is required")
+  @field:NotBlank(message = "Location ID is required")
   val locationId: String,
 
   @Schema(description = "IEP Level", example = "STD", required = true, allowableValues = ["STD", "BAS", "ENH", "EN2", "EN3", "ENT"])
@@ -134,7 +134,7 @@ data class IepMigration(
   ) @field:NotBlank(message = "IEP Level is required") val iepLevel: String,
 
   @Schema(description = "Comment about review", example = "This is a comment", required = true)
-  @field:NotBlank(message = "Comment on IEP Level migration is required")
+  @field:NotBlank(message = "Comment is required")
   val comment: String,
 
   @Schema(description = "NOMIS User Id who performed the review", example = "XYZ_GEN", required = false)
