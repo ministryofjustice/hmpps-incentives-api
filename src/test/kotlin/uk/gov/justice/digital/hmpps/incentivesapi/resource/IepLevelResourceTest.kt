@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.resource
 
 import kotlinx.coroutines.runBlocking
+import org.json.JSONObject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -417,7 +418,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
       )
 
       // API responds 201 Created with the created IEP review record
-      webTestClient.post().uri(syncCreateEndpoint)
+      val responseBytes = webTestClient.post().uri(syncCreateEndpoint)
         .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
         .bodyValue(requestBody)
         .exchange()
@@ -439,33 +440,30 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
           }
           """.trimIndent()
         )
+        .returnResult()
+        .responseBody
+
+      val prisonerIepLevelId = JSONObject(String(responseBytes)).getLong("id")
 
       // IEP review is also persisted (can be retrieved later on)
-      webTestClient.get().uri("/iep/reviews/booking/$bookingId?use-nomis-data=false")
+      webTestClient.get().uri("/iep/reviews/id/$prisonerIepLevelId")
         .headers(setAuthorisation())
         .exchange()
         .expectStatus().isOk
         .expectBody().json(
           """
-            {
-             "bookingId":$bookingId,
-             "daysSinceReview":0,
-             "iepDate":"${requestBody.iepTime.toLocalDate()}",
-             "iepLevel":"Standard",
-             "iepDetails":[
-                {
-                   "bookingId":$bookingId,
-                   "iepDate":"${requestBody.iepTime.toLocalDate()}",
-                   "agencyId":"${requestBody.prisonId}",
-                   "locationId":"${requestBody.locationId}",
-                   "iepLevel":"Standard",
-                   "comments":"${requestBody.comment}",
-                   "userId":"${requestBody.userId}",
-                   "reviewType":"${requestBody.reviewType}",
-                   "auditModuleName":"Incentives-API"
-                }
-             ]
-          }
+              {
+                 "id": $prisonerIepLevelId,
+                 "bookingId":$bookingId,
+                 "iepDate":"${requestBody.iepTime.toLocalDate()}",
+                 "agencyId":"${requestBody.prisonId}",
+                 "locationId":"${requestBody.locationId}",
+                 "iepLevel":"Standard",
+                 "comments":"${requestBody.comment}",
+                 "userId":"${requestBody.userId}",
+                 "reviewType":"${requestBody.reviewType}",
+                 "auditModuleName":"Incentives-API"
+              }
           """
         )
     }
