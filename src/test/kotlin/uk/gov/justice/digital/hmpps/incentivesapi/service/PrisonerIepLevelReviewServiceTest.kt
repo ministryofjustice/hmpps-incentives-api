@@ -159,7 +159,7 @@ class PrisonerIepLevelReviewServiceTest {
       )
 
       verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
-      verify(snsService, times(1)).sendIepReviewEvent(0, expectedPrisonerIepLevel.reviewTime)
+      verify(snsService, times(1)).sendIepReviewEvent(0, expectedPrisonerIepLevel.reviewTime, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
       verify(auditService, times(1))
         .sendMessage(
           AuditType.IEP_REVIEW_ADDED,
@@ -203,7 +203,7 @@ class PrisonerIepLevelReviewServiceTest {
       )
 
       verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
-      verify(snsService, times(1)).sendIepReviewEvent(0, expectedPrisonerIepLevel.reviewTime)
+      verify(snsService, times(1)).sendIepReviewEvent(0, expectedPrisonerIepLevel.reviewTime, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
       verify(auditService, times(1))
         .sendMessage(
           AuditType.IEP_REVIEW_ADDED,
@@ -247,7 +247,7 @@ class PrisonerIepLevelReviewServiceTest {
       )
 
       verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
-      verify(snsService, times(1)).sendIepReviewEvent(0, expectedPrisonerIepLevel.reviewTime)
+      verify(snsService, times(1)).sendIepReviewEvent(0, expectedPrisonerIepLevel.reviewTime, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
       verify(auditService, times(1))
         .sendMessage(
           AuditType.IEP_REVIEW_ADDED,
@@ -438,7 +438,7 @@ class PrisonerIepLevelReviewServiceTest {
       prisonerIepLevelReviewService.handleSyncPostIepReviewRequest(bookingId, syncPostRequest)
 
       // SNS event is sent
-      verify(snsService, times(1)).sendIepReviewEvent(iepReviewId, syncPostRequest.iepTime)
+      verify(snsService, times(1)).sendIepReviewEvent(iepReviewId, syncPostRequest.iepTime, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
 
       // audit message is sent
       verify(auditService, times(1))

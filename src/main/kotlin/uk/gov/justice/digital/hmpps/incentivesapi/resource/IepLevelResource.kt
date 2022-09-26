@@ -242,7 +242,7 @@ class IepLevelResource(
 
   ): IepDetail {
     val iepDetail = prisonerIepLevelReviewService.addIepReview(bookingId, iepReview)
-    sendEventAndAudit(iepDetail)
+    sendEventAndAudit(iepDetail, IncentivesDomainEventType.IEP_REVIEW_INSERTED, AuditType.IEP_REVIEW_ADDED)
     return iepDetail
   }
 
@@ -282,7 +282,7 @@ class IepLevelResource(
 
   ): IepDetail {
     val iepDetail = prisonerIepLevelReviewService.addIepReview(prisonerNumber, iepReview)
-    sendEventAndAudit(iepDetail)
+    sendEventAndAudit(iepDetail, IncentivesDomainEventType.IEP_REVIEW_INSERTED, AuditType.IEP_REVIEW_ADDED)
     return iepDetail
   }
 
@@ -361,7 +361,7 @@ class IepLevelResource(
     snsService.sendIepReviewEvent(iepDetail.id!!, iepDetail.iepTime)
 
     auditService.sendMessage(
-      AuditType.IEP_REVIEW_ADDED,
+      auditType,
       iepDetail.id.toString(),
       iepDetail
     )

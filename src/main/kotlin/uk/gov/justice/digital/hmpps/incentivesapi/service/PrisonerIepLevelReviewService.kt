@@ -95,7 +95,11 @@ class PrisonerIepLevelReviewService(
 
   suspend fun handleSyncPostIepReviewRequest(bookingId: Long, syncPostRequest: SyncPostRequest): IepDetail {
     val iepDetail = persistPrisonerIepLevel(bookingId, syncPostRequest)
-    sendEventAndAudit(iepDetail)
+    sendEventAndAudit(
+      iepDetail,
+      eventType = IncentivesDomainEventType.IEP_REVIEW_INSERTED,
+      auditType = AuditType.IEP_REVIEW_ADDED,
+    )
     return iepDetail
   }
 
@@ -146,7 +150,11 @@ class PrisonerIepLevelReviewService(
         "incentives-api"
       )
 
-      sendEventAndAudit(prisonerIepLevel.translate())
+      sendEventAndAudit(
+        prisonerIepLevel.translate(),
+        IncentivesDomainEventType.IEP_REVIEW_INSERTED,
+        AuditType.IEP_REVIEW_ADDED,
+      )
     } ?: run {
       log.warn("prisonerNumber null for prisonOffenderEvent: $prisonOffenderEvent ")
     }
@@ -246,12 +254,16 @@ class PrisonerIepLevelReviewService(
     )
   }
 
-  private suspend fun sendEventAndAudit(iepDetail: IepDetail) {
+  private suspend fun sendEventAndAudit(
+    iepDetail: IepDetail,
+    eventType: IncentivesDomainEventType,
+    auditType: AuditType,
+  ) {
     iepDetail.id?.let {
-      snsService.sendIepReviewEvent(iepDetail.id, iepDetail.iepTime)
+      snsService.sendIepReviewEvent(iepDetail.id, iepDetail.iepTime, eventType)
 
       auditService.sendMessage(
-        AuditType.IEP_REVIEW_ADDED,
+        auditType,
         iepDetail.id.toString(),
         iepDetail,
         iepDetail.userId,
