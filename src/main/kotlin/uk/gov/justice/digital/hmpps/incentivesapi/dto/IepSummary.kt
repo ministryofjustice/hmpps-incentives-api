@@ -151,11 +151,11 @@ data class SyncPostRequest(
 @Schema(description = "Patch request to synchronise an IEP Review from NOMIS")
 data class SyncPatchRequest(
   @Schema(description = "Date and time when the review took place", required = false)
-  val iepTime: LocalDateTime,
+  val iepTime: LocalDateTime?,
 
   @Schema(description = "Comment about review", example = "This is a comment", required = false)
-  val comment: String,
+  val comment: String?,
 
   @Schema(description = "Flag to indicate this is the current review for the prisoner", example = "true", required = false)
-  val current: Boolean,
+  val current: Boolean?,
 )

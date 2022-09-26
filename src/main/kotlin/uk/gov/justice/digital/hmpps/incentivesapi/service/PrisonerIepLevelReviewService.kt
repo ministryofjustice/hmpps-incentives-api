@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.CurrentIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPatchRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.daysSinceReview
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
@@ -23,6 +24,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLeve
 import java.time.Clock
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import javax.validation.ValidationException
 
 @Service
 class PrisonerIepLevelReviewService(
@@ -99,6 +101,37 @@ class PrisonerIepLevelReviewService(
       iepDetail,
       eventType = IncentivesDomainEventType.IEP_REVIEW_INSERTED,
       auditType = AuditType.IEP_REVIEW_ADDED,
+    )
+    return iepDetail
+  }
+
+  suspend fun handleSyncPatchIepReviewRequest(bookingId: Long, id: Long, syncPatchRequest: SyncPatchRequest): IepDetail {
+    if (listOf(syncPatchRequest.iepTime, syncPatchRequest.comment, syncPatchRequest.current).all { it == null }) {
+      throw ValidationException("Please provide fields to update")
+    }
+
+    var prisonerIepLevel: PrisonerIepLevel? = prisonerIepLevelRepository.findById(id)
+    if (prisonerIepLevel == null) {
+      log.debug("PrisonerIepLevel with ID $id not found")
+      throw NoDataFoundException(id)
+    }
+    // Check bookingId on found record matches the bookingId provided
+    if (prisonerIepLevel.bookingId != bookingId) {
+      log.warn("Patch of PrisonerIepLevel with ID $id failed because provided bookingID ($bookingId) didn't match bookingId on DB record (${prisonerIepLevel.bookingId})")
+      throw NoDataFoundException(bookingId)
+    }
+
+    prisonerIepLevel = prisonerIepLevel.copy(
+      reviewTime = syncPatchRequest.iepTime ?: prisonerIepLevel.reviewTime,
+      commentText = syncPatchRequest.comment ?: prisonerIepLevel.commentText,
+      current = syncPatchRequest.current ?: prisonerIepLevel.current,
+    )
+
+    val iepDetail = prisonerIepLevelRepository.save(prisonerIepLevel).translate()
+    sendEventAndAudit(
+      iepDetail,
+      eventType = IncentivesDomainEventType.IEP_REVIEW_UPDATED,
+      auditType = AuditType.IEP_REVIEW_UPDATED,
     )
     return iepDetail
   }
