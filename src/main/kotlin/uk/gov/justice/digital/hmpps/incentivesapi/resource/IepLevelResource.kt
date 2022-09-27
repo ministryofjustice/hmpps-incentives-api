@@ -70,7 +70,7 @@ class IepLevelResource(
     ]
   )
   suspend fun getPrisonIepLevels(
-    @Schema(description = "Prison Id", example = "MDI", required = true)
+    @Schema(description = "Prison Id", required = true, example = "MDI")
     @PathVariable @Size(max = 3, min = 3, message = "Prison ID must be 3 characters") prisonId: String
   ): List<IepLevel> =
     iepLevelService.getIepLevelsForPrison(prisonId)
@@ -102,11 +102,11 @@ class IepLevelResource(
     ]
   )
   suspend fun getPrisonerIepLevelHistory(
-    @Schema(description = "Booking Id", example = "2342342", required = true)
+    @Schema(description = "Booking Id", required = true, example = "1234567")
     @PathVariable bookingId: Long,
-    @Schema(description = "Use NOMIS data", example = "true", required = false, defaultValue = "true", hidden = true)
+    @Schema(description = "Use NOMIS data", required = false, defaultValue = "true", hidden = true, example = "true")
     @RequestParam(defaultValue = "true", value = "use-nomis-data", required = false) useNomisData: Boolean = true,
-    @Schema(description = "Toggle to return IEP detail entries in response (or not)", example = "true", required = false, defaultValue = "true")
+    @Schema(description = "Toggle to return IEP detail entries in response (or not)", required = false, defaultValue = "true", example = "true")
     @RequestParam(defaultValue = "true", value = "with-details", required = false) withDetails: Boolean = true,
   ): IepSummary =
     prisonerIepLevelReviewService.getPrisonerIepLevelHistory(bookingId, useNomisData, withDetails)
@@ -137,7 +137,7 @@ class IepLevelResource(
     ]
   )
   suspend fun getReviewById(
-    @Schema(description = "Review ID (internal)", example = "1000", required = true)
+    @Schema(description = "Review ID (internal)", required = true, example = "12345")
     @PathVariable(value = "id", required = true) id: Long
   ): IepDetail =
     prisonerIepLevelReviewService.getReviewById(id)
@@ -168,9 +168,9 @@ class IepLevelResource(
     ]
   )
   suspend fun getCurrentIEPLevelForPrisoner(
-    @Schema(description = "List of booking Ids", example = "[2342342, 212312]", required = true)
+    @Schema(description = "List of booking Ids", required = true, example = "[1234567, 8901234]")
     @RequestBody @Valid @NotEmpty bookingIds: List<Long>,
-    @Schema(description = "Use NOMIS data", example = "true", required = false, defaultValue = "true", hidden = true)
+    @Schema(description = "Use NOMIS data", required = false, defaultValue = "true", hidden = true, example = "true")
     @RequestParam(defaultValue = "true", value = "use-nomis-data", required = false) useNomisData: Boolean = true
   ): Flow<CurrentIepLevel> =
     prisonerIepLevelReviewService.getCurrentIEPLevelForPrisoners(bookingIds, useNomisData)
@@ -202,9 +202,9 @@ class IepLevelResource(
     ]
   )
   suspend fun getPrisonerIepLevelHistory(
-    @Schema(description = "Prisoner Number", example = "A1234AB", required = true)
+    @Schema(description = "Prisoner Number", required = true, example = "A1234BC")
     @PathVariable prisonerNumber: String,
-    @Schema(description = "Use NOMIS data", example = "true", required = false, defaultValue = "true", hidden = true)
+    @Schema(description = "Use NOMIS data", required = false, defaultValue = "true", hidden = true, example = "true")
     @RequestParam(defaultValue = "true", value = "use-nomis-data", required = false) useNomisData: Boolean = true
   ): IepSummary =
     prisonerIepLevelReviewService.getPrisonerIepLevelHistory(prisonerNumber, useNomisData)
@@ -238,11 +238,14 @@ class IepLevelResource(
     ]
   )
   suspend fun addIepReview(
-    @Schema(description = "Booking Id", example = "2342342", required = true)
+    @Schema(description = "Booking Id", required = true, example = "1234567")
     @PathVariable bookingId: Long,
-    @Schema(description = "IEP Review", required = true)
+    @Schema(
+      description = "IEP Review",
+      required = true,
+      implementation = IepReview::class,
+    )
     @RequestBody @Valid iepReview: IepReview,
-
   ): IepDetail {
     val iepDetail = prisonerIepLevelReviewService.addIepReview(bookingId, iepReview)
     sendEventAndAudit(iepDetail, IncentivesDomainEventType.IEP_REVIEW_INSERTED, AuditType.IEP_REVIEW_ADDED)
@@ -278,11 +281,14 @@ class IepLevelResource(
     ]
   )
   suspend fun addIepReview(
-    @Schema(description = "Prisoner Number", example = "A1234AB", required = true)
+    @Schema(description = "Prisoner Number", required = true, example = "A1234BC")
     @PathVariable prisonerNumber: String,
-    @Schema(description = "IEP Review", required = true)
+    @Schema(
+      description = "IEP Review",
+      required = true,
+      implementation = IepReview::class,
+    )
     @RequestBody @Valid iepReview: IepReview,
-
   ): IepDetail {
     val iepDetail = prisonerIepLevelReviewService.addIepReview(prisonerNumber, iepReview)
     sendEventAndAudit(iepDetail, IncentivesDomainEventType.IEP_REVIEW_INSERTED, AuditType.IEP_REVIEW_ADDED)
@@ -318,9 +324,13 @@ class IepLevelResource(
     ]
   )
   suspend fun migrateIepReview(
-    @Schema(description = "Booking Id", example = "2342342", required = true)
+    @Schema(description = "Booking Id", required = true, example = "1234567")
     @PathVariable bookingId: Long,
-    @Schema(description = "IEP Review", required = true)
+    @Schema(
+      description = "IEP Review",
+      required = true,
+      implementation = SyncPostRequest::class,
+    )
     @RequestBody @Valid syncPostRequest: SyncPostRequest,
   ): IepDetail =
     prisonerIepLevelReviewService.persistPrisonerIepLevel(bookingId, syncPostRequest)
@@ -354,9 +364,13 @@ class IepLevelResource(
     ]
   )
   suspend fun syncPostIepReview(
-    @Schema(description = "Booking Id", example = "2342342", required = true)
+    @Schema(description = "Booking Id", required = true, example = "1234567")
     @PathVariable bookingId: Long,
-    @Schema(description = "IEP Review", required = true)
+    @Schema(
+      description = "IEP Review",
+      required = true,
+      implementation = SyncPostRequest::class,
+    )
     @RequestBody @Valid syncPostRequest: SyncPostRequest,
   ): IepDetail = prisonerIepLevelReviewService.handleSyncPostIepReviewRequest(bookingId, syncPostRequest)
 
@@ -389,11 +403,15 @@ class IepLevelResource(
     ]
   )
   suspend fun syncPatchIepReview(
-    @Schema(description = "Booking Id", example = "2342342", required = true)
+    @Schema(description = "Booking Id", required = true, example = "1234567")
     @PathVariable bookingId: Long,
-    @Schema(description = "ID", example = "12345", required = true)
+    @Schema(description = "ID", required = true, example = "12345")
     @PathVariable id: Long,
-    @Schema(description = "IEP Review changes", required = true)
+    @Schema(
+      description = "IEP Review changes",
+      required = true,
+      implementation = SyncPatchRequest::class,
+    )
     @RequestBody @Valid syncPatchRequest: SyncPatchRequest,
   ): IepDetail = prisonerIepLevelReviewService.handleSyncPatchIepReviewRequest(bookingId, id, syncPatchRequest)
 
