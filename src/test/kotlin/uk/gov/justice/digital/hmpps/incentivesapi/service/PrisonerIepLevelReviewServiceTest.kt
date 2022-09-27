@@ -17,8 +17,8 @@ import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.incentivesapi.config.AuthenticationFacade
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
@@ -388,7 +388,7 @@ class PrisonerIepLevelReviewServiceTest {
     )
 
     private val iepDetail = IepDetail(
-      id=iepReviewId,
+      id = iepReviewId,
       iepLevel = iepLevelDescription,
       comments = syncPostRequest.comment,
       prisonerNumber = offenderNo,
@@ -411,12 +411,12 @@ class PrisonerIepLevelReviewServiceTest {
 
       // Mock IEP level query
       whenever(iepLevelRepository.findById("ENH")).thenReturn(
-        IepLevel(iepCode = iepLevelCode, iepDescription = iepLevelDescription, sequence=3, active=true),
+        IepLevel(iepCode = iepLevelCode, iepDescription = iepLevelDescription, sequence = 3, active = true),
       )
 
       // Mock save() of PrisonerIepLevel record
       whenever(prisonerIepLevelRepository.save(iepReview))
-        .thenReturn(iepReview.copy(id=iepReviewId))
+        .thenReturn(iepReview.copy(id = iepReviewId))
     }
 
     @Test
