@@ -19,9 +19,9 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.CurrentIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepMigration
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.service.AuditService
 import uk.gov.justice.digital.hmpps.incentivesapi.service.AuditType
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IepLevel
@@ -318,9 +318,44 @@ class IepLevelResource(
     @Schema(description = "Booking Id", example = "2342342", required = true)
     @PathVariable bookingId: Long,
     @Schema(description = "IEP Review", required = true)
-    @RequestBody @Valid iepMigration: IepMigration,
+    @RequestBody @Valid syncPostRequest: SyncPostRequest,
   ): IepDetail =
-    prisonerIepLevelReviewService.addIepMigration(bookingId, iepMigration)
+    prisonerIepLevelReviewService.persistPrisonerIepLevel(bookingId, syncPostRequest)
+
+  @PostMapping("/sync/booking/{bookingId}")
+  @PreAuthorize("hasRole('MAINTAIN_IEP') and hasAuthority('SCOPE_write')")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Synchronise (NOMIS -> Incentives) an IEP Review for this specific prisoner by booking Id",
+    description = "Booking ID is an internal ID for a prisoner in NOMIS, requires MAINTAIN_IEP role and write scope",
+    responses = [
+      ApiResponse(
+        responseCode = "201",
+        description = "IEP Review Synchronised"
+      ),
+      ApiResponse(
+        responseCode = "400",
+        description = "Incorrect data specified to add new IEP review",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Incorrect permissions to use this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      )
+    ]
+  )
+  suspend fun syncPostIepReview(
+    @Schema(description = "Booking Id", example = "2342342", required = true)
+    @PathVariable bookingId: Long,
+    @Schema(description = "IEP Review", required = true)
+    @RequestBody @Valid syncPostRequest: SyncPostRequest,
+  ): IepDetail = prisonerIepLevelReviewService.handleSyncPostIepReviewRequest(bookingId, syncPostRequest)
 
   private suspend fun sendEventAndAudit(iepDetail: IepDetail) {
     snsService.sendIepReviewEvent(iepDetail.id!!, iepDetail.iepTime)

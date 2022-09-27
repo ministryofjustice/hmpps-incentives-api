@@ -12,9 +12,9 @@ import uk.gov.justice.digital.hmpps.incentivesapi.config.AuthenticationFacade
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.CurrentIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepMigration
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.daysSinceReview
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
@@ -75,22 +75,28 @@ class PrisonerIepLevelReviewService(
   }
 
   @Transactional
-  suspend fun addIepMigration(bookingId: Long, iepMigration: IepMigration): IepDetail {
+  suspend fun persistPrisonerIepLevel(bookingId: Long, syncPostRequest: SyncPostRequest): IepDetail {
     val prisonerInfo = prisonApiService.getPrisonerInfo(bookingId)
     return prisonerIepLevelRepository.save(
       PrisonerIepLevel(
-        iepCode = iepMigration.iepLevel,
-        commentText = iepMigration.comment,
+        iepCode = syncPostRequest.iepLevel,
+        commentText = syncPostRequest.comment,
         bookingId = prisonerInfo.bookingId,
-        prisonId = iepMigration.prisonId,
-        locationId = iepMigration.locationId,
-        current = iepMigration.current,
-        reviewedBy = iepMigration.userId,
-        reviewTime = iepMigration.iepTime,
-        reviewType = iepMigration.reviewType,
+        prisonId = syncPostRequest.prisonId,
+        locationId = syncPostRequest.locationId,
+        current = syncPostRequest.current,
+        reviewedBy = syncPostRequest.userId,
+        reviewTime = syncPostRequest.iepTime,
+        reviewType = syncPostRequest.reviewType,
         prisonerNumber = prisonerInfo.offenderNo
       )
     ).translate()
+  }
+
+  suspend fun handleSyncPostIepReviewRequest(bookingId: Long, syncPostRequest: SyncPostRequest): IepDetail {
+    val iepDetail = persistPrisonerIepLevel(bookingId, syncPostRequest)
+    sendEventAndAudit(iepDetail)
+    return iepDetail
   }
 
   fun getCurrentIEPLevelForPrisoners(bookingIds: List<Long>, useNomisData: Boolean): Flow<CurrentIepLevel> {
