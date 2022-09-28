@@ -164,7 +164,7 @@ class PrisonerIepLevelReviewServiceTest {
         .sendMessage(
           AuditType.IEP_REVIEW_ADDED,
           "0",
-          iepDetailFromIepLevel(expectedPrisonerIepLevel, "Enhanced"),
+          iepDetailFromIepLevel(expectedPrisonerIepLevel, "Enhanced", "ENH"),
           expectedPrisonerIepLevel.reviewedBy,
         )
     }
@@ -178,9 +178,9 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonApiService.getLocationById(prisonerAtLocation.assignedLivingUnitId, true)).thenReturn(location)
       whenever(iepLevelService.getIepLevelsForPrison(prisonerAtLocation.agencyId)).thenReturn(basicStandardEnhanced)
       val iepDetails = listOf(
-        iepDetail(prisonerAtLocation.agencyId, "BAS", LocalDateTime.now()),
-        iepDetail("BXI", "STD", LocalDateTime.now().minusDays(1)),
-        iepDetail("LEI", "BAS", LocalDateTime.now().minusDays(2)),
+        iepDetail(prisonerAtLocation.agencyId, "Basic", "BAS", LocalDateTime.now()),
+        iepDetail("BXI", "Standard", "STD", LocalDateTime.now().minusDays(1)),
+        iepDetail("LEI", "Basic", "BAS", LocalDateTime.now().minusDays(2)),
       )
       val iepSummary = iepSummary(iepDetails = iepDetails)
       whenever(prisonApiService.getIEPSummaryForPrisoner(prisonerAtLocation.bookingId, withDetails = true, useClientCredentials = true)).thenReturn(iepSummary)
@@ -208,7 +208,7 @@ class PrisonerIepLevelReviewServiceTest {
         .sendMessage(
           AuditType.IEP_REVIEW_ADDED,
           "0",
-          iepDetailFromIepLevel(expectedPrisonerIepLevel, "Standard"),
+          iepDetailFromIepLevel(expectedPrisonerIepLevel, "Standard", "STD"),
           expectedPrisonerIepLevel.reviewedBy,
         )
     }
@@ -222,9 +222,9 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonApiService.getLocationById(prisonerAtLocation.assignedLivingUnitId, true)).thenReturn(location)
       whenever(iepLevelService.getIepLevelsForPrison(prisonerAtLocation.agencyId)).thenReturn(basicStandardEnhanced)
       val iepDetails = listOf(
-        iepDetail(prisonerAtLocation.agencyId, "STD", LocalDateTime.now()),
-        iepDetail("BXI", "ENH2", LocalDateTime.now().minusDays(1)),
-        iepDetail("LEI", "BAS", LocalDateTime.now().minusDays(2)),
+        iepDetail(prisonerAtLocation.agencyId, "Standard", "STD", LocalDateTime.now()),
+        iepDetail("BXI", "Enhanced 2", "ENH2", LocalDateTime.now().minusDays(1)),
+        iepDetail("LEI", "Basic", "BAS", LocalDateTime.now().minusDays(2)),
       )
       val iepSummary = iepSummary(iepDetails = iepDetails)
       whenever(prisonApiService.getIEPSummaryForPrisoner(prisonerAtLocation.bookingId, withDetails = true, useClientCredentials = true)).thenReturn(iepSummary)
@@ -252,7 +252,7 @@ class PrisonerIepLevelReviewServiceTest {
         .sendMessage(
           AuditType.IEP_REVIEW_ADDED,
           "0",
-          iepDetailFromIepLevel(expectedPrisonerIepLevel, "Enhanced"),
+          iepDetailFromIepLevel(expectedPrisonerIepLevel, "Enhanced", "ENH"),
           expectedPrisonerIepLevel.reviewedBy,
         )
     }
@@ -390,6 +390,7 @@ class PrisonerIepLevelReviewServiceTest {
     private val iepDetail = IepDetail(
       id = iepReviewId,
       iepLevel = iepLevelDescription,
+      iepCode = iepLevelCode,
       comments = syncPostRequest.comment,
       prisonerNumber = offenderNo,
       bookingId = bookingId,
@@ -466,30 +467,33 @@ class PrisonerIepLevelReviewServiceTest {
         bookingId = 1L,
         agencyId = "MDI",
         iepLevel = "Enhanced",
+        iepCode = "ENH",
         iepDate = iepTime.toLocalDate(),
         iepTime = iepTime,
         userId = "TEST_USER",
-        auditModuleName = "PRISON_API"
+        auditModuleName = "PRISON_API",
       ),
       IepDetail(
         bookingId = 1L,
         agencyId = "LEI",
         iepLevel = "Standard",
+        iepCode = "STD",
         iepDate = iepTime.minusDays(100).toLocalDate(),
         iepTime = iepTime.minusDays(100),
         userId = "TEST_USER",
-        auditModuleName = "PRISON_API"
+        auditModuleName = "PRISON_API",
       ),
     )
   )
-  private fun iepDetail(agencyId: String, iepLevel: String, iepTime: LocalDateTime) = IepDetail(
+  private fun iepDetail(agencyId: String, iepLevel: String, iepCode: String, iepTime: LocalDateTime) = IepDetail(
     bookingId = 1L,
     agencyId = agencyId,
     iepLevel = iepLevel,
+    iepCode = iepCode,
     iepDate = iepTime.toLocalDate(),
     iepTime = iepTime,
     userId = "TEST_USER",
-    auditModuleName = "PRISON_API"
+    auditModuleName = "PRISON_API",
   )
 
   private val previousLevel = PrisonerIepLevel(
@@ -552,10 +556,11 @@ class PrisonerIepLevelReviewServiceTest {
     current = true,
   )
 
-  private fun iepDetailFromIepLevel(prisonerIepLevel: PrisonerIepLevel, iepDescription: String) =
+  private fun iepDetailFromIepLevel(prisonerIepLevel: PrisonerIepLevel, iepDescription: String, iepCode: String) =
     IepDetail(
       id = 0,
       iepLevel = iepDescription,
+      iepCode = iepCode,
       comments = prisonerIepLevel.commentText,
       bookingId = prisonerIepLevel.bookingId,
       agencyId = prisonerIepLevel.prisonId,
