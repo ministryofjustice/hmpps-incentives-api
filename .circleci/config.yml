@@ -73,23 +73,23 @@ jobs:
           paths:
             - openapi.json
 
-    lint-api-docs:
-      executor:
-        name: hmpps/node
-        tag: << pipeline.parameters.node-version >>
-      steps:
-        - checkout
-        - attach_workspace:
-            at: ~/docs
-        # Create a folder for results to live in
-        - run: "[ -d lint-results ] || mkdir lint-results"
-        - run:
-            name: Run Spectral Lint
-            command: npx @stoplight/spectral-cli lint ~/docs/openapi.json
-              -o lint-results/junit.xml
-              -f junit
-        - store_test_results:
-            path: lint-results
+  lint-api-docs:
+    executor:
+      name: hmpps/node
+      tag: << pipeline.parameters.node-version >>
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/docs
+      # Create a folder for results to live in
+      - run: "[ -d lint-results ] || mkdir lint-results"
+      - run:
+          name: Run Spectral Lint
+          command: npx @stoplight/spectral-cli lint ~/docs/openapi.json
+            -o lint-results/junit.xml
+            -f junit
+      - store_test_results:
+          path: lint-results
 
 workflows:
   version: 2
