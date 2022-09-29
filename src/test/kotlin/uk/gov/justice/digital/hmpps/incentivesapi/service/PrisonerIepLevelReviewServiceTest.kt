@@ -368,8 +368,6 @@ class PrisonerIepLevelReviewServiceTest {
   @Nested
   inner class HandleSyncPatchIepReviewRequest {
 
-    // TODO: Tests to update
-
     private val id = 42L
     private val bookingId = 123456L
     private val offenderNo = "A1234AA"
