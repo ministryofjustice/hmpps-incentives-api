@@ -416,7 +416,7 @@ class PrisonerIepLevelReviewServiceTest {
     fun setUp(): Unit = runBlocking {
       // Mock IEP level query
       whenever(iepLevelRepository.findById("ENH")).thenReturn(
-        IepLevel(iepCode = iepLevelCode, iepDescription = iepLevelDescription, sequence=3, active=true),
+        IepLevel(iepCode = iepLevelCode, iepDescription = iepLevelDescription, sequence = 3, active = true),
       )
 
       // Mock find query
