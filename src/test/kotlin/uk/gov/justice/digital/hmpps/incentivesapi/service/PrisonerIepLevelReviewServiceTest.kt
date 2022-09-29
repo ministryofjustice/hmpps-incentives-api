@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.config.AuthenticationFacade
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPatchRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
@@ -361,6 +362,100 @@ class PrisonerIepLevelReviewServiceTest {
           prisonerNumber = prisonerAtLocation().offenderNo
         )
       )
+    }
+  }
+
+  @Nested
+  inner class HandleSyncPatchIepReviewRequest {
+
+    // TODO: Tests to update
+
+    private val id = 42L
+    private val bookingId = 123456L
+    private val offenderNo = "A1234AA"
+    private val iepLevelCode = "ENH"
+    private val iepLevelDescription = "Enhanced"
+    private val reviewTime = LocalDateTime.now().minusDays(10)
+    private val syncPatchRequest: SyncPatchRequest = SyncPatchRequest(
+      comment = "UPDATED",
+      iepTime = null,
+      current = null,
+    )
+
+    private val iepReview = PrisonerIepLevel(
+      id = id,
+      iepCode = "ENH",
+      commentText = "Existing comment, before patch",
+      bookingId = bookingId,
+      prisonId = "MDI",
+      locationId = "1-2-003",
+      current = true,
+      reviewedBy = "USER_1_GEN",
+      reviewTime = reviewTime,
+      reviewType = ReviewType.REVIEW,
+      prisonerNumber = offenderNo,
+    )
+    private val expectedIepReview = iepReview.copy(commentText = syncPatchRequest.comment)
+
+    private val iepDetail = IepDetail(
+      id = id,
+      iepLevel = iepLevelDescription,
+      comments = syncPatchRequest.comment,
+      prisonerNumber = offenderNo,
+      bookingId = bookingId,
+      iepDate = reviewTime.toLocalDate(),
+      iepTime = reviewTime,
+      agencyId = "MDI",
+      locationId = "1-2-003",
+      userId = "USER_1_GEN",
+      reviewType = ReviewType.REVIEW,
+      auditModuleName = "Incentives-API",
+    )
+
+    @BeforeEach
+    fun setUp(): Unit = runBlocking {
+      // Mock IEP level query
+      whenever(iepLevelRepository.findById("ENH")).thenReturn(
+        IepLevel(iepCode = iepLevelCode, iepDescription = iepLevelDescription, sequence=3, active=true),
+      )
+
+      // Mock find query
+      whenever(prisonerIepLevelRepository.findById(id)).thenReturn(iepReview)
+
+      // Mock PrisonerIepLevel being updated
+      whenever(prisonerIepLevelRepository.save(expectedIepReview))
+        .thenReturn(expectedIepReview)
+    }
+
+    @Test
+    fun `updates the IEP review`(): Unit = runBlocking {
+      // When
+      val result = prisonerIepLevelReviewService.handleSyncPatchIepReviewRequest(bookingId, iepReview.id, syncPatchRequest)
+
+      // Then check it's saved
+      verify(prisonerIepLevelRepository, times(1))
+        .save(expectedIepReview)
+
+      // Then check it's returned
+      assertThat(result).isEqualTo(iepDetail)
+    }
+
+    @Test
+    fun `sends IepReview event and audit message`(): Unit = runBlocking {
+      // When sync POST request is handled
+      prisonerIepLevelReviewService.handleSyncPatchIepReviewRequest(bookingId, iepReview.id, syncPatchRequest)
+
+      // SNS event is sent
+      verify(snsService, times(1)).sendIepReviewEvent(id, iepReview.reviewTime, IncentivesDomainEventType.IEP_REVIEW_UPDATED)
+
+      // audit message is sent
+      verify(auditService, times(1))
+        .sendMessage(
+          AuditType.IEP_REVIEW_UPDATED,
+          "$id",
+          iepDetail,
+          iepReview.reviewedBy,
+        )
     }
   }
 
