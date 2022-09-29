@@ -43,7 +43,7 @@ dependencies {
   implementation("io.opentelemetry:opentelemetry-api:1.18.0")
 
   implementation("org.apache.commons:commons-lang3")
-  implementation("org.apache.commons:commons-text:1.9")
+  implementation("org.apache.commons:commons-text:1.10.0")
   implementation("commons-codec:commons-codec")
   implementation("com.google.code.gson:gson")
 
