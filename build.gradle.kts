@@ -1,5 +1,6 @@
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.5.1"
+  id("org.springdoc.openapi-gradle-plugin") version "1.4.0"
   // enable when gradle 7.5 is released which includes JaCoCo 0.8.8 that supports Java 18
   // id("jacoco")
   id("org.sonarqube") version "3.4.0.2513"
@@ -62,6 +63,16 @@ dependencies {
   testImplementation("org.testcontainers:postgresql:1.17.3")
   testImplementation("io.projectreactor:reactor-test")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
+
+  if (project.hasProperty("docs")) {
+    implementation("com.h2database:h2")
+  }
+}
+
+openApi {
+  outputDir.set(file("$buildDir/docs"))
+  outputFileName.set("openapi.json")
+  customBootRun.args.set(listOf("--spring.profiles.active=dev,localstack,docs"))
 }
 
 java {

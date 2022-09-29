@@ -27,3 +27,6 @@ spring:
     properties:
       sslMode: DISABLE
       sslRootCert:
+
+  feature-toggles:
+    afine: true
