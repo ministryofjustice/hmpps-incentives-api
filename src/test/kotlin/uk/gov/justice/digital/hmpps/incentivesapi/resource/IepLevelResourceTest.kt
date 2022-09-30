@@ -21,6 +21,8 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
   @Autowired
   private lateinit var repository: PrisonerIepLevelRepository
 
+  private val jsonDateTimeFormat = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss.SSSSSS")
+
   @BeforeEach
   fun setUp(): Unit = runBlocking {
     prisonApiMockServer.resetAll()
@@ -502,6 +504,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
             "bookingId":$bookingId,
             "prisonerNumber": $prisonerNumber,
             "iepDate":"${requestBody.iepTime.toLocalDate()}",
+            "iepTime":"${requestBody.iepTime.format(jsonDateTimeFormat)}",
             "agencyId":"${requestBody.prisonId}",
             "locationId":"${requestBody.locationId}",
             "iepLevel":"Standard",
@@ -552,6 +555,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
            "id": ${existingPrisonerIepLevel!!.id},
            "bookingId":$bookingId,
            "iepDate":"${existingPrisonerIepLevel!!.reviewTime.toLocalDate()}",
+           "iepTime":"${existingPrisonerIepLevel!!.reviewTime.format(jsonDateTimeFormat)}",
            "agencyId":"${existingPrisonerIepLevel!!.prisonId}",
            "locationId":"${existingPrisonerIepLevel!!.locationId}",
            "iepLevel":"Standard",
@@ -597,6 +601,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
            "id": ${existingPrisonerIepLevel!!.id},
            "bookingId":$bookingId,
            "iepDate":"${updatedIepTime.toLocalDate()}",
+           "iepTime":"${updatedIepTime.format(jsonDateTimeFormat)}",
            "agencyId":"${existingPrisonerIepLevel!!.prisonId}",
            "locationId":"${existingPrisonerIepLevel!!.locationId}",
            "iepLevel":"Standard",
