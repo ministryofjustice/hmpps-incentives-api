@@ -398,6 +398,7 @@ class PrisonerIepLevelReviewServiceTest {
     private val iepDetail = IepDetail(
       id = id,
       iepLevel = iepLevelDescription,
+      iepCode = iepLevelCode,
       comments = syncPatchRequest.comment,
       prisonerNumber = offenderNo,
       bookingId = bookingId,
