@@ -202,7 +202,7 @@ class PrisonerIepLevelReviewService(
         val iepHistory = getPrisonerIepLevelHistory(prisonerInfo.bookingId, useNomisData = true, withDetails = true, useClientCredentials = true).iepDetails
         val iepLevelBeforeTransfer = iepHistory.sortedBy(IepDetail::iepTime).lastOrNull { it.agencyId != prisonerInfo.agencyId }
           ?: throw NoDataFoundException(prisonerInfo.bookingId)
-        iepLevelsForPrison.find { it.iepLevel == iepLevelBeforeTransfer.iepLevel }
+        iepLevelsForPrison.find { it.iepDescription == iepLevelBeforeTransfer.iepLevel }
           // ...or the highest level in the prison
           ?: iepLevelsForPrison.last()
       }
@@ -314,12 +314,13 @@ class PrisonerIepLevelReviewService(
       iepTime = reviewTime,
       agencyId = prisonId,
       iepLevel = iepLevelRepository.findById(iepCode)?.iepDescription ?: "Unmapped",
+      iepCode = iepCode,
       reviewType = reviewType,
       comments = commentText,
       userId = reviewedBy,
       locationId = locationId,
       prisonerNumber = prisonerNumber,
-      auditModuleName = "Incentives-API"
+      auditModuleName = "Incentives-API",
     )
 }
 

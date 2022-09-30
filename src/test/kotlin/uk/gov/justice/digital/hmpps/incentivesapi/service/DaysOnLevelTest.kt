@@ -25,19 +25,21 @@ class DaysOnLevelTest {
             bookingId = 1L,
             agencyId = "MDI",
             iepLevel = "Enhanced",
+            iepCode = "ENH",
             iepDate = iepTime.toLocalDate(),
             iepTime = iepTime,
             userId = "TEST_USER",
-            auditModuleName = "PRISON_API"
+            auditModuleName = "PRISON_API",
           ),
           IepDetail(
             bookingId = 1L,
             agencyId = "LEI",
             iepLevel = "Standard",
+            iepCode = "STD",
             iepDate = iepTime.minusDays(100).toLocalDate(),
             iepTime = iepTime.minusDays(100),
             userId = "TEST_USER",
-            auditModuleName = "PRISON_API"
+            auditModuleName = "PRISON_API",
           ),
         )
       )
@@ -60,11 +62,12 @@ class DaysOnLevelTest {
             bookingId = 1L,
             agencyId = "MDI",
             iepLevel = "Basic",
+            iepCode = "BAS",
             iepDate = iepTime.toLocalDate(),
             iepTime = iepTime,
             comments = "Default IEP",
             userId = "ADMISSION",
-            auditModuleName = "OIDADMIS"
+            auditModuleName = "OIDADMIS",
           ),
         )
       )
@@ -87,21 +90,23 @@ class DaysOnLevelTest {
             bookingId = 1L,
             agencyId = "MDI",
             iepLevel = "Standard",
+            iepCode = "STD",
             iepDate = iepTime.toLocalDate().plusDays(3),
             iepTime = iepTime.plusDays(3),
             comments = "First Review",
             userId = "TESTUSER",
-            auditModuleName = "PRISON_API"
+            auditModuleName = "PRISON_API",
           ),
           IepDetail(
             bookingId = 1L,
             agencyId = "MDI",
             iepLevel = "Basic",
+            iepCode = "BAS",
             iepDate = iepTime.toLocalDate(),
             iepTime = iepTime,
             comments = "corrected back to Enhanced",
             userId = "ADMISSION",
-            auditModuleName = "OIDADMIS"
+            auditModuleName = "OIDADMIS",
           ),
         )
       )
@@ -124,31 +129,34 @@ class DaysOnLevelTest {
             bookingId = 1L,
             agencyId = "MDI",
             iepLevel = "Basic",
+            iepCode = "BAS",
             iepDate = iepTime.toLocalDate().plusDays(9),
             iepTime = iepTime.plusDays(9),
             comments = "New Review",
             userId = "TESTUSER",
-            auditModuleName = "PRISON_API"
+            auditModuleName = "PRISON_API",
           ),
           IepDetail(
             bookingId = 1L,
             agencyId = "MDI",
             iepLevel = "Basic",
+            iepCode = "BAS",
             iepDate = iepTime.toLocalDate().plusDays(6),
             iepTime = iepTime.plusDays(6),
             comments = "Admitted into MDI",
             userId = "ADMISSION",
-            auditModuleName = "OIDADMIS"
+            auditModuleName = "OIDADMIS",
           ),
           IepDetail(
             bookingId = 1L,
             agencyId = "LEI",
             iepLevel = "Basic",
+            iepCode = "BAS",
             iepDate = iepTime.toLocalDate(),
             iepTime = iepTime,
             comments = "Initial review",
             userId = "TESTUSER",
-            auditModuleName = "PRISON_API"
+            auditModuleName = "PRISON_API",
           ),
         )
       )
@@ -172,19 +180,21 @@ class DaysOnLevelTest {
             bookingId = 1L,
             agencyId = "MDI",
             iepLevel = "Enhanced",
+            iepCode = "ENH",
             iepDate = iepTime.toLocalDate(),
             iepTime = iepTime,
             userId = "TEST_USER",
-            auditModuleName = "PRISON_API"
+            auditModuleName = "PRISON_API",
           ),
           IepDetail(
             bookingId = 1L,
             agencyId = "MDI",
             iepLevel = "Standard",
+            iepCode = "STD",
             iepDate = previousIep.toLocalDate(),
             iepTime = previousIep,
             userId = "TEST_USER",
-            auditModuleName = "PRISON_API"
+            auditModuleName = "PRISON_API",
           ),
         )
       )
@@ -210,28 +220,31 @@ class DaysOnLevelTest {
             bookingId = 1L,
             agencyId = "MDI",
             iepLevel = "Enhanced",
+            iepCode = "ENH",
             iepDate = latestIepTime.toLocalDate(),
             iepTime = latestIepTime,
             userId = "TEST_USER",
-            auditModuleName = "PRISON_API"
+            auditModuleName = "PRISON_API",
           ),
           IepDetail(
             bookingId = 1L,
             agencyId = "MDI",
             iepLevel = "Enhanced",
+            iepCode = "ENH",
             iepDate = previousIepTime.toLocalDate(),
             iepTime = previousIepTime,
             userId = "TEST_USER",
-            auditModuleName = "PRISON_API"
+            auditModuleName = "PRISON_API",
           ),
           IepDetail(
             bookingId = 1L,
             agencyId = "MDI",
             iepLevel = "Entry",
+            iepCode = "ENT~",
             iepDate = firstIepTime.toLocalDate(),
             iepTime = firstIepTime,
             userId = "TEST_USER",
-            auditModuleName = "PRISON_API"
+            auditModuleName = "PRISON_API",
           ),
         )
       )
