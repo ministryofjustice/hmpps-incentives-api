@@ -26,6 +26,12 @@
       "matchPackagePrefixes": [
         "org.testcontainers"
       ]
+    },
+    {
+      "groupName": "kotlin plugins",
+      "matchPackagePrefixes": [
+        "org.jetbrains.kotlin.plugin"
+      ]
     }
   ]
 }
