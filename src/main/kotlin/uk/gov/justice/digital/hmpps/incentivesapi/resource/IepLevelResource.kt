@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.resource
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -102,7 +103,7 @@ class IepLevelResource(
     ]
   )
   suspend fun getPrisonerIepLevelHistory(
-    @Schema(description = "Booking Id", example = "3000002", required = true, type = "number", pattern = "^[0-9]{1,20}$")
+    @Schema(description = "Booking Id", example = "3000002", required = true, type = "integer", format = "int64", pattern = "^[0-9]{1,20}$")
     @PathVariable bookingId: Long,
     @Schema(description = "Use NOMIS data", example = "true", required = false, defaultValue = "true", hidden = true, type = "boolean", pattern = "^[true|false]$")
     @RequestParam(defaultValue = "true", value = "use-nomis-data", required = false) useNomisData: Boolean = true,
@@ -137,7 +138,7 @@ class IepLevelResource(
     ]
   )
   suspend fun getReviewById(
-    @Schema(description = "Review ID (internal)", example = "1000", required = true, type = "number", pattern = "^[0-9]{1,20}$")
+    @Schema(description = "Review ID (internal)", example = "1000", required = true, type = "integer", format = "int64", pattern = "^[0-9]{1,20}$")
     @PathVariable(value = "id", required = true) id: Long
   ): IepDetail =
     prisonerIepLevelReviewService.getReviewById(id)
@@ -168,7 +169,7 @@ class IepLevelResource(
     ]
   )
   suspend fun getCurrentIEPLevelForPrisoner(
-    @Schema(description = "List of booking Ids", required = true, type = "array", additionalProperties = Schema.AdditionalPropertiesValue.FALSE)
+    @ArraySchema(schema = Schema(description = "List of booking Ids", required = true, type = "array"), arraySchema = Schema(type = "integer", format = "int64", pattern = "^[0-9]{1,20}$", additionalProperties = Schema.AdditionalPropertiesValue.FALSE))
     @RequestBody @Valid @NotEmpty bookingIds: List<Long>,
     @Schema(description = "Use NOMIS data", required = false, defaultValue = "true", hidden = true, example = "true")
     @RequestParam(defaultValue = "true", value = "use-nomis-data", required = false) useNomisData: Boolean = true
@@ -238,7 +239,7 @@ class IepLevelResource(
     ]
   )
   suspend fun addIepReview(
-    @Schema(description = "Booking Id", example = "3000002", required = true, type = "number", pattern = "^[0-9]{1,20}$")
+    @Schema(description = "Booking Id", example = "3000002", required = true, type = "integer", format = "int64", pattern = "^[0-9]{1,20}$")
     @PathVariable bookingId: Long,
     @Schema(
       description = "IEP Review",
@@ -324,7 +325,7 @@ class IepLevelResource(
     ]
   )
   suspend fun migrateIepReview(
-    @Schema(description = "Booking Id", example = "3000002", required = true, type = "number", pattern = "^[0-9]{1,20}$")
+    @Schema(description = "Booking Id", example = "3000002", required = true, type = "integer", format = "int64", pattern = "^[0-9]{1,20}$")
     @PathVariable bookingId: Long,
     @Schema(
       description = "IEP Review",
@@ -364,7 +365,7 @@ class IepLevelResource(
     ]
   )
   suspend fun syncPostIepReview(
-    @Schema(description = "Booking Id", example = "3000002", required = true, type = "number", pattern = "^[0-9]{1,20}$")
+    @Schema(description = "Booking Id", example = "3000002", required = true, type = "integer", format = "int64", pattern = "^[0-9]{1,20}$")
     @PathVariable bookingId: Long,
     @Schema(
       description = "IEP Review",
@@ -403,9 +404,9 @@ class IepLevelResource(
     ]
   )
   suspend fun syncPatchIepReview(
-    @Schema(description = "Booking Id", required = true, example = "1234567", type = "number", pattern = "^[0-9]{1,20}$")
+    @Schema(description = "Booking Id", required = true, example = "1234567", type = "integer", format = "int64", pattern = "^[0-9]{1,20}$")
     @PathVariable bookingId: Long,
-    @Schema(description = "ID", required = true, example = "12345",  type = "number", pattern = "^[0-9]{1,20}$")
+    @Schema(description = "ID", required = true, example = "12345", type = "integer", format = "int64", pattern = "^[0-9]{1,20}$")
     @PathVariable id: Long,
     @Schema(
       description = "IEP Review changes",
