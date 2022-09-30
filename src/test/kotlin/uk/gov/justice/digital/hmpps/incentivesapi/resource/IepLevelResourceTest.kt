@@ -428,7 +428,6 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
             "bookingId":$bookingId,
             "prisonerNumber": $prisonerNumber,
             "iepDate":"${requestBody.iepTime.toLocalDate()}",
-            "iepTime":"${requestBody.iepTime}",
             "agencyId":"${requestBody.prisonId}",
             "locationId":"${requestBody.locationId}",
             "iepLevel":"Standard",
