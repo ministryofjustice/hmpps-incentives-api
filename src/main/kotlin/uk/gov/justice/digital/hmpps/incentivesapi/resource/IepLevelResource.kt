@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -21,11 +22,13 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.CurrentIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPatchRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.service.AuditService
 import uk.gov.justice.digital.hmpps.incentivesapi.service.AuditType
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IepLevelService
+import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentivesDomainEventType
 import uk.gov.justice.digital.hmpps.incentivesapi.service.PrisonerIepLevelReviewService
 import uk.gov.justice.digital.hmpps.incentivesapi.service.SnsService
 import javax.validation.Valid
@@ -67,7 +70,7 @@ class IepLevelResource(
     ]
   )
   suspend fun getPrisonIepLevels(
-    @Schema(description = "Prison Id", example = "MDI", required = true)
+    @Schema(description = "Prison Id", required = true, example = "MDI")
     @PathVariable @Size(max = 3, min = 3, message = "Prison ID must be 3 characters") prisonId: String
   ): List<IepLevel> =
     iepLevelService.getIepLevelsForPrison(prisonId)
@@ -99,11 +102,11 @@ class IepLevelResource(
     ]
   )
   suspend fun getPrisonerIepLevelHistory(
-    @Schema(description = "Booking Id", example = "2342342", required = true)
+    @Schema(description = "Booking Id", required = true, example = "1234567")
     @PathVariable bookingId: Long,
-    @Schema(description = "Use NOMIS data", example = "true", required = false, defaultValue = "true", hidden = true)
+    @Schema(description = "Use NOMIS data", required = false, defaultValue = "true", hidden = true, example = "true")
     @RequestParam(defaultValue = "true", value = "use-nomis-data", required = false) useNomisData: Boolean = true,
-    @Schema(description = "Toggle to return IEP detail entries in response (or not)", example = "true", required = false, defaultValue = "true")
+    @Schema(description = "Toggle to return IEP detail entries in response (or not)", required = false, defaultValue = "true", example = "true")
     @RequestParam(defaultValue = "true", value = "with-details", required = false) withDetails: Boolean = true,
   ): IepSummary =
     prisonerIepLevelReviewService.getPrisonerIepLevelHistory(bookingId, useNomisData, withDetails)
@@ -134,7 +137,7 @@ class IepLevelResource(
     ]
   )
   suspend fun getReviewById(
-    @Schema(description = "Review ID (internal)", example = "1000", required = true)
+    @Schema(description = "Review ID (internal)", required = true, example = "12345")
     @PathVariable(value = "id", required = true) id: Long
   ): IepDetail =
     prisonerIepLevelReviewService.getReviewById(id)
@@ -165,9 +168,9 @@ class IepLevelResource(
     ]
   )
   suspend fun getCurrentIEPLevelForPrisoner(
-    @Schema(description = "List of booking Ids", example = "[2342342, 212312]", required = true)
+    @Schema(description = "List of booking Ids", required = true, example = "[1234567, 8901234]")
     @RequestBody @Valid @NotEmpty bookingIds: List<Long>,
-    @Schema(description = "Use NOMIS data", example = "true", required = false, defaultValue = "true", hidden = true)
+    @Schema(description = "Use NOMIS data", required = false, defaultValue = "true", hidden = true, example = "true")
     @RequestParam(defaultValue = "true", value = "use-nomis-data", required = false) useNomisData: Boolean = true
   ): Flow<CurrentIepLevel> =
     prisonerIepLevelReviewService.getCurrentIEPLevelForPrisoners(bookingIds, useNomisData)
@@ -199,9 +202,9 @@ class IepLevelResource(
     ]
   )
   suspend fun getPrisonerIepLevelHistory(
-    @Schema(description = "Prisoner Number", example = "A1234AB", required = true)
+    @Schema(description = "Prisoner Number", required = true, example = "A1234BC")
     @PathVariable prisonerNumber: String,
-    @Schema(description = "Use NOMIS data", example = "true", required = false, defaultValue = "true", hidden = true)
+    @Schema(description = "Use NOMIS data", required = false, defaultValue = "true", hidden = true, example = "true")
     @RequestParam(defaultValue = "true", value = "use-nomis-data", required = false) useNomisData: Boolean = true
   ): IepSummary =
     prisonerIepLevelReviewService.getPrisonerIepLevelHistory(prisonerNumber, useNomisData)
@@ -235,14 +238,17 @@ class IepLevelResource(
     ]
   )
   suspend fun addIepReview(
-    @Schema(description = "Booking Id", example = "2342342", required = true)
+    @Schema(description = "Booking Id", required = true, example = "1234567")
     @PathVariable bookingId: Long,
-    @Schema(description = "IEP Review", required = true)
+    @Schema(
+      description = "IEP Review",
+      required = true,
+      implementation = IepReview::class,
+    )
     @RequestBody @Valid iepReview: IepReview,
-
   ): IepDetail {
     val iepDetail = prisonerIepLevelReviewService.addIepReview(bookingId, iepReview)
-    sendEventAndAudit(iepDetail)
+    sendEventAndAudit(iepDetail, IncentivesDomainEventType.IEP_REVIEW_INSERTED, AuditType.IEP_REVIEW_ADDED)
     return iepDetail
   }
 
@@ -275,14 +281,17 @@ class IepLevelResource(
     ]
   )
   suspend fun addIepReview(
-    @Schema(description = "Prisoner Number", example = "A1234AB", required = true)
+    @Schema(description = "Prisoner Number", required = true, example = "A1234BC")
     @PathVariable prisonerNumber: String,
-    @Schema(description = "IEP Review", required = true)
+    @Schema(
+      description = "IEP Review",
+      required = true,
+      implementation = IepReview::class,
+    )
     @RequestBody @Valid iepReview: IepReview,
-
   ): IepDetail {
     val iepDetail = prisonerIepLevelReviewService.addIepReview(prisonerNumber, iepReview)
-    sendEventAndAudit(iepDetail)
+    sendEventAndAudit(iepDetail, IncentivesDomainEventType.IEP_REVIEW_INSERTED, AuditType.IEP_REVIEW_ADDED)
     return iepDetail
   }
 
@@ -315,9 +324,13 @@ class IepLevelResource(
     ]
   )
   suspend fun migrateIepReview(
-    @Schema(description = "Booking Id", example = "2342342", required = true)
+    @Schema(description = "Booking Id", required = true, example = "1234567")
     @PathVariable bookingId: Long,
-    @Schema(description = "IEP Review", required = true)
+    @Schema(
+      description = "IEP Review",
+      required = true,
+      implementation = SyncPostRequest::class,
+    )
     @RequestBody @Valid syncPostRequest: SyncPostRequest,
   ): IepDetail =
     prisonerIepLevelReviewService.persistPrisonerIepLevel(bookingId, syncPostRequest)
@@ -351,17 +364,62 @@ class IepLevelResource(
     ]
   )
   suspend fun syncPostIepReview(
-    @Schema(description = "Booking Id", example = "2342342", required = true)
+    @Schema(description = "Booking Id", required = true, example = "1234567")
     @PathVariable bookingId: Long,
-    @Schema(description = "IEP Review", required = true)
+    @Schema(
+      description = "IEP Review",
+      required = true,
+      implementation = SyncPostRequest::class,
+    )
     @RequestBody @Valid syncPostRequest: SyncPostRequest,
   ): IepDetail = prisonerIepLevelReviewService.handleSyncPostIepReviewRequest(bookingId, syncPostRequest)
 
-  private suspend fun sendEventAndAudit(iepDetail: IepDetail) {
-    snsService.sendIepReviewEvent(iepDetail.id!!, iepDetail.iepTime)
+  @PatchMapping("/sync/booking/{bookingId}/id/{id}")
+  @PreAuthorize("hasRole('MAINTAIN_IEP') and hasAuthority('SCOPE_write')")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(
+    summary = "Update an existing IEP review for this specific prisoner by booking Id",
+    description = "Booking ID is an internal ID for a prisoner in NOMIS, ID is the ID of the IEP review. Requires MAINTAIN_IEP role and write scope",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "IEP Review updated"
+      ),
+      ApiResponse(
+        responseCode = "400",
+        description = "Incorrect data specified to update the IEP review",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Incorrect permissions to use this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      )
+    ]
+  )
+  suspend fun syncPatchIepReview(
+    @Schema(description = "Booking Id", required = true, example = "1234567")
+    @PathVariable bookingId: Long,
+    @Schema(description = "ID", required = true, example = "12345")
+    @PathVariable id: Long,
+    @Schema(
+      description = "IEP Review changes",
+      required = true,
+      implementation = SyncPatchRequest::class,
+    )
+    @RequestBody @Valid syncPatchRequest: SyncPatchRequest,
+  ): IepDetail = prisonerIepLevelReviewService.handleSyncPatchIepReviewRequest(bookingId, id, syncPatchRequest)
+
+  private suspend fun sendEventAndAudit(iepDetail: IepDetail, eventType: IncentivesDomainEventType, auditType: AuditType) {
+    snsService.sendIepReviewEvent(iepDetail.id!!, iepDetail.iepTime, eventType)
 
     auditService.sendMessage(
-      AuditType.IEP_REVIEW_ADDED,
+      auditType,
       iepDetail.id.toString(),
       iepDetail
     )

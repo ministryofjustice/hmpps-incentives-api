@@ -49,13 +49,13 @@ class IncentiveSummaryResource(private val incentiveSummaryService: IncentiveSum
     ]
   )
   suspend fun getIncentiveSummary(
-    @Schema(description = "Prison Id", example = "MDI", required = true)
+    @Schema(description = "Prison Id", required = true, example = "MDI")
     @PathVariable @Size(max = 3, min = 3, message = "Prison ID must be 3 characters") prisonId: String,
-    @Schema(description = "Location Id", example = "MDI-1", required = true)
+    @Schema(description = "Location Id", required = true, example = "MDI-1")
     @PathVariable locationId: String,
-    @Schema(description = "Sort By", example = "NAME", required = false, defaultValue = "NAME")
+    @Schema(description = "Sort By", required = false, defaultValue = "NAME", example = "NAME")
     @RequestParam(required = false, defaultValue = "NAME") sortBy: SortColumn,
-    @Schema(description = "Sort Direction", example = "ASC", required = false, defaultValue = "ASC")
+    @Schema(description = "Sort Direction", required = false, defaultValue = "ASC", example = "ASC")
     @RequestParam(required = false, defaultValue = "ASC") sortDirection: Sort.Direction
   ): BehaviourSummary =
     incentiveSummaryService.getIncentivesSummaryByLocation(prisonId, locationId, sortBy, sortDirection)
