@@ -46,7 +46,6 @@ class OpenApiConfiguration(buildProperties: BuildProperties) {
           .name("Authorization")
       )
     )
-    .addSecurityItem(SecurityRequirement().addList("bearer-jwt", listOf("read", "write")))
 
   @Bean
   fun openAPICustomiser(): OpenApiCustomiser = OpenApiCustomiser {

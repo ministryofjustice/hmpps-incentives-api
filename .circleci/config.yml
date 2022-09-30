@@ -58,8 +58,7 @@ jobs:
             - gradle-{{ checksum "build.gradle.kts" }}
             - gradle-
       - run:
-          - run:
-            command: ./gradlew -Dorg.gradle.jvmargs="--illegal-access=permit" -Dkotlin.daemon.jvm.options="--illegal-access=permit" -Pdocs generateOpenApiDocs
+          command: ./gradlew -Dorg.gradle.jvmargs="--illegal-access=permit" -Dkotlin.daemon.jvm.options="--illegal-access=permit" -Pdocs generateOpenApiDocs
       - run:
           command: mv build/docs ~/
       - save_cache:
