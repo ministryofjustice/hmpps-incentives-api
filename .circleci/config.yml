@@ -44,9 +44,8 @@ jobs:
           path: build/test-results
       - store_artifacts:
           path: build/reports/tests
-# enable when gradle 7.5 is released which includes JaCoCo 0.8.8 that supports Java 18
-#      - store_artifacts:
-#          path: build/reports/jacoco/test/html
+      - store_artifacts:
+          path: build/reports/jacoco/test/html
 
   generate-api-docs:
     executor:
@@ -59,7 +58,8 @@ jobs:
             - gradle-{{ checksum "build.gradle.kts" }}
             - gradle-
       - run:
-          command: ./gradlew -Pdocs generateOpenApiDocs
+          - run:
+            command: ./gradlew -Dorg.gradle.jvmargs="--illegal-access=permit" -Dkotlin.daemon.jvm.options="--illegal-access=permit" -Pdocs generateOpenApiDocs
       - run:
           command: mv build/docs ~/
       - save_cache:
@@ -178,7 +178,7 @@ workflows:
       - hmpps/trivy_latest_scan:
           slack_channel: << pipeline.parameters.alerts-slack-channel >>
           context:
-            - hmpps-common-vars
+            - hmpps-common-vars0
 # currently disabled as veracode doesn't yet support jdk 18 or kotlin 1.7
 #      - hmpps/veracode_pipeline_scan:
 #          slack_channel: << pipeline.parameters.alerts-slack-channel >>
