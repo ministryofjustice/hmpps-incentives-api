@@ -322,6 +322,23 @@ class PrisonerIepLevelReviewService(
       prisonerNumber = prisonerNumber,
       auditModuleName = "Incentives-API",
     )
+  @Transactional
+  suspend fun processMergedPrisoner(prisonerMergeEvent: PrisonerMergeEvent) {
+    val numberUpdated = prisonerIepLevelRepository.updatePrisonerNumber(
+      prisonerMergeEvent.additionalInformation.removedNomsNumber,
+      prisonerMergeEvent.additionalInformation.nomsNumber
+    )
+
+    if (numberUpdated > 0) {
+      val message = "$numberUpdated incentive records updated due to: $prisonerMergeEvent.description"
+      log.info(message)
+      auditService.sendMessage(
+        AuditType.PRISONER_NUMBER_MERGE,
+        prisonerMergeEvent.additionalInformation.nomsNumber,
+        message
+      )
+    }
+  }
 }
 
 data class IepReviewInNomis(

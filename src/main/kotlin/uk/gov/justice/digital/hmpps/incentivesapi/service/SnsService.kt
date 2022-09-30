@@ -73,6 +73,33 @@ data class HMPPSDomainEvent(
   )
 }
 
+data class MergeInformation(
+  val nomsNumber: String,
+  val reason: String,
+  val removedNomsNumber: String
+)
+
+data class PrisonerMergeEvent(
+  val eventType: String? = null,
+  val additionalInformation: MergeInformation,
+  val version: String,
+  val occurredAt: String,
+  val description: String
+) {
+  constructor(
+    eventType: String,
+    additionalInformation: MergeInformation,
+    occurredAt: Instant,
+    description: String
+  ) : this(
+    eventType,
+    additionalInformation,
+    "1.0",
+    occurredAt.toOffsetDateFormat(),
+    description
+  )
+}
+
 enum class IncentivesDomainEventType(val value: String) {
   IEP_REVIEW_INSERTED("incentives.iep-review.inserted"),
   IEP_REVIEW_UPDATED("incentives.iep-review.updated"),

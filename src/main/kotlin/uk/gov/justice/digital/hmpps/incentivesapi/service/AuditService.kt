@@ -67,4 +67,5 @@ data class AuditEvent(
 enum class AuditType {
   IEP_REVIEW_ADDED,
   IEP_REVIEW_UPDATED,
+  PRISONER_NUMBER_MERGE
 }
