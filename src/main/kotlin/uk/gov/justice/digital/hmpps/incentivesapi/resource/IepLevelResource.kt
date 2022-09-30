@@ -403,9 +403,9 @@ class IepLevelResource(
     ]
   )
   suspend fun syncPatchIepReview(
-    @Schema(description = "Booking Id", required = true, example = "1234567")
+    @Schema(description = "Booking Id", required = true, example = "1234567", type = "number", pattern = "^[0-9]{1,20}$")
     @PathVariable bookingId: Long,
-    @Schema(description = "ID", required = true, example = "12345")
+    @Schema(description = "ID", required = true, example = "12345",  type = "number", pattern = "^[0-9]{1,20}$")
     @PathVariable id: Long,
     @Schema(
       description = "IEP Review changes",
