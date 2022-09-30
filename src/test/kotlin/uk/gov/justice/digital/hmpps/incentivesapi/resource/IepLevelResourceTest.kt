@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.resource
 
 import kotlinx.coroutines.runBlocking
+import org.assertj.core.api.Assertions.assertThat
 import org.json.JSONObject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -16,12 +17,13 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLeve
 import java.time.LocalDate.now
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.function.Consumer
 
 class IepLevelResourceTest : SqsIntegrationTestBase() {
   @Autowired
   private lateinit var repository: PrisonerIepLevelRepository
 
-  private val jsonDateTimeFormat = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss.SSSSSS")
+  private val jsonDateTimeFormat = DateTimeFormatter.ofPattern("uuuu-MM-dd'T'HH:mm:ss.S")
 
   @BeforeEach
   fun setUp(): Unit = runBlocking {
@@ -498,23 +500,23 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
         .bodyValue(requestBody)
         .exchange()
         .expectStatus().isCreated
-        .expectBody().json(
-          """
-          {
-            "bookingId":$bookingId,
-            "prisonerNumber": $prisonerNumber,
-            "iepDate":"${requestBody.iepTime.toLocalDate()}",
-            "iepTime":"${requestBody.iepTime.format(jsonDateTimeFormat)}",
-            "agencyId":"${requestBody.prisonId}",
-            "locationId":"${requestBody.locationId}",
-            "iepLevel":"Standard",
-            "iepCode": "STD",
-            "comments":"${requestBody.comment}",
-            "userId":"${requestBody.userId}",
-            "reviewType":"${requestBody.reviewType}",
-            "auditModuleName":"Incentives-API"
+        .expectBody()
+        .jsonPath("bookingId").isEqualTo(bookingId)
+        .jsonPath("prisonerNumber").isEqualTo(prisonerNumber)
+        .jsonPath("iepDate").isEqualTo(requestBody.iepTime.toLocalDate().toString())
+        .jsonPath("agencyId").isEqualTo(requestBody.prisonId)
+        .jsonPath("locationId").isEqualTo(requestBody.locationId)
+        .jsonPath("iepLevel").isEqualTo("Standard")
+        .jsonPath("iepCode").isEqualTo("STD")
+        .jsonPath("comments").isEqualTo(requestBody.comment)
+        .jsonPath("userId").isEqualTo(requestBody.userId)
+        .jsonPath("reviewType").isEqualTo(requestBody.reviewType.toString())
+        .jsonPath("auditModuleName").isEqualTo("Incentives-API")
+        .jsonPath("iepTime").value(
+          Consumer<String> {
+            // Using startWith as we witnesses bizzarre behaviour on CI with rounding or different number of digits
+            assertThat(it).startsWith(requestBody.iepTime.format(jsonDateTimeFormat))
           }
-          """.trimIndent()
         )
         .returnResult()
         .responseBody

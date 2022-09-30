@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.dto
 
-import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
@@ -77,7 +76,6 @@ data class IepDetail(
   @Schema(description = "Date when last review took place", required = true, example = "2021-12-31")
   val iepDate: LocalDate,
   @Schema(description = "Date and time when last review took place", required = true, example = "2021-12-31T12:34:56.789012")
-  @JsonFormat(pattern = "uuuu-MM-dd'T'HH:mm:ss.SSSSSS")
   val iepTime: LocalDateTime,
   @Schema(description = "Prison ID", required = true, example = "MDI")
   val agencyId: String,
