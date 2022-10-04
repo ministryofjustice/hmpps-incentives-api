@@ -78,7 +78,7 @@ class PrisonerIepLevelReviewService(
 
   @Transactional
   suspend fun persistPrisonerIepLevel(bookingId: Long, syncPostRequest: SyncPostRequest): IepDetail {
-    val prisonerInfo = prisonApiService.getPrisonerInfo(bookingId)
+    val prisonerInfo = prisonApiService.getPrisonerInfo(bookingId, true)
     return prisonerIepLevelRepository.save(
       PrisonerIepLevel(
         iepCode = syncPostRequest.iepLevel,

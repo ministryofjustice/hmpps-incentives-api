@@ -74,11 +74,13 @@ class PrisonApiService(
       .awaitBody()
   }
 
-  suspend fun getPrisonerInfo(bookingId: Long): PrisonerAtLocation =
-    prisonWebClient.get()
+  suspend fun getPrisonerInfo(bookingId: Long, useClientCredentials: Boolean = false): PrisonerAtLocation {
+    val webClient = if (useClientCredentials) prisonWebClientClientCredentials else prisonWebClient
+    return webClient.get()
       .uri("/api/bookings/$bookingId?basicInfo=true")
       .retrieve()
       .awaitBody()
+  }
 
   suspend fun getLocationById(locationId: Long, useClientCredentials: Boolean = false): Location {
     val webClient = if (useClientCredentials) prisonWebClientClientCredentials else prisonWebClient
