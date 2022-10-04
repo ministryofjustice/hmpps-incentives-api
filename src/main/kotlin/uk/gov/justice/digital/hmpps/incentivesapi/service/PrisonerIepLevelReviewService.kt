@@ -264,6 +264,8 @@ class PrisonerIepLevelReviewService(
       )
     )
 
+    sendEventAndAudit(newIepReview, IncentivesDomainEventType.IEP_REVIEW_INSERTED, AuditType.IEP_REVIEW_ADDED)
+
     return newIepReview
   }
 
