@@ -70,13 +70,13 @@ class PrisonerIepLevelReviewService(
   @Transactional
   suspend fun addIepReview(prisonerNumber: String, iepReview: IepReview): IepDetail {
     val prisonerInfo = prisonApiService.getPrisonerInfo(prisonerNumber)
-    return addIepLevel(prisonerInfo, iepReview)
+    return addIepReviewForPrisonerAtLocation(prisonerInfo, iepReview)
   }
 
   @Transactional
   suspend fun addIepReview(bookingId: Long, iepReview: IepReview): IepDetail {
     val prisonerInfo = prisonApiService.getPrisonerInfo(bookingId)
-    return addIepLevel(prisonerInfo, iepReview)
+    return addIepReviewForPrisonerAtLocation(prisonerInfo, iepReview)
   }
 
   @Transactional
@@ -238,7 +238,7 @@ class PrisonerIepLevelReviewService(
     )
   }
 
-  private suspend fun addIepLevel(
+  private suspend fun addIepReviewForPrisonerAtLocation(
     prisonerInfo: PrisonerAtLocation,
     iepReview: IepReview
   ): IepDetail {
