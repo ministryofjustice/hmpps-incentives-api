@@ -104,12 +104,11 @@ class PrisonerIepLevelReviewService(
   }
 
   suspend fun handleSyncPostIepReviewRequest(bookingId: Long, syncPostRequest: SyncPostRequest): IepDetail {
-    val iepDetail = persistSyncPostRequest(bookingId, syncPostRequest, true)
-    sendEventAndAudit(
-      iepDetail,
-      eventType = IncentivesDomainEventType.IEP_REVIEW_INSERTED,
-      auditType = AuditType.IEP_REVIEW_ADDED,
-    )
+    val iepDetail = persistPrisonerIepLevel(bookingId, syncPostRequest, true)
+
+    publishDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
+    publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_ADDED)
+
     return iepDetail
   }
 
@@ -136,11 +135,10 @@ class PrisonerIepLevelReviewService(
     )
 
     val iepDetail = prisonerIepLevelRepository.save(prisonerIepLevel).translate()
-    sendEventAndAudit(
-      iepDetail,
-      eventType = IncentivesDomainEventType.IEP_REVIEW_UPDATED,
-      auditType = AuditType.IEP_REVIEW_UPDATED,
-    )
+
+    publishDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_UPDATED)
+    publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_UPDATED)
+
     return iepDetail
   }
 
@@ -192,9 +190,12 @@ class PrisonerIepLevelReviewService(
         "incentives-api"
       )
 
-      sendEventAndAudit(
+      publishDomainEvent(
         prisonerIepLevel.translate(),
         IncentivesDomainEventType.IEP_REVIEW_INSERTED,
+      )
+      publishAuditEvent(
+        prisonerIepLevel.translate(),
         AuditType.IEP_REVIEW_ADDED,
       )
     } ?: run {
@@ -264,7 +265,8 @@ class PrisonerIepLevelReviewService(
       )
     )
 
-    sendEventAndAudit(newIepReview, IncentivesDomainEventType.IEP_REVIEW_INSERTED, AuditType.IEP_REVIEW_ADDED)
+    publishDomainEvent(newIepReview, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
+    publishAuditEvent(newIepReview, AuditType.IEP_REVIEW_ADDED)
 
     return newIepReview
   }
@@ -297,14 +299,22 @@ class PrisonerIepLevelReviewService(
     )
   }
 
-  private suspend fun sendEventAndAudit(
+  private suspend fun publishDomainEvent(
     iepDetail: IepDetail,
     eventType: IncentivesDomainEventType,
-    auditType: AuditType,
   ) {
     iepDetail.id?.let {
       snsService.sendIepReviewEvent(iepDetail.id, iepDetail.prisonerNumber ?: "N/A", iepDetail.iepTime, eventType)
+    } ?: run {
+      log.warn("IepDetail has `null` id, domain event not published: $iepDetail")
+    }
+  }
 
+  private suspend fun publishAuditEvent(
+    iepDetail: IepDetail,
+    auditType: AuditType,
+  ) {
+    iepDetail.id?.let {
       auditService.sendMessage(
         auditType,
         iepDetail.id.toString(),
@@ -312,7 +322,7 @@ class PrisonerIepLevelReviewService(
         iepDetail.userId,
       )
     } ?: run {
-      log.warn("id null for iepDetail: $iepDetail")
+      log.warn("IepDetail has `null` id, audit event not published: $iepDetail")
     }
   }
 
