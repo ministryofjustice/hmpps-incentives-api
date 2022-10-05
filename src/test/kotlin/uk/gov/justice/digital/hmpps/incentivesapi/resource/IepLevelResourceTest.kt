@@ -92,6 +92,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
              "iepDate":"2021-12-02",
              "iepLevel":"Basic",
              "iepTime":"2021-12-02T09:24:42.894",
+             "nextReviewDate": "2022-12-02",
              "iepDetails":[
                 {
                    "bookingId":1234134,
@@ -204,6 +205,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
       .expectStatus().isCreated
 
     val today = now().format(DateTimeFormatter.ISO_DATE)
+    val nextReviewDate = now().plusYears(1).format(DateTimeFormatter.ISO_DATE)
     webTestClient.get().uri("/iep/reviews/booking/$bookingId?use-nomis-data=false")
       .headers(setAuthorisation())
       .exchange()
@@ -215,6 +217,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
              "daysSinceReview":0,
              "iepDate":"$today",
              "iepLevel":"Standard",
+             "nextReviewDate": "$nextReviewDate",
              "iepDetails":[
                 {
                    "bookingId":$bookingId,
@@ -254,6 +257,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
       .expectStatus().isCreated
 
     val today = now().format(DateTimeFormatter.ISO_DATE)
+    val nextReviewDate = now().plusYears(1).format(DateTimeFormatter.ISO_DATE)
     webTestClient.get().uri("/iep/reviews/prisoner/$prisonerNumber?use-nomis-data=false")
       .headers(setAuthorisation())
       .exchange()
@@ -266,6 +270,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
              "daysSinceReview":0,
              "iepDate":"$today",
              "iepLevel":"Enhanced",
+             "nextReviewDate":"$nextReviewDate",
              "iepDetails":[
                 {
                    "prisonerNumber": $prisonerNumber,
@@ -687,6 +692,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
              "daysSinceReview":0,
              "iepDate":"${migrationRequest.iepTime.toLocalDate()}",
              "iepLevel":"Standard",
+             "nextReviewDate":"${migrationRequest.iepTime.toLocalDate().plusYears(1)}",
              "iepDetails":[
                 {
                    "bookingId":$bookingId,

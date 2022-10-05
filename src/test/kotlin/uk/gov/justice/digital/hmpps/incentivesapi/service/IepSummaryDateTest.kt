@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
 import java.time.LocalDateTime
 
-class DaysOnLevelTest {
+class IepSummaryDateTest {
 
   @Nested
   inner class GetDaysOnLevel {
@@ -245,6 +245,44 @@ class DaysOnLevelTest {
 
       assertThat(iepSummary.daysSinceReview).isEqualTo(30)
       assertThat(iepSummary.daysOnLevel()).isEqualTo(90)
+    }
+  }
+
+  @Nested
+  inner class `Calc next review date for someone` {
+    @Test
+    fun `not on basic, nor newly in prison who has not been transferred since the last review`() {
+      val iepTime = LocalDateTime.now().minusDays(60)
+      val iepSummary = IepSummary(
+        bookingId = 1L,
+        iepDate = iepTime.toLocalDate(),
+        iepLevel = "Standard",
+        iepTime = iepTime,
+        iepDetails = listOf(
+          IepDetail(
+            bookingId = 1L,
+            agencyId = "MDI",
+            iepLevel = "Standard",
+            iepCode = "STD",
+            iepDate = iepTime.toLocalDate(),
+            iepTime = iepTime,
+            userId = "TEST_USER",
+            auditModuleName = "PRISON_API",
+          ),
+          IepDetail(
+            bookingId = 1L,
+            agencyId = "MDI",
+            iepLevel = "Standard",
+            iepCode = "STD",
+            iepDate = iepTime.minusDays(100).toLocalDate(),
+            iepTime = iepTime.minusDays(100),
+            userId = "TEST_USER",
+            auditModuleName = "PRISON_API",
+          ),
+        )
+      )
+
+      assertThat(iepSummary.nextReviewDate).isEqualTo(iepTime.toLocalDate().plusYears(1))
     }
   }
 }
