@@ -281,7 +281,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
           .withBody(
             """
               {
-                "bookingId": 1234134,
+                "bookingId": $bookingId,
                 "iepLevel": "Basic",
                 "daysSinceReview": 35,
                 "iepDate": "2021-12-02T00:00:00",
@@ -289,7 +289,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                 "iepDetails": [
                   {
                     "agencyId": "MDI",
-                    "bookingId": 1234134,
+                    "bookingId": $bookingId,
                     "sequence": 2,
                     "iepDate": "2021-12-02",
                     "iepLevel": "Basic",
@@ -300,7 +300,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                   },
                    {
                     "agencyId": "BXI",
-                    "bookingId": 1234134,
+                    "bookingId": $bookingId,
                     "sequence": 1,
                     "iepDate": "2020-11-02",
                     "iepLevel": "Entry",
