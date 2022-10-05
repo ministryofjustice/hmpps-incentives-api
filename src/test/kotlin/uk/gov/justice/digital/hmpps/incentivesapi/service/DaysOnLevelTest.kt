@@ -79,9 +79,9 @@ class DaysOnLevelTest {
       val iepTime = LocalDateTime.now().minusDays(3)
       val iepSummary = IepSummary(
         bookingId = 1L,
-        iepDate = iepTime.toLocalDate(),
+        iepDate = iepTime.toLocalDate().plusDays(3),
         iepLevel = "Standard",
-        iepTime = iepTime,
+        iepTime = iepTime.plusDays(3),
         iepDetails = listOf(
           IepDetail(
             bookingId = 1L,
@@ -117,9 +117,9 @@ class DaysOnLevelTest {
       val iepTime = LocalDateTime.now().minusDays(10)
       val iepSummary = IepSummary(
         bookingId = 1L,
-        iepDate = iepTime.toLocalDate(),
+        iepDate = iepTime.toLocalDate().plusDays(9),
         iepLevel = "Basic",
-        iepTime = iepTime,
+        iepTime = iepTime.plusDays(9),
         iepDetails = listOf(
           IepDetail(
             bookingId = 1L,
