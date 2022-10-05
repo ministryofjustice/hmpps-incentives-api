@@ -549,7 +549,6 @@ class PrisonerIepLevelReviewServiceTest {
   private val iepTime: LocalDateTime = LocalDateTime.now().minusDays(10)
   private fun iepSummary(iepLevel: String = "Enhanced", iepDetails: List<IepDetail> = emptyList()) = IepSummary(
     bookingId = 1L,
-    daysSinceReview = 60,
     iepDate = iepTime.toLocalDate(),
     iepLevel = iepLevel,
     iepTime = iepTime,

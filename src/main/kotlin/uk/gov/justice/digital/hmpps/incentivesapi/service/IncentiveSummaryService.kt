@@ -122,7 +122,7 @@ class IncentiveSummaryService(
         IepResult(
           bookingId = it.bookingId,
           iepLevel = it.iepLevel,
-          daysSinceReview = it.daysSinceReview(),
+          daysSinceReview = it.daysSinceReview,
           daysOnLevel = it.daysOnLevel()
         )
       }.toList().associateBy(IepResult::bookingId)

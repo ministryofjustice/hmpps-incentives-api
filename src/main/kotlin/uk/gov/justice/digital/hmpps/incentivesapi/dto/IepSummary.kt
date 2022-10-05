@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.dto
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonProperty
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
 import java.time.Duration
@@ -24,17 +25,19 @@ data class IepSummary(
   val iepDate: LocalDate,
   @Schema(description = "Date and time when last review took place", required = true, example = "2021-12-31T12:34:56.789012")
   val iepTime: LocalDateTime,
-  @Schema(description = "Days Since last Review", example = "23", required = true)
-  val daysSinceReview: Int,
   @Schema(description = "Location  of prisoner when review took place within prison (i.e. their cell)", example = "1-2-003", required = false)
   val locationId: String? = null,
   @Schema(description = "IEP Review History (descending in time)", required = true)
   val iepDetails: List<IepDetail>,
 ) {
 
-  fun daysSinceReview(): Int {
-    return daysSinceReview(iepDetails)
-  }
+  @get:Schema(description = "Days since last review", example = "23", required = true)
+  @get:JsonProperty
+  val daysSinceReview: Int
+    get() {
+      val currentIepDate = LocalDate.now().atStartOfDay()
+      return Duration.between(iepDate.atStartOfDay(), currentIepDate).toDays().toInt()
+    }
 
   fun daysOnLevel(): Int {
     val currentIepDate = LocalDate.now().atStartOfDay()
@@ -51,11 +54,6 @@ data class IepSummary(
 
     return daysOnLevel
   }
-}
-
-fun daysSinceReview(iepHistory: List<IepDetail>): Int {
-  val currentIepDate = LocalDate.now().atStartOfDay()
-  return Duration.between(iepHistory.first().iepDate.atStartOfDay(), currentIepDate).toDays().toInt()
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)

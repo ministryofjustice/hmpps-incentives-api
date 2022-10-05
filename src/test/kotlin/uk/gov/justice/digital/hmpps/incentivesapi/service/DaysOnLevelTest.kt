@@ -16,7 +16,6 @@ class DaysOnLevelTest {
       val iepTime = LocalDateTime.now().minusDays(60)
       val iepSummary = IepSummary(
         bookingId = 1L,
-        daysSinceReview = 60,
         iepDate = iepTime.toLocalDate(),
         iepLevel = "Enhanced",
         iepTime = iepTime,
@@ -44,7 +43,7 @@ class DaysOnLevelTest {
         )
       )
 
-      assertThat(iepSummary.daysSinceReview()).isEqualTo(60)
+      assertThat(iepSummary.daysSinceReview).isEqualTo(60)
       assertThat(iepSummary.daysOnLevel()).isEqualTo(60)
     }
 
@@ -53,7 +52,6 @@ class DaysOnLevelTest {
       val iepTime = LocalDateTime.now().minusDays(3)
       val iepSummary = IepSummary(
         bookingId = 1L,
-        daysSinceReview = -1,
         iepDate = iepTime.toLocalDate(),
         iepLevel = "Basic",
         iepTime = iepTime,
@@ -72,7 +70,7 @@ class DaysOnLevelTest {
         )
       )
 
-      assertThat(iepSummary.daysSinceReview()).isEqualTo(3)
+      assertThat(iepSummary.daysSinceReview).isEqualTo(3)
       assertThat(iepSummary.daysOnLevel()).isEqualTo(3)
     }
 
@@ -81,7 +79,6 @@ class DaysOnLevelTest {
       val iepTime = LocalDateTime.now().minusDays(3)
       val iepSummary = IepSummary(
         bookingId = 1L,
-        daysSinceReview = -1,
         iepDate = iepTime.toLocalDate(),
         iepLevel = "Standard",
         iepTime = iepTime,
@@ -111,7 +108,7 @@ class DaysOnLevelTest {
         )
       )
 
-      assertThat(iepSummary.daysSinceReview()).isEqualTo(0)
+      assertThat(iepSummary.daysSinceReview).isEqualTo(0)
       assertThat(iepSummary.daysOnLevel()).isEqualTo(0)
     }
 
@@ -120,7 +117,6 @@ class DaysOnLevelTest {
       val iepTime = LocalDateTime.now().minusDays(10)
       val iepSummary = IepSummary(
         bookingId = 1L,
-        daysSinceReview = -1,
         iepDate = iepTime.toLocalDate(),
         iepLevel = "Basic",
         iepTime = iepTime,
@@ -161,7 +157,7 @@ class DaysOnLevelTest {
         )
       )
 
-      assertThat(iepSummary.daysSinceReview()).isEqualTo(1)
+      assertThat(iepSummary.daysSinceReview).isEqualTo(1)
       assertThat(iepSummary.daysOnLevel()).isEqualTo(10)
     }
 
@@ -171,7 +167,6 @@ class DaysOnLevelTest {
       val previousIep = iepTime.minusDays(60)
       val iepSummary = IepSummary(
         bookingId = 1L,
-        daysSinceReview = 0,
         iepDate = iepTime.toLocalDate(),
         iepLevel = "Enhanced",
         iepTime = iepTime,
@@ -199,7 +194,7 @@ class DaysOnLevelTest {
         )
       )
 
-      assertThat(iepSummary.daysSinceReview()).isEqualTo(0)
+      assertThat(iepSummary.daysSinceReview).isEqualTo(0)
       assertThat(iepSummary.daysOnLevel()).isEqualTo(0)
     }
 
@@ -211,7 +206,6 @@ class DaysOnLevelTest {
 
       val iepSummary = IepSummary(
         bookingId = 1L,
-        daysSinceReview = 30,
         iepDate = latestIepTime.toLocalDate(),
         iepLevel = "Enhanced",
         iepTime = latestIepTime,
@@ -249,7 +243,7 @@ class DaysOnLevelTest {
         )
       )
 
-      assertThat(iepSummary.daysSinceReview()).isEqualTo(30)
+      assertThat(iepSummary.daysSinceReview).isEqualTo(30)
       assertThat(iepSummary.daysOnLevel()).isEqualTo(90)
     }
   }
