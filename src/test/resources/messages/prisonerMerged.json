@@ -1,6 +1,6 @@
 {
   "Type": "Notification",
-  "MessageId": "ee46cb90-a2de-57bf-86ba-9d2eba64645a",
+  "MessageId": "ee46cb90-a2de-57bf-86ba-9d2eba64647a",
   "TopicArn": "arn:aws:sns:eu-west-2:754256621582:cloud-platform-Digital-Prison-Services-f221e27fcfcf78f6ab4f4c3cc165eee7",
   "Message":"{\"version\":\"1.0\", \"occurredAt\":\"2020-02-12T15:14:24.125533+00:00\", \"publishedAt\":\"2020-02-12T15:15:09.902048716+00:00\", \"description\":\"A prisoner has been merged from A4432FD to A1244AB\", \"additionalInformation\":{\"nomsNumber\":\"A1244AB\", \"removedNomsNumber\":\"A4432FD\", \"reason\":\"MERGE\"}}",
   "Timestamp": "2020-02-12T15:15:06.239Z",
