@@ -89,7 +89,7 @@ class IncentiveSummaryService(
       levels[prisonerMap.key] ?: invalidLevel()
     }
 
-  fun getPrisonersByLevel(
+  private fun getPrisonersByLevel(
     prisoners: List<PrisonerAtLocation>,
     prisonerLevels: Map<Long, IepResult>
   ): Map<String, List<PrisonerAtLocation>> =
@@ -97,7 +97,7 @@ class IncentiveSummaryService(
       prisonerLevels[it.bookingId]?.iepLevel ?: missingLevel().iepLevel
     }
 
-  fun addMissingLevels(
+  private fun addMissingLevels(
     data: List<IncentiveLevelSummary>,
     levelMap: Map<String, IepLevel>
   ): List<IncentiveLevelSummary> {
@@ -114,11 +114,11 @@ class IncentiveSummaryService(
     return incentiveLevelSummaries.sortedWith(compareBy { v -> additionalLevels[v.level]?.sequence })
   }
 
-  suspend fun getProvenAdjudications(bookingIds: List<Long>): Map<Long, ProvenAdjudication> =
+  private suspend fun getProvenAdjudications(bookingIds: List<Long>): Map<Long, ProvenAdjudication> =
     prisonApiService.retrieveProvenAdjudications(bookingIds)
       .toList().associateBy(ProvenAdjudication::bookingId)
 
-  suspend fun getIEPDetails(bookingIds: List<Long>): Map<Long, IepResult> =
+  private suspend fun getIEPDetails(bookingIds: List<Long>): Map<Long, IepResult> =
     prisonApiService.getIEPSummaryPerPrisoner(bookingIds)
       .map {
 
@@ -130,7 +130,7 @@ class IncentiveSummaryService(
         )
       }.toList().associateBy(IepResult::bookingId)
 
-  suspend fun getCaseNoteUsage(type: String, subType: String, offenderNos: List<String>): Map<String, CaseNoteSummary> =
+  private suspend fun getCaseNoteUsage(type: String, subType: String, offenderNos: List<String>): Map<String, CaseNoteSummary> =
     prisonApiService.retrieveCaseNoteCounts(type, offenderNos)
       .toList()
       .groupBy(CaseNoteUsage::offenderNo)
@@ -145,7 +145,7 @@ class IncentiveSummaryService(
   private fun calcTypeCount(caseNoteUsage: List<CaseNoteUsage>): Int =
     caseNoteUsage.map { it.numCaseNotes }.fold(0) { acc, next -> acc + next }
 
-  suspend fun getLocation(locationId: String): String =
+  private suspend fun getLocation(locationId: String): String =
     prisonApiService.getLocation(locationId).description
 }
 
