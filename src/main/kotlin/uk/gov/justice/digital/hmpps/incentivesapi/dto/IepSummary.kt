@@ -35,8 +35,8 @@ data class IepSummary(
   @get:JsonProperty
   val daysSinceReview: Int
     get() {
-      val currentIepDate = LocalDate.now().atStartOfDay()
-      return Duration.between(iepDate.atStartOfDay(), currentIepDate).toDays().toInt()
+      val today = LocalDate.now().atStartOfDay()
+      return Duration.between(iepDate.atStartOfDay(), today).toDays().toInt()
     }
 
   @get:Schema(description = "Date of next review", example = "2022-12-31", required = true)
@@ -44,7 +44,7 @@ data class IepSummary(
   val nextReviewDate: LocalDate = iepDate.plusYears(1)
 
   fun daysOnLevel(): Int {
-    val currentIepDate = LocalDate.now().atStartOfDay()
+    val today = LocalDate.now().atStartOfDay()
     var daysOnLevel = 0
 
     run iepCheck@{
@@ -52,7 +52,7 @@ data class IepSummary(
         if (it.iepLevel != iepLevel) {
           return@iepCheck
         }
-        daysOnLevel = Duration.between(it.iepDate.atStartOfDay(), currentIepDate).toDays().toInt()
+        daysOnLevel = Duration.between(it.iepDate.atStartOfDay(), today).toDays().toInt()
       }
     }
 
