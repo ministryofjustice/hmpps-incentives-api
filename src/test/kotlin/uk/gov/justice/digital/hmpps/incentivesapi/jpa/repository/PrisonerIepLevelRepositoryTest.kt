@@ -52,7 +52,7 @@ class PrisonerIepLevelRepositoryTest : TestBase() {
     )
 
     coroutineScope {
-      val prisonerLevelCurrent = async { repository.findOneByBookingIdAndCurrentIsTrue(bookingId) }
+      val prisonerLevelCurrent = async { repository.findFirstByBookingIdAndCurrentIsTrueOrderByReviewTimeDesc(bookingId) }
       val prisonerLevelFirst = async { repository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId) }
       val prisonerAllLevels = async { repository.findAllByBookingIdOrderByReviewTimeDesc(bookingId) }
 
