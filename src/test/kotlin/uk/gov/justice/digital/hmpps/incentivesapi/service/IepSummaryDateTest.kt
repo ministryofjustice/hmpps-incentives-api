@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
@@ -44,7 +45,7 @@ class IepSummaryDateTest {
       )
 
       assertThat(iepSummary.daysSinceReview).isEqualTo(60)
-      assertThat(iepSummary.daysOnLevel()).isEqualTo(60)
+      assertThat(daysOnLevel(iepSummary.iepDetails)).isEqualTo(60)
     }
 
     @Test
@@ -71,7 +72,7 @@ class IepSummaryDateTest {
       )
 
       assertThat(iepSummary.daysSinceReview).isEqualTo(3)
-      assertThat(iepSummary.daysOnLevel()).isEqualTo(3)
+      assertThat(daysOnLevel(iepSummary.iepDetails)).isEqualTo(3)
     }
 
     @Test
@@ -109,7 +110,7 @@ class IepSummaryDateTest {
       )
 
       assertThat(iepSummary.daysSinceReview).isEqualTo(0)
-      assertThat(iepSummary.daysOnLevel()).isEqualTo(0)
+      assertThat(daysOnLevel(iepSummary.iepDetails)).isEqualTo(0)
     }
 
     @Test
@@ -158,7 +159,7 @@ class IepSummaryDateTest {
       )
 
       assertThat(iepSummary.daysSinceReview).isEqualTo(1)
-      assertThat(iepSummary.daysOnLevel()).isEqualTo(10)
+      assertThat(daysOnLevel(iepSummary.iepDetails)).isEqualTo(10)
     }
 
     @Test
@@ -195,7 +196,7 @@ class IepSummaryDateTest {
       )
 
       assertThat(iepSummary.daysSinceReview).isEqualTo(0)
-      assertThat(iepSummary.daysOnLevel()).isEqualTo(0)
+      assertThat(daysOnLevel(iepSummary.iepDetails)).isEqualTo(0)
     }
 
     @Test
@@ -244,7 +245,24 @@ class IepSummaryDateTest {
       )
 
       assertThat(iepSummary.daysSinceReview).isEqualTo(30)
-      assertThat(iepSummary.daysOnLevel()).isEqualTo(90)
+      assertThat(daysOnLevel(iepSummary.iepDetails)).isEqualTo(90)
+    }
+
+    @Test
+    fun `days on level cannot be calculated when iepDetail history is missing`() {
+      val iepTime = LocalDateTime.now().minusDays(3)
+      val iepSummary = IepSummary(
+        bookingId = 1L,
+        iepDate = iepTime.toLocalDate(),
+        iepLevel = "Basic",
+        iepTime = iepTime,
+        iepDetails = emptyList(),
+      )
+
+      assertThat(iepSummary.daysSinceReview).isEqualTo(3)
+      assertThatThrownBy { daysOnLevel(iepSummary.iepDetails) }
+        .isInstanceOf(UnsupportedOperationException::class.java)
+        .hasMessageContaining("Empty collection")
     }
   }
 

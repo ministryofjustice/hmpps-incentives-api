@@ -8,8 +8,11 @@ import org.apache.commons.text.WordUtils
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.BehaviourSummary
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevelSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonerIncentiveSummary
+import java.time.Duration
+import java.time.LocalDate
 
 @Service
 class IncentiveSummaryService(
@@ -123,7 +126,7 @@ class IncentiveSummaryService(
           bookingId = it.bookingId,
           iepLevel = it.iepLevel,
           daysSinceReview = it.daysSinceReview,
-          daysOnLevel = it.daysOnLevel()
+          daysOnLevel = daysOnLevel(it.iepDetails)
         )
       }.toList().associateBy(IepResult::bookingId)
 
@@ -158,6 +161,20 @@ data class IepResult(
   val daysSinceReview: Int,
   val daysOnLevel: Int
 )
+
+fun daysOnLevel(iepDetails: List<IepDetail>): Int {
+  val today = LocalDate.now().atStartOfDay()
+
+  val earliestMatchingIepDetail = iepDetails.reduce { earliestMatchingIepDetail, iepDetail ->
+    if (iepDetail.iepLevel == earliestMatchingIepDetail.iepLevel) {
+      iepDetail
+    } else {
+      return@reduce earliestMatchingIepDetail
+    }
+  }
+
+  return Duration.between(earliestMatchingIepDetail.iepDate.atStartOfDay(), today).toDays().toInt()
+}
 
 data class CaseNoteSummary(
   val offenderNo: String,
