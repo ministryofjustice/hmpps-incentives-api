@@ -323,6 +323,7 @@ class PrisonerIepLevelReviewService(
       auditModuleName = "Incentives-API",
     )
 
+  @Transactional
   suspend fun processMergedPrisoner(prisonerMergeEvent: PrisonerMergeEvent): Int {
 
     val removedPrisonerNumber = prisonerMergeEvent.additionalInformation.removedNomsNumber

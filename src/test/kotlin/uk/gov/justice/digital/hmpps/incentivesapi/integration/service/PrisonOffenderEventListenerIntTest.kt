@@ -105,13 +105,6 @@ internal class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
     await untilCallTo { prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber") } matches { it == 1 }
 
-    // Then
-    await.atMost(Duration.ofSeconds(30)) untilCallTo {
-      runBlocking {
-        val rowsUpdated = repository.updatePrisonerNumber(prisonerNumber, bookingId, removedNomsNumber)
-        assertThat(rowsUpdated).isEqualTo(0)
-      }
-    }
   }
 
   private fun publishPrisonerReceivedMessage(reason: String) =
