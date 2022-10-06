@@ -338,7 +338,7 @@ class PrisonerIepLevelReviewService(
     )
 
     if (numberUpdated > 0) {
-      val message = "$numberUpdated incentive records updated due to: $prisonerMergeEvent.description"
+      val message = "$numberUpdated incentive records updated from merge $removedPrisonerNumber -> $remainingPrisonerNumber. Updated to booking ID ${prisonerInfo.bookingId}"
       log.info(message)
       auditService.sendMessage(
         AuditType.PRISONER_NUMBER_MERGE,

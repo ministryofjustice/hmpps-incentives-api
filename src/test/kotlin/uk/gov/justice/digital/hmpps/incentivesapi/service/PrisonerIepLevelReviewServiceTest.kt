@@ -284,6 +284,24 @@ class PrisonerIepLevelReviewServiceTest {
     }
 
     @Test
+    fun `process MERGE event`(): Unit = runBlocking {
+      // Given - default for that prison is Enhanced
+      val prisonMergeEvent = prisonMergeEvent()
+      whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(prisonerAtLocation())
+      whenever(prisonerIepLevelRepository.updatePrisonerNumber("A1244AB", 1234567, "A8765SS")).thenReturn(1)
+
+      prisonerIepLevelReviewService.processMergedPrisoner(prisonMergeEvent)
+
+      verify(prisonerIepLevelRepository, times(1)).updatePrisonerNumber("A1244AB", 1234567, "A8765SS")
+      verify(auditService, times(1))
+        .sendMessage(
+          AuditType.PRISONER_NUMBER_MERGE,
+          "A1244AB",
+          "1 incentive records updated from merge A8765SS -> A1244AB. Updated to booking ID 1234567",
+        )
+    }
+
+    @Test
     fun `do not create IEP level if prisonerNumber is null`(): Unit = runBlocking {
       // Given
       val prisonOffenderEvent = HMPPSDomainEvent(
@@ -623,6 +641,17 @@ class PrisonerIepLevelReviewServiceTest {
     ),
     occurredAt = Instant.now(),
     description = "A prisoner has been received into prison"
+  )
+
+  private fun prisonMergeEvent() = PrisonerMergeEvent(
+    eventType = "prison-offender-events.prisoner.merged",
+    additionalInformation = MergeInformation(
+      nomsNumber = "A1244AB",
+      reason = "MERGED",
+      removedNomsNumber = "A8765SS",
+    ),
+    occurredAt = Instant.now(),
+    description = "A prisoner has been merged from A8765SS to A1244AB"
   )
 
   private fun prisonerAtLocation(bookingId: Long = 1234567, offenderNo: String = "A1234AA", agencyId: String = "MDI") = PrisonerAtLocation(
