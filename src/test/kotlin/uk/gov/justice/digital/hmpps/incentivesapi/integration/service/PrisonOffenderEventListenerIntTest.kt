@@ -104,7 +104,6 @@ internal class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
 
     await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
     await untilCallTo { prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber") } matches { it == 1 }
-
   }
 
   private fun publishPrisonerReceivedMessage(reason: String) =
