@@ -322,11 +322,19 @@ class PrisonerIepLevelReviewService(
       prisonerNumber = prisonerNumber,
       auditModuleName = "Incentives-API",
     )
-  @Transactional
-  suspend fun processMergedPrisoner(prisonerMergeEvent: PrisonerMergeEvent) {
+
+  suspend fun processMergedPrisoner(prisonerMergeEvent: PrisonerMergeEvent): Int {
+
+    val removedPrisonerNumber = prisonerMergeEvent.additionalInformation.removedNomsNumber
+    val remainingPrisonerNumber = prisonerMergeEvent.additionalInformation.nomsNumber
+    log.info("Processing merge event: Prisoner Number Merge $removedPrisonerNumber -> $remainingPrisonerNumber")
+
+    val prisonerInfo = prisonApiService.getPrisonerInfo(remainingPrisonerNumber, true)
+
     val numberUpdated = prisonerIepLevelRepository.updatePrisonerNumber(
-      prisonerMergeEvent.additionalInformation.removedNomsNumber,
-      prisonerMergeEvent.additionalInformation.nomsNumber
+      remainingPrisonerNumber,
+      prisonerInfo.bookingId,
+      removedPrisonerNumber
     )
 
     if (numberUpdated > 0) {
@@ -334,10 +342,14 @@ class PrisonerIepLevelReviewService(
       log.info(message)
       auditService.sendMessage(
         AuditType.PRISONER_NUMBER_MERGE,
-        prisonerMergeEvent.additionalInformation.nomsNumber,
+        remainingPrisonerNumber,
         message
       )
+    } else {
+      log.info("No incentive records found for $removedPrisonerNumber, no records updated")
     }
+
+    return numberUpdated
   }
 }
 

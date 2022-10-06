@@ -54,7 +54,7 @@ class PrisonerIepLevelReviewServiceTest {
   )
 
   @Nested
-  inner class getPrisonerIepLevelHistory {
+  inner class GetPrisonerIepLevelHistory {
     @Test
     fun `will call prison api if useNomisData is true`(): Unit = runBlocking {
       coroutineScope {
@@ -119,7 +119,7 @@ class PrisonerIepLevelReviewServiceTest {
   }
 
   @Nested
-  inner class processReceivedPrisoner {
+  inner class ProcessReceivedPrisoner {
     @BeforeEach
     fun setUp(): Unit = runBlocking {
       // This ensures save works and an id is set on the PrisonerIepLevel

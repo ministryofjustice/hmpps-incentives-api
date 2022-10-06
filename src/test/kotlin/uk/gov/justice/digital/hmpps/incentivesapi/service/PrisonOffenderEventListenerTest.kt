@@ -60,6 +60,17 @@ class PrisonOffenderEventListenerTest {
     }
   }
 
+  @Test
+  fun `process merged prisoner message`(): Unit = runBlocking {
+    coroutineScope {
+      // When
+      listener.onPrisonOffenderEvent("/messages/prisonerMerged.json".readResourceAsText())
+
+      // Then
+      verify(prisonerIepLevelReviewService, times(1)).processMergedPrisoner(any())
+    }
+  }
+
   private fun String.readResourceAsText(): String {
     return PrisonOffenderEventListenerTest::class.java.getResource(this)?.readText() ?: throw AssertionError("can not find file")
   }
