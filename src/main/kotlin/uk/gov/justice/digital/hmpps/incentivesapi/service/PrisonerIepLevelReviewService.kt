@@ -78,7 +78,7 @@ class PrisonerIepLevelReviewService(
 
   @Transactional
   suspend fun persistPrisonerIepLevel(bookingId: Long, syncPostRequest: SyncPostRequest): IepDetail {
-    val prisonerInfo = prisonApiService.getPrisonerInfo(bookingId)
+    val prisonerInfo = prisonApiService.getPrisonerInfo(bookingId, true)
     return prisonerIepLevelRepository.save(
       PrisonerIepLevel(
         iepCode = syncPostRequest.iepLevel,
@@ -143,7 +143,7 @@ class PrisonerIepLevelReviewService(
           CurrentIepLevel(iepLevel = it.iepLevel, bookingId = it.bookingId)
         }
     } else {
-      prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrue(bookingIds)
+      prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(bookingIds)
         .map {
           CurrentIepLevel(iepLevel = iepLevelRepository.findById(it.iepCode)?.iepDescription ?: "Unmapped", bookingId = it.bookingId)
         }
@@ -266,7 +266,7 @@ class PrisonerIepLevelReviewService(
     reviewTime: LocalDateTime,
     reviewerUserName: String,
   ): PrisonerIepLevel {
-    prisonerIepLevelRepository.findOneByBookingIdAndCurrentIsTrue(prisonerInfo.bookingId)
+    prisonerIepLevelRepository.findFirstByBookingIdAndCurrentIsTrueOrderByReviewTimeDesc(prisonerInfo.bookingId)
       ?.let {
         prisonerIepLevelRepository.save(it.copy(current = false))
       }

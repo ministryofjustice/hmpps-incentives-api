@@ -331,7 +331,7 @@ class PrisonerIepLevelReviewServiceTest {
     fun `process migration`(): Unit = runBlocking {
       // Given
       val bookingId = 1234567L
-      whenever(prisonApiService.getPrisonerInfo(bookingId)).thenReturn(prisonerAtLocation())
+      whenever(prisonApiService.getPrisonerInfo(bookingId, true)).thenReturn(prisonerAtLocation())
       whenever(prisonerIepLevelRepository.save(any())).thenAnswer { i -> i.arguments[0] }
 
       // When
@@ -359,7 +359,7 @@ class PrisonerIepLevelReviewServiceTest {
       // Given
       val migrationRequestWithNullUserId = migrationRequest.copy(userId = null)
       val bookingId = 1234567L
-      whenever(prisonApiService.getPrisonerInfo(bookingId)).thenReturn(prisonerAtLocation())
+      whenever(prisonApiService.getPrisonerInfo(bookingId, true)).thenReturn(prisonerAtLocation())
       whenever(prisonerIepLevelRepository.save(any())).thenAnswer { i -> i.arguments[0] }
 
       // When
@@ -518,7 +518,7 @@ class PrisonerIepLevelReviewServiceTest {
     @BeforeEach
     fun setUp(): Unit = runBlocking {
       // Mock Prison API getPrisonerInfo() response
-      whenever(prisonApiService.getPrisonerInfo(bookingId)).thenReturn(
+      whenever(prisonApiService.getPrisonerInfo(bookingId, true)).thenReturn(
         prisonerAtLocation(bookingId, offenderNo)
       )
 

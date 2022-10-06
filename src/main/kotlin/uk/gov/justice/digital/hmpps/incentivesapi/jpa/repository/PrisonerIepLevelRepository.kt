@@ -11,8 +11,8 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 interface PrisonerIepLevelRepository : CoroutineCrudRepository<PrisonerIepLevel, Long> {
   fun findAllByPrisonerNumberOrderByReviewTimeDesc(prisonerNumber: String): Flow<PrisonerIepLevel>
   fun findAllByBookingIdOrderByReviewTimeDesc(bookingId: Long): Flow<PrisonerIepLevel>
-  fun findAllByBookingIdInAndCurrentIsTrue(bookingIds: List<Long>): Flow<PrisonerIepLevel>
-  suspend fun findOneByBookingIdAndCurrentIsTrue(bookingId: Long): PrisonerIepLevel?
+  fun findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(bookingIds: List<Long>): Flow<PrisonerIepLevel>
+  suspend fun findFirstByBookingIdAndCurrentIsTrueOrderByReviewTimeDesc(bookingId: Long): PrisonerIepLevel?
   suspend fun findFirstByBookingIdOrderByReviewTimeDesc(bookingId: Long): PrisonerIepLevel?
   @Query("UPDATE prisoner_iep_level set prisoner_number = :remainingPrisonerNumber, booking_id = :bookingId WHERE prisoner_number = :removedPrisonerNumber")
   @Modifying
