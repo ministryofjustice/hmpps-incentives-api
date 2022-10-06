@@ -13,6 +13,8 @@ import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTest
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
+import java.time.Duration
+import java.time.LocalDate
 import java.time.LocalDate.now
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -75,6 +77,9 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
   fun `get IEP Levels for a prisoner`() {
     prisonApiMockServer.stubIEPSummaryForBooking()
 
+    val lastReviewDate = LocalDate.of(2021, 12, 2)
+    val daysSinceReview = Duration.between(lastReviewDate.atStartOfDay(), now().atStartOfDay()).toDays().toInt()
+
     webTestClient.get().uri("/iep/reviews/booking/1234134")
       .headers(setAuthorisation())
       .exchange()
@@ -83,10 +88,11 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
         """
             {
              "bookingId":1234134,
-             "daysSinceReview":35,
+             "daysSinceReview": $daysSinceReview,
              "iepDate":"2021-12-02",
              "iepLevel":"Basic",
              "iepTime":"2021-12-02T09:24:42.894",
+             "nextReviewDate": "2022-12-02",
              "iepDetails":[
                 {
                    "bookingId":1234134,
@@ -199,6 +205,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
       .expectStatus().isCreated
 
     val today = now().format(DateTimeFormatter.ISO_DATE)
+    val nextReviewDate = now().plusYears(1).format(DateTimeFormatter.ISO_DATE)
     webTestClient.get().uri("/iep/reviews/booking/$bookingId?use-nomis-data=false")
       .headers(setAuthorisation())
       .exchange()
@@ -210,6 +217,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
              "daysSinceReview":0,
              "iepDate":"$today",
              "iepLevel":"Standard",
+             "nextReviewDate": "$nextReviewDate",
              "iepDetails":[
                 {
                    "bookingId":$bookingId,
@@ -249,6 +257,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
       .expectStatus().isCreated
 
     val today = now().format(DateTimeFormatter.ISO_DATE)
+    val nextReviewDate = now().plusYears(1).format(DateTimeFormatter.ISO_DATE)
     webTestClient.get().uri("/iep/reviews/prisoner/$prisonerNumber?use-nomis-data=false")
       .headers(setAuthorisation())
       .exchange()
@@ -261,6 +270,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
              "daysSinceReview":0,
              "iepDate":"$today",
              "iepLevel":"Enhanced",
+             "nextReviewDate":"$nextReviewDate",
              "iepDetails":[
                 {
                    "prisonerNumber": $prisonerNumber,
@@ -682,6 +692,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
              "daysSinceReview":0,
              "iepDate":"${migrationRequest.iepTime.toLocalDate()}",
              "iepLevel":"Standard",
+             "nextReviewDate":"${migrationRequest.iepTime.toLocalDate().plusYears(1)}",
              "iepDetails":[
                 {
                    "bookingId":$bookingId,

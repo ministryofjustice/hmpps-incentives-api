@@ -16,7 +16,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPatchRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.daysSinceReview
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IepLevelRepository
@@ -225,7 +224,6 @@ class PrisonerIepLevelReviewService(
       prisonerNumber = currentIep.prisonerNumber,
       locationId = currentIep.locationId,
       iepDetails = if (withDetails) iepLevels else emptyList(),
-      daysSinceReview = daysSinceReview(iepLevels)
     )
   }
 

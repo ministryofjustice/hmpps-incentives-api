@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
 import java.time.LocalDateTime
 
-class DaysOnLevelTest {
+class IepSummaryDateTest {
 
   @Nested
   inner class GetDaysOnLevel {
@@ -16,7 +16,6 @@ class DaysOnLevelTest {
       val iepTime = LocalDateTime.now().minusDays(60)
       val iepSummary = IepSummary(
         bookingId = 1L,
-        daysSinceReview = 60,
         iepDate = iepTime.toLocalDate(),
         iepLevel = "Enhanced",
         iepTime = iepTime,
@@ -44,7 +43,7 @@ class DaysOnLevelTest {
         )
       )
 
-      assertThat(iepSummary.daysSinceReview()).isEqualTo(60)
+      assertThat(iepSummary.daysSinceReview).isEqualTo(60)
       assertThat(iepSummary.daysOnLevel()).isEqualTo(60)
     }
 
@@ -53,7 +52,6 @@ class DaysOnLevelTest {
       val iepTime = LocalDateTime.now().minusDays(3)
       val iepSummary = IepSummary(
         bookingId = 1L,
-        daysSinceReview = -1,
         iepDate = iepTime.toLocalDate(),
         iepLevel = "Basic",
         iepTime = iepTime,
@@ -72,7 +70,7 @@ class DaysOnLevelTest {
         )
       )
 
-      assertThat(iepSummary.daysSinceReview()).isEqualTo(3)
+      assertThat(iepSummary.daysSinceReview).isEqualTo(3)
       assertThat(iepSummary.daysOnLevel()).isEqualTo(3)
     }
 
@@ -81,10 +79,9 @@ class DaysOnLevelTest {
       val iepTime = LocalDateTime.now().minusDays(3)
       val iepSummary = IepSummary(
         bookingId = 1L,
-        daysSinceReview = -1,
-        iepDate = iepTime.toLocalDate(),
+        iepDate = iepTime.toLocalDate().plusDays(3),
         iepLevel = "Standard",
-        iepTime = iepTime,
+        iepTime = iepTime.plusDays(3),
         iepDetails = listOf(
           IepDetail(
             bookingId = 1L,
@@ -111,7 +108,7 @@ class DaysOnLevelTest {
         )
       )
 
-      assertThat(iepSummary.daysSinceReview()).isEqualTo(0)
+      assertThat(iepSummary.daysSinceReview).isEqualTo(0)
       assertThat(iepSummary.daysOnLevel()).isEqualTo(0)
     }
 
@@ -120,10 +117,9 @@ class DaysOnLevelTest {
       val iepTime = LocalDateTime.now().minusDays(10)
       val iepSummary = IepSummary(
         bookingId = 1L,
-        daysSinceReview = -1,
-        iepDate = iepTime.toLocalDate(),
+        iepDate = iepTime.toLocalDate().plusDays(9),
         iepLevel = "Basic",
-        iepTime = iepTime,
+        iepTime = iepTime.plusDays(9),
         iepDetails = listOf(
           IepDetail(
             bookingId = 1L,
@@ -161,7 +157,7 @@ class DaysOnLevelTest {
         )
       )
 
-      assertThat(iepSummary.daysSinceReview()).isEqualTo(1)
+      assertThat(iepSummary.daysSinceReview).isEqualTo(1)
       assertThat(iepSummary.daysOnLevel()).isEqualTo(10)
     }
 
@@ -171,7 +167,6 @@ class DaysOnLevelTest {
       val previousIep = iepTime.minusDays(60)
       val iepSummary = IepSummary(
         bookingId = 1L,
-        daysSinceReview = 0,
         iepDate = iepTime.toLocalDate(),
         iepLevel = "Enhanced",
         iepTime = iepTime,
@@ -199,7 +194,7 @@ class DaysOnLevelTest {
         )
       )
 
-      assertThat(iepSummary.daysSinceReview()).isEqualTo(0)
+      assertThat(iepSummary.daysSinceReview).isEqualTo(0)
       assertThat(iepSummary.daysOnLevel()).isEqualTo(0)
     }
 
@@ -211,7 +206,6 @@ class DaysOnLevelTest {
 
       val iepSummary = IepSummary(
         bookingId = 1L,
-        daysSinceReview = 30,
         iepDate = latestIepTime.toLocalDate(),
         iepLevel = "Enhanced",
         iepTime = latestIepTime,
@@ -249,8 +243,46 @@ class DaysOnLevelTest {
         )
       )
 
-      assertThat(iepSummary.daysSinceReview()).isEqualTo(30)
+      assertThat(iepSummary.daysSinceReview).isEqualTo(30)
       assertThat(iepSummary.daysOnLevel()).isEqualTo(90)
+    }
+  }
+
+  @Nested
+  inner class `Calc next review date for someone` {
+    @Test
+    fun `not on basic, nor newly in prison who has not been transferred since the last review`() {
+      val iepTime = LocalDateTime.now().minusDays(60)
+      val iepSummary = IepSummary(
+        bookingId = 1L,
+        iepDate = iepTime.toLocalDate(),
+        iepLevel = "Standard",
+        iepTime = iepTime,
+        iepDetails = listOf(
+          IepDetail(
+            bookingId = 1L,
+            agencyId = "MDI",
+            iepLevel = "Standard",
+            iepCode = "STD",
+            iepDate = iepTime.toLocalDate(),
+            iepTime = iepTime,
+            userId = "TEST_USER",
+            auditModuleName = "PRISON_API",
+          ),
+          IepDetail(
+            bookingId = 1L,
+            agencyId = "MDI",
+            iepLevel = "Standard",
+            iepCode = "STD",
+            iepDate = iepTime.minusDays(100).toLocalDate(),
+            iepTime = iepTime.minusDays(100),
+            userId = "TEST_USER",
+            auditModuleName = "PRISON_API",
+          ),
+        )
+      )
+
+      assertThat(iepSummary.nextReviewDate).isEqualTo(iepTime.toLocalDate().plusYears(1))
     }
   }
 }
