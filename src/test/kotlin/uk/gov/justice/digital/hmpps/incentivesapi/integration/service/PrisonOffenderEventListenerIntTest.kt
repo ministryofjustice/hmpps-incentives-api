@@ -109,7 +109,7 @@ internal class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     await.atMost(Duration.ofSeconds(30)) untilCallTo {
       runBlocking {
         val rowsUpdated = repository.updatePrisonerNumber(prisonerNumber, bookingId, removedNomsNumber)
-        assertThat(rowsUpdated).isEqualTo(1)
+        assertThat(rowsUpdated).isEqualTo(0)
       }
     }
   }
