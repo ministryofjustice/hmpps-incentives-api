@@ -142,9 +142,8 @@ data class SyncPostRequest(
     message = "IEP Level must be between 2 and 6"
   ) @field:NotBlank(message = "IEP Level is required") val iepLevel: String,
 
-  @Schema(description = "Comment about review", required = true, example = "A review took place")
-  @field:NotBlank(message = "Comment is required")
-  val comment: String,
+  @Schema(description = "Comment about review", required = false, example = "A review took place")
+  val comment: String?,
 
   @Schema(description = "NOMIS User Id who performed the review", example = "USER_1_GEN", required = false)
   val userId: String?,
