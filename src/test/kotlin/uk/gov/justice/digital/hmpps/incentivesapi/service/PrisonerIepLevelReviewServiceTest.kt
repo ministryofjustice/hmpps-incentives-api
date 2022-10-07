@@ -160,7 +160,7 @@ class PrisonerIepLevelReviewServiceTest {
       )
 
       verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
-      verify(snsService, times(1)).sendIepReviewEvent(0, expectedPrisonerIepLevel.reviewTime, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
+      verify(snsService, times(1)).sendIepReviewEvent(0, prisonerAtLocation().offenderNo, expectedPrisonerIepLevel.reviewTime, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
       verify(auditService, times(1))
         .sendMessage(
           AuditType.IEP_REVIEW_ADDED,
@@ -204,7 +204,7 @@ class PrisonerIepLevelReviewServiceTest {
       )
 
       verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
-      verify(snsService, times(1)).sendIepReviewEvent(0, expectedPrisonerIepLevel.reviewTime, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
+      verify(snsService, times(1)).sendIepReviewEvent(0, prisonerAtLocation().offenderNo, expectedPrisonerIepLevel.reviewTime, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
       verify(auditService, times(1))
         .sendMessage(
           AuditType.IEP_REVIEW_ADDED,
@@ -248,7 +248,7 @@ class PrisonerIepLevelReviewServiceTest {
       )
 
       verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
-      verify(snsService, times(1)).sendIepReviewEvent(0, expectedPrisonerIepLevel.reviewTime, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
+      verify(snsService, times(1)).sendIepReviewEvent(0, prisonerAtLocation().offenderNo, expectedPrisonerIepLevel.reviewTime, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
       verify(auditService, times(1))
         .sendMessage(
           AuditType.IEP_REVIEW_ADDED,
@@ -463,7 +463,7 @@ class PrisonerIepLevelReviewServiceTest {
       prisonerIepLevelReviewService.handleSyncPatchIepReviewRequest(bookingId, iepReview.id, syncPatchRequest)
 
       // SNS event is sent
-      verify(snsService, times(1)).sendIepReviewEvent(id, iepReview.reviewTime, IncentivesDomainEventType.IEP_REVIEW_UPDATED)
+      verify(snsService, times(1)).sendIepReviewEvent(id, prisonerAtLocation().offenderNo, iepReview.reviewTime, IncentivesDomainEventType.IEP_REVIEW_UPDATED)
 
       // audit message is sent
       verify(auditService, times(1))
@@ -551,7 +551,7 @@ class PrisonerIepLevelReviewServiceTest {
       prisonerIepLevelReviewService.handleSyncPostIepReviewRequest(bookingId, syncPostRequest)
 
       // SNS event is sent
-      verify(snsService, times(1)).sendIepReviewEvent(iepReviewId, syncPostRequest.iepTime, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
+      verify(snsService, times(1)).sendIepReviewEvent(iepReviewId, prisonerAtLocation().offenderNo, syncPostRequest.iepTime, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
 
       // audit message is sent
       verify(auditService, times(1))
@@ -643,9 +643,9 @@ class PrisonerIepLevelReviewServiceTest {
     description = "A prisoner has been received into prison"
   )
 
-  private fun prisonMergeEvent() = PrisonerMergeEvent(
+  private fun prisonMergeEvent() = HMPPSDomainEvent(
     eventType = "prison-offender-events.prisoner.merged",
-    additionalInformation = MergeInformation(
+    additionalInformation = AdditionalInformation(
       nomsNumber = "A1244AB",
       reason = "MERGED",
       removedNomsNumber = "A8765SS",

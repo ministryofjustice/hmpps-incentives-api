@@ -16,8 +16,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.service.AdditionalInformation
 import uk.gov.justice.digital.hmpps.incentivesapi.service.HMPPSDomainEvent
-import uk.gov.justice.digital.hmpps.incentivesapi.service.MergeInformation
-import uk.gov.justice.digital.hmpps.incentivesapi.service.PrisonerMergeEvent
 import java.time.Duration
 import java.time.Instant
 
@@ -136,12 +134,12 @@ internal class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
       PublishRequest(
         domainEventsTopicArn,
         jsonString(
-          PrisonerMergeEvent(
+          HMPPSDomainEvent(
             eventType = "prison-offender-events.prisoner.merged",
-            additionalInformation = MergeInformation(
+            additionalInformation = AdditionalInformation(
               nomsNumber = nomsNumber,
               removedNomsNumber = removedNomsNumber,
-              reason = "MERGE"
+              reason = "MERGE",
             ),
             occurredAt = Instant.now(),
             description = "A prisoner has been merged from $removedNomsNumber to $nomsNumber"

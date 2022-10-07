@@ -21,11 +21,11 @@ class SnsService(hmppsQueueService: HmppsQueueService, private val objectMapper:
   private val domaineventsTopic by lazy { hmppsQueueService.findByTopicId("domainevents") ?: throw RuntimeException("Topic with name domainevents doesn't exist") }
   private val domaineventsTopicClient by lazy { domaineventsTopic.snsClient }
 
-  fun sendIepReviewEvent(reviewId: Long, occurredAt: LocalDateTime, eventType: IncentivesDomainEventType) {
+  fun sendIepReviewEvent(reviewId: Long, nomsNumber: String, occurredAt: LocalDateTime, eventType: IncentivesDomainEventType) {
     publishToDomainEventsTopic(
       HMPPSDomainEvent(
         eventType.value,
-        AdditionalInformation(reviewId),
+        AdditionalInformation(reviewId, nomsNumber, eventType.value),
         occurredAt.atZone(ZoneId.systemDefault()).toInstant(),
         "An IEP review has been added"
       )
@@ -47,9 +47,10 @@ class SnsService(hmppsQueueService: HmppsQueueService, private val objectMapper:
 }
 
 data class AdditionalInformation(
-  val id: Long,
+  val id: Long? = null,
   val nomsNumber: String? = null,
   val reason: String? = null,
+  val removedNomsNumber: String? = null,
 )
 
 data class HMPPSDomainEvent(
@@ -62,33 +63,6 @@ data class HMPPSDomainEvent(
   constructor(
     eventType: String,
     additionalInformation: AdditionalInformation,
-    occurredAt: Instant,
-    description: String
-  ) : this(
-    eventType,
-    additionalInformation,
-    "1.0",
-    occurredAt.toOffsetDateFormat(),
-    description
-  )
-}
-
-data class MergeInformation(
-  val nomsNumber: String,
-  val reason: String,
-  val removedNomsNumber: String
-)
-
-data class PrisonerMergeEvent(
-  val eventType: String? = null,
-  val additionalInformation: MergeInformation,
-  val version: String,
-  val occurredAt: String,
-  val description: String
-) {
-  constructor(
-    eventType: String,
-    additionalInformation: MergeInformation,
     occurredAt: Instant,
     description: String
   ) : this(

@@ -158,6 +158,7 @@ class PrisonerIepLevelReviewService(
     when (prisonOffenderEvent.additionalInformation.reason) {
       "ADMISSION" -> createIepForReceivedPrisoner(prisonOffenderEvent, ReviewType.INITIAL)
       "TRANSFERRED" -> createIepForReceivedPrisoner(prisonOffenderEvent, ReviewType.TRANSFER)
+      "MERGE" -> processMergedPrisoner(prisonOffenderEvent)
       else -> {
         log.debug("Ignoring prisonOffenderEvent with reason ${prisonOffenderEvent.additionalInformation.reason}")
       }
@@ -293,7 +294,7 @@ class PrisonerIepLevelReviewService(
     auditType: AuditType,
   ) {
     iepDetail.id?.let {
-      snsService.sendIepReviewEvent(iepDetail.id, iepDetail.iepTime, eventType)
+      snsService.sendIepReviewEvent(iepDetail.id, iepDetail.prisonerNumber ?: "N/A", iepDetail.iepTime, eventType)
 
       auditService.sendMessage(
         auditType,
@@ -324,10 +325,10 @@ class PrisonerIepLevelReviewService(
     )
 
   @Transactional
-  suspend fun processMergedPrisoner(prisonerMergeEvent: PrisonerMergeEvent): Int {
+  suspend fun processMergedPrisoner(prisonerMergeEvent: HMPPSDomainEvent) {
 
-    val removedPrisonerNumber = prisonerMergeEvent.additionalInformation.removedNomsNumber
-    val remainingPrisonerNumber = prisonerMergeEvent.additionalInformation.nomsNumber
+    val removedPrisonerNumber = prisonerMergeEvent.additionalInformation.removedNomsNumber!!
+    val remainingPrisonerNumber = prisonerMergeEvent.additionalInformation.nomsNumber!!
     log.info("Processing merge event: Prisoner Number Merge $removedPrisonerNumber -> $remainingPrisonerNumber")
 
     val prisonerInfo = prisonApiService.getPrisonerInfo(remainingPrisonerNumber, true)
@@ -349,8 +350,6 @@ class PrisonerIepLevelReviewService(
     } else {
       log.info("No incentive records found for $removedPrisonerNumber, no records updated")
     }
-
-    return numberUpdated
   }
 }
 
