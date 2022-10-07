@@ -17,6 +17,7 @@ import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.incentivesapi.config.AuthenticationFacade
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPatchRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
@@ -52,6 +53,130 @@ class PrisonerIepLevelReviewServiceTest {
     authenticationFacade,
     clock,
   )
+
+  @Nested
+  inner class AddIepReview {
+
+    private val bookingId = 1234567L
+    private val prisonerNumber = "A1234BC"
+    private val reviewerUserName = "USER_1_GEN"
+    private val reviewTime = LocalDateTime.now(clock)
+    private val prisonerInfo = prisonerAtLocation(
+      bookingId = bookingId,
+      offenderNo = prisonerNumber,
+    )
+    private val iepReview = IepReview(
+      iepLevel = "ENH",
+      comment = "A review took place",
+      reviewType = ReviewType.REVIEW,
+    )
+    private val prisonerIepLevel = PrisonerIepLevel(
+      iepCode = iepReview.iepLevel,
+      commentText = iepReview.comment,
+      reviewType = iepReview.reviewType!!,
+      prisonId = prisonerInfo.agencyId,
+      locationId = location.description,
+      current = true,
+      reviewedBy = reviewerUserName,
+      reviewTime = reviewTime,
+      prisonerNumber = prisonerInfo.offenderNo,
+      bookingId = prisonerInfo.bookingId,
+    )
+
+    @BeforeEach
+    fun setUp(): Unit = runBlocking {
+      whenever(prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId)).thenReturn(location)
+      whenever(authenticationFacade.getUsername()).thenReturn(reviewerUserName)
+      whenever(prisonerIepLevelRepository.save(any())).thenReturn(prisonerIepLevel.copy(id = 42))
+      whenever(iepLevelRepository.findById(iepReview.iepLevel)).thenReturn(
+        IepLevel(iepCode = iepReview.iepLevel, iepDescription = "Enhanced")
+      )
+    }
+
+    @Test
+    fun `addIepReview by prisonerNumber`(): Unit = runBlocking {
+      coroutineScope {
+        // Given
+        whenever(prisonApiService.getPrisonerInfo(prisonerNumber)).thenReturn(prisonerInfo)
+
+        // When
+        prisonerIepLevelReviewService.addIepReview(prisonerNumber, iepReview)
+
+        // Then review is saved
+        checkReviewWasSaved(prisonerIepLevel)
+
+        // NOMIS is updated my making a request to Prison API
+        checkRequestToPrisonApiWasMade()
+
+        // A domain even is published
+        checkDomainEventWasPublished()
+
+        // An audit event is published
+        checkAuditEventWasPublished()
+      }
+    }
+
+    @Test
+    fun `addIepReview by bookingId`(): Unit = runBlocking {
+      coroutineScope {
+        // Given
+        whenever(prisonApiService.getPrisonerInfo(bookingId)).thenReturn(prisonerInfo)
+
+        // When
+        prisonerIepLevelReviewService.addIepReview(bookingId, iepReview)
+
+        // Then review is saved
+        checkReviewWasSaved(prisonerIepLevel)
+
+        // NOMIS is updated my making a request to Prison API
+        checkRequestToPrisonApiWasMade()
+
+        // A domain even is published
+        checkDomainEventWasPublished()
+
+        // An audit event is published
+        checkAuditEventWasPublished()
+      }
+    }
+
+    private suspend fun checkReviewWasSaved(prisonerIepLevel: PrisonerIepLevel) {
+      verify(prisonerIepLevelRepository, times(1)).save(prisonerIepLevel)
+    }
+
+    private fun checkDomainEventWasPublished() {
+      verify(snsService, times(1)).sendIepReviewEvent(
+        42,
+        reviewTime,
+        IncentivesDomainEventType.IEP_REVIEW_INSERTED,
+      )
+    }
+
+    private suspend fun checkAuditEventWasPublished() {
+      verify(auditService, times(1)).sendMessage(
+        AuditType.IEP_REVIEW_ADDED,
+        "42",
+        iepDetailFromIepLevel(
+          prisonerIepLevel,
+          iepCode = "ENH",
+          iepDescription = "Enhanced",
+          id = 42,
+        ),
+        reviewerUserName,
+      )
+    }
+
+    private suspend fun checkRequestToPrisonApiWasMade() {
+      verify(prisonApiService, times(1)).addIepReview(
+        bookingId,
+        IepReviewInNomis(
+          iepLevel = iepReview.iepLevel,
+          comment = iepReview.comment,
+          reviewTime = reviewTime,
+          reviewerUserName = reviewerUserName,
+        ),
+      )
+    }
+  }
 
   @Nested
   inner class GetPrisonerIepLevelHistory {
@@ -716,9 +841,9 @@ class PrisonerIepLevelReviewServiceTest {
     current = true,
   )
 
-  private fun iepDetailFromIepLevel(prisonerIepLevel: PrisonerIepLevel, iepDescription: String, iepCode: String) =
+  private fun iepDetailFromIepLevel(prisonerIepLevel: PrisonerIepLevel, iepDescription: String, iepCode: String, id: Long = 0) =
     IepDetail(
-      id = 0,
+      id = id,
       iepLevel = iepDescription,
       iepCode = iepCode,
       comments = prisonerIepLevel.commentText,
