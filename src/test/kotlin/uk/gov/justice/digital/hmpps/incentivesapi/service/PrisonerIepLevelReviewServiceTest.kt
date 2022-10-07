@@ -335,7 +335,7 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonerIepLevelRepository.save(any())).thenAnswer { i -> i.arguments[0] }
 
       // When
-      prisonerIepLevelReviewService.persistPrisonerIepLevel(bookingId, migrationRequest)
+      prisonerIepLevelReviewService.persistSyncPostRequest(bookingId, migrationRequest, false)
 
       // Then
       verify(prisonerIepLevelRepository, times(1)).save(
@@ -344,7 +344,6 @@ class PrisonerIepLevelReviewServiceTest {
           commentText = migrationRequest.comment,
           bookingId = bookingId,
           prisonId = migrationRequest.prisonId,
-          locationId = migrationRequest.locationId,
           current = migrationRequest.current,
           reviewedBy = migrationRequest.userId,
           reviewTime = migrationRequest.iepTime,
@@ -363,7 +362,7 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonerIepLevelRepository.save(any())).thenAnswer { i -> i.arguments[0] }
 
       // When
-      prisonerIepLevelReviewService.persistPrisonerIepLevel(bookingId, migrationRequestWithNullUserId)
+      prisonerIepLevelReviewService.persistSyncPostRequest(bookingId, migrationRequestWithNullUserId, false)
 
       // Then
       verify(prisonerIepLevelRepository, times(1)).save(
@@ -372,7 +371,6 @@ class PrisonerIepLevelReviewServiceTest {
           commentText = migrationRequestWithNullUserId.comment,
           bookingId = bookingId,
           prisonId = migrationRequestWithNullUserId.prisonId,
-          locationId = migrationRequestWithNullUserId.locationId,
           current = migrationRequestWithNullUserId.current,
           reviewedBy = null,
           reviewTime = migrationRequestWithNullUserId.iepTime,
@@ -491,7 +489,7 @@ class PrisonerIepLevelReviewServiceTest {
       commentText = syncPostRequest.comment,
       bookingId = bookingId,
       prisonId = syncPostRequest.prisonId,
-      locationId = syncPostRequest.locationId,
+      locationId = location.description,
       current = syncPostRequest.current,
       reviewedBy = syncPostRequest.userId,
       reviewTime = syncPostRequest.iepTime,
@@ -509,7 +507,7 @@ class PrisonerIepLevelReviewServiceTest {
       iepDate = syncPostRequest.iepTime.toLocalDate(),
       iepTime = syncPostRequest.iepTime,
       agencyId = syncPostRequest.prisonId,
-      locationId = syncPostRequest.locationId,
+      locationId = location.description,
       userId = syncPostRequest.userId,
       reviewType = syncPostRequest.reviewType,
       auditModuleName = "Incentives-API",
@@ -518,9 +516,12 @@ class PrisonerIepLevelReviewServiceTest {
     @BeforeEach
     fun setUp(): Unit = runBlocking {
       // Mock Prison API getPrisonerInfo() response
-      whenever(prisonApiService.getPrisonerInfo(bookingId, true)).thenReturn(
-        prisonerAtLocation(bookingId, offenderNo)
-      )
+      val prisonerAtLocation = prisonerAtLocation(bookingId, offenderNo)
+      whenever(prisonApiService.getPrisonerInfo(bookingId, true))
+        .thenReturn(prisonerAtLocation)
+
+      whenever(prisonApiService.getLocationById(prisonerAtLocation.assignedLivingUnitId, true))
+        .thenReturn(location)
 
       // Mock IEP level query
       whenever(iepLevelRepository.findById("ENH")).thenReturn(
@@ -670,7 +671,6 @@ class PrisonerIepLevelReviewServiceTest {
   private fun syncPostRequest(iepLevelCode: String = "STD", reviewType: ReviewType) = SyncPostRequest(
     iepTime = LocalDateTime.now(),
     prisonId = "MDI",
-    locationId = "1-2-003",
     iepLevel = iepLevelCode,
     comment = "A comment",
     userId = "XYZ_GEN",

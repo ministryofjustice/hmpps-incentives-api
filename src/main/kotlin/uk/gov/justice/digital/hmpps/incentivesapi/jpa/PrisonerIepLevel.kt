@@ -13,7 +13,7 @@ data class PrisonerIepLevel(
   val bookingId: Long,
   val prisonerNumber: String,
   val prisonId: String,
-  val locationId: String,
+  val locationId: String? = null,
   val reviewTime: LocalDateTime,
   val reviewedBy: String? = null,
   val iepCode: String,
