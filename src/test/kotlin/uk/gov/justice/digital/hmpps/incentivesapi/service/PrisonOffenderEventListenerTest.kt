@@ -34,7 +34,7 @@ class PrisonOffenderEventListenerTest {
       listener.onPrisonOffenderEvent("/messages/prisonerReceivedReasonAdmission.json".readResourceAsText())
 
       // Then
-      verify(prisonerIepLevelReviewService, times(1)).processReceivedPrisoner(any())
+      verify(prisonerIepLevelReviewService, times(1)).processOffenderEvent(any())
     }
   }
 
@@ -45,7 +45,7 @@ class PrisonOffenderEventListenerTest {
       listener.onPrisonOffenderEvent("/messages/prisonerReceivedReasonTransferred.json".readResourceAsText())
 
       // Then
-      verify(prisonerIepLevelReviewService, times(1)).processReceivedPrisoner(any())
+      verify(prisonerIepLevelReviewService, times(1)).processOffenderEvent(any())
     }
   }
 
@@ -67,7 +67,7 @@ class PrisonOffenderEventListenerTest {
       listener.onPrisonOffenderEvent("/messages/prisonerMerged.json".readResourceAsText())
 
       // Then
-      verify(prisonerIepLevelReviewService, times(1)).processMergedPrisoner(any())
+      verify(prisonerIepLevelReviewService, times(1)).processOffenderEvent(any())
     }
   }
 

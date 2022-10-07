@@ -154,11 +154,11 @@ class PrisonerIepLevelReviewService(
     prisonerIepLevelRepository.findById(id)?.translate() ?: throw NoDataFoundException(id)
 
   @Transactional
-  suspend fun processReceivedPrisoner(prisonOffenderEvent: HMPPSDomainEvent) =
+  suspend fun processOffenderEvent(prisonOffenderEvent: HMPPSDomainEvent) =
     when (prisonOffenderEvent.additionalInformation.reason) {
       "ADMISSION" -> createIepForReceivedPrisoner(prisonOffenderEvent, ReviewType.INITIAL)
       "TRANSFERRED" -> createIepForReceivedPrisoner(prisonOffenderEvent, ReviewType.TRANSFER)
-      "MERGE" -> processMergedPrisoner(prisonOffenderEvent)
+      "MERGE" -> mergedPrisonerDetails(prisonOffenderEvent)
       else -> {
         log.debug("Ignoring prisonOffenderEvent with reason ${prisonOffenderEvent.additionalInformation.reason}")
       }
@@ -325,7 +325,7 @@ class PrisonerIepLevelReviewService(
     )
 
   @Transactional
-  suspend fun processMergedPrisoner(prisonerMergeEvent: HMPPSDomainEvent) {
+  suspend fun mergedPrisonerDetails(prisonerMergeEvent: HMPPSDomainEvent) {
 
     val removedPrisonerNumber = prisonerMergeEvent.additionalInformation.removedNomsNumber!!
     val remainingPrisonerNumber = prisonerMergeEvent.additionalInformation.nomsNumber!!

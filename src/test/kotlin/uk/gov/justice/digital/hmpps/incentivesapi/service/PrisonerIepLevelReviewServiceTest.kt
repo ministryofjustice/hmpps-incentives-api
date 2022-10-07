@@ -143,7 +143,7 @@ class PrisonerIepLevelReviewServiceTest {
       )
 
       // When
-      prisonerIepLevelReviewService.processReceivedPrisoner(prisonOffenderEvent)
+      prisonerIepLevelReviewService.processOffenderEvent(prisonOffenderEvent)
 
       // Then
       val expectedPrisonerIepLevel = PrisonerIepLevel(
@@ -187,7 +187,7 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonApiService.getIEPSummaryForPrisoner(prisonerAtLocation.bookingId, withDetails = true, useClientCredentials = true)).thenReturn(iepSummary)
 
       // When
-      prisonerIepLevelReviewService.processReceivedPrisoner(prisonOffenderEvent)
+      prisonerIepLevelReviewService.processOffenderEvent(prisonOffenderEvent)
 
       // Then - the prisoner was on STD at BXI so they on this level
       val expectedPrisonerIepLevel = PrisonerIepLevel(
@@ -231,7 +231,7 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonApiService.getIEPSummaryForPrisoner(prisonerAtLocation.bookingId, withDetails = true, useClientCredentials = true)).thenReturn(iepSummary)
 
       // When
-      prisonerIepLevelReviewService.processReceivedPrisoner(prisonOffenderEvent)
+      prisonerIepLevelReviewService.processOffenderEvent(prisonOffenderEvent)
 
       // Then - MDI prison does not support ENH2 (which they were on in BXI) so fallback to ENH
       val expectedPrisonerIepLevel = PrisonerIepLevel(
@@ -270,14 +270,14 @@ class PrisonerIepLevelReviewServiceTest {
 
       // When
       Assert.assertThrows(NoDataFoundException::class.java) {
-        runBlocking { prisonerIepLevelReviewService.processReceivedPrisoner(prisonOffenderEvent) }
+        runBlocking { prisonerIepLevelReviewService.processOffenderEvent(prisonOffenderEvent) }
       }
     }
 
     @Test
     fun `do not process reason RETURN_FROM_COURT`(): Unit = runBlocking {
       // When
-      prisonerIepLevelReviewService.processReceivedPrisoner(prisonOffenderEvent("RETURN_FROM_COURT"))
+      prisonerIepLevelReviewService.processOffenderEvent(prisonOffenderEvent("RETURN_FROM_COURT"))
 
       // Then
       verifyNoInteractions(prisonerIepLevelRepository)
@@ -290,7 +290,7 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(prisonerAtLocation())
       whenever(prisonerIepLevelRepository.updatePrisonerNumber("A1244AB", 1234567, "A8765SS")).thenReturn(1)
 
-      prisonerIepLevelReviewService.processMergedPrisoner(prisonMergeEvent)
+      prisonerIepLevelReviewService.mergedPrisonerDetails(prisonMergeEvent)
 
       verify(prisonerIepLevelRepository, times(1)).updatePrisonerNumber("A1244AB", 1234567, "A8765SS")
       verify(auditService, times(1))
@@ -315,7 +315,7 @@ class PrisonerIepLevelReviewServiceTest {
       )
 
       // When
-      prisonerIepLevelReviewService.processReceivedPrisoner(prisonOffenderEvent)
+      prisonerIepLevelReviewService.processOffenderEvent(prisonOffenderEvent)
 
       // Then
       verifyNoInteractions(prisonerIepLevelRepository)
