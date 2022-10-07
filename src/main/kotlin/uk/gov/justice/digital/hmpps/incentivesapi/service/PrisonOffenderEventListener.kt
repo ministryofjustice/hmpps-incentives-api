@@ -32,9 +32,6 @@ class PrisonOffenderEventListener(
       }
     }
   }
-
-  private suspend fun processMessage(message: String) {
-  }
 }
 
 data class HMPPSEventType(val Value: String, val Type: String)
