@@ -499,6 +499,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
         prisonerNumber = prisonerNumber,
         locationId = 77778L,
       )
+      prisonApiMockServer.stubGetLocationById(locationId = 77778L, locationDesc = "1-2-003")
 
       // API responds 201 Created with the created IEP review record
       val responseBytes = webTestClient.post().uri(syncCreateEndpoint)
@@ -513,7 +514,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
             "prisonerNumber": $prisonerNumber,
             "iepDate":"${requestBody.iepTime.toLocalDate()}",
             "agencyId":"${requestBody.prisonId}",
-            "locationId":"${requestBody.locationId}",
+            "locationId":"1-2-003",
             "iepLevel":"Standard",
             "iepCode": "STD",
             "comments":"${requestBody.comment}",
@@ -540,7 +541,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
                  "bookingId":$bookingId,
                  "iepDate":"${requestBody.iepTime.toLocalDate()}",
                  "agencyId":"${requestBody.prisonId}",
-                 "locationId":"${requestBody.locationId}",
+                 "locationId":"1-2-003",
                  "iepLevel":"Standard",
                  "iepCode": "STD",
                  "comments":"${requestBody.comment}",
@@ -639,7 +640,6 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
     private fun syncPostRequest(iepLevel: String = "STD") = SyncPostRequest(
       iepTime = LocalDateTime.now(),
       prisonId = "MDI",
-      locationId = "1-2-003",
       iepLevel = iepLevel,
       comment = "A comment",
       userId = "XYZ_GEN",
@@ -698,7 +698,6 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
                    "bookingId":$bookingId,
                    "iepDate":"${migrationRequest.iepTime.toLocalDate()}",
                    "agencyId":"${migrationRequest.prisonId}",
-                   "locationId":"${migrationRequest.locationId}",
                    "iepLevel":"Standard",
                    "iepCode": "STD",
                    "comments":"${migrationRequest.comment}",
@@ -757,7 +756,6 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
     private fun syncPostRequest(iepLevel: String = "STD") = SyncPostRequest(
       iepTime = LocalDateTime.now(),
       prisonId = "MDI",
-      locationId = "1-2-003",
       iepLevel = iepLevel,
       comment = "A comment",
       userId = "XYZ_GEN",
