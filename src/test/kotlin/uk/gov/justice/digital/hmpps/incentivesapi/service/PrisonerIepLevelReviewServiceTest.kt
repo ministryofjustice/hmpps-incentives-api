@@ -54,7 +54,7 @@ class PrisonerIepLevelReviewServiceTest {
   )
 
   @Nested
-  inner class getPrisonerIepLevelHistory {
+  inner class GetPrisonerIepLevelHistory {
     @Test
     fun `will call prison api if useNomisData is true`(): Unit = runBlocking {
       coroutineScope {
@@ -119,7 +119,7 @@ class PrisonerIepLevelReviewServiceTest {
   }
 
   @Nested
-  inner class processReceivedPrisoner {
+  inner class ProcessReceivedPrisoner {
     @BeforeEach
     fun setUp(): Unit = runBlocking {
       // This ensures save works and an id is set on the PrisonerIepLevel
@@ -143,7 +143,7 @@ class PrisonerIepLevelReviewServiceTest {
       )
 
       // When
-      prisonerIepLevelReviewService.processReceivedPrisoner(prisonOffenderEvent)
+      prisonerIepLevelReviewService.processOffenderEvent(prisonOffenderEvent)
 
       // Then
       val expectedPrisonerIepLevel = PrisonerIepLevel(
@@ -160,7 +160,7 @@ class PrisonerIepLevelReviewServiceTest {
       )
 
       verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
-      verify(snsService, times(1)).sendIepReviewEvent(0, expectedPrisonerIepLevel.reviewTime, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
+      verify(snsService, times(1)).sendIepReviewEvent(0, prisonerAtLocation().offenderNo, expectedPrisonerIepLevel.reviewTime, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
       verify(auditService, times(1))
         .sendMessage(
           AuditType.IEP_REVIEW_ADDED,
@@ -187,7 +187,7 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonApiService.getIEPSummaryForPrisoner(prisonerAtLocation.bookingId, withDetails = true, useClientCredentials = true)).thenReturn(iepSummary)
 
       // When
-      prisonerIepLevelReviewService.processReceivedPrisoner(prisonOffenderEvent)
+      prisonerIepLevelReviewService.processOffenderEvent(prisonOffenderEvent)
 
       // Then - the prisoner was on STD at BXI so they on this level
       val expectedPrisonerIepLevel = PrisonerIepLevel(
@@ -204,7 +204,7 @@ class PrisonerIepLevelReviewServiceTest {
       )
 
       verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
-      verify(snsService, times(1)).sendIepReviewEvent(0, expectedPrisonerIepLevel.reviewTime, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
+      verify(snsService, times(1)).sendIepReviewEvent(0, prisonerAtLocation().offenderNo, expectedPrisonerIepLevel.reviewTime, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
       verify(auditService, times(1))
         .sendMessage(
           AuditType.IEP_REVIEW_ADDED,
@@ -231,7 +231,7 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonApiService.getIEPSummaryForPrisoner(prisonerAtLocation.bookingId, withDetails = true, useClientCredentials = true)).thenReturn(iepSummary)
 
       // When
-      prisonerIepLevelReviewService.processReceivedPrisoner(prisonOffenderEvent)
+      prisonerIepLevelReviewService.processOffenderEvent(prisonOffenderEvent)
 
       // Then - MDI prison does not support ENH2 (which they were on in BXI) so fallback to ENH
       val expectedPrisonerIepLevel = PrisonerIepLevel(
@@ -248,7 +248,7 @@ class PrisonerIepLevelReviewServiceTest {
       )
 
       verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
-      verify(snsService, times(1)).sendIepReviewEvent(0, expectedPrisonerIepLevel.reviewTime, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
+      verify(snsService, times(1)).sendIepReviewEvent(0, prisonerAtLocation().offenderNo, expectedPrisonerIepLevel.reviewTime, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
       verify(auditService, times(1))
         .sendMessage(
           AuditType.IEP_REVIEW_ADDED,
@@ -270,17 +270,35 @@ class PrisonerIepLevelReviewServiceTest {
 
       // When
       Assert.assertThrows(NoDataFoundException::class.java) {
-        runBlocking { prisonerIepLevelReviewService.processReceivedPrisoner(prisonOffenderEvent) }
+        runBlocking { prisonerIepLevelReviewService.processOffenderEvent(prisonOffenderEvent) }
       }
     }
 
     @Test
     fun `do not process reason RETURN_FROM_COURT`(): Unit = runBlocking {
       // When
-      prisonerIepLevelReviewService.processReceivedPrisoner(prisonOffenderEvent("RETURN_FROM_COURT"))
+      prisonerIepLevelReviewService.processOffenderEvent(prisonOffenderEvent("RETURN_FROM_COURT"))
 
       // Then
       verifyNoInteractions(prisonerIepLevelRepository)
+    }
+
+    @Test
+    fun `process MERGE event`(): Unit = runBlocking {
+      // Given - default for that prison is Enhanced
+      val prisonMergeEvent = prisonMergeEvent()
+      whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(prisonerAtLocation())
+      whenever(prisonerIepLevelRepository.updatePrisonerNumber("A1244AB", 1234567, "A8765SS")).thenReturn(1)
+
+      prisonerIepLevelReviewService.mergedPrisonerDetails(prisonMergeEvent)
+
+      verify(prisonerIepLevelRepository, times(1)).updatePrisonerNumber("A1244AB", 1234567, "A8765SS")
+      verify(auditService, times(1))
+        .sendMessage(
+          AuditType.PRISONER_NUMBER_MERGE,
+          "A1244AB",
+          "1 incentive records updated from merge A8765SS -> A1244AB. Updated to booking ID 1234567",
+        )
     }
 
     @Test
@@ -297,7 +315,7 @@ class PrisonerIepLevelReviewServiceTest {
       )
 
       // When
-      prisonerIepLevelReviewService.processReceivedPrisoner(prisonOffenderEvent)
+      prisonerIepLevelReviewService.processOffenderEvent(prisonOffenderEvent)
 
       // Then
       verifyNoInteractions(prisonerIepLevelRepository)
@@ -445,7 +463,7 @@ class PrisonerIepLevelReviewServiceTest {
       prisonerIepLevelReviewService.handleSyncPatchIepReviewRequest(bookingId, iepReview.id, syncPatchRequest)
 
       // SNS event is sent
-      verify(snsService, times(1)).sendIepReviewEvent(id, iepReview.reviewTime, IncentivesDomainEventType.IEP_REVIEW_UPDATED)
+      verify(snsService, times(1)).sendIepReviewEvent(id, prisonerAtLocation().offenderNo, iepReview.reviewTime, IncentivesDomainEventType.IEP_REVIEW_UPDATED)
 
       // audit message is sent
       verify(auditService, times(1))
@@ -533,7 +551,7 @@ class PrisonerIepLevelReviewServiceTest {
       prisonerIepLevelReviewService.handleSyncPostIepReviewRequest(bookingId, syncPostRequest)
 
       // SNS event is sent
-      verify(snsService, times(1)).sendIepReviewEvent(iepReviewId, syncPostRequest.iepTime, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
+      verify(snsService, times(1)).sendIepReviewEvent(iepReviewId, prisonerAtLocation().offenderNo, syncPostRequest.iepTime, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
 
       // audit message is sent
       verify(auditService, times(1))
@@ -622,6 +640,17 @@ class PrisonerIepLevelReviewServiceTest {
     ),
     occurredAt = Instant.now(),
     description = "A prisoner has been received into prison"
+  )
+
+  private fun prisonMergeEvent() = HMPPSDomainEvent(
+    eventType = "prison-offender-events.prisoner.merged",
+    additionalInformation = AdditionalInformation(
+      nomsNumber = "A1244AB",
+      reason = "MERGED",
+      removedNomsNumber = "A8765SS",
+    ),
+    occurredAt = Instant.now(),
+    description = "A prisoner has been merged from A8765SS to A1244AB"
   )
 
   private fun prisonerAtLocation(bookingId: Long = 1234567, offenderNo: String = "A1234AA", agencyId: String = "MDI") = PrisonerAtLocation(

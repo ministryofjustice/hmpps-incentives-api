@@ -87,6 +87,23 @@ internal class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     }
   }
 
+  @Test
+  fun `prisoner with MERGE numbers is processed`(): Unit = runBlocking {
+    // Given
+    val bookingId = 1294134L
+    val prisonerNumber = "A1244AB"
+    val removedNomsNumber = "A4432FD"
+    val locationId = 77777L
+
+    prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = locationId)
+
+    // When
+    publishPrisonerMergedMessage(prisonerNumber, removedNomsNumber)
+
+    await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
+    await untilCallTo { prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber") } matches { it == 1 }
+  }
+
   private fun publishPrisonerReceivedMessage(reason: String) =
     domainEventsTopicSnsClient.publish(
       PublishRequest(
@@ -108,6 +125,31 @@ internal class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
           mapOf(
             "eventType" to MessageAttributeValue().withDataType("String")
               .withStringValue("prison-offender-events.prisoner.received"),
+          )
+        )
+    )
+
+  private fun publishPrisonerMergedMessage(nomsNumber: String, removedNomsNumber: String) =
+    domainEventsTopicSnsClient.publish(
+      PublishRequest(
+        domainEventsTopicArn,
+        jsonString(
+          HMPPSDomainEvent(
+            eventType = "prison-offender-events.prisoner.merged",
+            additionalInformation = AdditionalInformation(
+              nomsNumber = nomsNumber,
+              removedNomsNumber = removedNomsNumber,
+              reason = "MERGE",
+            ),
+            occurredAt = Instant.now(),
+            description = "A prisoner has been merged from $removedNomsNumber to $nomsNumber"
+          )
+        )
+      )
+        .withMessageAttributes(
+          mapOf(
+            "eventType" to MessageAttributeValue().withDataType("String")
+              .withStringValue("prison-offender-events.prisoner.merged"),
           )
         )
     )

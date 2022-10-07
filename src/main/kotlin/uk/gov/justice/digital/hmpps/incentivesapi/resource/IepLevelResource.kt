@@ -417,7 +417,7 @@ class IepLevelResource(
   ): IepDetail = prisonerIepLevelReviewService.handleSyncPatchIepReviewRequest(bookingId, id, syncPatchRequest)
 
   private suspend fun sendEventAndAudit(iepDetail: IepDetail, eventType: IncentivesDomainEventType, auditType: AuditType) {
-    snsService.sendIepReviewEvent(iepDetail.id!!, iepDetail.iepTime, eventType)
+    snsService.sendIepReviewEvent(iepDetail.id!!, iepDetail.prisonerNumber ?: "N/A", iepDetail.iepTime, eventType)
 
     auditService.sendMessage(
       auditType,

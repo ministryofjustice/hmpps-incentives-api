@@ -153,10 +153,11 @@ class PrisonerIepLevelReviewService(
     prisonerIepLevelRepository.findById(id)?.translate() ?: throw NoDataFoundException(id)
 
   @Transactional
-  suspend fun processReceivedPrisoner(prisonOffenderEvent: HMPPSDomainEvent) =
+  suspend fun processOffenderEvent(prisonOffenderEvent: HMPPSDomainEvent) =
     when (prisonOffenderEvent.additionalInformation.reason) {
       "ADMISSION" -> createIepForReceivedPrisoner(prisonOffenderEvent, ReviewType.INITIAL)
       "TRANSFERRED" -> createIepForReceivedPrisoner(prisonOffenderEvent, ReviewType.TRANSFER)
+      "MERGE" -> mergedPrisonerDetails(prisonOffenderEvent)
       else -> {
         log.debug("Ignoring prisonOffenderEvent with reason ${prisonOffenderEvent.additionalInformation.reason}")
       }
@@ -291,7 +292,7 @@ class PrisonerIepLevelReviewService(
     auditType: AuditType,
   ) {
     iepDetail.id?.let {
-      snsService.sendIepReviewEvent(iepDetail.id, iepDetail.iepTime, eventType)
+      snsService.sendIepReviewEvent(iepDetail.id, iepDetail.prisonerNumber ?: "N/A", iepDetail.iepTime, eventType)
 
       auditService.sendMessage(
         auditType,
@@ -320,6 +321,34 @@ class PrisonerIepLevelReviewService(
       prisonerNumber = prisonerNumber,
       auditModuleName = "Incentives-API",
     )
+
+  @Transactional
+  suspend fun mergedPrisonerDetails(prisonerMergeEvent: HMPPSDomainEvent) {
+
+    val removedPrisonerNumber = prisonerMergeEvent.additionalInformation.removedNomsNumber!!
+    val remainingPrisonerNumber = prisonerMergeEvent.additionalInformation.nomsNumber!!
+    log.info("Processing merge event: Prisoner Number Merge $removedPrisonerNumber -> $remainingPrisonerNumber")
+
+    val prisonerInfo = prisonApiService.getPrisonerInfo(remainingPrisonerNumber, true)
+
+    val numberUpdated = prisonerIepLevelRepository.updatePrisonerNumber(
+      remainingPrisonerNumber,
+      prisonerInfo.bookingId,
+      removedPrisonerNumber
+    )
+
+    if (numberUpdated > 0) {
+      val message = "$numberUpdated incentive records updated from merge $removedPrisonerNumber -> $remainingPrisonerNumber. Updated to booking ID ${prisonerInfo.bookingId}"
+      log.info(message)
+      auditService.sendMessage(
+        AuditType.PRISONER_NUMBER_MERGE,
+        remainingPrisonerNumber,
+        message
+      )
+    } else {
+      log.info("No incentive records found for $removedPrisonerNumber, no records updated")
+    }
+  }
 }
 
 data class IepReviewInNomis(

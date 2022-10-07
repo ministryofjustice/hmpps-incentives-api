@@ -21,11 +21,11 @@ class SnsService(hmppsQueueService: HmppsQueueService, private val objectMapper:
   private val domaineventsTopic by lazy { hmppsQueueService.findByTopicId("domainevents") ?: throw RuntimeException("Topic with name domainevents doesn't exist") }
   private val domaineventsTopicClient by lazy { domaineventsTopic.snsClient }
 
-  fun sendIepReviewEvent(reviewId: Long, occurredAt: LocalDateTime, eventType: IncentivesDomainEventType) {
+  fun sendIepReviewEvent(reviewId: Long, nomsNumber: String, occurredAt: LocalDateTime, eventType: IncentivesDomainEventType) {
     publishToDomainEventsTopic(
       HMPPSDomainEvent(
         eventType.value,
-        AdditionalInformation(reviewId),
+        AdditionalInformation(reviewId, nomsNumber, eventType.value),
         occurredAt.atZone(ZoneId.systemDefault()).toInstant(),
         "An IEP review has been added"
       )
@@ -47,9 +47,10 @@ class SnsService(hmppsQueueService: HmppsQueueService, private val objectMapper:
 }
 
 data class AdditionalInformation(
-  val id: Long,
+  val id: Long? = null,
   val nomsNumber: String? = null,
   val reason: String? = null,
+  val removedNomsNumber: String? = null,
 )
 
 data class HMPPSDomainEvent(
