@@ -1,6 +1,13 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.count
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flattenMerge
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -354,6 +361,7 @@ class PrisonerIepLevelReviewService(
   }
 }
 
+@OptIn(FlowPreview::class)
 fun <T> merge(vararg flows: Flow<T>): Flow<T> = flowOf(*flows).flattenMerge()
 
 data class IepReviewInNomis(
