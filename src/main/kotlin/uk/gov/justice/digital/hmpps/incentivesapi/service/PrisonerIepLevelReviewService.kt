@@ -1,7 +1,11 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flattenMerge
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import org.slf4j.Logger
@@ -334,27 +338,36 @@ class PrisonerIepLevelReviewService(
     val remainingPrisonerNumber = prisonerMergeEvent.additionalInformation.nomsNumber!!
     log.info("Processing merge event: Prisoner Number Merge $removedPrisonerNumber -> $remainingPrisonerNumber")
 
-    val prisonerInfo = prisonApiService.getPrisonerInfo(remainingPrisonerNumber, true)
+    val activeReviews = prisonerIepLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(removedPrisonerNumber)
+      .map { review -> review.copy(prisonerNumber = remainingPrisonerNumber) }
 
-    val numberUpdated = prisonerIepLevelRepository.updatePrisonerNumber(
-      remainingPrisonerNumber,
-      prisonerInfo.bookingId,
-      removedPrisonerNumber
-    )
+    val remainingBookingId = prisonApiService.getPrisonerInfo(remainingPrisonerNumber, true).bookingId
+    val inactiveReviews = prisonerIepLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(remainingPrisonerNumber)
+      .map { review -> review.copy(bookingId = remainingBookingId, current = false) }
 
+    val reviewsToUpdate = merge(activeReviews, inactiveReviews)
+    reviewsToUpdate.collect {
+      prisonerIepLevelRepository.save(it)
+    }
+
+    val numberUpdated = reviewsToUpdate.count()
     if (numberUpdated > 0) {
-      val message = "$numberUpdated incentive records updated from merge $removedPrisonerNumber -> $remainingPrisonerNumber. Updated to booking ID ${prisonerInfo.bookingId}"
+      val message = "$numberUpdated incentive records updated from merge $removedPrisonerNumber -> $remainingPrisonerNumber. Updated to booking ID $remainingBookingId"
       log.info(message)
       auditService.sendMessage(
         AuditType.PRISONER_NUMBER_MERGE,
         remainingPrisonerNumber,
-        message
+        message,
+        "Incentives-API"
       )
     } else {
       log.info("No incentive records found for $removedPrisonerNumber, no records updated")
     }
   }
 }
+
+@OptIn(FlowPreview::class)
+fun <T> merge(vararg flows: Flow<T>): Flow<T> = flowOf(*flows).flattenMerge()
 
 data class IepReviewInNomis(
   val iepLevel: String,

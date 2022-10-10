@@ -287,17 +287,55 @@ class PrisonerIepLevelReviewServiceTest {
     fun `process MERGE event`(): Unit = runBlocking {
       // Given - default for that prison is Enhanced
       val prisonMergeEvent = prisonMergeEvent()
-      whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(prisonerAtLocation())
-      whenever(prisonerIepLevelRepository.updatePrisonerNumber("A1244AB", 1234567, "A8765SS")).thenReturn(1)
-
+      whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(prisonerAtLocation(bookingId = 1234567, offenderNo = "A1244AB"))
+      whenever(prisonerIepLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDesc("A8765SS"))
+        .thenReturn(
+          flowOf(
+            PrisonerIepLevel(
+              prisonerNumber = "A8765SS",
+              bookingId = 1234567L,
+              prisonId = "LEI",
+              locationId = "LEI-1-1-001",
+              reviewedBy = "TEST_STAFF1",
+              iepCode = "BAS",
+              current = true,
+              reviewTime = LocalDateTime.now().minusDays(2)
+            )
+          )
+        )
+      whenever(prisonerIepLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDesc("A1244AB"))
+        .thenReturn(
+          flowOf(
+            PrisonerIepLevel(
+              prisonerNumber = "A1244AB",
+              bookingId = 555555L,
+              prisonId = "LEI",
+              locationId = "LEI-1-1-001",
+              reviewedBy = "TEST_STAFF1",
+              iepCode = "BAS",
+              current = false,
+              reviewTime = LocalDateTime.now().minusDays(200),
+            ),
+            PrisonerIepLevel(
+              prisonerNumber = "A1244AB",
+              bookingId = 555555L,
+              prisonId = "LEI",
+              locationId = "LEI-1-1-001",
+              reviewedBy = "TEST_STAFF1",
+              iepCode = "STD",
+              current = true,
+              reviewTime = LocalDateTime.now().minusDays(100)
+            )
+          )
+        )
       prisonerIepLevelReviewService.mergedPrisonerDetails(prisonMergeEvent)
 
-      verify(prisonerIepLevelRepository, times(1)).updatePrisonerNumber("A1244AB", 1234567, "A8765SS")
       verify(auditService, times(1))
         .sendMessage(
           AuditType.PRISONER_NUMBER_MERGE,
           "A1244AB",
-          "1 incentive records updated from merge A8765SS -> A1244AB. Updated to booking ID 1234567",
+          "3 incentive records updated from merge A8765SS -> A1244AB. Updated to booking ID 1234567",
+          "Incentives-API"
         )
     }
 

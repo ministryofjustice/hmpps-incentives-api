@@ -12,12 +12,14 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.service.AdditionalInformation
 import uk.gov.justice.digital.hmpps.incentivesapi.service.HMPPSDomainEvent
 import java.time.Duration
 import java.time.Instant
+import java.time.LocalDateTime
 
 internal class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
 
@@ -91,10 +93,47 @@ internal class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
   fun `prisoner with MERGE numbers is processed`(): Unit = runBlocking {
     // Given
     val bookingId = 1294134L
+    val oldBookingId = 2343L
     val prisonerNumber = "A1244AB"
     val removedNomsNumber = "A4432FD"
     val locationId = 77777L
 
+    repository.save(
+      PrisonerIepLevel(
+        bookingId = bookingId,
+        prisonerNumber = removedNomsNumber,
+        prisonId = "LEI",
+        locationId = "LEI-1-1-001",
+        reviewedBy = "TEST_STAFF1",
+        iepCode = "BAS",
+        current = true,
+        reviewTime = LocalDateTime.now().minusDays(2),
+      )
+    )
+    repository.save(
+      PrisonerIepLevel(
+        bookingId = oldBookingId,
+        prisonerNumber = prisonerNumber,
+        prisonId = "LEI",
+        locationId = "LEI-1-1-001",
+        reviewedBy = "TEST_STAFF1",
+        iepCode = "STD",
+        current = true,
+        reviewTime = LocalDateTime.now().minusDays(50),
+      )
+    )
+    repository.save(
+      PrisonerIepLevel(
+        bookingId = oldBookingId,
+        prisonerNumber = prisonerNumber,
+        prisonId = "LEI",
+        locationId = "LEI-1-1-001",
+        reviewedBy = "TEST_STAFF1",
+        iepCode = "BAS",
+        current = false,
+        reviewTime = LocalDateTime.now().minusDays(200),
+      )
+    )
     prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = locationId)
 
     // When
