@@ -76,15 +76,20 @@ class PrisonerIepLevelReviewService(
   }
 
   @Transactional
-  suspend fun persistPrisonerIepLevel(bookingId: Long, syncPostRequest: SyncPostRequest): IepDetail {
+  suspend fun persistSyncPostRequest(bookingId: Long, syncPostRequest: SyncPostRequest, includeLocation: Boolean): IepDetail {
     val prisonerInfo = prisonApiService.getPrisonerInfo(bookingId, true)
+    var locationInfo: Location? = null
+    if (includeLocation) {
+      locationInfo = prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId, true)
+    }
+
     return prisonerIepLevelRepository.save(
       PrisonerIepLevel(
         iepCode = syncPostRequest.iepLevel,
         commentText = syncPostRequest.comment,
         bookingId = prisonerInfo.bookingId,
         prisonId = syncPostRequest.prisonId,
-        locationId = syncPostRequest.locationId,
+        locationId = locationInfo?.description,
         current = syncPostRequest.current,
         reviewedBy = syncPostRequest.userId,
         reviewTime = syncPostRequest.iepTime,
@@ -95,7 +100,7 @@ class PrisonerIepLevelReviewService(
   }
 
   suspend fun handleSyncPostIepReviewRequest(bookingId: Long, syncPostRequest: SyncPostRequest): IepDetail {
-    val iepDetail = persistPrisonerIepLevel(bookingId, syncPostRequest)
+    val iepDetail = persistSyncPostRequest(bookingId, syncPostRequest, true)
     sendEventAndAudit(
       iepDetail,
       eventType = IncentivesDomainEventType.IEP_REVIEW_INSERTED,

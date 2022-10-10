@@ -334,7 +334,7 @@ class IepLevelResource(
     )
     @RequestBody @Valid syncPostRequest: SyncPostRequest,
   ): IepDetail =
-    prisonerIepLevelReviewService.persistPrisonerIepLevel(bookingId, syncPostRequest)
+    prisonerIepLevelReviewService.persistSyncPostRequest(bookingId, syncPostRequest, false)
 
   @PostMapping("/sync/booking/{bookingId}")
   @PreAuthorize("hasRole('MAINTAIN_IEP') and hasAuthority('SCOPE_write')")

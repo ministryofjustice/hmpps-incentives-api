@@ -115,10 +115,6 @@ data class SyncPostRequest(
   @field:NotBlank(message = "Prison ID is required")
   val prisonId: String,
 
-  @Schema(description = "Location of prisoner when review took place within prison (i.e. their cell)", example = "1-2-003", required = true)
-  @field:NotBlank(message = "Location ID is required")
-  val locationId: String,
-
   @Schema(description = "IEP Level", example = "STD", required = true, allowableValues = ["STD", "BAS", "ENH", "EN2", "EN3", "ENT"])
   @field:Size(
     max = 6,
