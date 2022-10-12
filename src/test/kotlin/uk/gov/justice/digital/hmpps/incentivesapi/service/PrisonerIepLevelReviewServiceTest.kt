@@ -8,6 +8,8 @@ import org.junit.Assert
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
@@ -15,8 +17,11 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.incentivesapi.config.AuthenticationFacade
+import uk.gov.justice.digital.hmpps.incentivesapi.config.FeatureFlagsService
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataFoundException
+import uk.gov.justice.digital.hmpps.incentivesapi.config.ReviewAddedSyncMechanism
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPatchRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
@@ -41,6 +46,7 @@ class PrisonerIepLevelReviewServiceTest {
   private var clock: Clock = Clock.fixed(Instant.ofEpochMilli(0), ZoneId.systemDefault())
   private val snsService: SnsService = mock()
   private val auditService: AuditService = mock()
+  private val featureFlagsService: FeatureFlagsService = mock()
 
   private val prisonerIepLevelReviewService = PrisonerIepLevelReviewService(
     prisonApiService,
@@ -51,7 +57,125 @@ class PrisonerIepLevelReviewServiceTest {
     auditService,
     authenticationFacade,
     clock,
+    featureFlagsService,
   )
+
+  @Nested
+  inner class AddIepReview {
+
+    private val bookingId = 1234567L
+    private val prisonerNumber = "A1234BC"
+    private val reviewerUserName = "USER_1_GEN"
+    private val reviewTime = LocalDateTime.now(clock)
+    private val prisonerInfo = prisonerAtLocation(
+      bookingId = bookingId,
+      offenderNo = prisonerNumber,
+    )
+    private val iepReview = IepReview(
+      iepLevel = "ENH",
+      comment = "A review took place",
+      reviewType = ReviewType.REVIEW,
+    )
+    private val prisonerIepLevel = PrisonerIepLevel(
+      iepCode = iepReview.iepLevel,
+      commentText = iepReview.comment,
+      reviewType = iepReview.reviewType!!,
+      prisonId = prisonerInfo.agencyId,
+      locationId = location.description,
+      current = true,
+      reviewedBy = reviewerUserName,
+      reviewTime = reviewTime,
+      prisonerNumber = prisonerInfo.offenderNo,
+      bookingId = prisonerInfo.bookingId,
+    )
+
+    @BeforeEach
+    fun setUp(): Unit = runBlocking {
+      whenever(prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId)).thenReturn(location)
+      whenever(authenticationFacade.getUsername()).thenReturn(reviewerUserName)
+      whenever(prisonerIepLevelRepository.save(any())).thenReturn(prisonerIepLevel.copy(id = 42))
+      whenever(iepLevelRepository.findById(iepReview.iepLevel)).thenReturn(
+        IepLevel(iepCode = iepReview.iepLevel, iepDescription = "Enhanced")
+      )
+    }
+
+    @ParameterizedTest()
+    @EnumSource(ReviewAddedSyncMechanism::class)
+    fun `addIepReview() by prisonerNumber`(reviewAddedSyncMechanism: ReviewAddedSyncMechanism): Unit = runBlocking {
+      coroutineScope {
+        whenever(featureFlagsService.reviewAddedSyncMechanism()).thenReturn(reviewAddedSyncMechanism)
+
+        // Given
+        whenever(prisonApiService.getPrisonerInfo(prisonerNumber)).thenReturn(prisonerInfo)
+
+        // When
+        prisonerIepLevelReviewService.addIepReview(prisonerNumber, iepReview)
+
+        testAddIepReviewCommonFunctionality(reviewAddedSyncMechanism)
+      }
+    }
+
+    @ParameterizedTest()
+    @EnumSource(ReviewAddedSyncMechanism::class)
+    fun `addIepReview() by bookingId`(reviewAddedSyncMechanism: ReviewAddedSyncMechanism): Unit = runBlocking {
+      coroutineScope {
+        whenever(featureFlagsService.reviewAddedSyncMechanism()).thenReturn(reviewAddedSyncMechanism)
+
+        // Given
+        whenever(prisonApiService.getPrisonerInfo(bookingId)).thenReturn(prisonerInfo)
+
+        // When
+        prisonerIepLevelReviewService.addIepReview(bookingId, iepReview)
+
+        testAddIepReviewCommonFunctionality(reviewAddedSyncMechanism)
+      }
+    }
+
+    private suspend fun testAddIepReviewCommonFunctionality(reviewAddedSyncMechanism: ReviewAddedSyncMechanism) {
+      // IEP review is saved
+      verify(prisonerIepLevelRepository, times(1)).save(prisonerIepLevel)
+
+      if (reviewAddedSyncMechanism == ReviewAddedSyncMechanism.DOMAIN_EVENT) {
+        // A domain even is published
+        verify(snsService, times(1)).sendIepReviewEvent(
+          42,
+          prisonerNumber,
+          reviewTime,
+          IncentivesDomainEventType.IEP_REVIEW_INSERTED,
+        )
+
+        // Prison API request not made
+        verify(prisonApiService, times(0)).addIepReview(any(), any())
+      } else {
+        // NOMIS is updated my making a request to Prison API
+        verify(prisonApiService, times(1)).addIepReview(
+          bookingId,
+          IepReviewInNomis(
+            iepLevel = iepReview.iepLevel,
+            comment = iepReview.comment,
+            reviewTime = reviewTime,
+            reviewerUserName = reviewerUserName,
+          ),
+        )
+
+        // Domain event not published
+        verify(snsService, times(0)).sendIepReviewEvent(any(), any(), any(), any())
+      }
+
+      // An audit event is published
+      verify(auditService, times(1)).sendMessage(
+        AuditType.IEP_REVIEW_ADDED,
+        "42",
+        iepDetailFromIepLevel(
+          prisonerIepLevel,
+          iepCode = "ENH",
+          iepDescription = "Enhanced",
+          id = 42,
+        ),
+        reviewerUserName,
+      )
+    }
+  }
 
   @Nested
   inner class GetPrisonerIepLevelHistory {
@@ -716,9 +840,9 @@ class PrisonerIepLevelReviewServiceTest {
     current = true,
   )
 
-  private fun iepDetailFromIepLevel(prisonerIepLevel: PrisonerIepLevel, iepDescription: String, iepCode: String) =
+  private fun iepDetailFromIepLevel(prisonerIepLevel: PrisonerIepLevel, iepDescription: String, iepCode: String, id: Long = 0) =
     IepDetail(
-      id = 0,
+      id = id,
       iepLevel = iepDescription,
       iepCode = iepCode,
       comments = prisonerIepLevel.commentText,

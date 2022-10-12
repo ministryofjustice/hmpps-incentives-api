@@ -13,7 +13,9 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.incentivesapi.config.AuthenticationFacade
+import uk.gov.justice.digital.hmpps.incentivesapi.config.FeatureFlagsService
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataFoundException
+import uk.gov.justice.digital.hmpps.incentivesapi.config.ReviewAddedSyncMechanism
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.CurrentIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
@@ -39,6 +41,7 @@ class PrisonerIepLevelReviewService(
   private val auditService: AuditService,
   private val authenticationFacade: AuthenticationFacade,
   private val clock: Clock,
+  private val featureFlagsService: FeatureFlagsService,
 ) {
   companion object {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -70,13 +73,13 @@ class PrisonerIepLevelReviewService(
   @Transactional
   suspend fun addIepReview(prisonerNumber: String, iepReview: IepReview): IepDetail {
     val prisonerInfo = prisonApiService.getPrisonerInfo(prisonerNumber)
-    return addIepLevel(prisonerInfo, iepReview)
+    return addIepReviewForPrisonerAtLocation(prisonerInfo, iepReview)
   }
 
   @Transactional
   suspend fun addIepReview(bookingId: Long, iepReview: IepReview): IepDetail {
     val prisonerInfo = prisonApiService.getPrisonerInfo(bookingId)
-    return addIepLevel(prisonerInfo, iepReview)
+    return addIepReviewForPrisonerAtLocation(prisonerInfo, iepReview)
   }
 
   @Transactional
@@ -105,11 +108,10 @@ class PrisonerIepLevelReviewService(
 
   suspend fun handleSyncPostIepReviewRequest(bookingId: Long, syncPostRequest: SyncPostRequest): IepDetail {
     val iepDetail = persistSyncPostRequest(bookingId, syncPostRequest, true)
-    sendEventAndAudit(
-      iepDetail,
-      eventType = IncentivesDomainEventType.IEP_REVIEW_INSERTED,
-      auditType = AuditType.IEP_REVIEW_ADDED,
-    )
+
+    publishDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
+    publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_ADDED)
+
     return iepDetail
   }
 
@@ -136,11 +138,10 @@ class PrisonerIepLevelReviewService(
     )
 
     val iepDetail = prisonerIepLevelRepository.save(prisonerIepLevel).translate()
-    sendEventAndAudit(
-      iepDetail,
-      eventType = IncentivesDomainEventType.IEP_REVIEW_UPDATED,
-      auditType = AuditType.IEP_REVIEW_UPDATED,
-    )
+
+    publishDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_UPDATED)
+    publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_UPDATED)
+
     return iepDetail
   }
 
@@ -192,9 +193,12 @@ class PrisonerIepLevelReviewService(
         "incentives-api"
       )
 
-      sendEventAndAudit(
+      publishDomainEvent(
         prisonerIepLevel.translate(),
         IncentivesDomainEventType.IEP_REVIEW_INSERTED,
+      )
+      publishAuditEvent(
+        prisonerIepLevel.translate(),
         AuditType.IEP_REVIEW_ADDED,
       )
     } ?: run {
@@ -237,9 +241,9 @@ class PrisonerIepLevelReviewService(
     )
   }
 
-  private suspend fun addIepLevel(
+  private suspend fun addIepReviewForPrisonerAtLocation(
     prisonerInfo: PrisonerAtLocation,
-    iepReview: IepReview
+    iepReview: IepReview,
   ): IepDetail {
     val locationInfo = prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId)
 
@@ -254,15 +258,22 @@ class PrisonerIepLevelReviewService(
       reviewerUserName
     ).translate()
 
-    prisonApiService.addIepReview(
-      prisonerInfo.bookingId,
-      IepReviewInNomis(
-        iepLevel = iepReview.iepLevel,
-        comment = iepReview.comment,
-        reviewTime = reviewTime,
-        reviewerUserName = reviewerUserName
+    // Propagate new IEP review to other services
+    if (featureFlagsService.reviewAddedSyncMechanism() == ReviewAddedSyncMechanism.DOMAIN_EVENT) {
+      publishDomainEvent(newIepReview, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
+    } else {
+      prisonApiService.addIepReview(
+        prisonerInfo.bookingId,
+        IepReviewInNomis(
+          iepLevel = iepReview.iepLevel,
+          comment = iepReview.comment,
+          reviewTime = reviewTime,
+          reviewerUserName = reviewerUserName
+        )
       )
-    )
+    }
+
+    publishAuditEvent(newIepReview, AuditType.IEP_REVIEW_ADDED)
 
     return newIepReview
   }
@@ -295,14 +306,22 @@ class PrisonerIepLevelReviewService(
     )
   }
 
-  private suspend fun sendEventAndAudit(
+  private suspend fun publishDomainEvent(
     iepDetail: IepDetail,
     eventType: IncentivesDomainEventType,
-    auditType: AuditType,
   ) {
     iepDetail.id?.let {
       snsService.sendIepReviewEvent(iepDetail.id, iepDetail.prisonerNumber ?: "N/A", iepDetail.iepTime, eventType)
+    } ?: run {
+      log.warn("IepDetail has `null` id, domain event not published: $iepDetail")
+    }
+  }
 
+  private suspend fun publishAuditEvent(
+    iepDetail: IepDetail,
+    auditType: AuditType,
+  ) {
+    iepDetail.id?.let {
       auditService.sendMessage(
         auditType,
         iepDetail.id.toString(),
@@ -310,7 +329,7 @@ class PrisonerIepLevelReviewService(
         iepDetail.userId,
       )
     } ?: run {
-      log.warn("id null for iepDetail: $iepDetail")
+      log.warn("IepDetail has `null` id, audit event not published: $iepDetail")
     }
   }
 

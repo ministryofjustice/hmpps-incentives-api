@@ -26,10 +26,8 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPatchRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.service.AuditService
-import uk.gov.justice.digital.hmpps.incentivesapi.service.AuditType
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IepLevelService
-import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentivesDomainEventType
 import uk.gov.justice.digital.hmpps.incentivesapi.service.PrisonerIepLevelReviewService
 import uk.gov.justice.digital.hmpps.incentivesapi.service.SnsService
 import javax.validation.Valid
@@ -247,11 +245,7 @@ class IepLevelResource(
       implementation = IepReview::class,
     )
     @RequestBody @Valid iepReview: IepReview,
-  ): IepDetail {
-    val iepDetail = prisonerIepLevelReviewService.addIepReview(bookingId, iepReview)
-    sendEventAndAudit(iepDetail, IncentivesDomainEventType.IEP_REVIEW_INSERTED, AuditType.IEP_REVIEW_ADDED)
-    return iepDetail
-  }
+  ): IepDetail = prisonerIepLevelReviewService.addIepReview(bookingId, iepReview)
 
   @PostMapping("/reviews/prisoner/{prisonerNumber}")
   @PreAuthorize("hasRole('MAINTAIN_IEP') and hasAuthority('SCOPE_write')")
@@ -290,11 +284,7 @@ class IepLevelResource(
       implementation = IepReview::class,
     )
     @RequestBody @Valid iepReview: IepReview,
-  ): IepDetail {
-    val iepDetail = prisonerIepLevelReviewService.addIepReview(prisonerNumber, iepReview)
-    sendEventAndAudit(iepDetail, IncentivesDomainEventType.IEP_REVIEW_INSERTED, AuditType.IEP_REVIEW_ADDED)
-    return iepDetail
-  }
+  ): IepDetail = prisonerIepLevelReviewService.addIepReview(prisonerNumber, iepReview)
 
   @PostMapping("/migration/booking/{bookingId}")
   @PreAuthorize("hasRole('MAINTAIN_IEP') and hasAuthority('SCOPE_write')")
@@ -415,14 +405,4 @@ class IepLevelResource(
     )
     @RequestBody @Valid syncPatchRequest: SyncPatchRequest,
   ): IepDetail = prisonerIepLevelReviewService.handleSyncPatchIepReviewRequest(bookingId, id, syncPatchRequest)
-
-  private suspend fun sendEventAndAudit(iepDetail: IepDetail, eventType: IncentivesDomainEventType, auditType: AuditType) {
-    snsService.sendIepReviewEvent(iepDetail.id!!, iepDetail.prisonerNumber ?: "N/A", iepDetail.iepTime, eventType)
-
-    auditService.sendMessage(
-      auditType,
-      iepDetail.id.toString(),
-      iepDetail
-    )
-  }
 }
