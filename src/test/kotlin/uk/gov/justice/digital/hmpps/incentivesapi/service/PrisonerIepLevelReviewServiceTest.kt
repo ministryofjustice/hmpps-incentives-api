@@ -8,13 +8,17 @@ import org.junit.Assert
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
+import uk.gov.justice.digital.hmpps.incentivesapi.config.ReviewAddedSyncMechanism
 import uk.gov.justice.digital.hmpps.incentivesapi.config.AuthenticationFacade
+import uk.gov.justice.digital.hmpps.incentivesapi.config.FeatureFlagsService
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
@@ -42,6 +46,7 @@ class PrisonerIepLevelReviewServiceTest {
   private var clock: Clock = Clock.fixed(Instant.ofEpochMilli(0), ZoneId.systemDefault())
   private val snsService: SnsService = mock()
   private val auditService: AuditService = mock()
+  private val featureFlagsService: FeatureFlagsService = mock()
 
   private val prisonerIepLevelReviewService = PrisonerIepLevelReviewService(
     prisonApiService,
@@ -52,6 +57,7 @@ class PrisonerIepLevelReviewServiceTest {
     auditService,
     authenticationFacade,
     clock,
+    featureFlagsService,
   )
 
   @Nested
@@ -93,9 +99,12 @@ class PrisonerIepLevelReviewServiceTest {
       )
     }
 
-    @Test
-    fun `addIepReview by prisonerNumber`(): Unit = runBlocking {
+    @ParameterizedTest()
+    @EnumSource(ReviewAddedSyncMechanism::class)
+    fun `addIepReview() by prisonerNumber`(reviewAddedSyncMechanism: ReviewAddedSyncMechanism): Unit = runBlocking {
       coroutineScope {
+        whenever(featureFlagsService.reviewAddedSyncMechanism()).thenReturn(reviewAddedSyncMechanism)
+
         // Given
         whenever(prisonApiService.getPrisonerInfo(prisonerNumber)).thenReturn(prisonerInfo)
 
@@ -105,20 +114,31 @@ class PrisonerIepLevelReviewServiceTest {
         // Then review is saved
         checkReviewWasSaved(prisonerIepLevel)
 
-        // NOMIS is updated my making a request to Prison API
-        checkRequestToPrisonApiWasMade()
+        if (reviewAddedSyncMechanism == ReviewAddedSyncMechanism.DOMAIN_EVENT) {
+          // A domain even is published
+          checkDomainEventWasPublished()
 
-        // A domain even is published
-        checkDomainEventWasPublished()
+          // Prison API request not made
+          verify(prisonApiService, times(0)).addIepReview(any(), any())
+        } else {
+          // NOMIS is updated my making a request to Prison API
+          checkRequestToPrisonApiWasMade()
+
+          // Domain event not published
+          verify(snsService, times(0)).sendIepReviewEvent(any(), any(), any())
+        }
 
         // An audit event is published
         checkAuditEventWasPublished()
       }
     }
 
-    @Test
-    fun `addIepReview by bookingId`(): Unit = runBlocking {
+    @ParameterizedTest()
+    @EnumSource(ReviewAddedSyncMechanism::class)
+    fun `addIepReview() by bookingId`(reviewAddedSyncMechanism: ReviewAddedSyncMechanism): Unit = runBlocking {
       coroutineScope {
+        whenever(featureFlagsService.reviewAddedSyncMechanism()).thenReturn(reviewAddedSyncMechanism)
+
         // Given
         whenever(prisonApiService.getPrisonerInfo(bookingId)).thenReturn(prisonerInfo)
 
@@ -128,11 +148,19 @@ class PrisonerIepLevelReviewServiceTest {
         // Then review is saved
         checkReviewWasSaved(prisonerIepLevel)
 
-        // NOMIS is updated my making a request to Prison API
-        checkRequestToPrisonApiWasMade()
+        if (reviewAddedSyncMechanism == ReviewAddedSyncMechanism.DOMAIN_EVENT) {
+          // A domain even is published
+          checkDomainEventWasPublished()
 
-        // A domain even is published
-        checkDomainEventWasPublished()
+          // Prison API request not made
+          verify(prisonApiService, times(0)).addIepReview(any(), any())
+        } else {
+          // NOMIS is updated my making a request to Prison API
+          checkRequestToPrisonApiWasMade()
+
+          // Domain event not published
+          verify(snsService, times(0)).sendIepReviewEvent(any(), any(), any())
+        }
 
         // An audit event is published
         checkAuditEventWasPublished()

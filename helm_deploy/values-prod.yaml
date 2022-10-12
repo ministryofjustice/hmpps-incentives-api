@@ -9,6 +9,7 @@ generic-service:
   env:
     API_BASE_URL_OAUTH: https://sign-in.hmpps.service.justice.gov.uk/auth
     API_BASE_URL_PRISON: https://api.prison.service.justice.gov.uk
+    FEATURE_REVIEWADDEDSYNCMECHANISM: "PRISON_API"
 
 # CloudPlatform AlertManager receiver to route Prometheus alerts to slack
 # See https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts

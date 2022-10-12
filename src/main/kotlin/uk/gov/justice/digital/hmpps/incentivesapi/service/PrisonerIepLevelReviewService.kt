@@ -12,7 +12,9 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.incentivesapi.config.ReviewAddedSyncMechanism
 import uk.gov.justice.digital.hmpps.incentivesapi.config.AuthenticationFacade
+import uk.gov.justice.digital.hmpps.incentivesapi.config.FeatureFlagsService
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.CurrentIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
@@ -39,6 +41,7 @@ class PrisonerIepLevelReviewService(
   private val auditService: AuditService,
   private val authenticationFacade: AuthenticationFacade,
   private val clock: Clock,
+  private val featureFlagsService: FeatureFlagsService,
 ) {
   companion object {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -240,7 +243,7 @@ class PrisonerIepLevelReviewService(
 
   private suspend fun addIepReviewForPrisonerAtLocation(
     prisonerInfo: PrisonerAtLocation,
-    iepReview: IepReview
+    iepReview: IepReview,
   ): IepDetail {
     val locationInfo = prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId)
 
@@ -255,17 +258,21 @@ class PrisonerIepLevelReviewService(
       reviewerUserName
     ).translate()
 
-    prisonApiService.addIepReview(
-      prisonerInfo.bookingId,
-      IepReviewInNomis(
-        iepLevel = iepReview.iepLevel,
-        comment = iepReview.comment,
-        reviewTime = reviewTime,
-        reviewerUserName = reviewerUserName
+    // Propagate new IEP review to other services
+    if (featureFlagsService.reviewAddedSyncMechanism() == ReviewAddedSyncMechanism.DOMAIN_EVENT) {
+      publishDomainEvent(newIepReview, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
+    } else {
+      prisonApiService.addIepReview(
+        prisonerInfo.bookingId,
+        IepReviewInNomis(
+          iepLevel = iepReview.iepLevel,
+          comment = iepReview.comment,
+          reviewTime = reviewTime,
+          reviewerUserName = reviewerUserName
+        )
       )
-    )
+    }
 
-    publishDomainEvent(newIepReview, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
     publishAuditEvent(newIepReview, AuditType.IEP_REVIEW_ADDED)
 
     return newIepReview

@@ -1,3 +1,6 @@
+feature:
+  reviewAddedSyncMechanism: DOMAIN_EVENT
+
 server:
   shutdown: immediate
 
