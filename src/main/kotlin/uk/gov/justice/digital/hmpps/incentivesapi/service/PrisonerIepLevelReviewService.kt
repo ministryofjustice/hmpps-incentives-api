@@ -12,10 +12,10 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.incentivesapi.config.ReviewAddedSyncMechanism
 import uk.gov.justice.digital.hmpps.incentivesapi.config.AuthenticationFacade
 import uk.gov.justice.digital.hmpps.incentivesapi.config.FeatureFlagsService
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataFoundException
+import uk.gov.justice.digital.hmpps.incentivesapi.config.ReviewAddedSyncMechanism
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.CurrentIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview

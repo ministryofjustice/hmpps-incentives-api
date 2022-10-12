@@ -405,5 +405,4 @@ class IepLevelResource(
     )
     @RequestBody @Valid syncPatchRequest: SyncPatchRequest,
   ): IepDetail = prisonerIepLevelReviewService.handleSyncPatchIepReviewRequest(bookingId, id, syncPatchRequest)
-
 }

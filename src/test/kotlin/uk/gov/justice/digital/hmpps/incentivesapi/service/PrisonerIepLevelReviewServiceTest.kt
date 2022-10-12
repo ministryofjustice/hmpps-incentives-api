@@ -16,10 +16,10 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.incentivesapi.config.ReviewAddedSyncMechanism
 import uk.gov.justice.digital.hmpps.incentivesapi.config.AuthenticationFacade
 import uk.gov.justice.digital.hmpps.incentivesapi.config.FeatureFlagsService
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataFoundException
+import uk.gov.justice.digital.hmpps.incentivesapi.config.ReviewAddedSyncMechanism
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary

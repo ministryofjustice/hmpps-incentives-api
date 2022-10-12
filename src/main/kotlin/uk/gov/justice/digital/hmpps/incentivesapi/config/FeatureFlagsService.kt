@@ -17,5 +17,4 @@ class FeatureFlagsService(
   fun reviewAddedSyncMechanism(): ReviewAddedSyncMechanism {
     return ReviewAddedSyncMechanism.valueOf(reviewAddedSyncMechanism)
   }
-
 }
