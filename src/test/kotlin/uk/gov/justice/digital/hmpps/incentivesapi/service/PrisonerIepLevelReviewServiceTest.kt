@@ -111,25 +111,7 @@ class PrisonerIepLevelReviewServiceTest {
         // When
         prisonerIepLevelReviewService.addIepReview(prisonerNumber, iepReview)
 
-        // Then review is saved
-        checkReviewWasSaved(prisonerIepLevel)
-
-        if (reviewAddedSyncMechanism == ReviewAddedSyncMechanism.DOMAIN_EVENT) {
-          // A domain even is published
-          checkDomainEventWasPublished()
-
-          // Prison API request not made
-          verify(prisonApiService, times(0)).addIepReview(any(), any())
-        } else {
-          // NOMIS is updated my making a request to Prison API
-          checkRequestToPrisonApiWasMade()
-
-          // Domain event not published
-          verify(snsService, times(0)).sendIepReviewEvent(any(), any(), any(), any())
-        }
-
-        // An audit event is published
-        checkAuditEventWasPublished()
+        testAddIepReviewCommonFunctionality(reviewAddedSyncMechanism)
       }
     }
 
@@ -145,42 +127,42 @@ class PrisonerIepLevelReviewServiceTest {
         // When
         prisonerIepLevelReviewService.addIepReview(bookingId, iepReview)
 
-        // Then review is saved
-        checkReviewWasSaved(prisonerIepLevel)
-
-        if (reviewAddedSyncMechanism == ReviewAddedSyncMechanism.DOMAIN_EVENT) {
-          // A domain even is published
-          checkDomainEventWasPublished()
-
-          // Prison API request not made
-          verify(prisonApiService, times(0)).addIepReview(any(), any())
-        } else {
-          // NOMIS is updated my making a request to Prison API
-          checkRequestToPrisonApiWasMade()
-
-          // Domain event not published
-          verify(snsService, times(0)).sendIepReviewEvent(any(), any(), any(), any())
-        }
-
-        // An audit event is published
-        checkAuditEventWasPublished()
+        testAddIepReviewCommonFunctionality(reviewAddedSyncMechanism)
       }
     }
 
-    private suspend fun checkReviewWasSaved(prisonerIepLevel: PrisonerIepLevel) {
+    private suspend fun testAddIepReviewCommonFunctionality(reviewAddedSyncMechanism: ReviewAddedSyncMechanism) {
+      // IEP review is saved
       verify(prisonerIepLevelRepository, times(1)).save(prisonerIepLevel)
-    }
 
-    private fun checkDomainEventWasPublished() {
-      verify(snsService, times(1)).sendIepReviewEvent(
-        42,
-        prisonerNumber,
-        reviewTime,
-        IncentivesDomainEventType.IEP_REVIEW_INSERTED,
-      )
-    }
+      if (reviewAddedSyncMechanism == ReviewAddedSyncMechanism.DOMAIN_EVENT) {
+        // A domain even is published
+        verify(snsService, times(1)).sendIepReviewEvent(
+          42,
+          prisonerNumber,
+          reviewTime,
+          IncentivesDomainEventType.IEP_REVIEW_INSERTED,
+        )
 
-    private suspend fun checkAuditEventWasPublished() {
+        // Prison API request not made
+        verify(prisonApiService, times(0)).addIepReview(any(), any())
+      } else {
+        // NOMIS is updated my making a request to Prison API
+        verify(prisonApiService, times(1)).addIepReview(
+          bookingId,
+          IepReviewInNomis(
+            iepLevel = iepReview.iepLevel,
+            comment = iepReview.comment,
+            reviewTime = reviewTime,
+            reviewerUserName = reviewerUserName,
+          ),
+        )
+
+        // Domain event not published
+        verify(snsService, times(0)).sendIepReviewEvent(any(), any(), any(), any())
+      }
+
+      // An audit event is published
       verify(auditService, times(1)).sendMessage(
         AuditType.IEP_REVIEW_ADDED,
         "42",
@@ -191,18 +173,6 @@ class PrisonerIepLevelReviewServiceTest {
           id = 42,
         ),
         reviewerUserName,
-      )
-    }
-
-    private suspend fun checkRequestToPrisonApiWasMade() {
-      verify(prisonApiService, times(1)).addIepReview(
-        bookingId,
-        IepReviewInNomis(
-          iepLevel = iepReview.iepLevel,
-          comment = iepReview.comment,
-          reviewTime = reviewTime,
-          reviewerUserName = reviewerUserName,
-        ),
       )
     }
   }
