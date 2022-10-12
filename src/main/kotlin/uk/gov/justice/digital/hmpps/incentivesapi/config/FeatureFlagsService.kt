@@ -10,7 +10,7 @@ enum class ReviewAddedSyncMechanism {
 
 @Service
 class FeatureFlagsService(
-  @Value("\${feature.reviewAddedSyncMechanism}")
+  @Value("\${feature.review-added-sync-mechanism}")
   val reviewAddedSyncMechanism: String,
 ) {
 

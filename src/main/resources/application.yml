@@ -9,7 +9,7 @@ feature:
   # - 'DOMAIN_EVENT', a domain event is published (long term, this will be the preferred/only method)
   #
   # NOTE: Environment variable is `FEATURE_REVIEWADDEDSYNCMECHANISM`
-  reviewAddedSyncMechanism: PRISON_API
+  review-added-sync-mechanism: PRISON_API
 
 spring:
   application:

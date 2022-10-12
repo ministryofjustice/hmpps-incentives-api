@@ -1,5 +1,5 @@
 feature:
-  reviewAddedSyncMechanism: DOMAIN_EVENT
+  review-added-sync-mechanism: DOMAIN_EVENT
 
 server:
   shutdown: immediate
