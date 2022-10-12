@@ -634,6 +634,34 @@ class PrisonerIepLevelReviewServiceTest {
           iepReview.reviewedBy,
         )
     }
+
+    @Test
+    fun `If request has current true we update the previous IEP Level with current of true`(): Unit = runBlocking {
+      // Given
+      val iepReviewUpdatedWithSyncPatch = iepReview.copy(current = true)
+      whenever(prisonerIepLevelRepository.save(iepReviewUpdatedWithSyncPatch))
+        .thenReturn(iepReviewUpdatedWithSyncPatch)
+
+      whenever(prisonerIepLevelRepository.findFirstByBookingIdAndCurrentIsTrueOrderByReviewTimeDesc(bookingId))
+        .thenReturn(currentLevel)
+
+      // When
+      prisonerIepLevelReviewService.handleSyncPatchIepReviewRequest(
+        bookingId, iepReview.id,
+        SyncPatchRequest(
+          comment = null,
+          iepTime = null,
+          current = true,
+        )
+      )
+
+      // Then currentLevel record is updated, along with iepReviewUpdatedWithSyncPatch
+      verify(prisonerIepLevelRepository, times(1))
+        .save(currentLevel.copy(current = false))
+
+      verify(prisonerIepLevelRepository, times(1))
+        .save(iepReviewUpdatedWithSyncPatch)
+    }
   }
 
   @Nested
@@ -724,6 +752,23 @@ class PrisonerIepLevelReviewServiceTest {
           iepDetail,
           syncPostRequest.userId,
         )
+    }
+
+    @Test
+    fun `If request has current true we update the previous IEP Level with current of true`(): Unit = runBlocking {
+      // Given
+      whenever(prisonerIepLevelRepository.findFirstByBookingIdAndCurrentIsTrueOrderByReviewTimeDesc(bookingId))
+        .thenReturn(currentLevel)
+
+      // When
+      prisonerIepLevelReviewService.handleSyncPostIepReviewRequest(bookingId, syncPostRequest.copy(current = true))
+
+      // Then currentLevel record is updated, along with iepReview
+      verify(prisonerIepLevelRepository, times(1))
+        .save(currentLevel.copy(current = false))
+
+      verify(prisonerIepLevelRepository, times(1))
+        .save(iepReview)
     }
   }
 

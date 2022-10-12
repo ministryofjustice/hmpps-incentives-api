@@ -90,6 +90,10 @@ class PrisonerIepLevelReviewService(
       locationInfo = prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId, true)
     }
 
+    if (syncPostRequest.current) {
+      updateIepLevelWithCurrentFlagToFalse(bookingId)
+    }
+
     return prisonerIepLevelRepository.save(
       PrisonerIepLevel(
         iepCode = syncPostRequest.iepLevel,
@@ -129,6 +133,10 @@ class PrisonerIepLevelReviewService(
     if (prisonerIepLevel.bookingId != bookingId) {
       log.warn("Patch of PrisonerIepLevel with ID $id failed because provided bookingID ($bookingId) didn't match bookingId on DB record (${prisonerIepLevel.bookingId})")
       throw NoDataFoundException(bookingId)
+    }
+
+    syncPatchRequest.current ?.let {
+      updateIepLevelWithCurrentFlagToFalse(bookingId)
     }
 
     prisonerIepLevel = prisonerIepLevel.copy(
@@ -285,10 +293,7 @@ class PrisonerIepLevelReviewService(
     reviewTime: LocalDateTime,
     reviewerUserName: String,
   ): PrisonerIepLevel {
-    prisonerIepLevelRepository.findFirstByBookingIdAndCurrentIsTrueOrderByReviewTimeDesc(prisonerInfo.bookingId)
-      ?.let {
-        prisonerIepLevelRepository.save(it.copy(current = false))
-      }
+    updateIepLevelWithCurrentFlagToFalse(prisonerInfo.bookingId)
 
     return prisonerIepLevelRepository.save(
       PrisonerIepLevel(
@@ -331,6 +336,13 @@ class PrisonerIepLevelReviewService(
     } ?: run {
       log.warn("IepDetail has `null` id, audit event not published: $iepDetail")
     }
+  }
+
+  private suspend fun updateIepLevelWithCurrentFlagToFalse(bookingId: Long) {
+    prisonerIepLevelRepository.findFirstByBookingIdAndCurrentIsTrueOrderByReviewTimeDesc(bookingId)
+      ?.let {
+        prisonerIepLevelRepository.save(it.copy(current = false))
+      }
   }
 
   private suspend fun PrisonerIepLevel.translate() =
