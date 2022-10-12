@@ -107,7 +107,7 @@ class PrisonerIepLevelReviewService(
   }
 
   suspend fun handleSyncPostIepReviewRequest(bookingId: Long, syncPostRequest: SyncPostRequest): IepDetail {
-    val iepDetail = persistPrisonerIepLevel(bookingId, syncPostRequest, true)
+    val iepDetail = persistSyncPostRequest(bookingId, syncPostRequest, true)
 
     publishDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
     publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_ADDED)

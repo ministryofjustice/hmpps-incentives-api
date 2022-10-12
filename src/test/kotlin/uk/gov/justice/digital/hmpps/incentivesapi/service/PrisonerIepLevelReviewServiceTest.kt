@@ -125,7 +125,7 @@ class PrisonerIepLevelReviewServiceTest {
           checkRequestToPrisonApiWasMade()
 
           // Domain event not published
-          verify(snsService, times(0)).sendIepReviewEvent(any(), any(), any())
+          verify(snsService, times(0)).sendIepReviewEvent(any(), any(), any(), any())
         }
 
         // An audit event is published
@@ -159,7 +159,7 @@ class PrisonerIepLevelReviewServiceTest {
           checkRequestToPrisonApiWasMade()
 
           // Domain event not published
-          verify(snsService, times(0)).sendIepReviewEvent(any(), any(), any())
+          verify(snsService, times(0)).sendIepReviewEvent(any(), any(), any(), any())
         }
 
         // An audit event is published
@@ -174,6 +174,7 @@ class PrisonerIepLevelReviewServiceTest {
     private fun checkDomainEventWasPublished() {
       verify(snsService, times(1)).sendIepReviewEvent(
         42,
+        prisonerNumber,
         reviewTime,
         IncentivesDomainEventType.IEP_REVIEW_INSERTED,
       )
