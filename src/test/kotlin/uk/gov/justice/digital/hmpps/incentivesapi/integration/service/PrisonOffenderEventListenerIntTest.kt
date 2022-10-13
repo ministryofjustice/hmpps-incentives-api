@@ -92,7 +92,7 @@ internal class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
   @Test
   fun `prisoner with MERGE numbers is processed`(): Unit = runBlocking {
     // Given
-    val bookingId = 1294134L
+    val bookingId = 1294133L
     val oldBookingId = 2343L
     val prisonerNumber = "A1244AB"
     val removedNomsNumber = "A4432FD"
