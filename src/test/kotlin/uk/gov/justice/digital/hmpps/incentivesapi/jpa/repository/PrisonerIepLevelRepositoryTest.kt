@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -52,11 +53,11 @@ class PrisonerIepLevelRepositoryTest : TestBase() {
     )
 
     coroutineScope {
-      val prisonerLevelCurrent = async { repository.findFirstByBookingIdAndCurrentIsTrueOrderByReviewTimeDesc(bookingId) }
+      val prisonerLevelCurrent = async { repository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(listOf(bookingId)).first() }
       val prisonerLevelFirst = async { repository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId) }
       val prisonerAllLevels = async { repository.findAllByBookingIdOrderByReviewTimeDesc(bookingId) }
 
-      with(prisonerLevelCurrent.await()!!) {
+      with(prisonerLevelCurrent.await()) {
         assertThat(iepCode).isEqualTo("STD")
         assertThat(prisonId).isEqualTo("MDI")
         assertThat(current).isEqualTo(true)

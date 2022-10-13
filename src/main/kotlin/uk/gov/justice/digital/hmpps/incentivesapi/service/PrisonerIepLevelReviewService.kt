@@ -91,7 +91,7 @@ class PrisonerIepLevelReviewService(
     }
 
     if (syncPostRequest.current) {
-      updateIepLevelWithCurrentFlagToFalse(bookingId)
+      updateIepLevelsWithCurrentFlagToFalse(bookingId)
     }
 
     return prisonerIepLevelRepository.save(
@@ -136,7 +136,7 @@ class PrisonerIepLevelReviewService(
     }
 
     syncPatchRequest.current ?.let {
-      updateIepLevelWithCurrentFlagToFalse(bookingId)
+      updateIepLevelsWithCurrentFlagToFalse(bookingId)
     }
 
     prisonerIepLevel = prisonerIepLevel.copy(
@@ -293,7 +293,7 @@ class PrisonerIepLevelReviewService(
     reviewTime: LocalDateTime,
     reviewerUserName: String,
   ): PrisonerIepLevel {
-    updateIepLevelWithCurrentFlagToFalse(prisonerInfo.bookingId)
+    updateIepLevelsWithCurrentFlagToFalse(prisonerInfo.bookingId)
 
     return prisonerIepLevelRepository.save(
       PrisonerIepLevel(
@@ -338,9 +338,9 @@ class PrisonerIepLevelReviewService(
     }
   }
 
-  private suspend fun updateIepLevelWithCurrentFlagToFalse(bookingId: Long) {
-    prisonerIepLevelRepository.findFirstByBookingIdAndCurrentIsTrueOrderByReviewTimeDesc(bookingId)
-      ?.let {
+  private suspend fun updateIepLevelsWithCurrentFlagToFalse(bookingId: Long) {
+    prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(listOf(bookingId))
+      .collect {
         prisonerIepLevelRepository.save(it.copy(current = false))
       }
   }

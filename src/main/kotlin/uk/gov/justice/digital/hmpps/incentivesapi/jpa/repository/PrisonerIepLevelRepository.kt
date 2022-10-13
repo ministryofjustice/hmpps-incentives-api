@@ -10,6 +10,5 @@ interface PrisonerIepLevelRepository : CoroutineCrudRepository<PrisonerIepLevel,
   fun findAllByPrisonerNumberOrderByReviewTimeDesc(prisonerNumber: String): Flow<PrisonerIepLevel>
   fun findAllByBookingIdOrderByReviewTimeDesc(bookingId: Long): Flow<PrisonerIepLevel>
   fun findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(bookingIds: List<Long>): Flow<PrisonerIepLevel>
-  suspend fun findFirstByBookingIdAndCurrentIsTrueOrderByReviewTimeDesc(bookingId: Long): PrisonerIepLevel?
   suspend fun findFirstByBookingIdOrderByReviewTimeDesc(bookingId: Long): PrisonerIepLevel?
 }
