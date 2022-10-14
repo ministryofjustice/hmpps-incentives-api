@@ -26,11 +26,11 @@ class IepLevelServiceTest {
         whenever(iepLevelRepository.findAll()).thenReturn(fiveIepLevels)
         whenever(prisonApiService.getIepLevelsForPrison(prisonId)).thenReturn(
           flowOf(
-            IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1),
-            IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2),
-            IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3),
-            IepLevel(iepLevel = "ENH2", iepDescription = "Enhanced 2", sequence = 4),
-            IepLevel(iepLevel = "ENH3", iepDescription = "Enhanced 3", sequence = 5),
+            IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1, default = true),
+            IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2, default = false),
+            IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3, default = false),
+            IepLevel(iepLevel = "ENH2", iepDescription = "Enhanced 2", sequence = 4, default = false),
+            IepLevel(iepLevel = "ENH3", iepDescription = "Enhanced 3", sequence = 5, default = false),
           )
         )
 
@@ -39,8 +39,7 @@ class IepLevelServiceTest {
 
         // Then - all configured IepLevel record are returned
         assertThat(iepLevelsForPrison).hasSize(5)
-        // TODO: Prison API endpoint doesn't have `default` field. No IEP level is default at the moment
-        // assertThat(iepLevelsForPrison.first().default).isTrue
+        assertThat(iepLevelsForPrison.first().default).isTrue
         assertThat(iepLevelsForPrison.last().iepLevel).isEqualTo("ENH3")
       }
     }
@@ -55,9 +54,9 @@ class IepLevelServiceTest {
         whenever(iepLevelRepository.findAll()).thenReturn(fiveIepLevels)
         whenever(prisonApiService.getIepLevelsForPrison(prisonId)).thenReturn(
           flowOf(
-            IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1),
-            IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2),
-            IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3),
+            IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1, default = true),
+            IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2, default = false),
+            IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3, default = false),
           )
         )
 
@@ -66,8 +65,7 @@ class IepLevelServiceTest {
 
         // Then - do not include ENH2 or ENH3
         assertThat(iepLevelsForPrison).hasSize(3)
-        // TODO: Prison API endpoint doesn't have `default` field. No IEP level is default at the moment
-        // assertThat(iepLevelsForPrison.first().default).isTrue
+        assertThat(iepLevelsForPrison.first().default).isTrue
         assertThat(iepLevelsForPrison.last().iepLevel).isEqualTo("ENH")
       }
     }
@@ -87,8 +85,8 @@ class IepLevelServiceTest {
         )
         whenever(prisonApiService.getIepLevelsForPrison(prisonId)).thenReturn(
           flowOf(
-            IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1),
-            IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2),
+            IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1, default = true),
+            IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2, default = false),
           )
         )
 
@@ -116,10 +114,10 @@ class IepLevelServiceTest {
         )
         whenever(prisonApiService.getIepLevelsForPrison(prisonId)).thenReturn(
           flowOf(
-            IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1),
-            IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2),
+            IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1, default = true),
+            IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2, default = false),
             // Unknown IEP level
-            IepLevel(iepLevel = "UNK", iepDescription = "Unknown", sequence = 3),
+            IepLevel(iepLevel = "UNK", iepDescription = "Unknown", sequence = 3, default = false),
           )
         )
 
