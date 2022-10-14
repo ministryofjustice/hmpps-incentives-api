@@ -8,8 +8,8 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IepLevel as GlobalIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IepLevelRepository
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IepLevel as GlobalIepLevel
 
 class IepLevelServiceTest {
 

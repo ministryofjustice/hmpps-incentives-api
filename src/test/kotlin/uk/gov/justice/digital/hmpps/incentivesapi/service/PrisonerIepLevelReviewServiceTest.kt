@@ -29,7 +29,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Location
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocation
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IepLevel as GlobalIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IepLevelRepository
@@ -39,6 +38,7 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IepLevel as GlobalIepLevel
 
 class PrisonerIepLevelReviewServiceTest {
 
