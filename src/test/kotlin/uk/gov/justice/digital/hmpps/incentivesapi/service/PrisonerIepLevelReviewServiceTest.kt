@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -59,6 +60,14 @@ class PrisonerIepLevelReviewServiceTest {
     clock,
     featureFlagsService,
   )
+
+  @BeforeEach
+  fun setUp(): Unit = runBlocking {
+    // Fixes tests which do not explicitly mock findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc
+    // while other tests may override the call to the repo
+    whenever(prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(any()))
+      .thenReturn(emptyFlow())
+  }
 
   @Nested
   inner class AddIepReview {
@@ -174,6 +183,27 @@ class PrisonerIepLevelReviewServiceTest {
         ),
         reviewerUserName,
       )
+    }
+
+    @Test
+    fun `update multiple IepLevels with current flag`(): Unit = runBlocking {
+      coroutineScope {
+        // Given
+        whenever(prisonApiService.getPrisonerInfo(bookingId)).thenReturn(prisonerInfo)
+        val anotherIepLevelCurrentIsTrue = currentLevel.copy(id = 2L)
+        whenever(prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(listOf(bookingId)))
+          .thenReturn(flowOf(currentLevel, anotherIepLevelCurrentIsTrue))
+
+        // When
+        prisonerIepLevelReviewService.addIepReview(bookingId, iepReview)
+
+        // Then
+        verify(prisonerIepLevelRepository, times(1))
+          .save(currentLevel.copy(current = false))
+
+        verify(prisonerIepLevelRepository, times(1))
+          .save(anotherIepLevelCurrentIsTrue.copy(current = false))
+      }
     }
   }
 
@@ -634,6 +664,34 @@ class PrisonerIepLevelReviewServiceTest {
           iepReview.reviewedBy,
         )
     }
+
+    @Test
+    fun `If request has current true we update the previous IEP Level with current of true`(): Unit = runBlocking {
+      // Given
+      val iepReviewUpdatedWithSyncPatch = iepReview.copy(current = true)
+      whenever(prisonerIepLevelRepository.save(iepReviewUpdatedWithSyncPatch))
+        .thenReturn(iepReviewUpdatedWithSyncPatch)
+
+      whenever(prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(listOf(bookingId)))
+        .thenReturn(flowOf(currentLevel))
+
+      // When
+      prisonerIepLevelReviewService.handleSyncPatchIepReviewRequest(
+        bookingId, iepReview.id,
+        SyncPatchRequest(
+          comment = null,
+          iepTime = null,
+          current = true,
+        )
+      )
+
+      // Then currentLevel record is updated, along with iepReviewUpdatedWithSyncPatch
+      verify(prisonerIepLevelRepository, times(1))
+        .save(currentLevel.copy(current = false))
+
+      verify(prisonerIepLevelRepository, times(1))
+        .save(iepReviewUpdatedWithSyncPatch)
+    }
   }
 
   @Nested
@@ -724,6 +782,23 @@ class PrisonerIepLevelReviewServiceTest {
           iepDetail,
           syncPostRequest.userId,
         )
+    }
+
+    @Test
+    fun `If request has current true we update the previous IEP Level with current of true`(): Unit = runBlocking {
+      // Given
+      whenever(prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(listOf(bookingId)))
+        .thenReturn(flowOf(currentLevel))
+
+      // When
+      prisonerIepLevelReviewService.handleSyncPostIepReviewRequest(bookingId, syncPostRequest.copy(current = true))
+
+      // Then currentLevel record is updated, along with iepReview
+      verify(prisonerIepLevelRepository, times(1))
+        .save(currentLevel.copy(current = false))
+
+      verify(prisonerIepLevelRepository, times(1))
+        .save(iepReview)
     }
   }
 
