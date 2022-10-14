@@ -26,9 +26,10 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPatchRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Location
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocation
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IepLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IepLevel as GlobalIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IepLevelRepository
@@ -106,11 +107,11 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(authenticationFacade.getUsername()).thenReturn(reviewerUserName)
       whenever(prisonerIepLevelRepository.save(any())).thenReturn(prisonerIepLevel.copy(id = 42))
       whenever(iepLevelRepository.findById(iepReview.iepLevel)).thenReturn(
-        IepLevel(iepCode = iepReview.iepLevel, iepDescription = "Enhanced")
+        GlobalIepLevel(iepCode = iepReview.iepLevel, iepDescription = "Enhanced")
       )
     }
 
-    @ParameterizedTest()
+    @ParameterizedTest
     @EnumSource(ReviewAddedSyncMechanism::class)
     fun `addIepReview() by prisonerNumber`(reviewAddedSyncMechanism: ReviewAddedSyncMechanism): Unit = runBlocking {
       coroutineScope {
@@ -126,7 +127,7 @@ class PrisonerIepLevelReviewServiceTest {
       }
     }
 
-    @ParameterizedTest()
+    @ParameterizedTest
     @EnumSource(ReviewAddedSyncMechanism::class)
     fun `addIepReview() by bookingId`(reviewAddedSyncMechanism: ReviewAddedSyncMechanism): Unit = runBlocking {
       coroutineScope {
@@ -280,8 +281,8 @@ class PrisonerIepLevelReviewServiceTest {
     fun setUp(): Unit = runBlocking {
       // This ensures save works and an id is set on the PrisonerIepLevel
       whenever(prisonerIepLevelRepository.save(any())).thenAnswer { i -> i.arguments[0] }
-      whenever(iepLevelRepository.findById("STD")).thenReturn(IepLevel(iepCode = "STD", iepDescription = "Standard"))
-      whenever(iepLevelRepository.findById("ENH")).thenReturn(IepLevel(iepCode = "ENH", iepDescription = "Enhanced"))
+      whenever(iepLevelRepository.findById("STD")).thenReturn(GlobalIepLevel(iepCode = "STD", iepDescription = "Standard"))
+      whenever(iepLevelRepository.findById("ENH")).thenReturn(GlobalIepLevel(iepCode = "ENH", iepDescription = "Enhanced"))
     }
 
     @Test
@@ -293,8 +294,18 @@ class PrisonerIepLevelReviewServiceTest {
       // Enhanced is the default for this prison so use that
       whenever(iepLevelService.getIepLevelsForPrison(prisonerAtLocation().agencyId)).thenReturn(
         listOf(
-          IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 1, default = false),
-          IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 1, default = true),
+          IepLevel(
+            iepLevel = "STD",
+            iepDescription = "Standard",
+            sequence = 1,
+            default = false,
+          ),
+          IepLevel(
+            iepLevel = "ENH",
+            iepDescription = "Enhanced",
+            sequence = 1,
+            default = true,
+          ),
         )
       )
 
@@ -625,7 +636,7 @@ class PrisonerIepLevelReviewServiceTest {
     fun setUp(): Unit = runBlocking {
       // Mock IEP level query
       whenever(iepLevelRepository.findById("ENH")).thenReturn(
-        IepLevel(iepCode = iepLevelCode, iepDescription = iepLevelDescription, sequence = 3, active = true),
+        GlobalIepLevel(iepCode = iepLevelCode, iepDescription = iepLevelDescription, sequence = 3, active = true),
       )
 
       // Mock find query
@@ -747,7 +758,7 @@ class PrisonerIepLevelReviewServiceTest {
 
       // Mock IEP level query
       whenever(iepLevelRepository.findById("ENH")).thenReturn(
-        IepLevel(iepCode = iepLevelCode, iepDescription = iepLevelDescription, sequence = 3, active = true),
+        GlobalIepLevel(iepCode = iepLevelCode, iepDescription = iepLevelDescription, sequence = 3, active = true),
       )
 
       // Mock save() of PrisonerIepLevel record
@@ -902,9 +913,24 @@ class PrisonerIepLevelReviewServiceTest {
   )
 
   private val basicStandardEnhanced = listOf(
-    IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1, default = false),
-    IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2, default = true),
-    IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3, default = false),
+    IepLevel(
+      iepLevel = "BAS",
+      iepDescription = "Basic",
+      sequence = 1,
+      default = false,
+    ),
+    IepLevel(
+      iepLevel = "STD",
+      iepDescription = "Standard",
+      sequence = 2,
+      default = true,
+    ),
+    IepLevel(
+      iepLevel = "ENH",
+      iepDescription = "Enhanced",
+      sequence = 3,
+      default = false,
+    ),
   )
 
   private fun syncPostRequest(iepLevelCode: String = "STD", reviewType: ReviewType) = SyncPostRequest(

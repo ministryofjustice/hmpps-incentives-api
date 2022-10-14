@@ -69,11 +69,30 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
       .exchange()
       .expectStatus().isOk
       .expectBody()
-      .jsonPath("$.[*]").isArray
-      .jsonPath(matchByIepCode, "STD").exists()
-      .jsonPath(matchByIepCode, "BAS").exists()
-      .jsonPath(matchByIepCode, "ENH").exists()
-      .jsonPath(matchByIepCode, "ENT").doesNotExist()
+      .json(
+        """
+        [
+            {
+                "iepLevel": "BAS",
+                "iepDescription": "Basic",
+                "sequence": 1,
+                "default": false
+            },
+            {
+                "iepLevel": "STD",
+                "iepDescription": "Standard",
+                "sequence": 3,
+                "default": true
+            },
+            {
+                "iepLevel": "ENH",
+                "iepDescription": "Enhanced",
+                "sequence": 4,
+                "default": false
+            }
+        ]
+        """.trimIndent()
+      )
   }
 
   @Test
