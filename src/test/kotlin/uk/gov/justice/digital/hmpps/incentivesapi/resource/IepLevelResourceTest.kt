@@ -60,8 +60,11 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
 
   @Test
   fun `get IEP Levels for a prison`() {
+    val prisonId = "MDI"
 
-    webTestClient.get().uri("/iep/levels/MDI")
+    prisonApiMockServer.stubAgenciesIepLevels(prisonId)
+
+    webTestClient.get().uri("/iep/levels/$prisonId")
       .headers(setAuthorisation())
       .exchange()
       .expectStatus().isOk
