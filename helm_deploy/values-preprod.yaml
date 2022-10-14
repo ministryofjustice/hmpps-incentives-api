@@ -10,6 +10,7 @@ generic-service:
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.dev.json
     API_BASE_URL_OAUTH: https://sign-in-preprod.hmpps.service.justice.gov.uk/auth
     API_BASE_URL_PRISON: https://api-preprod.prison.service.justice.gov.uk
+    API_BASE_URL_OFFENDER_SEARCH: https://prisoner-offender-search-preprod.prison.service.justice.gov.uk
     FEATURE_REVIEWADDEDSYNCMECHANISM: "PRISON_API"
     FEATURE_INCENTIVES_DATA_SOURCE_OF_TRUTH: false
 

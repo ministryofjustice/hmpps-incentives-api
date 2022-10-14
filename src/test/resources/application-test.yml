@@ -13,6 +13,7 @@ api:
     url:
       oauth: http://localhost:8090/auth
       prison: http://localhost:8093
+      offender-search: http://localhost:8094
 
 spring:
   flyway:

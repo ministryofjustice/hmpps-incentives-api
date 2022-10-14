@@ -17,7 +17,8 @@ import java.time.Duration
 @Configuration
 class WebClientConfiguration(
   @Value("\${api.base.url.oauth}") val authBaseUri: String,
-  @Value("\${api.base.url.prison}") private val prisonRootUri: String
+  @Value("\${api.base.url.prison}") private val prisonRootUri: String,
+  @Value("\${api.base.url.offender-search}") private val offenderSearchUri: String,
 ) {
 
   @Bean
@@ -54,6 +55,23 @@ class WebClientConfiguration(
   fun prisonHealthWebClient(): WebClient {
     return WebClient.builder()
       .baseUrl(prisonRootUri)
+      .build()
+  }
+
+  @Bean
+  fun offenderSearchWebClient(): WebClient {
+    val httpClient = HttpClient.create().responseTimeout(Duration.ofMinutes(2))
+    return WebClient.builder()
+      .baseUrl(offenderSearchUri)
+      .clientConnector(ReactorClientHttpConnector(httpClient))
+      .filter(AuthTokenFilterFunction())
+      .build()
+  }
+
+  @Bean
+  fun offenderSearchHealthWebClient(): WebClient {
+    return WebClient.builder()
+      .baseUrl(offenderSearchUri)
       .build()
   }
 
