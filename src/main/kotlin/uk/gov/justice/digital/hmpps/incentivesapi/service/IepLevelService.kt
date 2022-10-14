@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IepLevelRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IepPrisonRepository
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 
 @Service
 class IepLevelService(

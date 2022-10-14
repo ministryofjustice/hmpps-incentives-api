@@ -1,4 +1,4 @@
-package uk.gov.justice.digital.hmpps.incentivesapi.service
+package uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi
 
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.LocalDateTime

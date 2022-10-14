@@ -7,6 +7,13 @@ import org.springframework.web.reactive.function.client.awaitBodilessEntity
 import org.springframework.web.reactive.function.client.awaitBody
 import org.springframework.web.reactive.function.client.bodyToFlow
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsage
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsageRequest
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Location
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonLocation
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocation
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.ProvenAdjudication
 import javax.validation.constraints.NotEmpty
 
 @Service

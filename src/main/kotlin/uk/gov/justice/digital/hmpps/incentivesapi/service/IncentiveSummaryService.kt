@@ -11,6 +11,10 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.BehaviourSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevelSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonerIncentiveSummary
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsage
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocation
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.ProvenAdjudication
 import java.time.Duration
 import java.time.LocalDate
 

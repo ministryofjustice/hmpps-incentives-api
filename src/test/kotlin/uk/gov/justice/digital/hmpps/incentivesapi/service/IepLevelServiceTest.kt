@@ -7,10 +7,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IepLevel
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IepPrison
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IepLevelRepository
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IepPrisonRepository
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 
 class IepLevelServiceTest {
 
