@@ -22,6 +22,10 @@ class PrisonApiService(
   private val prisonWebClientClientCredentials: WebClient,
 ) {
 
+  suspend fun getIepLevelsForPrison(prisonId: String): Flow<IepLevel> {
+    return prisonWebClient.get().uri("/api/agencies/$prisonId/iepLevels").retrieve().bodyToFlow<IepLevel>()
+  }
+
   suspend fun findPrisonersAtLocation(prisonId: String, locationId: String): Flow<PrisonerAtLocation> =
     prisonWebClient.get()
       .uri("/api/locations/description/$locationId/inmates")
