@@ -1,5 +1,7 @@
-package uk.gov.justice.digital.hmpps.incentivesapi.service
+package uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi
 
+import com.fasterxml.jackson.annotation.JsonAlias
+import com.fasterxml.jackson.annotation.JsonProperty
 import io.swagger.v3.oas.annotations.media.Schema
 import java.time.LocalDateTime
 
@@ -47,6 +49,8 @@ data class IepLevel(
   @Schema(description = "Sequence to display the IEP Levels for this prison in LOV or other tables", example = "1")
   val sequence: Int?,
   @Schema(description = "Indicates that this IEP level is the default for this prison", example = "true")
+  @JsonAlias("defaultLevel")
+  @JsonProperty
   val default: Boolean = false
 )
 

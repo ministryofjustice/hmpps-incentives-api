@@ -60,17 +60,39 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
 
   @Test
   fun `get IEP Levels for a prison`() {
+    val prisonId = "MDI"
 
-    webTestClient.get().uri("/iep/levels/MDI")
+    prisonApiMockServer.stubAgenciesIepLevels(prisonId)
+
+    webTestClient.get().uri("/iep/levels/$prisonId")
       .headers(setAuthorisation())
       .exchange()
       .expectStatus().isOk
       .expectBody()
-      .jsonPath("$.[*]").isArray
-      .jsonPath(matchByIepCode, "STD").exists()
-      .jsonPath(matchByIepCode, "BAS").exists()
-      .jsonPath(matchByIepCode, "ENH").exists()
-      .jsonPath(matchByIepCode, "ENT").doesNotExist()
+      .json(
+        """
+        [
+            {
+                "iepLevel": "BAS",
+                "iepDescription": "Basic",
+                "sequence": 1,
+                "default": false
+            },
+            {
+                "iepLevel": "STD",
+                "iepDescription": "Standard",
+                "sequence": 3,
+                "default": true
+            },
+            {
+                "iepLevel": "ENH",
+                "iepDescription": "Enhanced",
+                "sequence": 4,
+                "default": false
+            }
+        ]
+        """.trimIndent()
+      )
   }
 
   @Test

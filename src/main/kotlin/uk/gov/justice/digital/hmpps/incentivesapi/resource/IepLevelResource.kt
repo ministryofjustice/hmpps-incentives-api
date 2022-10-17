@@ -25,11 +25,9 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPatchRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
-import uk.gov.justice.digital.hmpps.incentivesapi.service.AuditService
-import uk.gov.justice.digital.hmpps.incentivesapi.service.IepLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IepLevelService
 import uk.gov.justice.digital.hmpps.incentivesapi.service.PrisonerIepLevelReviewService
-import uk.gov.justice.digital.hmpps.incentivesapi.service.SnsService
 import javax.validation.Valid
 import javax.validation.constraints.NotEmpty
 import javax.validation.constraints.Size
@@ -39,8 +37,6 @@ import javax.validation.constraints.Size
 class IepLevelResource(
   private val iepLevelService: IepLevelService,
   private val prisonerIepLevelReviewService: PrisonerIepLevelReviewService,
-  private val snsService: SnsService,
-  private val auditService: AuditService
 ) {
   @GetMapping("/levels/{prisonId}")
   @Operation(

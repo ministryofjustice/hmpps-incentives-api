@@ -7,16 +7,15 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IepLevel
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IepPrison
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IepLevelRepository
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IepPrisonRepository
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IepLevel as GlobalIepLevel
 
 class IepLevelServiceTest {
 
   private val iepLevelRepository: IepLevelRepository = mock()
-  private val iepPrisonRepository: IepPrisonRepository = mock()
-  private val iepLevelService = IepLevelService(iepLevelRepository, iepPrisonRepository)
+  private val prisonApiService: PrisonApiService = mock()
+  private val iepLevelService = IepLevelService(iepLevelRepository, prisonApiService)
 
   @Test
   fun `prison has all 5 iep levels`() {
@@ -25,13 +24,13 @@ class IepLevelServiceTest {
         // Given
         val prisonId = "XXX"
         whenever(iepLevelRepository.findAll()).thenReturn(fiveIepLevels)
-        whenever(iepPrisonRepository.findAllByPrisonIdAndActiveIsTrue(prisonId)).thenReturn(
+        whenever(prisonApiService.getIepLevelsForPrison(prisonId)).thenReturn(
           flowOf(
-            IepPrison(iepCode = "BAS", prisonId = prisonId, defaultIep = true),
-            IepPrison(iepCode = "STD", prisonId = prisonId, defaultIep = false),
-            IepPrison(iepCode = "ENH", prisonId = prisonId, defaultIep = false),
-            IepPrison(iepCode = "ENH2", prisonId = prisonId, defaultIep = false),
-            IepPrison(iepCode = "ENH3", prisonId = prisonId, defaultIep = false),
+            IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1, default = true),
+            IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2, default = false),
+            IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3, default = false),
+            IepLevel(iepLevel = "ENH2", iepDescription = "Enhanced 2", sequence = 4, default = false),
+            IepLevel(iepLevel = "ENH3", iepDescription = "Enhanced 3", sequence = 5, default = false),
           )
         )
 
@@ -53,11 +52,11 @@ class IepLevelServiceTest {
         // Given
         val prisonId = "XXX"
         whenever(iepLevelRepository.findAll()).thenReturn(fiveIepLevels)
-        whenever(iepPrisonRepository.findAllByPrisonIdAndActiveIsTrue(prisonId)).thenReturn(
+        whenever(prisonApiService.getIepLevelsForPrison(prisonId)).thenReturn(
           flowOf(
-            IepPrison(iepCode = "BAS", prisonId = prisonId, defaultIep = true),
-            IepPrison(iepCode = "STD", prisonId = prisonId, defaultIep = false),
-            IepPrison(iepCode = "ENH", prisonId = prisonId, defaultIep = false),
+            IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1, default = true),
+            IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2, default = false),
+            IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3, default = false),
           )
         )
 
@@ -80,14 +79,14 @@ class IepLevelServiceTest {
         val prisonId = "XXX"
         whenever(iepLevelRepository.findAll()).thenReturn(
           flowOf(
-            IepLevel(iepCode = "BAS", iepDescription = "Basic", sequence = 1),
-            IepLevel(iepCode = "STD", iepDescription = "Standard", sequence = 2, active = false),
+            GlobalIepLevel(iepCode = "BAS", iepDescription = "Basic", sequence = 1),
+            GlobalIepLevel(iepCode = "STD", iepDescription = "Standard", sequence = 2, active = false),
           )
         )
-        whenever(iepPrisonRepository.findAllByPrisonIdAndActiveIsTrue(prisonId)).thenReturn(
+        whenever(prisonApiService.getIepLevelsForPrison(prisonId)).thenReturn(
           flowOf(
-            IepPrison(iepCode = "BAS", prisonId = prisonId, defaultIep = true),
-            IepPrison(iepCode = "STD", prisonId = prisonId, defaultIep = false),
+            IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1, default = true),
+            IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2, default = false),
           )
         )
 
@@ -109,16 +108,16 @@ class IepLevelServiceTest {
         val prisonId = "XXX"
         whenever(iepLevelRepository.findAll()).thenReturn(
           flowOf(
-            IepLevel(iepCode = "BAS", iepDescription = "Basic", sequence = 1),
-            IepLevel(iepCode = "STD", iepDescription = "Standard", sequence = 2, active = false),
+            GlobalIepLevel(iepCode = "BAS", iepDescription = "Basic", sequence = 1),
+            GlobalIepLevel(iepCode = "STD", iepDescription = "Standard", sequence = 2, active = false),
           )
         )
-        whenever(iepPrisonRepository.findAllByPrisonIdAndActiveIsTrue(prisonId)).thenReturn(
+        whenever(prisonApiService.getIepLevelsForPrison(prisonId)).thenReturn(
           flowOf(
-            IepPrison(iepCode = "BAS", prisonId = prisonId, defaultIep = true),
-            IepPrison(iepCode = "STD", prisonId = prisonId, defaultIep = false),
+            IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1, default = true),
+            IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2, default = false),
             // Unknown IEP level
-            IepPrison(iepCode = "UNK", prisonId = prisonId, defaultIep = false),
+            IepLevel(iepLevel = "UNK", iepDescription = "Unknown", sequence = 3, default = false),
           )
         )
 
@@ -132,10 +131,10 @@ class IepLevelServiceTest {
   }
 
   private val fiveIepLevels = flowOf(
-    IepLevel(iepCode = "BAS", iepDescription = "Basic", sequence = 1),
-    IepLevel(iepCode = "STD", iepDescription = "Standard", sequence = 2),
-    IepLevel(iepCode = "ENH", iepDescription = "Enhanced", sequence = 3),
-    IepLevel(iepCode = "ENH2", iepDescription = "Enhanced 2", sequence = 4),
-    IepLevel(iepCode = "ENH3", iepDescription = "Enhanced 3", sequence = 5),
+    GlobalIepLevel(iepCode = "BAS", iepDescription = "Basic", sequence = 1),
+    GlobalIepLevel(iepCode = "STD", iepDescription = "Standard", sequence = 2),
+    GlobalIepLevel(iepCode = "ENH", iepDescription = "Enhanced", sequence = 3),
+    GlobalIepLevel(iepCode = "ENH2", iepDescription = "Enhanced 2", sequence = 4),
+    GlobalIepLevel(iepCode = "ENH3", iepDescription = "Enhanced 3", sequence = 5),
   )
 }
