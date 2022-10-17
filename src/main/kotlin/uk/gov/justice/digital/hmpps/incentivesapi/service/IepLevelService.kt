@@ -14,10 +14,10 @@ class IepLevelService(
 ) {
 
   @Transactional(readOnly = true)
-  suspend fun getIepLevelsForPrison(prisonId: String): List<IepLevel> {
+  suspend fun getIepLevelsForPrison(prisonId: String, useClientCredentials: Boolean = false): List<IepLevel> {
     val iepLevelMap = iepLevelRepository.findAll().toList().associateBy { it.iepCode }
 
-    return prisonApiService.getIepLevelsForPrison(prisonId)
+    return prisonApiService.getIepLevelsForPrison(prisonId, useClientCredentials)
       .filter { iepLevelMap[it.iepLevel]?.active == true }
       .toList()
       .sortedWith(compareBy(IepLevel::sequence))

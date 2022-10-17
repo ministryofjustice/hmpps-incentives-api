@@ -44,6 +44,7 @@ internal class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     val bookingId = 1294134L
     val prisonerNumber = "A1244AB"
     val locationId = 77777L
+    prisonApiMockServer.stubAgenciesIepLevels("MDI")
     prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = locationId)
     prisonApiMockServer.stubGetLocationById(locationId = locationId, locationDesc = "1-2-003")
 
@@ -69,6 +70,7 @@ internal class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     val bookingId = 1294134L
     val prisonerNumber = "A1244AB"
     val locationId = 77777L
+    prisonApiMockServer.stubAgenciesIepLevels("MDI")
     prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = locationId)
     prisonApiMockServer.stubGetLocationById(locationId = locationId, locationDesc = "1-2-003")
     prisonApiMockServer.stubIEPSummaryForBooking(bookingId = bookingId)

@@ -218,7 +218,7 @@ class PrisonerIepLevelReviewService(
   }
 
   private suspend fun getIepLevelForReviewType(prisonerInfo: PrisonerAtLocation, reviewType: ReviewType): String {
-    val iepLevelsForPrison = iepLevelService.getIepLevelsForPrison(prisonerInfo.agencyId)
+    val iepLevelsForPrison = iepLevelService.getIepLevelsForPrison(prisonerInfo.agencyId, useClientCredentials = true)
     val iepLevel = when (reviewType) {
       ReviewType.INITIAL -> iepLevelsForPrison.first(IepLevel::default)
 

@@ -292,7 +292,7 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(prisonerAtLocation())
       whenever(prisonApiService.getLocationById(prisonerAtLocation().assignedLivingUnitId, true)).thenReturn(location)
       // Enhanced is the default for this prison so use that
-      whenever(iepLevelService.getIepLevelsForPrison(prisonerAtLocation().agencyId)).thenReturn(
+      whenever(iepLevelService.getIepLevelsForPrison(prisonerAtLocation().agencyId, useClientCredentials = true)).thenReturn(
         listOf(
           IepLevel(
             iepLevel = "STD",
@@ -344,7 +344,7 @@ class PrisonerIepLevelReviewServiceTest {
       val prisonerAtLocation = prisonerAtLocation(agencyId = "MDI")
       whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(prisonerAtLocation)
       whenever(prisonApiService.getLocationById(prisonerAtLocation.assignedLivingUnitId, true)).thenReturn(location)
-      whenever(iepLevelService.getIepLevelsForPrison(prisonerAtLocation.agencyId)).thenReturn(basicStandardEnhanced)
+      whenever(iepLevelService.getIepLevelsForPrison(prisonerAtLocation.agencyId, useClientCredentials = true)).thenReturn(basicStandardEnhanced)
       val iepDetails = listOf(
         iepDetail(prisonerAtLocation.agencyId, "Basic", "BAS", LocalDateTime.now()),
         iepDetail("BXI", "Standard", "STD", LocalDateTime.now().minusDays(1)),
@@ -388,7 +388,7 @@ class PrisonerIepLevelReviewServiceTest {
       val prisonerAtLocation = prisonerAtLocation(agencyId = "MDI")
       whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(prisonerAtLocation)
       whenever(prisonApiService.getLocationById(prisonerAtLocation.assignedLivingUnitId, true)).thenReturn(location)
-      whenever(iepLevelService.getIepLevelsForPrison(prisonerAtLocation.agencyId)).thenReturn(basicStandardEnhanced)
+      whenever(iepLevelService.getIepLevelsForPrison(prisonerAtLocation.agencyId, useClientCredentials = true)).thenReturn(basicStandardEnhanced)
       val iepDetails = listOf(
         iepDetail(prisonerAtLocation.agencyId, "Standard", "STD", LocalDateTime.now()),
         iepDetail("BXI", "Enhanced 2", "ENH2", LocalDateTime.now().minusDays(1)),
