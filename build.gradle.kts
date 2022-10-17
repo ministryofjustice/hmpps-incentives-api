@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.5.4"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.5.5"
   id("org.springdoc.openapi-gradle-plugin") version "1.4.0"
   // enable when gradle 7.5 is released which includes JaCoCo 0.8.8 that supports Java 18
   // id("jacoco")
