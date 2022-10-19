@@ -220,7 +220,7 @@ class PrisonerIepLevelReviewService(
   private suspend fun getIepLevelForReviewType(prisonerInfo: PrisonerAtLocation, reviewType: ReviewType): String {
     val iepLevelsForPrison = iepLevelService.getIepLevelsForPrison(prisonerInfo.agencyId, useClientCredentials = true)
     val iepLevel = when (reviewType) {
-      ReviewType.INITIAL -> iepLevelsForPrison.first(IepLevel::default)
+      ReviewType.INITIAL -> iepLevelsForPrison.find(IepLevel::default) ?: throw Exception("No default IEP level found for Prison '${prisonerInfo.agencyId}'")
 
       ReviewType.TRANSFER -> {
         val iepHistory = getPrisonerIepLevelHistory(prisonerInfo.bookingId, useNomisData = true, withDetails = true, useClientCredentials = true).iepDetails
