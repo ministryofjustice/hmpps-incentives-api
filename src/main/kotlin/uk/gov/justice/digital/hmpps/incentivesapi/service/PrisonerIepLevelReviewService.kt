@@ -156,6 +156,25 @@ class PrisonerIepLevelReviewService(
     return iepDetail
   }
 
+  suspend fun handleSyncDeleteIepReviewRequest(bookingId: Long, id: Long) {
+    var prisonerIepLevel: PrisonerIepLevel? = prisonerIepLevelRepository.findById(id)
+    if (prisonerIepLevel == null) {
+      log.debug("PrisonerIepLevel with ID $id not found")
+      throw NoDataFoundException(id)
+    }
+    // Check bookingId on found record matches the bookingId provided
+    if (prisonerIepLevel.bookingId != bookingId) {
+      log.warn("Delete of PrisonerIepLevel with ID $id failed because provided bookingID ($bookingId) didn't match bookingId on DB record (${prisonerIepLevel.bookingId})")
+      throw NoDataFoundException(bookingId)
+    }
+
+    prisonerIepLevelRepository.delete(prisonerIepLevel)
+
+    val iepDetail = prisonerIepLevel.translate()
+    publishDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_DELETED)
+    publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_DELETED)
+  }
+
   fun getCurrentIEPLevelForPrisoners(bookingIds: List<Long>, useNomisData: Boolean): Flow<CurrentIepLevel> {
     return if (useNomisData) {
       prisonApiService.getIEPSummaryPerPrisoner(bookingIds)
