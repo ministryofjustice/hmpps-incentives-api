@@ -170,6 +170,14 @@ class PrisonerIepLevelReviewService(
 
     prisonerIepLevelRepository.delete(prisonerIepLevel)
 
+    // If the deleted record had `current=true`, latest IEP review becomes current
+    prisonerIepLevel.current ?.let {
+      // The deleted record was current, set new current to the latest IEP review
+      prisonerIepLevelRepository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId)?.run {
+        prisonerIepLevelRepository.save(this.copy(current = true))
+      }
+    }
+
     val iepDetail = prisonerIepLevel.translate()
     publishDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_DELETED)
     publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_DELETED)

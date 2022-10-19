@@ -598,8 +598,8 @@ class PrisonerIepLevelReviewServiceTest {
 
     private val iepReview = PrisonerIepLevel(
       id = id,
-      iepCode = "ENH",
-      commentText = "Existing comment, before patch",
+      iepCode = iepLevelCode,
+      commentText = "A review took place",
       bookingId = bookingId,
       prisonId = "MDI",
       locationId = "1-2-003",
@@ -629,7 +629,7 @@ class PrisonerIepLevelReviewServiceTest {
     @BeforeEach
     fun setUp(): Unit = runBlocking {
       // Mock IEP level query
-      whenever(iepLevelRepository.findById("ENH")).thenReturn(
+      whenever(iepLevelRepository.findById(iepLevelCode)).thenReturn(
         GlobalIepLevel(iepCode = iepLevelCode, iepDescription = iepLevelDescription, sequence = 3, active = true),
       )
 
@@ -637,7 +637,7 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonerIepLevelRepository.findById(id)).thenReturn(iepReview)
 
       // Mock PrisonerIepLevel being updated
-      whenever(prisonerIepLevelRepository.delete(iepReview))
+      whenever(prisonerIepLevelRepository.delete(iepReview)).thenReturn(Unit)
     }
 
     @Test
@@ -666,6 +666,31 @@ class PrisonerIepLevelReviewServiceTest {
           iepDetail,
           iepReview.reviewedBy,
         )
+    }
+
+    @Test
+    fun `If deleted IEP review had current = true, set the latest IEP review current flag to true`(): Unit = runBlocking {
+      // Prisoner had few IEP reviews
+      val currentIepReview = iepReview.copy(current = true)
+      val olderIepReview = iepReview.copy(id = currentIepReview.id - 1, current = false)
+
+      // Mock find query
+      whenever(prisonerIepLevelRepository.findById(id)).thenReturn(currentIepReview)
+
+      // Mock find of latest IEP review
+      whenever(prisonerIepLevelRepository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId))
+        .thenReturn(olderIepReview)
+
+      // When
+      prisonerIepLevelReviewService.handleSyncDeleteIepReviewRequest(bookingId, currentIepReview.id)
+
+      // Then desired IEP review is deletes as usual
+      verify(prisonerIepLevelRepository, times(1))
+        .delete(currentIepReview)
+
+      // and the now latest IEP review becomes the active one
+      verify(prisonerIepLevelRepository, times(1))
+        .save(olderIepReview.copy(current = true))
     }
   }
 
