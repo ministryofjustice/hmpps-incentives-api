@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.Flow
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -401,4 +402,39 @@ class IepLevelResource(
     )
     @RequestBody @Valid syncPatchRequest: SyncPatchRequest,
   ): IepDetail = prisonerIepLevelReviewService.handleSyncPatchIepReviewRequest(bookingId, id, syncPatchRequest)
+
+  @DeleteMapping("/sync/booking/{bookingId}/id/{id}")
+  @PreAuthorize("hasRole('MAINTAIN_IEP') and hasAuthority('SCOPE_write')")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(
+    summary = "Deletes an existing IEP review for this specific prisoner by booking Id",
+    description = "Booking ID is an internal ID for a prisoner in NOMIS, ID is the ID of the IEP review. Requires MAINTAIN_IEP role and write scope",
+    responses = [
+      ApiResponse(
+        responseCode = "204",
+        description = "IEP Review deleted"
+      ),
+      ApiResponse(
+        responseCode = "400",
+        description = "Incorrect data specified to delete the IEP review",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Incorrect permissions to use this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      )
+    ]
+  )
+  suspend fun syncDeleteIepReview(
+    @Schema(description = "Booking Id", required = true, example = "1234567", type = "integer", format = "int64", pattern = "^[0-9]{1,20}$")
+    @PathVariable bookingId: Long,
+    @Schema(description = "ID", required = true, example = "12345", type = "integer", format = "int64", pattern = "^[0-9]{1,20}$")
+    @PathVariable id: Long,
+  ): Unit = prisonerIepLevelReviewService.handleSyncDeleteIepReviewRequest(bookingId, id)
 }
