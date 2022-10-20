@@ -100,12 +100,10 @@ class IepLevelResource(
   suspend fun getPrisonerIepLevelHistory(
     @Schema(description = "Booking Id", example = "3000002", required = true, type = "integer", format = "int64", pattern = "^[0-9]{1,20}$")
     @PathVariable bookingId: Long,
-    @Schema(description = "Use NOMIS data", example = "true", required = false, defaultValue = "true", hidden = true, type = "boolean", pattern = "^[true|false]$")
-    @RequestParam(defaultValue = "true", value = "use-nomis-data", required = false) useNomisData: Boolean = true,
     @Schema(description = "Toggle to return IEP detail entries in response (or not)", example = "true", required = false, defaultValue = "true", type = "boolean", pattern = "^[true|false]$")
     @RequestParam(defaultValue = "true", value = "with-details", required = false) withDetails: Boolean = true,
   ): IepSummary =
-    prisonerIepLevelReviewService.getPrisonerIepLevelHistory(bookingId, useNomisData, withDetails)
+    prisonerIepLevelReviewService.getPrisonerIepLevelHistory(bookingId, withDetails)
 
   @GetMapping("/reviews/id/{id}")
   @Operation(
@@ -165,11 +163,9 @@ class IepLevelResource(
   )
   suspend fun getCurrentIEPLevelForPrisoner(
     @ArraySchema(schema = Schema(description = "List of booking Ids", required = true, type = "array"), arraySchema = Schema(type = "integer", format = "int64", pattern = "^[0-9]{1,20}$", additionalProperties = Schema.AdditionalPropertiesValue.FALSE))
-    @RequestBody @Valid @NotEmpty bookingIds: List<Long>,
-    @Schema(description = "Use NOMIS data", required = false, defaultValue = "true", hidden = true, example = "true")
-    @RequestParam(defaultValue = "true", value = "use-nomis-data", required = false) useNomisData: Boolean = true
+    @RequestBody @Valid @NotEmpty bookingIds: List<Long>
   ): Flow<CurrentIepLevel> =
-    prisonerIepLevelReviewService.getCurrentIEPLevelForPrisoners(bookingIds, useNomisData)
+    prisonerIepLevelReviewService.getCurrentIEPLevelForPrisoners(bookingIds)
 
   @GetMapping("/reviews/prisoner/{prisonerNumber}")
   @Operation(
@@ -199,11 +195,9 @@ class IepLevelResource(
   )
   suspend fun getPrisonerIepLevelHistory(
     @Schema(description = "Prisoner Number", example = "A1234AB", required = true, type = "string", pattern = "^[A-Z0-9]{7}$")
-    @PathVariable prisonerNumber: String,
-    @Schema(description = "Use NOMIS data", required = false, defaultValue = "true", hidden = true, example = "true")
-    @RequestParam(defaultValue = "true", value = "use-nomis-data", required = false) useNomisData: Boolean = true
+    @PathVariable prisonerNumber: String
   ): IepSummary =
-    prisonerIepLevelReviewService.getPrisonerIepLevelHistory(prisonerNumber, useNomisData)
+    prisonerIepLevelReviewService.getPrisonerIepLevelHistory(prisonerNumber)
 
   @PostMapping("/reviews/booking/{bookingId}")
   @PreAuthorize("hasRole('MAINTAIN_IEP') and hasAuthority('SCOPE_write')")

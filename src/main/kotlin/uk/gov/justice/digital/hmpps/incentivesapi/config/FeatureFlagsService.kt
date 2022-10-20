@@ -12,9 +12,16 @@ enum class ReviewAddedSyncMechanism {
 class FeatureFlagsService(
   @Value("\${feature.review-added-sync-mechanism}")
   val reviewAddedSyncMechanism: String,
+
+  @Value("\${feature.incentives-data-source-of-truth:false}")
+  val incentivesDataSourceOfTruth: Boolean
 ) {
 
   fun reviewAddedSyncMechanism(): ReviewAddedSyncMechanism {
     return ReviewAddedSyncMechanism.valueOf(reviewAddedSyncMechanism)
+  }
+
+  fun isIncentivesDataSourceOfTruth(): Boolean {
+    return incentivesDataSourceOfTruth
   }
 }

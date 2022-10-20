@@ -30,16 +30,4 @@ class IepLevelRepositoryTest : TestBase() {
       assertThat(active).isEqualTo(true)
     }
   }
-
-  @Test
-  fun getIepByDescription(): Unit = runBlocking {
-
-    val retrievedIep = repository.findOneByIepDescription("Basic") ?: throw RuntimeException("Basic not found")
-    with(retrievedIep) {
-      assertThat(iepCode).isEqualTo("BAS")
-      assertThat(iepDescription).isEqualTo("Basic")
-      assertThat(sequence).isEqualTo(1)
-      assertThat(active).isEqualTo(true)
-    }
-  }
 }

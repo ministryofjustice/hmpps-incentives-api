@@ -213,13 +213,14 @@ class PrisonerIepLevelReviewServiceTest {
   @Nested
   inner class GetPrisonerIepLevelHistory {
     @Test
-    fun `will call prison api if useNomisData is true`(): Unit = runBlocking {
+    fun `will call prison api if incentivesDataSourceOfTruth is false`(): Unit = runBlocking {
       coroutineScope {
         // Given
         whenever(prisonApiService.getIEPSummaryForPrisoner(1234567, withDetails = true)).thenReturn(iepSummaryWithDetail)
 
+        whenever(featureFlagsService.isIncentivesDataSourceOfTruth()).thenReturn(false)
         // When
-        prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567, useNomisData = true)
+        prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567)
 
         // Then
         verify(prisonApiService, times(1)).getIEPSummaryForPrisoner(1234567, true)
@@ -228,13 +229,13 @@ class PrisonerIepLevelReviewServiceTest {
     }
 
     @Test
-    fun `will call prison api if useNomisData is true and will not return iep details if withDetails is false`(): Unit = runBlocking {
+    fun `will call prison api if incentivesDataSourceOfTruth is false and will not return iep details if withDetails is false`(): Unit = runBlocking {
       coroutineScope {
         // Given
         whenever(prisonApiService.getIEPSummaryForPrisoner(1234567, withDetails = false)).thenReturn(iepSummary())
-
+        whenever(featureFlagsService.isIncentivesDataSourceOfTruth()).thenReturn(false)
         // When
-        prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567, useNomisData = true, withDetails = false)
+        prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567, withDetails = false)
 
         // Then
         verify(prisonApiService, times(1)).getIEPSummaryForPrisoner(1234567, false)
@@ -243,13 +244,14 @@ class PrisonerIepLevelReviewServiceTest {
     }
 
     @Test
-    fun `will query incentives db if useNomisData is false`(): Unit = runBlocking {
+    fun `will query incentives db if incentivesDataSourceOfTruth is false`(): Unit = runBlocking {
       coroutineScope {
         // Given
         whenever(prisonerIepLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(1234567)).thenReturn(currentAndPreviousLevels)
+        whenever(featureFlagsService.isIncentivesDataSourceOfTruth()).thenReturn(true)
 
         // When
-        val result = prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567, useNomisData = false)
+        val result = prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567)
 
         // Then
         verify(prisonerIepLevelRepository, times(1)).findAllByBookingIdOrderByReviewTimeDesc(1234567)
@@ -259,13 +261,14 @@ class PrisonerIepLevelReviewServiceTest {
     }
 
     @Test
-    fun `will query incentives db if useNomisData is false and will not return iep details if withDetails is false`(): Unit = runBlocking {
+    fun `will query incentives db if incentivesDataSourceOfTruth is true and will not return iep details if withDetails is false`(): Unit = runBlocking {
       coroutineScope {
         // Given
         whenever(prisonerIepLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(1234567)).thenReturn(currentAndPreviousLevels)
+        whenever(featureFlagsService.isIncentivesDataSourceOfTruth()).thenReturn(true)
 
         // When
-        val result = prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567, useNomisData = false, withDetails = false)
+        val result = prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567, withDetails = false)
 
         // Then
         verify(prisonerIepLevelRepository, times(1)).findAllByBookingIdOrderByReviewTimeDesc(1234567)
@@ -320,7 +323,7 @@ class PrisonerIepLevelReviewServiceTest {
         prisonId = location.agencyId,
         locationId = location.description,
         current = true,
-        reviewedBy = "incentives-api",
+        reviewedBy = "INCENTIVE_API",
         reviewTime = LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
         reviewType = ReviewType.INITIAL,
         prisonerNumber = prisonerAtLocation().offenderNo
@@ -364,7 +367,7 @@ class PrisonerIepLevelReviewServiceTest {
         prisonId = location.agencyId,
         locationId = location.description,
         current = true,
-        reviewedBy = "incentives-api",
+        reviewedBy = "INCENTIVE_API",
         reviewTime = LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
         reviewType = ReviewType.TRANSFER,
         prisonerNumber = prisonerAtLocation.offenderNo
@@ -408,7 +411,7 @@ class PrisonerIepLevelReviewServiceTest {
         prisonId = location.agencyId,
         locationId = location.description,
         current = true,
-        reviewedBy = "incentives-api",
+        reviewedBy = "INCENTIVE_API",
         reviewTime = LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
         reviewType = ReviewType.TRANSFER,
         prisonerNumber = prisonerAtLocation.offenderNo
@@ -502,7 +505,7 @@ class PrisonerIepLevelReviewServiceTest {
           AuditType.PRISONER_NUMBER_MERGE,
           "A1244AB",
           "3 incentive records updated from merge A8765SS -> A1244AB. Updated to booking ID 1234567",
-          "Incentives-API"
+          "INCENTIVE_API"
         )
     }
 
@@ -623,7 +626,7 @@ class PrisonerIepLevelReviewServiceTest {
       locationId = "1-2-003",
       userId = "USER_1_GEN",
       reviewType = ReviewType.REVIEW,
-      auditModuleName = "Incentives-API",
+      auditModuleName = "INCENTIVE_API",
     )
 
     @BeforeEach
@@ -737,7 +740,7 @@ class PrisonerIepLevelReviewServiceTest {
       locationId = "1-2-003",
       userId = "USER_1_GEN",
       reviewType = ReviewType.REVIEW,
-      auditModuleName = "Incentives-API",
+      auditModuleName = "INCENTIVE_API",
     )
 
     @BeforeEach
@@ -851,7 +854,7 @@ class PrisonerIepLevelReviewServiceTest {
       locationId = location.description,
       userId = syncPostRequest.userId,
       reviewType = syncPostRequest.reviewType,
-      auditModuleName = "Incentives-API",
+      auditModuleName = "INCENTIVE_API",
     )
 
     @BeforeEach
@@ -1065,6 +1068,6 @@ class PrisonerIepLevelReviewServiceTest {
       iepTime = prisonerIepLevel.reviewTime,
       reviewType = prisonerIepLevel.reviewType,
       prisonerNumber = prisonerIepLevel.prisonerNumber,
-      auditModuleName = "Incentives-API",
+      auditModuleName = "INCENTIVE_API",
     )
 }

@@ -52,7 +52,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
 
     prisonApiMockServer.stubApi404for("/api/bookings/$bookingId/iepSummary?withDetails=true")
 
-    webTestClient.get().uri("/iep/reviews/booking/$bookingId?use-nomis-data=true")
+    webTestClient.get().uri("/iep/reviews/booking/$bookingId")
       .headers(setAuthorisation())
       .exchange()
       .expectStatus().isNotFound
@@ -228,7 +228,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
 
     val today = now().format(DateTimeFormatter.ISO_DATE)
     val nextReviewDate = now().plusYears(1).format(DateTimeFormatter.ISO_DATE)
-    webTestClient.get().uri("/iep/reviews/booking/$bookingId?use-nomis-data=false")
+    webTestClient.get().uri("/iep/reviews/booking/$bookingId")
       .headers(setAuthorisation())
       .exchange()
       .expectStatus().isOk
@@ -249,7 +249,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
                    "iepCode": "STD",
                    "comments":"A comment",
                    "userId":"INCENTIVES_ADM",
-                   "auditModuleName":"Incentives-API"
+                   "auditModuleName":"INCENTIVE_API"
                 }
              ]
           }
@@ -305,7 +305,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
                    "userId":"INCENTIVES_ADM",
                    "locationId": "1-2-003",
                    "reviewType": "REVIEW",
-                   "auditModuleName":"Incentives-API"
+                   "auditModuleName":"INCENTIVE_API"
                 },
                 {
                    "prisonerNumber": $prisonerNumber,
@@ -318,7 +318,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
                    "locationId": "1-2-003",
                    "userId":"INCENTIVES_ADM",
                    "reviewType": "INITIAL",
-                   "auditModuleName":"Incentives-API"
+                   "auditModuleName":"INCENTIVE_API"
                 }
 
              ]
@@ -369,7 +369,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
       .exchange()
       .expectStatus().isCreated
 
-    webTestClient.post().uri("/iep/reviews/bookings?use-nomis-data=false")
+    webTestClient.post().uri("/iep/reviews/bookings")
       .headers(setAuthorisation())
       .bodyValue(listOf(3330000L, 3330001L))
       .exchange()
@@ -585,7 +585,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
             "comments":"${requestBody.comment}",
             "userId":"${requestBody.userId}",
             "reviewType":"${requestBody.reviewType}",
-            "auditModuleName":"Incentives-API"
+            "auditModuleName":"INCENTIVE_API"
           }
           """.trimIndent()
         )
@@ -612,7 +612,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
                  "comments":"${requestBody.comment}",
                  "userId":"${requestBody.userId}",
                  "reviewType":"${requestBody.reviewType}",
-                 "auditModuleName":"Incentives-API"
+                 "auditModuleName":"INCENTIVE_API"
               }
           """
         )
@@ -635,7 +635,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
            "comments":"$updatedComment",
            "userId":"${existingPrisonerIepLevel!!.reviewedBy}",
            "reviewType":"${existingPrisonerIepLevel!!.reviewType}",
-           "auditModuleName":"Incentives-API"
+           "auditModuleName":"INCENTIVE_API"
         }
       """.trimIndent()
 
@@ -680,7 +680,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
            "comments":"$updatedComment",
            "userId":"${existingPrisonerIepLevel!!.reviewedBy}",
            "reviewType":"${existingPrisonerIepLevel!!.reviewType}",
-           "auditModuleName":"Incentives-API"
+           "auditModuleName":"INCENTIVE_API"
         }
       """.trimIndent()
 
@@ -771,7 +771,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
       // Then
       response.expectStatus().isCreated
 
-      webTestClient.get().uri("/iep/reviews/booking/$bookingId?use-nomis-data=false")
+      webTestClient.get().uri("/iep/reviews/booking/$bookingId")
         .headers(setAuthorisation())
         .exchange()
         .expectStatus().isOk
@@ -793,7 +793,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
                    "comments":"${migrationRequest.comment}",
                    "userId":"${migrationRequest.userId}",
                    "reviewType":"${migrationRequest.reviewType}",
-                   "auditModuleName":"Incentives-API"
+                   "auditModuleName":"INCENTIVE_API"
                 }
              ]
           }
