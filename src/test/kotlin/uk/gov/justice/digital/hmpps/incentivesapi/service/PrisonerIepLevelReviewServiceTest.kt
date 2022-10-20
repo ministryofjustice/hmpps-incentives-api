@@ -587,6 +587,114 @@ class PrisonerIepLevelReviewServiceTest {
   }
 
   @Nested
+  inner class HandleSyncDeleteIepReviewRequest {
+
+    private val id = 42L
+    private val bookingId = 123456L
+    private val offenderNo = "A1234AA"
+    private val iepLevelCode = "ENH"
+    private val iepLevelDescription = "Enhanced"
+    private val reviewTime = LocalDateTime.now().minusDays(10)
+
+    private val iepReview = PrisonerIepLevel(
+      id = id,
+      iepCode = iepLevelCode,
+      commentText = "A review took place",
+      bookingId = bookingId,
+      prisonId = "MDI",
+      locationId = "1-2-003",
+      current = true,
+      reviewedBy = "USER_1_GEN",
+      reviewTime = reviewTime,
+      reviewType = ReviewType.REVIEW,
+      prisonerNumber = offenderNo,
+    )
+
+    private val iepDetail = IepDetail(
+      id = id,
+      iepLevel = iepLevelDescription,
+      iepCode = iepLevelCode,
+      comments = iepReview.commentText,
+      prisonerNumber = offenderNo,
+      bookingId = bookingId,
+      iepDate = reviewTime.toLocalDate(),
+      iepTime = reviewTime,
+      agencyId = "MDI",
+      locationId = "1-2-003",
+      userId = "USER_1_GEN",
+      reviewType = ReviewType.REVIEW,
+      auditModuleName = "Incentives-API",
+    )
+
+    @BeforeEach
+    fun setUp(): Unit = runBlocking {
+      // Mock IEP level query
+      whenever(iepLevelRepository.findById(iepLevelCode)).thenReturn(
+        GlobalIepLevel(iepCode = iepLevelCode, iepDescription = iepLevelDescription, sequence = 3, active = true),
+      )
+
+      // Mock find query
+      whenever(prisonerIepLevelRepository.findById(id)).thenReturn(iepReview)
+
+      // Mock PrisonerIepLevel being updated
+      whenever(prisonerIepLevelRepository.delete(iepReview)).thenReturn(Unit)
+    }
+
+    @Test
+    fun `deletes the IEP review`(): Unit = runBlocking {
+      // When
+      prisonerIepLevelReviewService.handleSyncDeleteIepReviewRequest(bookingId, iepReview.id)
+
+      // Then check it's saved
+      verify(prisonerIepLevelRepository, times(1))
+        .delete(iepReview)
+    }
+
+    @Test
+    fun `sends IepReview event and audit message`(): Unit = runBlocking {
+      // When sync DELETE request is handled
+      prisonerIepLevelReviewService.handleSyncDeleteIepReviewRequest(bookingId, iepReview.id)
+
+      // SNS event is sent
+      verify(snsService, times(1)).sendIepReviewEvent(id, prisonerAtLocation().offenderNo, iepReview.reviewTime, IncentivesDomainEventType.IEP_REVIEW_DELETED)
+
+      // audit message is sent
+      verify(auditService, times(1))
+        .sendMessage(
+          AuditType.IEP_REVIEW_DELETED,
+          "$id",
+          iepDetail,
+          iepReview.reviewedBy,
+        )
+    }
+
+    @Test
+    fun `If deleted IEP review had current = true, set the latest IEP review current flag to true`(): Unit = runBlocking {
+      // Prisoner had few IEP reviews
+      val currentIepReview = iepReview.copy(current = true)
+      val olderIepReview = iepReview.copy(id = currentIepReview.id - 1, current = false)
+
+      // Mock find query
+      whenever(prisonerIepLevelRepository.findById(id)).thenReturn(currentIepReview)
+
+      // Mock find of latest IEP review
+      whenever(prisonerIepLevelRepository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId))
+        .thenReturn(olderIepReview)
+
+      // When
+      prisonerIepLevelReviewService.handleSyncDeleteIepReviewRequest(bookingId, currentIepReview.id)
+
+      // Then desired IEP review is deletes as usual
+      verify(prisonerIepLevelRepository, times(1))
+        .delete(currentIepReview)
+
+      // and the now latest IEP review becomes the active one
+      verify(prisonerIepLevelRepository, times(1))
+        .save(olderIepReview.copy(current = true))
+    }
+  }
+
+  @Nested
   inner class HandleSyncPatchIepReviewRequest {
 
     private val id = 42L
