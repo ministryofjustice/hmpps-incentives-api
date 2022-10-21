@@ -502,7 +502,7 @@ class PrisonerIepLevelReviewServiceTest {
           AuditType.PRISONER_NUMBER_MERGE,
           "A1244AB",
           "3 incentive records updated from merge A8765SS -> A1244AB. Updated to booking ID 1234567",
-          "Incentives-API"
+          "INCENTIVES_API"
         )
     }
 
@@ -623,7 +623,7 @@ class PrisonerIepLevelReviewServiceTest {
       locationId = "1-2-003",
       userId = "USER_1_GEN",
       reviewType = ReviewType.REVIEW,
-      auditModuleName = "Incentives-API",
+      auditModuleName = "INCENTIVES_API",
     )
 
     @BeforeEach
@@ -737,7 +737,7 @@ class PrisonerIepLevelReviewServiceTest {
       locationId = "1-2-003",
       userId = "USER_1_GEN",
       reviewType = ReviewType.REVIEW,
-      auditModuleName = "Incentives-API",
+      auditModuleName = "INCENTIVES_API",
     )
 
     @BeforeEach
@@ -851,7 +851,7 @@ class PrisonerIepLevelReviewServiceTest {
       locationId = location.description,
       userId = syncPostRequest.userId,
       reviewType = syncPostRequest.reviewType,
-      auditModuleName = "Incentives-API",
+      auditModuleName = "INCENTIVES_API",
     )
 
     @BeforeEach
@@ -1065,6 +1065,6 @@ class PrisonerIepLevelReviewServiceTest {
       iepTime = prisonerIepLevel.reviewTime,
       reviewType = prisonerIepLevel.reviewType,
       prisonerNumber = prisonerIepLevel.prisonerNumber,
-      auditModuleName = "Incentives-API",
+      auditModuleName = "INCENTIVES_API",
     )
 }
