@@ -228,7 +228,7 @@ class PrisonerIepLevelReviewService(
         iepReview,
         locationInfo,
         LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
-        "incentives-api"
+        "INCENTIVES_API"
       )
 
       publishDomainEvent(
@@ -389,7 +389,7 @@ class PrisonerIepLevelReviewService(
       userId = reviewedBy,
       locationId = locationId,
       prisonerNumber = prisonerNumber,
-      auditModuleName = "Incentives-API",
+      auditModuleName = "INCENTIVES_API",
     )
 
   @Transactional
@@ -419,7 +419,7 @@ class PrisonerIepLevelReviewService(
         AuditType.PRISONER_NUMBER_MERGE,
         remainingPrisonerNumber,
         message,
-        "Incentives-API"
+        "INCENTIVES_API"
       )
     } else {
       log.info("No incentive records found for $removedPrisonerNumber, no records updated")

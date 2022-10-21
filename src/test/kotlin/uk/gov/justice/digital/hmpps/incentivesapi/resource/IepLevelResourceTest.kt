@@ -249,7 +249,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
                    "iepCode": "STD",
                    "comments":"A comment",
                    "userId":"INCENTIVES_ADM",
-                   "auditModuleName":"Incentives-API"
+                   "auditModuleName":"INCENTIVES_API"
                 }
              ]
           }
@@ -305,7 +305,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
                    "userId":"INCENTIVES_ADM",
                    "locationId": "1-2-003",
                    "reviewType": "REVIEW",
-                   "auditModuleName":"Incentives-API"
+                   "auditModuleName":"INCENTIVES_API"
                 },
                 {
                    "prisonerNumber": $prisonerNumber,
@@ -318,7 +318,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
                    "locationId": "1-2-003",
                    "userId":"INCENTIVES_ADM",
                    "reviewType": "INITIAL",
-                   "auditModuleName":"Incentives-API"
+                   "auditModuleName":"INCENTIVES_API"
                 }
 
              ]
@@ -585,7 +585,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
             "comments":"${requestBody.comment}",
             "userId":"${requestBody.userId}",
             "reviewType":"${requestBody.reviewType}",
-            "auditModuleName":"Incentives-API"
+            "auditModuleName":"INCENTIVES_API"
           }
           """.trimIndent()
         )
@@ -612,7 +612,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
                  "comments":"${requestBody.comment}",
                  "userId":"${requestBody.userId}",
                  "reviewType":"${requestBody.reviewType}",
-                 "auditModuleName":"Incentives-API"
+                 "auditModuleName":"INCENTIVES_API"
               }
           """
         )
@@ -635,7 +635,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
            "comments":"$updatedComment",
            "userId":"${existingPrisonerIepLevel!!.reviewedBy}",
            "reviewType":"${existingPrisonerIepLevel!!.reviewType}",
-           "auditModuleName":"Incentives-API"
+           "auditModuleName":"INCENTIVES_API"
         }
       """.trimIndent()
 
@@ -680,7 +680,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
            "comments":"$updatedComment",
            "userId":"${existingPrisonerIepLevel!!.reviewedBy}",
            "reviewType":"${existingPrisonerIepLevel!!.reviewType}",
-           "auditModuleName":"Incentives-API"
+           "auditModuleName":"INCENTIVES_API"
         }
       """.trimIndent()
 
@@ -793,7 +793,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
                    "comments":"${migrationRequest.comment}",
                    "userId":"${migrationRequest.userId}",
                    "reviewType":"${migrationRequest.reviewType}",
-                   "auditModuleName":"Incentives-API"
+                   "auditModuleName":"INCENTIVES_API"
                 }
              ]
           }

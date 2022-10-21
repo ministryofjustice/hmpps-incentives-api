@@ -71,7 +71,7 @@ data class IepDetail(
   val userId: String?,
   @Schema(description = "Type of IEP Level change", required = true, example = "REVIEW")
   val reviewType: ReviewType? = null,
-  @Schema(description = "Internal audit field holding which system/screen recorded the review", required = true, example = "Incentives-API")
+  @Schema(description = "Internal audit field holding which system/screen recorded the review", required = true, example = "INCENTIVES_API")
   val auditModuleName: String? = null,
 )
 
