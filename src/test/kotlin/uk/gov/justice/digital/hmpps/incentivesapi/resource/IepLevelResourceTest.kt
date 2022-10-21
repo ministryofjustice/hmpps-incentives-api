@@ -62,6 +62,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
   fun `get IEP Levels for a prison`() {
     val prisonId = "MDI"
 
+    prisonApiMockServer.stubIepLevels()
     prisonApiMockServer.stubAgenciesIepLevels(prisonId)
 
     webTestClient.get().uri("/iep/levels/$prisonId")
@@ -216,6 +217,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
     val bookingId = 3330000L
     val prisonerNumber = "A1234AC"
 
+    prisonApiMockServer.stubIepLevels()
     prisonApiMockServer.stubGetPrisonerInfoByBooking(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = 77778L)
     prisonApiMockServer.stubGetLocationById(locationId = 77778L, locationDesc = "1-2-003")
     prisonApiMockServer.stubAddIep(bookingId = bookingId)
@@ -265,6 +267,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
     prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = 77777L)
     prisonApiMockServer.stubGetLocationById(locationId = 77777L, locationDesc = "1-2-003")
     prisonApiMockServer.stubAddIep(bookingId = bookingId)
+    prisonApiMockServer.stubIepLevels()
 
     webTestClient.post().uri("/iep/reviews/prisoner/$prisonerNumber")
       .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
@@ -339,6 +342,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
     )
     prisonApiMockServer.stubGetLocationById(locationId = 77778L, locationDesc = "1-2-003")
     prisonApiMockServer.stubAddIep(bookingId = bookingId)
+    prisonApiMockServer.stubIepLevels()
 
     webTestClient.post().uri("/iep/reviews/booking/$bookingId")
       .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
@@ -565,6 +569,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
         locationId = 77778L,
       )
       prisonApiMockServer.stubGetLocationById(locationId = 77778L, locationDesc = "1-2-003")
+      prisonApiMockServer.stubIepLevels()
 
       // API responds 201 Created with the created IEP review record
       val responseBytes = webTestClient.post().uri(syncCreateEndpoint)
@@ -622,6 +627,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
     fun `PATCH to sync endpoint when valid request has only one field updates that IEP review field`() {
       val updatedComment = "Updated comment"
       val requestBody = mapOf("comment" to updatedComment)
+      prisonApiMockServer.stubIepLevels()
 
       val expectedResponseBody = """
         {
@@ -667,6 +673,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
         "comment" to updatedComment,
         "current" to updatedCurrent,
       )
+      prisonApiMockServer.stubIepLevels()
 
       val expectedResponseBody = """
         {
@@ -711,6 +718,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
         locationId = 77778L,
       )
       prisonApiMockServer.stubGetLocationById(locationId = 77778L, locationDesc = "1-2-003")
+      prisonApiMockServer.stubIepLevels()
 
       // API responds 201 Created with the created IEP review record
       webTestClient.delete().uri(syncDeleteEndpoint)
@@ -761,6 +769,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
       val prisonerNumber = "A1234AC"
       val migrationRequest = syncPostRequest()
       prisonApiMockServer.stubGetPrisonerInfoByBooking(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = 77778L)
+      prisonApiMockServer.stubIepLevels()
 
       // When
       val response = webTestClient.post().uri("/iep/migration/booking/$bookingId")

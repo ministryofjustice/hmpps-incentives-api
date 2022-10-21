@@ -51,7 +51,9 @@ data class IepLevel(
   @Schema(description = "Indicates that this IEP level is the default for this prison", example = "true")
   @JsonAlias("defaultLevel")
   @JsonProperty
-  val default: Boolean = false
+  val default: Boolean = false,
+  @Schema(description = "Indicates that this IEP level is the active", example = "true")
+  val active: Boolean = true
 )
 
 data class PrisonLocation(
