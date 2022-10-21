@@ -31,20 +31,17 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Location
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocation
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IepLevelRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IepLevel as GlobalIepLevel
 
 class PrisonerIepLevelReviewServiceTest {
 
   private val prisonApiService: PrisonApiService = mock()
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository = mock()
-  private val iepLevelRepository: IepLevelRepository = mock()
   private val iepLevelService: IepLevelService = mock()
   private val authenticationFacade: AuthenticationFacade = mock()
   private var clock: Clock = Clock.fixed(Instant.ofEpochMilli(0), ZoneId.systemDefault())
@@ -55,7 +52,6 @@ class PrisonerIepLevelReviewServiceTest {
   private val prisonerIepLevelReviewService = PrisonerIepLevelReviewService(
     prisonApiService,
     prisonerIepLevelRepository,
-    iepLevelRepository,
     iepLevelService,
     snsService,
     auditService,
@@ -70,6 +66,8 @@ class PrisonerIepLevelReviewServiceTest {
     // while other tests may override the call to the repo
     whenever(prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(any()))
       .thenReturn(emptyFlow())
+
+    whenever(prisonApiService.getIepLevels()).thenReturn(incentiveLevels)
   }
 
   @Nested
@@ -106,9 +104,7 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId)).thenReturn(location)
       whenever(authenticationFacade.getUsername()).thenReturn(reviewerUserName)
       whenever(prisonerIepLevelRepository.save(any())).thenReturn(prisonerIepLevel.copy(id = 42))
-      whenever(iepLevelRepository.findById(iepReview.iepLevel)).thenReturn(
-        GlobalIepLevel(iepCode = iepReview.iepLevel, iepDescription = "Enhanced")
-      )
+      whenever(prisonApiService.getIepLevels()).thenReturn(incentiveLevels)
     }
 
     @ParameterizedTest
@@ -216,7 +212,12 @@ class PrisonerIepLevelReviewServiceTest {
     fun `will call prison api if useNomisData is true`(): Unit = runBlocking {
       coroutineScope {
         // Given
-        whenever(prisonApiService.getIEPSummaryForPrisoner(1234567, withDetails = true)).thenReturn(iepSummaryWithDetail)
+        whenever(
+          prisonApiService.getIEPSummaryForPrisoner(
+            1234567,
+            withDetails = true
+          )
+        ).thenReturn(iepSummaryWithDetail)
 
         // When
         prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567, useNomisData = true)
@@ -228,51 +229,60 @@ class PrisonerIepLevelReviewServiceTest {
     }
 
     @Test
-    fun `will call prison api if useNomisData is true and will not return iep details if withDetails is false`(): Unit = runBlocking {
-      coroutineScope {
-        // Given
-        whenever(prisonApiService.getIEPSummaryForPrisoner(1234567, withDetails = false)).thenReturn(iepSummary())
+    fun `will call prison api if useNomisData is true and will not return iep details if withDetails is false`(): Unit =
+      runBlocking {
+        coroutineScope {
+          // Given
+          whenever(prisonApiService.getIEPSummaryForPrisoner(1234567, withDetails = false)).thenReturn(iepSummary())
 
-        // When
-        prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567, useNomisData = true, withDetails = false)
+          // When
+          prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567, useNomisData = true, withDetails = false)
 
-        // Then
-        verify(prisonApiService, times(1)).getIEPSummaryForPrisoner(1234567, false)
-        verifyNoInteractions(prisonerIepLevelRepository)
+          // Then
+          verify(prisonApiService, times(1)).getIEPSummaryForPrisoner(1234567, false)
+          verifyNoInteractions(prisonerIepLevelRepository)
+        }
       }
-    }
 
     @Test
     fun `will query incentives db if useNomisData is false`(): Unit = runBlocking {
       coroutineScope {
+        whenever(prisonApiService.getIepLevels()).thenReturn(incentiveLevels)
+
         // Given
-        whenever(prisonerIepLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(1234567)).thenReturn(currentAndPreviousLevels)
+        whenever(prisonerIepLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(1234567)).thenReturn(
+          currentAndPreviousLevels
+        )
 
         // When
         val result = prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567, useNomisData = false)
 
         // Then
         verify(prisonerIepLevelRepository, times(1)).findAllByBookingIdOrderByReviewTimeDesc(1234567)
-        verifyNoInteractions(prisonApiService)
         assertThat(result.iepDetails.size).isEqualTo(2)
       }
     }
 
     @Test
-    fun `will query incentives db if useNomisData is false and will not return iep details if withDetails is false`(): Unit = runBlocking {
-      coroutineScope {
-        // Given
-        whenever(prisonerIepLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(1234567)).thenReturn(currentAndPreviousLevels)
+    fun `will query incentives db if useNomisData is false and will not return iep details if withDetails is false`(): Unit =
+      runBlocking {
+        coroutineScope {
+          whenever(prisonApiService.getIepLevels()).thenReturn(incentiveLevels)
 
-        // When
-        val result = prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567, useNomisData = false, withDetails = false)
+          // Given
+          whenever(prisonerIepLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(1234567)).thenReturn(
+            currentAndPreviousLevels
+          )
 
-        // Then
-        verify(prisonerIepLevelRepository, times(1)).findAllByBookingIdOrderByReviewTimeDesc(1234567)
-        verifyNoInteractions(prisonApiService)
-        assertThat(result.iepDetails.size).isZero()
+          // When
+          val result =
+            prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567, useNomisData = false, withDetails = false)
+
+          // Then
+          verify(prisonerIepLevelRepository, times(1)).findAllByBookingIdOrderByReviewTimeDesc(1234567)
+          assertThat(result.iepDetails.size).isZero()
+        }
       }
-    }
   }
 
   @Nested
@@ -281,8 +291,7 @@ class PrisonerIepLevelReviewServiceTest {
     fun setUp(): Unit = runBlocking {
       // This ensures save works and an id is set on the PrisonerIepLevel
       whenever(prisonerIepLevelRepository.save(any())).thenAnswer { i -> i.arguments[0] }
-      whenever(iepLevelRepository.findById("STD")).thenReturn(GlobalIepLevel(iepCode = "STD", iepDescription = "Standard"))
-      whenever(iepLevelRepository.findById("ENH")).thenReturn(GlobalIepLevel(iepCode = "ENH", iepDescription = "Enhanced"))
+      whenever(prisonApiService.getIepLevels()).thenReturn(incentiveLevels)
     }
 
     @Test
@@ -292,7 +301,12 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(prisonerAtLocation())
       whenever(prisonApiService.getLocationById(prisonerAtLocation().assignedLivingUnitId, true)).thenReturn(location)
       // Enhanced is the default for this prison so use that
-      whenever(iepLevelService.getIepLevelsForPrison(prisonerAtLocation().agencyId, useClientCredentials = true)).thenReturn(
+      whenever(
+        iepLevelService.getIepLevelsForPrison(
+          prisonerAtLocation().agencyId,
+          useClientCredentials = true
+        )
+      ).thenReturn(
         listOf(
           IepLevel(
             iepLevel = "STD",
@@ -327,7 +341,12 @@ class PrisonerIepLevelReviewServiceTest {
       )
 
       verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
-      verify(snsService, times(1)).sendIepReviewEvent(0, prisonerAtLocation().offenderNo, expectedPrisonerIepLevel.reviewTime, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
+      verify(snsService, times(1)).sendIepReviewEvent(
+        0,
+        prisonerAtLocation().offenderNo,
+        expectedPrisonerIepLevel.reviewTime,
+        IncentivesDomainEventType.IEP_REVIEW_INSERTED
+      )
       verify(auditService, times(1))
         .sendMessage(
           AuditType.IEP_REVIEW_ADDED,
@@ -344,14 +363,25 @@ class PrisonerIepLevelReviewServiceTest {
       val prisonerAtLocation = prisonerAtLocation(agencyId = "MDI")
       whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(prisonerAtLocation)
       whenever(prisonApiService.getLocationById(prisonerAtLocation.assignedLivingUnitId, true)).thenReturn(location)
-      whenever(iepLevelService.getIepLevelsForPrison(prisonerAtLocation.agencyId, useClientCredentials = true)).thenReturn(basicStandardEnhanced)
+      whenever(
+        iepLevelService.getIepLevelsForPrison(
+          prisonerAtLocation.agencyId,
+          useClientCredentials = true
+        )
+      ).thenReturn(basicStandardEnhanced)
       val iepDetails = listOf(
         iepDetail(prisonerAtLocation.agencyId, "Basic", "BAS", LocalDateTime.now()),
         iepDetail("BXI", "Standard", "STD", LocalDateTime.now().minusDays(1)),
         iepDetail("LEI", "Basic", "BAS", LocalDateTime.now().minusDays(2)),
       )
       val iepSummary = iepSummary(iepDetails = iepDetails)
-      whenever(prisonApiService.getIEPSummaryForPrisoner(prisonerAtLocation.bookingId, withDetails = true, useClientCredentials = true)).thenReturn(iepSummary)
+      whenever(
+        prisonApiService.getIEPSummaryForPrisoner(
+          prisonerAtLocation.bookingId,
+          withDetails = true,
+          useClientCredentials = true
+        )
+      ).thenReturn(iepSummary)
 
       // When
       prisonerIepLevelReviewService.processOffenderEvent(prisonOffenderEvent)
@@ -371,7 +401,12 @@ class PrisonerIepLevelReviewServiceTest {
       )
 
       verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
-      verify(snsService, times(1)).sendIepReviewEvent(0, prisonerAtLocation().offenderNo, expectedPrisonerIepLevel.reviewTime, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
+      verify(snsService, times(1)).sendIepReviewEvent(
+        0,
+        prisonerAtLocation().offenderNo,
+        expectedPrisonerIepLevel.reviewTime,
+        IncentivesDomainEventType.IEP_REVIEW_INSERTED
+      )
       verify(auditService, times(1))
         .sendMessage(
           AuditType.IEP_REVIEW_ADDED,
@@ -388,14 +423,25 @@ class PrisonerIepLevelReviewServiceTest {
       val prisonerAtLocation = prisonerAtLocation(agencyId = "MDI")
       whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(prisonerAtLocation)
       whenever(prisonApiService.getLocationById(prisonerAtLocation.assignedLivingUnitId, true)).thenReturn(location)
-      whenever(iepLevelService.getIepLevelsForPrison(prisonerAtLocation.agencyId, useClientCredentials = true)).thenReturn(basicStandardEnhanced)
+      whenever(
+        iepLevelService.getIepLevelsForPrison(
+          prisonerAtLocation.agencyId,
+          useClientCredentials = true
+        )
+      ).thenReturn(basicStandardEnhanced)
       val iepDetails = listOf(
         iepDetail(prisonerAtLocation.agencyId, "Standard", "STD", LocalDateTime.now()),
         iepDetail("BXI", "Enhanced 2", "ENH2", LocalDateTime.now().minusDays(1)),
         iepDetail("LEI", "Basic", "BAS", LocalDateTime.now().minusDays(2)),
       )
       val iepSummary = iepSummary(iepDetails = iepDetails)
-      whenever(prisonApiService.getIEPSummaryForPrisoner(prisonerAtLocation.bookingId, withDetails = true, useClientCredentials = true)).thenReturn(iepSummary)
+      whenever(
+        prisonApiService.getIEPSummaryForPrisoner(
+          prisonerAtLocation.bookingId,
+          withDetails = true,
+          useClientCredentials = true
+        )
+      ).thenReturn(iepSummary)
 
       // When
       prisonerIepLevelReviewService.processOffenderEvent(prisonOffenderEvent)
@@ -415,7 +461,12 @@ class PrisonerIepLevelReviewServiceTest {
       )
 
       verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
-      verify(snsService, times(1)).sendIepReviewEvent(0, prisonerAtLocation().offenderNo, expectedPrisonerIepLevel.reviewTime, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
+      verify(snsService, times(1)).sendIepReviewEvent(
+        0,
+        prisonerAtLocation().offenderNo,
+        expectedPrisonerIepLevel.reviewTime,
+        IncentivesDomainEventType.IEP_REVIEW_INSERTED
+      )
       verify(auditService, times(1))
         .sendMessage(
           AuditType.IEP_REVIEW_ADDED,
@@ -433,7 +484,13 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(prisonerAtLocation)
       whenever(prisonApiService.getLocationById(prisonerAtLocation.assignedLivingUnitId, true)).thenReturn(location)
       whenever(iepLevelService.getIepLevelsForPrison(prisonerAtLocation.agencyId)).thenReturn(basicStandardEnhanced)
-      whenever(prisonApiService.getIEPSummaryForPrisoner(prisonerAtLocation.bookingId, withDetails = true, useClientCredentials = true)).thenReturn(iepSummary(iepDetails = emptyList()))
+      whenever(
+        prisonApiService.getIEPSummaryForPrisoner(
+          prisonerAtLocation.bookingId,
+          withDetails = true,
+          useClientCredentials = true
+        )
+      ).thenReturn(iepSummary(iepDetails = emptyList()))
 
       // When
       Assert.assertThrows(NoDataFoundException::class.java) {
@@ -454,7 +511,12 @@ class PrisonerIepLevelReviewServiceTest {
     fun `process MERGE event`(): Unit = runBlocking {
       // Given - default for that prison is Enhanced
       val prisonMergeEvent = prisonMergeEvent()
-      whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(prisonerAtLocation(bookingId = 1234567, offenderNo = "A1244AB"))
+      whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(
+        prisonerAtLocation(
+          bookingId = 1234567,
+          offenderNo = "A1244AB"
+        )
+      )
       whenever(prisonerIepLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDesc("A8765SS"))
         .thenReturn(
           flowOf(
@@ -628,16 +690,14 @@ class PrisonerIepLevelReviewServiceTest {
 
     @BeforeEach
     fun setUp(): Unit = runBlocking {
-      // Mock IEP level query
-      whenever(iepLevelRepository.findById(iepLevelCode)).thenReturn(
-        GlobalIepLevel(iepCode = iepLevelCode, iepDescription = iepLevelDescription, sequence = 3, active = true),
-      )
 
       // Mock find query
       whenever(prisonerIepLevelRepository.findById(id)).thenReturn(iepReview)
 
       // Mock PrisonerIepLevel being updated
       whenever(prisonerIepLevelRepository.delete(iepReview)).thenReturn(Unit)
+
+      whenever(prisonApiService.getIepLevels()).thenReturn(incentiveLevels)
     }
 
     @Test
@@ -656,7 +716,12 @@ class PrisonerIepLevelReviewServiceTest {
       prisonerIepLevelReviewService.handleSyncDeleteIepReviewRequest(bookingId, iepReview.id)
 
       // SNS event is sent
-      verify(snsService, times(1)).sendIepReviewEvent(id, prisonerAtLocation().offenderNo, iepReview.reviewTime, IncentivesDomainEventType.IEP_REVIEW_DELETED)
+      verify(snsService, times(1)).sendIepReviewEvent(
+        id,
+        prisonerAtLocation().offenderNo,
+        iepReview.reviewTime,
+        IncentivesDomainEventType.IEP_REVIEW_DELETED
+      )
 
       // audit message is sent
       verify(auditService, times(1))
@@ -669,29 +734,30 @@ class PrisonerIepLevelReviewServiceTest {
     }
 
     @Test
-    fun `If deleted IEP review had current = true, set the latest IEP review current flag to true`(): Unit = runBlocking {
-      // Prisoner had few IEP reviews
-      val currentIepReview = iepReview.copy(current = true)
-      val olderIepReview = iepReview.copy(id = currentIepReview.id - 1, current = false)
+    fun `If deleted IEP review had current = true, set the latest IEP review current flag to true`(): Unit =
+      runBlocking {
+        // Prisoner had few IEP reviews
+        val currentIepReview = iepReview.copy(current = true)
+        val olderIepReview = iepReview.copy(id = currentIepReview.id - 1, current = false)
 
-      // Mock find query
-      whenever(prisonerIepLevelRepository.findById(id)).thenReturn(currentIepReview)
+        // Mock find query
+        whenever(prisonerIepLevelRepository.findById(id)).thenReturn(currentIepReview)
 
-      // Mock find of latest IEP review
-      whenever(prisonerIepLevelRepository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId))
-        .thenReturn(olderIepReview)
+        // Mock find of latest IEP review
+        whenever(prisonerIepLevelRepository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId))
+          .thenReturn(olderIepReview)
 
-      // When
-      prisonerIepLevelReviewService.handleSyncDeleteIepReviewRequest(bookingId, currentIepReview.id)
+        // When
+        prisonerIepLevelReviewService.handleSyncDeleteIepReviewRequest(bookingId, currentIepReview.id)
 
-      // Then desired IEP review is deletes as usual
-      verify(prisonerIepLevelRepository, times(1))
-        .delete(currentIepReview)
+        // Then desired IEP review is deletes as usual
+        verify(prisonerIepLevelRepository, times(1))
+          .delete(currentIepReview)
 
-      // and the now latest IEP review becomes the active one
-      verify(prisonerIepLevelRepository, times(1))
-        .save(olderIepReview.copy(current = true))
-    }
+        // and the now latest IEP review becomes the active one
+        verify(prisonerIepLevelRepository, times(1))
+          .save(olderIepReview.copy(current = true))
+      }
   }
 
   @Nested
@@ -742,10 +808,6 @@ class PrisonerIepLevelReviewServiceTest {
 
     @BeforeEach
     fun setUp(): Unit = runBlocking {
-      // Mock IEP level query
-      whenever(iepLevelRepository.findById("ENH")).thenReturn(
-        GlobalIepLevel(iepCode = iepLevelCode, iepDescription = iepLevelDescription, sequence = 3, active = true),
-      )
 
       // Mock find query
       whenever(prisonerIepLevelRepository.findById(id)).thenReturn(iepReview)
@@ -753,12 +815,15 @@ class PrisonerIepLevelReviewServiceTest {
       // Mock PrisonerIepLevel being updated
       whenever(prisonerIepLevelRepository.save(expectedIepReview))
         .thenReturn(expectedIepReview)
+
+      whenever(prisonApiService.getIepLevels()).thenReturn(incentiveLevels)
     }
 
     @Test
     fun `updates the IEP review`(): Unit = runBlocking {
       // When
-      val result = prisonerIepLevelReviewService.handleSyncPatchIepReviewRequest(bookingId, iepReview.id, syncPatchRequest)
+      val result =
+        prisonerIepLevelReviewService.handleSyncPatchIepReviewRequest(bookingId, iepReview.id, syncPatchRequest)
 
       // Then check it's saved
       verify(prisonerIepLevelRepository, times(1))
@@ -774,7 +839,12 @@ class PrisonerIepLevelReviewServiceTest {
       prisonerIepLevelReviewService.handleSyncPatchIepReviewRequest(bookingId, iepReview.id, syncPatchRequest)
 
       // SNS event is sent
-      verify(snsService, times(1)).sendIepReviewEvent(id, prisonerAtLocation().offenderNo, iepReview.reviewTime, IncentivesDomainEventType.IEP_REVIEW_UPDATED)
+      verify(snsService, times(1)).sendIepReviewEvent(
+        id,
+        prisonerAtLocation().offenderNo,
+        iepReview.reviewTime,
+        IncentivesDomainEventType.IEP_REVIEW_UPDATED
+      )
 
       // audit message is sent
       verify(auditService, times(1))
@@ -864,14 +934,11 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonApiService.getLocationById(prisonerAtLocation.assignedLivingUnitId, true))
         .thenReturn(location)
 
-      // Mock IEP level query
-      whenever(iepLevelRepository.findById("ENH")).thenReturn(
-        GlobalIepLevel(iepCode = iepLevelCode, iepDescription = iepLevelDescription, sequence = 3, active = true),
-      )
-
       // Mock save() of PrisonerIepLevel record
       whenever(prisonerIepLevelRepository.save(iepReview))
         .thenReturn(iepReview.copy(id = iepReviewId))
+
+      whenever(prisonApiService.getIepLevels()).thenReturn(incentiveLevels)
     }
 
     @Test
@@ -893,7 +960,12 @@ class PrisonerIepLevelReviewServiceTest {
       prisonerIepLevelReviewService.handleSyncPostIepReviewRequest(bookingId, syncPostRequest)
 
       // SNS event is sent
-      verify(snsService, times(1)).sendIepReviewEvent(iepReviewId, prisonerAtLocation().offenderNo, syncPostRequest.iepTime, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
+      verify(snsService, times(1)).sendIepReviewEvent(
+        iepReviewId,
+        prisonerAtLocation().offenderNo,
+        syncPostRequest.iepTime,
+        IncentivesDomainEventType.IEP_REVIEW_INSERTED
+      )
 
       // audit message is sent
       verify(auditService, times(1))
@@ -931,6 +1003,7 @@ class PrisonerIepLevelReviewServiceTest {
     iepTime = iepTime,
     iepDetails = iepDetails,
   )
+
   private val iepSummaryWithDetail = iepSummary(
     iepDetails = listOf(
       IepDetail(
@@ -955,6 +1028,7 @@ class PrisonerIepLevelReviewServiceTest {
       ),
     )
   )
+
   private fun iepDetail(agencyId: String, iepLevel: String, iepCode: String, iepTime: LocalDateTime) = IepDetail(
     bookingId = 1L,
     agencyId = agencyId,
@@ -1012,9 +1086,10 @@ class PrisonerIepLevelReviewServiceTest {
     description = "A prisoner has been merged from A8765SS to A1244AB"
   )
 
-  private fun prisonerAtLocation(bookingId: Long = 1234567, offenderNo: String = "A1234AA", agencyId: String = "MDI") = PrisonerAtLocation(
-    bookingId, 1, "John", "Smith", offenderNo, agencyId, 1
-  )
+  private fun prisonerAtLocation(bookingId: Long = 1234567, offenderNo: String = "A1234AA", agencyId: String = "MDI") =
+    PrisonerAtLocation(
+      bookingId, 1, "John", "Smith", offenderNo, agencyId, 1
+    )
 
   private val location = Location(
     agencyId = "MDI", locationId = 77777L, description = "Houseblock 1"
@@ -1051,7 +1126,12 @@ class PrisonerIepLevelReviewServiceTest {
     current = true,
   )
 
-  private fun iepDetailFromIepLevel(prisonerIepLevel: PrisonerIepLevel, iepDescription: String, iepCode: String, id: Long = 0) =
+  private fun iepDetailFromIepLevel(
+    prisonerIepLevel: PrisonerIepLevel,
+    iepDescription: String,
+    iepCode: String,
+    id: Long = 0
+  ) =
     IepDetail(
       id = id,
       iepLevel = iepDescription,
@@ -1068,3 +1148,11 @@ class PrisonerIepLevelReviewServiceTest {
       auditModuleName = "INCENTIVES_API",
     )
 }
+
+val incentiveLevels =
+  flowOf(
+    IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1),
+    IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2),
+    IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3),
+    IepLevel(iepLevel = "EN2", iepDescription = "Enhanced 2", sequence = 4),
+  )

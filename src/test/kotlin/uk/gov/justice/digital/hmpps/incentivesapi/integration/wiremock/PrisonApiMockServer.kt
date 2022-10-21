@@ -127,6 +127,63 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
     )
   }
 
+  fun stubIepLevels() {
+    stubFor(
+      get("/api/reference-domains/domains/IEP_LEVEL/codes").willReturn(
+        aResponse()
+          .withHeader("Content-Type", "application/json")
+          .withBody(
+            """
+              [                
+                 {
+                      "domain": "IEP_LEVEL",
+                      "code": "BAS",
+                      "description": "Basic",
+                      "listSeq": 1,
+                      "activeFlag": "Y"
+                  },
+                  {
+                      "domain": "IEP_LEVEL",
+                      "code": "ENT",
+                      "description": "Entry",
+                      "listSeq": 2,
+                      "activeFlag": "N"
+                  },
+                  {
+                      "domain": "IEP_LEVEL",
+                      "code": "STD",
+                      "description": "Standard",
+                      "listSeq": 3,
+                      "activeFlag": "Y"
+                  },
+                 {
+                      "domain": "IEP_LEVEL",
+                      "code": "ENH",
+                      "description": "Enhanced",
+                      "listSeq": 4,
+                      "activeFlag": "Y"
+                  },
+                 {
+                      "domain": "IEP_LEVEL",
+                      "code": "EN2",
+                      "description": "Enhanced 2",
+                      "listSeq": 5,
+                      "activeFlag": "Y"
+                  },
+                 {
+                      "domain": "IEP_LEVEL",
+                      "code": "EN3",
+                      "description": "Enhanced 3",
+                      "listSeq": 6,
+                      "activeFlag": "Y"
+                  }                                 
+              ]
+            """.trimIndent()
+          )
+      )
+    )
+  }
+
   fun stubAgenciesIepLevels(agencyId: String) {
     stubFor(
       get("/api/agencies/$agencyId/iepLevels").willReturn(
