@@ -228,7 +228,7 @@ class PrisonerIepLevelReviewService(
         iepReview,
         locationInfo,
         LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
-        "incentives-api"
+        "INCENTIVES_API"
       )
 
       publishDomainEvent(

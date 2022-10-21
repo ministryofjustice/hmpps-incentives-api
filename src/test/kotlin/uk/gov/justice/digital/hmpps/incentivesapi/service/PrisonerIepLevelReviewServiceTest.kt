@@ -320,7 +320,7 @@ class PrisonerIepLevelReviewServiceTest {
         prisonId = location.agencyId,
         locationId = location.description,
         current = true,
-        reviewedBy = "incentives-api",
+        reviewedBy = "INCENTIVES_API",
         reviewTime = LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
         reviewType = ReviewType.INITIAL,
         prisonerNumber = prisonerAtLocation().offenderNo
@@ -364,7 +364,7 @@ class PrisonerIepLevelReviewServiceTest {
         prisonId = location.agencyId,
         locationId = location.description,
         current = true,
-        reviewedBy = "incentives-api",
+        reviewedBy = "INCENTIVES_API",
         reviewTime = LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
         reviewType = ReviewType.TRANSFER,
         prisonerNumber = prisonerAtLocation.offenderNo
@@ -408,7 +408,7 @@ class PrisonerIepLevelReviewServiceTest {
         prisonId = location.agencyId,
         locationId = location.description,
         current = true,
-        reviewedBy = "incentives-api",
+        reviewedBy = "INCENTIVES_API",
         reviewTime = LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
         reviewType = ReviewType.TRANSFER,
         prisonerNumber = prisonerAtLocation.offenderNo
