@@ -1,7 +1,14 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.count
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flattenMerge
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -275,7 +282,7 @@ class PrisonerIepLevelReviewService(
             iepHistory.sortedBy(IepDetail::iepTime).lastOrNull { it.agencyId != prisonerInfo.agencyId }?.iepCode
               ?: defaultLevel
           iepLevelsForPrison.find { it.iepLevel == iepLevelBeforeTransfer }
-          // ...or the highest level in the prison
+            // ...or the highest level in the prison
             ?: defaultLevel
         } catch (e: IncentiveReviewNotFoundException) {
           defaultLevel
