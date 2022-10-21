@@ -1,13 +1,7 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.count
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flattenMerge
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -31,6 +25,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLeve
 import java.time.Clock
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.function.Supplier
 import javax.validation.ValidationException
 
 @Service
@@ -50,24 +45,27 @@ class PrisonerIepLevelReviewService(
 
   suspend fun getPrisonerIepLevelHistory(
     bookingId: Long,
-    useNomisData: Boolean = true,
     withDetails: Boolean = true,
     useClientCredentials: Boolean = false,
   ): IepSummary {
-    return if (useNomisData) {
+    return if (!featureFlagsService.isIncentivesDataSourceOfTruth()) {
       prisonApiService.getIEPSummaryForPrisoner(bookingId, withDetails, useClientCredentials)
     } else {
-      buildIepSummary(prisonerIepLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(bookingId), getIncentiveLevels(), withDetails)
+      val reviews = prisonerIepLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(bookingId)
+      if (reviews.count() == 0) throw IncentiveReviewNotFoundException("No Incentive Reviews for booking ID $bookingId")
+      buildIepSummary(reviews, getIncentiveLevels(), withDetails)
     }
   }
 
-  suspend fun getPrisonerIepLevelHistory(prisonerNumber: String, useNomisData: Boolean = true): IepSummary {
+  suspend fun getPrisonerIepLevelHistory(prisonerNumber: String): IepSummary {
 
-    return if (useNomisData) {
+    return if (!featureFlagsService.isIncentivesDataSourceOfTruth()) {
       val prisonerInfo = prisonApiService.getPrisonerInfo(prisonerNumber)
       prisonApiService.getIEPSummaryPerPrisoner(listOf(prisonerInfo.bookingId)).first()
     } else {
-      buildIepSummary(prisonerIepLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(prisonerNumber), getIncentiveLevels())
+      val reviews = prisonerIepLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(prisonerNumber)
+      if (reviews.count() == 0) throw IncentiveReviewNotFoundException("No Incentive Reviews for prisoner number $prisonerNumber")
+      buildIepSummary(reviews, getIncentiveLevels())
     }
   }
 
@@ -84,7 +82,11 @@ class PrisonerIepLevelReviewService(
   }
 
   @Transactional
-  suspend fun persistSyncPostRequest(bookingId: Long, syncPostRequest: SyncPostRequest, includeLocation: Boolean): IepDetail {
+  suspend fun persistSyncPostRequest(
+    bookingId: Long,
+    syncPostRequest: SyncPostRequest,
+    includeLocation: Boolean
+  ): IepDetail {
     val prisonerInfo = prisonApiService.getPrisonerInfo(bookingId, true)
     var locationInfo: Location? = null
     if (includeLocation) {
@@ -120,7 +122,11 @@ class PrisonerIepLevelReviewService(
     return iepDetail
   }
 
-  suspend fun handleSyncPatchIepReviewRequest(bookingId: Long, id: Long, syncPatchRequest: SyncPatchRequest): IepDetail {
+  suspend fun handleSyncPatchIepReviewRequest(
+    bookingId: Long,
+    id: Long,
+    syncPatchRequest: SyncPatchRequest
+  ): IepDetail {
     if (listOf(syncPatchRequest.iepTime, syncPatchRequest.comment, syncPatchRequest.current).all { it == null }) {
       throw ValidationException("Please provide fields to update")
     }
@@ -136,7 +142,7 @@ class PrisonerIepLevelReviewService(
       throw NoDataFoundException(bookingId)
     }
 
-    syncPatchRequest.current ?.let {
+    syncPatchRequest.current?.let {
       updateIepLevelsWithCurrentFlagToFalse(bookingId)
     }
 
@@ -181,8 +187,8 @@ class PrisonerIepLevelReviewService(
     publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_DELETED)
   }
 
-  suspend fun getCurrentIEPLevelForPrisoners(bookingIds: List<Long>, useNomisData: Boolean): Flow<CurrentIepLevel> {
-    return if (useNomisData) {
+  suspend fun getCurrentIEPLevelForPrisoners(bookingIds: List<Long>): Flow<CurrentIepLevel> {
+    return if (!featureFlagsService.isIncentivesDataSourceOfTruth()) {
       prisonApiService.getIEPSummaryPerPrisoner(bookingIds)
         .map {
           CurrentIepLevel(iepLevel = it.iepLevel, bookingId = it.bookingId)
@@ -191,7 +197,10 @@ class PrisonerIepLevelReviewService(
       val incentiveLevels = getIncentiveLevels()
       prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(bookingIds)
         .map {
-          CurrentIepLevel(iepLevel = incentiveLevels[it.iepCode]?.iepDescription ?: "Unmapped", bookingId = it.bookingId)
+          CurrentIepLevel(
+            iepLevel = incentiveLevels[it.iepCode]?.iepDescription ?: "Unmapped",
+            bookingId = it.bookingId
+          )
         }
     }
   }
@@ -249,16 +258,28 @@ class PrisonerIepLevelReviewService(
 
   private suspend fun getIepLevelForReviewType(prisonerInfo: PrisonerAtLocation, reviewType: ReviewType): String {
     val iepLevelsForPrison = iepLevelService.getIepLevelsForPrison(prisonerInfo.agencyId, useClientCredentials = true)
+    val defaultLevel = iepLevelsForPrison.find(IepLevel::default) ?: iepLevelsForPrison.first()
     val iepLevel = when (reviewType) {
-      ReviewType.INITIAL -> iepLevelsForPrison.find(IepLevel::default) ?: throw Exception("No default IEP level found for Prison '${prisonerInfo.agencyId}'")
-
+      ReviewType.INITIAL -> {
+        defaultLevel
+      }
       ReviewType.TRANSFER -> {
-        val iepHistory = getPrisonerIepLevelHistory(prisonerInfo.bookingId, useNomisData = true, withDetails = true, useClientCredentials = true).iepDetails
-        val iepLevelBeforeTransfer = iepHistory.sortedBy(IepDetail::iepTime).lastOrNull { it.agencyId != prisonerInfo.agencyId }
-          ?: throw NoDataFoundException(prisonerInfo.bookingId)
-        iepLevelsForPrison.find { it.iepDescription == iepLevelBeforeTransfer.iepLevel }
+        try {
+          val iepHistory =
+            getPrisonerIepLevelHistory(
+              prisonerInfo.bookingId,
+              withDetails = true,
+              useClientCredentials = true
+            ).iepDetails
+          val iepLevelBeforeTransfer =
+            iepHistory.sortedBy(IepDetail::iepTime).lastOrNull { it.agencyId != prisonerInfo.agencyId }?.iepCode
+              ?: defaultLevel
+          iepLevelsForPrison.find { it.iepLevel == iepLevelBeforeTransfer }
           // ...or the highest level in the prison
-          ?: iepLevelsForPrison.last()
+            ?: defaultLevel
+        } catch (e: IncentiveReviewNotFoundException) {
+          defaultLevel
+        }
       }
 
       else -> throw NotImplementedError("Not implemented for $reviewType")
@@ -266,10 +287,15 @@ class PrisonerIepLevelReviewService(
     return iepLevel.iepLevel
   }
 
-  private suspend fun buildIepSummary(levels: Flow<PrisonerIepLevel>, incentiveLevels: Map<String, IepLevel>, withDetails: Boolean = true): IepSummary {
-    val iepLevels = levels.map { it.translate(incentiveLevels) }.toList()
+  private suspend fun buildIepSummary(
+    levels: Flow<PrisonerIepLevel>,
+    incentiveLevels: Map<String, IepLevel>,
+    withDetails: Boolean = true
+  ): IepSummary {
+    val iepLevels = levels.map { it.translate(incentiveLevels) }
 
-    val currentIep = iepLevels.first()
+    val currentIep = iepLevels.firstOrNull() ?: throw IncentiveReviewNotFoundException("Not Found incentive reviews")
+
     return IepSummary(
       bookingId = currentIep.bookingId,
       iepDate = currentIep.iepDate,
@@ -278,7 +304,7 @@ class PrisonerIepLevelReviewService(
       id = currentIep.id,
       prisonerNumber = currentIep.prisonerNumber,
       locationId = currentIep.locationId,
-      iepDetails = if (withDetails) iepLevels else emptyList(),
+      iepDetails = if (withDetails) iepLevels.toList() else emptyList(),
     )
   }
 
@@ -406,8 +432,9 @@ class PrisonerIepLevelReviewService(
       .map { review -> review.copy(prisonerNumber = remainingPrisonerNumber) }
 
     val remainingBookingId = prisonApiService.getPrisonerInfo(remainingPrisonerNumber, true).bookingId
-    val inactiveReviews = prisonerIepLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(remainingPrisonerNumber)
-      .map { review -> review.copy(bookingId = remainingBookingId, current = false) }
+    val inactiveReviews =
+      prisonerIepLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(remainingPrisonerNumber)
+        .map { review -> review.copy(bookingId = remainingBookingId, current = false) }
 
     val reviewsToUpdate = merge(activeReviews, inactiveReviews)
     reviewsToUpdate.collect {
@@ -416,7 +443,8 @@ class PrisonerIepLevelReviewService(
 
     val numberUpdated = reviewsToUpdate.count()
     if (numberUpdated > 0) {
-      val message = "$numberUpdated incentive records updated from merge $removedPrisonerNumber -> $remainingPrisonerNumber. Updated to booking ID $remainingBookingId"
+      val message =
+        "$numberUpdated incentive records updated from merge $removedPrisonerNumber -> $remainingPrisonerNumber. Updated to booking ID $remainingBookingId"
       log.info(message)
       auditService.sendMessage(
         AuditType.PRISONER_NUMBER_MERGE,
@@ -439,3 +467,11 @@ data class IepReviewInNomis(
   val reviewTime: LocalDateTime,
   val reviewerUserName: String,
 )
+
+class IncentiveReviewNotFoundException(message: String?) :
+  RuntimeException(message),
+  Supplier<IncentiveReviewNotFoundException> {
+  override fun get(): IncentiveReviewNotFoundException {
+    return IncentiveReviewNotFoundException(message)
+  }
+}

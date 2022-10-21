@@ -5,7 +5,6 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Assert
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -19,7 +18,6 @@ import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.incentivesapi.config.AuthenticationFacade
 import uk.gov.justice.digital.hmpps.incentivesapi.config.FeatureFlagsService
-import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ReviewAddedSyncMechanism
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
@@ -220,7 +218,7 @@ class PrisonerIepLevelReviewServiceTest {
         ).thenReturn(iepSummaryWithDetail)
 
         // When
-        prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567, useNomisData = true)
+        prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567)
 
         // Then
         verify(prisonApiService, times(1)).getIEPSummaryForPrisoner(1234567, true)
@@ -236,7 +234,7 @@ class PrisonerIepLevelReviewServiceTest {
           whenever(prisonApiService.getIEPSummaryForPrisoner(1234567, withDetails = false)).thenReturn(iepSummary())
 
           // When
-          prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567, useNomisData = true, withDetails = false)
+          prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567, withDetails = false)
 
           // Then
           verify(prisonApiService, times(1)).getIEPSummaryForPrisoner(1234567, false)
@@ -247,6 +245,7 @@ class PrisonerIepLevelReviewServiceTest {
     @Test
     fun `will query incentives db if useNomisData is false`(): Unit = runBlocking {
       coroutineScope {
+        whenever(featureFlagsService.isIncentivesDataSourceOfTruth()).thenReturn(true)
         whenever(prisonApiService.getIepLevels()).thenReturn(incentiveLevels)
 
         // Given
@@ -255,7 +254,7 @@ class PrisonerIepLevelReviewServiceTest {
         )
 
         // When
-        val result = prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567, useNomisData = false)
+        val result = prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567)
 
         // Then
         verify(prisonerIepLevelRepository, times(1)).findAllByBookingIdOrderByReviewTimeDesc(1234567)
@@ -267,6 +266,7 @@ class PrisonerIepLevelReviewServiceTest {
     fun `will query incentives db if useNomisData is false and will not return iep details if withDetails is false`(): Unit =
       runBlocking {
         coroutineScope {
+          whenever(featureFlagsService.isIncentivesDataSourceOfTruth()).thenReturn(true)
           whenever(prisonApiService.getIepLevels()).thenReturn(incentiveLevels)
 
           // Given
@@ -276,7 +276,7 @@ class PrisonerIepLevelReviewServiceTest {
 
           // When
           val result =
-            prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567, useNomisData = false, withDetails = false)
+            prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567, withDetails = false)
 
           // Then
           verify(prisonerIepLevelRepository, times(1)).findAllByBookingIdOrderByReviewTimeDesc(1234567)
@@ -446,9 +446,9 @@ class PrisonerIepLevelReviewServiceTest {
       // When
       prisonerIepLevelReviewService.processOffenderEvent(prisonOffenderEvent)
 
-      // Then - MDI prison does not support ENH2 (which they were on in BXI) so fallback to ENH
+      // Then - MDI prison does not support ENH2 (which they were on in BXI) so fallback to STD
       val expectedPrisonerIepLevel = PrisonerIepLevel(
-        iepCode = "ENH",
+        iepCode = "STD",
         commentText = prisonOffenderEvent.description,
         bookingId = prisonerAtLocation.bookingId,
         prisonId = location.agencyId,
@@ -471,7 +471,7 @@ class PrisonerIepLevelReviewServiceTest {
         .sendMessage(
           AuditType.IEP_REVIEW_ADDED,
           "0",
-          iepDetailFromIepLevel(expectedPrisonerIepLevel, "Enhanced", "ENH"),
+          iepDetailFromIepLevel(expectedPrisonerIepLevel, "Standard", "STD"),
           expectedPrisonerIepLevel.reviewedBy,
         )
     }
@@ -483,7 +483,7 @@ class PrisonerIepLevelReviewServiceTest {
       val prisonOffenderEvent = prisonOffenderEvent("TRANSFERRED")
       whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(prisonerAtLocation)
       whenever(prisonApiService.getLocationById(prisonerAtLocation.assignedLivingUnitId, true)).thenReturn(location)
-      whenever(iepLevelService.getIepLevelsForPrison(prisonerAtLocation.agencyId)).thenReturn(basicStandardEnhanced)
+      whenever(iepLevelService.getIepLevelsForPrison(prisonerAtLocation.agencyId, true)).thenReturn(basicStandardEnhanced)
       whenever(
         prisonApiService.getIEPSummaryForPrisoner(
           prisonerAtLocation.bookingId,
@@ -493,9 +493,36 @@ class PrisonerIepLevelReviewServiceTest {
       ).thenReturn(iepSummary(iepDetails = emptyList()))
 
       // When
-      Assert.assertThrows(NoDataFoundException::class.java) {
-        runBlocking { prisonerIepLevelReviewService.processOffenderEvent(prisonOffenderEvent) }
-      }
+      prisonerIepLevelReviewService.processOffenderEvent(prisonOffenderEvent)
+
+      // Then - MDI prison does not support ENH2 (which they were on in BXI) so fallback to ENH
+      val expectedPrisonerIepLevel = PrisonerIepLevel(
+        iepCode = "STD",
+        commentText = prisonOffenderEvent.description,
+        bookingId = prisonerAtLocation.bookingId,
+        prisonId = location.agencyId,
+        locationId = location.description,
+        current = true,
+        reviewedBy = "INCENTIVES_API",
+        reviewTime = LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
+        reviewType = ReviewType.TRANSFER,
+        prisonerNumber = prisonerAtLocation.offenderNo
+      )
+
+      verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
+      verify(snsService, times(1)).sendIepReviewEvent(
+        0,
+        prisonerAtLocation().offenderNo,
+        expectedPrisonerIepLevel.reviewTime,
+        IncentivesDomainEventType.IEP_REVIEW_INSERTED
+      )
+      verify(auditService, times(1))
+        .sendMessage(
+          AuditType.IEP_REVIEW_ADDED,
+          "0",
+          iepDetailFromIepLevel(expectedPrisonerIepLevel, "Standard", "STD"),
+          expectedPrisonerIepLevel.reviewedBy,
+        )
     }
 
     @Test

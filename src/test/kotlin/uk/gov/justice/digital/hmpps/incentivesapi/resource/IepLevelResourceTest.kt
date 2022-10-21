@@ -780,7 +780,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
       // Then
       response.expectStatus().isCreated
 
-      webTestClient.get().uri("/iep/reviews/booking/$bookingId?use-nomis-data=false")
+      webTestClient.get().uri("/iep/reviews/booking/$bookingId")
         .headers(setAuthorisation())
         .exchange()
         .expectStatus().isOk
