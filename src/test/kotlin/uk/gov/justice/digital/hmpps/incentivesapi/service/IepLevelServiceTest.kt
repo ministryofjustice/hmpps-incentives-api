@@ -8,14 +8,11 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IepLevelRepository
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IepLevel as GlobalIepLevel
 
 class IepLevelServiceTest {
 
-  private val iepLevelRepository: IepLevelRepository = mock()
   private val prisonApiService: PrisonApiService = mock()
-  private val iepLevelService = IepLevelService(iepLevelRepository, prisonApiService)
+  private val iepLevelService = IepLevelService(prisonApiService)
 
   @Test
   fun `prison has all 5 iep levels`() {
@@ -23,7 +20,6 @@ class IepLevelServiceTest {
       coroutineScope {
         // Given
         val prisonId = "XXX"
-        whenever(iepLevelRepository.findAll()).thenReturn(fiveIepLevels)
         whenever(prisonApiService.getIepLevelsForPrison(prisonId)).thenReturn(
           flowOf(
             IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1, default = true),
@@ -51,7 +47,6 @@ class IepLevelServiceTest {
       coroutineScope {
         // Given
         val prisonId = "XXX"
-        whenever(iepLevelRepository.findAll()).thenReturn(fiveIepLevels)
         whenever(prisonApiService.getIepLevelsForPrison(prisonId)).thenReturn(
           flowOf(
             IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1, default = true),
@@ -70,71 +65,4 @@ class IepLevelServiceTest {
       }
     }
   }
-
-  @Test
-  fun `do not return inactive IepLevel`() {
-    runBlocking {
-      coroutineScope {
-        // Given
-        val prisonId = "XXX"
-        whenever(iepLevelRepository.findAll()).thenReturn(
-          flowOf(
-            GlobalIepLevel(iepCode = "BAS", iepDescription = "Basic", sequence = 1),
-            GlobalIepLevel(iepCode = "STD", iepDescription = "Standard", sequence = 2, active = false),
-          )
-        )
-        whenever(prisonApiService.getIepLevelsForPrison(prisonId)).thenReturn(
-          flowOf(
-            IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1, default = true),
-            IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2, default = false),
-          )
-        )
-
-        // When
-        val iepLevelsForPrison = iepLevelService.getIepLevelsForPrison(prisonId)
-
-        // Then - only BAS is returned as STD is inactive
-        assertThat(iepLevelsForPrison).hasSize(1)
-        assertThat(iepLevelsForPrison.last().iepLevel).isEqualTo("BAS")
-      }
-    }
-  }
-
-  @Test
-  fun `doesn't return unknown IepLevels (not present in IepLevel table)`() {
-    runBlocking {
-      coroutineScope {
-        // Given
-        val prisonId = "XXX"
-        whenever(iepLevelRepository.findAll()).thenReturn(
-          flowOf(
-            GlobalIepLevel(iepCode = "BAS", iepDescription = "Basic", sequence = 1),
-            GlobalIepLevel(iepCode = "STD", iepDescription = "Standard", sequence = 2, active = false),
-          )
-        )
-        whenever(prisonApiService.getIepLevelsForPrison(prisonId)).thenReturn(
-          flowOf(
-            IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1, default = true),
-            IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2, default = false),
-            // Unknown IEP level
-            IepLevel(iepLevel = "UNK", iepDescription = "Unknown", sequence = 3, default = false),
-          )
-        )
-
-        // When
-        val iepLevelsForPrison = iepLevelService.getIepLevelsForPrison(prisonId)
-
-        // Then - only BAS is returned as STD is inactive and "UNK" is not in the IepLevels table
-        assertThat(iepLevelsForPrison.map { it.iepLevel }).isEqualTo(listOf("BAS"))
-      }
-    }
-  }
-
-  private val fiveIepLevels = flowOf(
-    GlobalIepLevel(iepCode = "BAS", iepDescription = "Basic", sequence = 1),
-    GlobalIepLevel(iepCode = "STD", iepDescription = "Standard", sequence = 2),
-    GlobalIepLevel(iepCode = "ENH", iepDescription = "Enhanced", sequence = 3),
-    GlobalIepLevel(iepCode = "ENH2", iepDescription = "Enhanced 2", sequence = 4),
-    GlobalIepLevel(iepCode = "ENH3", iepDescription = "Enhanced 3", sequence = 5),
-  )
 }
