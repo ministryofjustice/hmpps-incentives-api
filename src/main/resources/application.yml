@@ -10,6 +10,7 @@ feature:
   #
   # NOTE: Environment variable is `FEATURE_REVIEWADDEDSYNCMECHANISM`
   review-added-sync-mechanism: PRISON_API
+  incentives-data-source-of-truth: false
 
 spring:
   application:
