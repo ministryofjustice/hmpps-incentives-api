@@ -12,6 +12,8 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsage
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsageRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepReviewInNomis
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Location
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonLocation
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocation
@@ -127,11 +129,3 @@ class PrisonApiService(
       .awaitBody()
   }
 }
-
-data class IncentiveLevel(
-  val domain: String,
-  val code: String,
-  val description: String,
-  val activeFlag: String,
-  val listSeq: Int,
-)

@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPatchRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepReviewInNomis
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Location
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocation
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
@@ -432,10 +433,3 @@ class PrisonerIepLevelReviewService(
 
 @OptIn(FlowPreview::class)
 fun <T> merge(vararg flows: Flow<T>): Flow<T> = flowOf(*flows).flattenMerge()
-
-data class IepReviewInNomis(
-  val iepLevel: String,
-  val comment: String,
-  val reviewTime: LocalDateTime,
-  val reviewerUserName: String,
-)
