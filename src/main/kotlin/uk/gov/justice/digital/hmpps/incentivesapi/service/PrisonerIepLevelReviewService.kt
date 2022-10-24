@@ -265,10 +265,10 @@ class PrisonerIepLevelReviewService(
 
   private suspend fun getIepLevelForReviewType(prisonerInfo: PrisonerAtLocation, reviewType: ReviewType): String {
     val iepLevelsForPrison = iepLevelService.getIepLevelsForPrison(prisonerInfo.agencyId, useClientCredentials = true)
-    val defaultLevel = iepLevelsForPrison.find(IepLevel::default) ?: iepLevelsForPrison.first()
+    val defaultLevel = iepLevelsForPrison.find(IepLevel::default) ?: iepLevelsForPrison.first()  // if no default use the lowest sequence
     val iepLevel = when (reviewType) {
       ReviewType.INITIAL -> {
-        defaultLevel
+        defaultLevel // admission should always be the default
       }
       ReviewType.TRANSFER -> {
         try {
@@ -280,12 +280,11 @@ class PrisonerIepLevelReviewService(
             ).iepDetails
           val iepLevelBeforeTransfer =
             iepHistory.sortedBy(IepDetail::iepTime).lastOrNull { it.agencyId != prisonerInfo.agencyId }?.iepCode
-              ?: defaultLevel
+              ?: defaultLevel // if no previous prison
           iepLevelsForPrison.find { it.iepLevel == iepLevelBeforeTransfer }
-            // ...or the highest level in the prison
-            ?: defaultLevel
+            ?: defaultLevel // if we don't match a level - go to the default.
         } catch (e: IncentiveReviewNotFoundException) {
-          defaultLevel
+          defaultLevel // this is to handle no reviews - only an issue before migration
         }
       }
 
