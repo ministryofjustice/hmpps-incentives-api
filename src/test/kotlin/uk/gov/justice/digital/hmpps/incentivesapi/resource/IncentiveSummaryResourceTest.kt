@@ -21,6 +21,9 @@ class IncentiveSummaryResourceTest : SqsIntegrationTestBase() {
 
   @Test
   fun `get behaviour summary for wing`() {
+
+    prisonApiMockServer.stubIepLevels()
+    prisonApiMockServer.stubAgenciesIepLevels("MDI")
     prisonApiMockServer.stubPrisonersOnWing("MDI-1")
     prisonApiMockServer.stubIEPSummary()
     prisonApiMockServer.stubPositiveCaseNoteSummary()

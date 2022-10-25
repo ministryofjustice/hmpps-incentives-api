@@ -3,11 +3,11 @@ package uk.gov.justice.digital.hmpps.incentivesapi.dto
 import io.swagger.v3.oas.annotations.media.Schema
 
 data class BehaviourSummary(
-  @Schema(description = "Prison Id", example = "WWI")
+  @Schema(description = "Prison Id", example = "MDI")
   val prisonId: String,
-  @Schema(description = "Location within the prison", example = "A")
+  @Schema(description = "Location within the prison", example = "1")
   val locationId: String,
-  @Schema(description = "Location within the prison description", example = "A Wing")
+  @Schema(description = "Location within the prison description", example = "Houseblock 1")
   val locationDescription: String = "",
 
   @Schema(description = "Breakdown of behaviours at this location by IEP level")
@@ -69,14 +69,14 @@ data class IncentiveLevelSummary(
 }
 
 data class PrisonerIncentiveSummary(
-  @Schema(description = "Prisoner Number - Often called NOMS Number/ID", example = "A1234DG")
+  @Schema(description = "Prisoner Number - Often called NOMS Number/ID", example = "A1234BC")
   val prisonerNumber: String,
   @Schema(
     description = "Internal reference for a period in prison (Not to be confused with the BOOK or Book Number)",
-    example = "2322121"
+    example = "1234567"
   )
   val bookingId: Long,
-  @Schema(description = "Internal reference for looking up the prisoners latest photo", example = "112121")
+  @Schema(description = "Internal reference for looking up the prisoners latest photo", example = "112233")
   val imageId: Long?,
   @Schema(description = "Prisoners First Name", example = "John")
   val firstName: String,

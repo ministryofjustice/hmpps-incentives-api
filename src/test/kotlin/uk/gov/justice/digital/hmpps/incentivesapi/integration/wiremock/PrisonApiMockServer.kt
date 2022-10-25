@@ -127,6 +127,96 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
     )
   }
 
+  fun stubIepLevels() {
+    stubFor(
+      get("/api/reference-domains/domains/IEP_LEVEL/codes").willReturn(
+        aResponse()
+          .withHeader("Content-Type", "application/json")
+          .withBody(
+            """
+              [                
+                 {
+                      "domain": "IEP_LEVEL",
+                      "code": "BAS",
+                      "description": "Basic",
+                      "listSeq": 1,
+                      "activeFlag": "Y"
+                  },
+                  {
+                      "domain": "IEP_LEVEL",
+                      "code": "ENT",
+                      "description": "Entry",
+                      "listSeq": 2,
+                      "activeFlag": "N"
+                  },
+                  {
+                      "domain": "IEP_LEVEL",
+                      "code": "STD",
+                      "description": "Standard",
+                      "listSeq": 3,
+                      "activeFlag": "Y"
+                  },
+                 {
+                      "domain": "IEP_LEVEL",
+                      "code": "ENH",
+                      "description": "Enhanced",
+                      "listSeq": 4,
+                      "activeFlag": "Y"
+                  },
+                 {
+                      "domain": "IEP_LEVEL",
+                      "code": "EN2",
+                      "description": "Enhanced 2",
+                      "listSeq": 5,
+                      "activeFlag": "Y"
+                  },
+                 {
+                      "domain": "IEP_LEVEL",
+                      "code": "EN3",
+                      "description": "Enhanced 3",
+                      "listSeq": 6,
+                      "activeFlag": "Y"
+                  }                                 
+              ]
+            """.trimIndent()
+          )
+      )
+    )
+  }
+
+  fun stubAgenciesIepLevels(agencyId: String) {
+    stubFor(
+      get("/api/agencies/$agencyId/iepLevels").willReturn(
+        aResponse()
+          .withHeader("Content-Type", "application/json")
+          .withBody(
+            """
+              [
+                  {
+                      "iepLevel": "BAS",
+                      "iepDescription": "Basic",
+                      "sequence": 1,
+                      "defaultLevel": false
+                  },
+                  {
+                      "iepLevel": "STD",
+                      "iepDescription": "Standard",
+                      "sequence": 3,
+                      "defaultLevel": true
+                  },
+                  {
+                      "iepLevel": "ENH",
+                      "iepDescription": "Enhanced",
+                      "sequence": 4,
+                      "defaultLevel": false
+                  }
+              ]
+            """.trimIndent()
+          )
+      )
+    )
+  }
+
   fun stubIEPSummary() {
     stubFor(
       post("/api/bookings/iepSummary").willReturn(
@@ -139,7 +229,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                   "bookingId": 1234134,
                   "iepLevel": "Basic",
                   "daysSinceReview": 35,
-                  "iepDate": "2021-12-02T00:00:00",
+                  "iepDate": "2021-12-02",
                   "iepTime": "2021-12-02T09:24:42.894Z",
                   "iepDetails": [
                     {
@@ -170,7 +260,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                   "bookingId": 1234135,
                   "iepLevel": "Standard",
                   "daysSinceReview": 50,
-                  "iepDate": "2022-01-02T00:00:00",
+                  "iepDate": "2022-01-02",
                   "iepTime": "2022-01-02T09:24:42.894Z",
                   "iepDetails": [
                     {
@@ -190,7 +280,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                   "bookingId": 1234136,
                   "iepLevel": "Enhanced",
                   "daysSinceReview": 12,
-                  "iepDate": "2021-10-02T00:00:00",
+                  "iepDate": "2021-10-02",
                   "iepTime": "2021-10-02T09:24:42.894Z",
                   "iepDetails": [
                     {
@@ -210,7 +300,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                   "bookingId": 1234137,
                   "iepLevel": "Basic",
                   "daysSinceReview": 2,
-                  "iepDate": "2021-12-02T00:00:00",
+                  "iepDate": "2021-12-02",
                   "iepTime": "2021-12-02T09:24:42.894Z",
                   "iepDetails": [
                     {
@@ -230,7 +320,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                   "bookingId": 1234138,
                   "iepLevel": "Standard",
                   "daysSinceReview": 6,
-                  "iepDate": "2021-12-02T00:00:00",
+                  "iepDate": "2021-12-02",
                   "iepTime": "2021-12-02T09:24:42.894Z",
                   "iepDetails": [
                     {
@@ -250,7 +340,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                   "bookingId": 2734134,
                   "iepLevel": "Entry",
                   "daysSinceReview": 1,
-                  "iepDate": "2022-01-02T00:00:00",
+                  "iepDate": "2022-01-02",
                   "iepTime": "2022-01-02T09:24:42.894Z",
                   "iepDetails": [
                     {
@@ -281,15 +371,15 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
           .withBody(
             """
               {
-                "bookingId": 1234134,
+                "bookingId": $bookingId,
                 "iepLevel": "Basic",
                 "daysSinceReview": 35,
-                "iepDate": "2021-12-02T00:00:00",
+                "iepDate": "2021-12-02",
                 "iepTime": "2021-12-02T09:24:42.894Z",
                 "iepDetails": [
                   {
                     "agencyId": "MDI",
-                    "bookingId": 1234134,
+                    "bookingId": $bookingId,
                     "sequence": 2,
                     "iepDate": "2021-12-02",
                     "iepLevel": "Basic",
@@ -300,7 +390,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                   },
                    {
                     "agencyId": "BXI",
-                    "bookingId": 1234134,
+                    "bookingId": $bookingId,
                     "sequence": 1,
                     "iepDate": "2020-11-02",
                     "iepLevel": "Entry",

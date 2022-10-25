@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.resource
 
 import kotlinx.coroutines.runBlocking
+import org.json.JSONObject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -9,8 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
+import java.time.Duration
+import java.time.LocalDate
 import java.time.LocalDate.now
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -56,22 +60,48 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
 
   @Test
   fun `get IEP Levels for a prison`() {
+    val prisonId = "MDI"
 
-    webTestClient.get().uri("/iep/levels/MDI")
+    prisonApiMockServer.stubIepLevels()
+    prisonApiMockServer.stubAgenciesIepLevels(prisonId)
+
+    webTestClient.get().uri("/iep/levels/$prisonId")
       .headers(setAuthorisation())
       .exchange()
       .expectStatus().isOk
       .expectBody()
-      .jsonPath("$.[*]").isArray
-      .jsonPath(matchByIepCode, "STD").exists()
-      .jsonPath(matchByIepCode, "BAS").exists()
-      .jsonPath(matchByIepCode, "ENH").exists()
-      .jsonPath(matchByIepCode, "ENT").doesNotExist()
+      .json(
+        """
+        [
+            {
+                "iepLevel": "BAS",
+                "iepDescription": "Basic",
+                "sequence": 1,
+                "default": false
+            },
+            {
+                "iepLevel": "STD",
+                "iepDescription": "Standard",
+                "sequence": 3,
+                "default": true
+            },
+            {
+                "iepLevel": "ENH",
+                "iepDescription": "Enhanced",
+                "sequence": 4,
+                "default": false
+            }
+        ]
+        """.trimIndent()
+      )
   }
 
   @Test
   fun `get IEP Levels for a prisoner`() {
     prisonApiMockServer.stubIEPSummaryForBooking()
+
+    val lastReviewDate = LocalDate.of(2021, 12, 2)
+    val daysSinceReview = Duration.between(lastReviewDate.atStartOfDay(), now().atStartOfDay()).toDays().toInt()
 
     webTestClient.get().uri("/iep/reviews/booking/1234134")
       .headers(setAuthorisation())
@@ -81,10 +111,11 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
         """
             {
              "bookingId":1234134,
-             "daysSinceReview":35,
+             "daysSinceReview": $daysSinceReview,
              "iepDate":"2021-12-02",
              "iepLevel":"Basic",
              "iepTime":"2021-12-02T09:24:42.894",
+             "nextReviewDate": "2022-12-02",
              "iepDetails":[
                 {
                    "bookingId":1234134,
@@ -186,6 +217,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
     val bookingId = 3330000L
     val prisonerNumber = "A1234AC"
 
+    prisonApiMockServer.stubIepLevels()
     prisonApiMockServer.stubGetPrisonerInfoByBooking(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = 77778L)
     prisonApiMockServer.stubGetLocationById(locationId = 77778L, locationDesc = "1-2-003")
     prisonApiMockServer.stubAddIep(bookingId = bookingId)
@@ -197,6 +229,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
       .expectStatus().isCreated
 
     val today = now().format(DateTimeFormatter.ISO_DATE)
+    val nextReviewDate = now().plusYears(1).format(DateTimeFormatter.ISO_DATE)
     webTestClient.get().uri("/iep/reviews/booking/$bookingId?use-nomis-data=false")
       .headers(setAuthorisation())
       .exchange()
@@ -208,15 +241,17 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
              "daysSinceReview":0,
              "iepDate":"$today",
              "iepLevel":"Standard",
+             "nextReviewDate": "$nextReviewDate",
              "iepDetails":[
                 {
                    "bookingId":$bookingId,
                    "iepDate":"$today",
                    "agencyId":"MDI",
                    "iepLevel":"Standard",
+                   "iepCode": "STD",
                    "comments":"A comment",
                    "userId":"INCENTIVES_ADM",
-                   "auditModuleName":"Incentives-API"
+                   "auditModuleName":"INCENTIVES_API"
                 }
              ]
           }
@@ -232,6 +267,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
     prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = 77777L)
     prisonApiMockServer.stubGetLocationById(locationId = 77777L, locationDesc = "1-2-003")
     prisonApiMockServer.stubAddIep(bookingId = bookingId)
+    prisonApiMockServer.stubIepLevels()
 
     webTestClient.post().uri("/iep/reviews/prisoner/$prisonerNumber")
       .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
@@ -246,6 +282,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
       .expectStatus().isCreated
 
     val today = now().format(DateTimeFormatter.ISO_DATE)
+    val nextReviewDate = now().plusYears(1).format(DateTimeFormatter.ISO_DATE)
     webTestClient.get().uri("/iep/reviews/prisoner/$prisonerNumber?use-nomis-data=false")
       .headers(setAuthorisation())
       .exchange()
@@ -258,6 +295,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
              "daysSinceReview":0,
              "iepDate":"$today",
              "iepLevel":"Enhanced",
+             "nextReviewDate":"$nextReviewDate",
              "iepDetails":[
                 {
                    "prisonerNumber": $prisonerNumber,
@@ -265,23 +303,25 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
                    "iepDate":"$today",
                    "agencyId":"MDI",
                    "iepLevel":"Enhanced",
+                   "iepCode": "ENH",
                    "comments":"A different comment",
                    "userId":"INCENTIVES_ADM",
                    "locationId": "1-2-003",
                    "reviewType": "REVIEW",
-                   "auditModuleName":"Incentives-API"
+                   "auditModuleName":"INCENTIVES_API"
                 },
                 {
-                    "prisonerNumber": $prisonerNumber,
+                   "prisonerNumber": $prisonerNumber,
                    "bookingId":$bookingId,
                    "iepDate":"$today",
                    "agencyId":"MDI",
                    "iepLevel":"Basic",
+                   "iepCode": "BAS",
                    "comments":"Basic Level",
                    "locationId": "1-2-003",
                    "userId":"INCENTIVES_ADM",
                    "reviewType": "INITIAL",
-                   "auditModuleName":"Incentives-API"
+                   "auditModuleName":"INCENTIVES_API"
                 }
 
              ]
@@ -302,6 +342,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
     )
     prisonApiMockServer.stubGetLocationById(locationId = 77778L, locationDesc = "1-2-003")
     prisonApiMockServer.stubAddIep(bookingId = bookingId)
+    prisonApiMockServer.stubIepLevels()
 
     webTestClient.post().uri("/iep/reviews/booking/$bookingId")
       .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
@@ -360,7 +401,21 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
     private val requestBody = syncPostRequest()
     private val prisonerNumber = "A1234AC"
 
+    private var existingPrisonerIepLevel: PrisonerIepLevel? = null
+
     private val syncCreateEndpoint = "/iep/sync/booking/$bookingId"
+    private var syncPatchEndpoint: String? = null
+    private var syncDeleteEndpoint: String? = null
+
+    @BeforeEach
+    fun setUp(): Unit = runBlocking {
+      existingPrisonerIepLevel = repository.save(
+        prisonerIepLevel(bookingId = bookingId, prisonerNumber = prisonerNumber)
+      )
+
+      syncPatchEndpoint = "/iep/sync/booking/$bookingId/id/${existingPrisonerIepLevel!!.id}"
+      syncDeleteEndpoint = syncPatchEndpoint
+    }
 
     @Test
     fun `POST to sync endpoint without write scope responds 403 Unauthorized`() {
@@ -373,11 +428,49 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
     }
 
     @Test
+    fun `PATCH to sync endpoint without write scope responds 403 Unauthorized`() {
+      // When the client doesn't have the `write` scope the API responds 403 Forbidden
+      webTestClient.patch().uri(syncPatchEndpoint)
+        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read")))
+        .bodyValue(requestBody)
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `DELETE to sync endpoint without write scope responds 403 Unauthorized`() {
+      // When the client doesn't have the `write` scope the API responds 403 Forbidden
+      webTestClient.delete().uri(syncPatchEndpoint)
+        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read")))
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
     fun `POST to sync endpoint without 'ROLE_MAINTAIN_IEP' role responds 403 Unauthorized`() {
       // When the client doesn't have the `ROLE_MAINTAIN_IEP` role the API responds 403 Forbidden
       webTestClient.post().uri(syncCreateEndpoint)
         .headers(setAuthorisation(roles = listOf("ROLE_DUMMY"), scopes = listOf("read", "write")))
         .bodyValue(requestBody)
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `PATCH to sync endpoint without 'ROLE_MAINTAIN_IEP' role responds 403 Unauthorized`() {
+      // When the client doesn't have the `ROLE_MAINTAIN_IEP` role the API responds 403 Forbidden
+      webTestClient.patch().uri(syncPatchEndpoint)
+        .headers(setAuthorisation(roles = listOf("ROLE_DUMMY"), scopes = listOf("read", "write")))
+        .bodyValue(requestBody)
+        .exchange()
+        .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `DELETE to sync endpoint without 'ROLE_MAINTAIN_IEP' role responds 403 Unauthorized`() {
+      // When the client doesn't have the `ROLE_MAINTAIN_IEP` role the API responds 403 Forbidden
+      webTestClient.delete().uri(syncDeleteEndpoint)
+        .headers(setAuthorisation(roles = listOf("ROLE_DUMMY"), scopes = listOf("read", "write")))
         .exchange()
         .expectStatus().isForbidden
     }
@@ -396,11 +489,71 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
     }
 
     @Test
+    fun `PATCH to sync endpoint when record with given id doesn't exist responds 404 Not Found`() {
+      val syncPatchEndpoint = "/iep/sync/booking/42000/id/42000"
+
+      // The API responds 404 Not Found
+      webTestClient.patch().uri(syncPatchEndpoint)
+        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
+        .bodyValue(requestBody)
+        .exchange()
+        .expectStatus().isNotFound
+    }
+
+    @Test
+    fun `DELETE to sync endpoint when record with given id doesn't exist responds 404 Not Found`() {
+      val syncDeleteEndpoint = "/iep/sync/booking/42000/id/42000"
+
+      // The API responds 404 Not Found
+      webTestClient.delete().uri(syncDeleteEndpoint)
+        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
+        .exchange()
+        .expectStatus().isNotFound
+    }
+
+    @Test
+    fun `PATCH to sync endpoint when bookingId doesn't match the one in the IEP review record responds 404 Not Found`() {
+      val wrongBookingId = existingPrisonerIepLevel!!.bookingId + 42
+      val syncPatchEndpoint = "/iep/sync/booking/$wrongBookingId/id/${existingPrisonerIepLevel!!.id}"
+
+      // The API responds 404 Not Found
+      webTestClient.patch().uri(syncPatchEndpoint)
+        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
+        .bodyValue(requestBody)
+        .exchange()
+        .expectStatus().isNotFound
+    }
+
+    @Test
+    fun `DELETE to sync endpoint when bookingId doesn't match the one in the IEP review record responds 404 Not Found`() {
+      val wrongBookingId = existingPrisonerIepLevel!!.bookingId + 42
+      val syncDeleteEndpoint = "/iep/sync/booking/$wrongBookingId/id/${existingPrisonerIepLevel!!.id}"
+
+      // The API responds 404 Not Found
+      webTestClient.delete().uri(syncDeleteEndpoint)
+        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
+        .exchange()
+        .expectStatus().isNotFound
+    }
+
+    @Test
     fun `POST to sync endpoint when request is invalid responds 400 Bad Request`() {
       val badRequest = mapOf("iepLevel" to "STD")
 
       // The API responds 400 Bad Request
       webTestClient.post().uri(syncCreateEndpoint)
+        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
+        .bodyValue(badRequest)
+        .exchange()
+        .expectStatus().isBadRequest
+    }
+
+    @Test
+    fun `PATCH to sync endpoint when request is invalid responds 400 Bad Request`() {
+      val badRequest = mapOf("iepTime" to null)
+
+      // The API responds 400 Bad Request
+      webTestClient.patch().uri(syncPatchEndpoint)
         .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
         .bodyValue(badRequest)
         .exchange()
@@ -415,9 +568,11 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
         prisonerNumber = prisonerNumber,
         locationId = 77778L,
       )
+      prisonApiMockServer.stubGetLocationById(locationId = 77778L, locationDesc = "1-2-003")
+      prisonApiMockServer.stubIepLevels()
 
       // API responds 201 Created with the created IEP review record
-      webTestClient.post().uri(syncCreateEndpoint)
+      val responseBytes = webTestClient.post().uri(syncCreateEndpoint)
         .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
         .bodyValue(requestBody)
         .exchange()
@@ -428,55 +583,177 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
             "bookingId":$bookingId,
             "prisonerNumber": $prisonerNumber,
             "iepDate":"${requestBody.iepTime.toLocalDate()}",
-            "iepTime":"${requestBody.iepTime}",
             "agencyId":"${requestBody.prisonId}",
-            "locationId":"${requestBody.locationId}",
+            "locationId":"1-2-003",
             "iepLevel":"Standard",
+            "iepCode": "STD",
             "comments":"${requestBody.comment}",
             "userId":"${requestBody.userId}",
             "reviewType":"${requestBody.reviewType}",
-            "auditModuleName":"Incentives-API"
+            "auditModuleName":"INCENTIVES_API"
           }
           """.trimIndent()
         )
+        .returnResult()
+        .responseBody
+
+      val prisonerIepLevelId = JSONObject(String(responseBytes)).getLong("id")
 
       // IEP review is also persisted (can be retrieved later on)
-      webTestClient.get().uri("/iep/reviews/booking/$bookingId?use-nomis-data=false")
+      webTestClient.get().uri("/iep/reviews/id/$prisonerIepLevelId")
         .headers(setAuthorisation())
         .exchange()
         .expectStatus().isOk
         .expectBody().json(
           """
-            {
-             "bookingId":$bookingId,
-             "daysSinceReview":0,
-             "iepDate":"${requestBody.iepTime.toLocalDate()}",
-             "iepLevel":"Standard",
-             "iepDetails":[
-                {
-                   "bookingId":$bookingId,
-                   "iepDate":"${requestBody.iepTime.toLocalDate()}",
-                   "agencyId":"${requestBody.prisonId}",
-                   "locationId":"${requestBody.locationId}",
-                   "iepLevel":"Standard",
-                   "comments":"${requestBody.comment}",
-                   "userId":"${requestBody.userId}",
-                   "reviewType":"${requestBody.reviewType}",
-                   "auditModuleName":"Incentives-API"
-                }
-             ]
-          }
+              {
+                 "id": $prisonerIepLevelId,
+                 "bookingId":$bookingId,
+                 "iepDate":"${requestBody.iepTime.toLocalDate()}",
+                 "agencyId":"${requestBody.prisonId}",
+                 "locationId":"1-2-003",
+                 "iepLevel":"Standard",
+                 "iepCode": "STD",
+                 "comments":"${requestBody.comment}",
+                 "userId":"${requestBody.userId}",
+                 "reviewType":"${requestBody.reviewType}",
+                 "auditModuleName":"INCENTIVES_API"
+              }
           """
         )
+    }
+
+    @Test
+    fun `PATCH to sync endpoint when valid request has only one field updates that IEP review field`() {
+      val updatedComment = "Updated comment"
+      val requestBody = mapOf("comment" to updatedComment)
+      prisonApiMockServer.stubIepLevels()
+
+      val expectedResponseBody = """
+        {
+           "id": ${existingPrisonerIepLevel!!.id},
+           "bookingId":$bookingId,
+           "iepDate":"${existingPrisonerIepLevel!!.reviewTime.toLocalDate()}",
+           "agencyId":"${existingPrisonerIepLevel!!.prisonId}",
+           "locationId":"${existingPrisonerIepLevel!!.locationId}",
+           "iepLevel":"Standard",
+           "iepCode": "STD",
+           "comments":"$updatedComment",
+           "userId":"${existingPrisonerIepLevel!!.reviewedBy}",
+           "reviewType":"${existingPrisonerIepLevel!!.reviewType}",
+           "auditModuleName":"INCENTIVES_API"
+        }
+      """.trimIndent()
+
+      // API responds 201 Created with the created IEP review record
+      webTestClient.patch().uri(syncPatchEndpoint)
+        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
+        .bodyValue(requestBody)
+        .exchange()
+        .expectStatus().isOk
+        .expectBody().json(expectedResponseBody)
+
+      val prisonerIepLevelId = existingPrisonerIepLevel!!.id
+
+      // IEP review changes are also persisted (can be retrieved later on)
+      webTestClient.get().uri("/iep/reviews/id/$prisonerIepLevelId")
+        .headers(setAuthorisation())
+        .exchange()
+        .expectStatus().isOk
+        .expectBody().json(expectedResponseBody)
+    }
+
+    @Test
+    fun `PATCH to sync endpoint when valid request has all fields updates that IEP review`() {
+      val updatedComment = "Updated comment"
+      val updatedIepTime = LocalDateTime.now().minusDays(10)
+      val updatedCurrent = !existingPrisonerIepLevel!!.current
+      val requestBody = mapOf(
+        "iepTime" to updatedIepTime,
+        "comment" to updatedComment,
+        "current" to updatedCurrent,
+      )
+      prisonApiMockServer.stubIepLevels()
+
+      val expectedResponseBody = """
+        {
+           "id": ${existingPrisonerIepLevel!!.id},
+           "bookingId":$bookingId,
+           "iepDate":"${updatedIepTime.toLocalDate()}",
+           "agencyId":"${existingPrisonerIepLevel!!.prisonId}",
+           "locationId":"${existingPrisonerIepLevel!!.locationId}",
+           "iepLevel":"Standard",
+           "iepCode": "STD",
+           "comments":"$updatedComment",
+           "userId":"${existingPrisonerIepLevel!!.reviewedBy}",
+           "reviewType":"${existingPrisonerIepLevel!!.reviewType}",
+           "auditModuleName":"INCENTIVES_API"
+        }
+      """.trimIndent()
+
+      // API responds 201 Created with the created IEP review record
+      webTestClient.patch().uri(syncPatchEndpoint)
+        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
+        .bodyValue(requestBody)
+        .exchange()
+        .expectStatus().isOk
+        .expectBody().json(expectedResponseBody)
+
+      val prisonerIepLevelId = existingPrisonerIepLevel!!.id
+
+      // IEP review changes are also persisted (can be retrieved later on)
+      webTestClient.get().uri("/iep/reviews/id/$prisonerIepLevelId")
+        .headers(setAuthorisation())
+        .exchange()
+        .expectStatus().isOk
+        .expectBody().json(expectedResponseBody)
+    }
+
+    @Test
+    fun `DELETE to sync endpoint when request valid deletes the IEP review`() {
+      // Given the bookingId is valid
+      prisonApiMockServer.stubGetPrisonerInfoByBooking(
+        bookingId = bookingId,
+        prisonerNumber = prisonerNumber,
+        locationId = 77778L,
+      )
+      prisonApiMockServer.stubGetLocationById(locationId = 77778L, locationDesc = "1-2-003")
+      prisonApiMockServer.stubIepLevels()
+
+      // API responds 201 Created with the created IEP review record
+      webTestClient.delete().uri(syncDeleteEndpoint)
+        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
+        .exchange()
+        .expectStatus().isNoContent
+
+      val prisonerIepLevelId = existingPrisonerIepLevel!!.id
+
+      // IEP review is no longer available (cannot be retrieved later on)
+      webTestClient.get().uri("/iep/reviews/id/$prisonerIepLevelId")
+        .headers(setAuthorisation())
+        .exchange()
+        .expectStatus().isNotFound
     }
 
     private fun syncPostRequest(iepLevel: String = "STD") = SyncPostRequest(
       iepTime = LocalDateTime.now(),
       prisonId = "MDI",
-      locationId = "1-2-003",
       iepLevel = iepLevel,
       comment = "A comment",
       userId = "XYZ_GEN",
+      reviewType = ReviewType.REVIEW,
+      current = true,
+    )
+
+    private fun prisonerIepLevel(bookingId: Long = 3330000, prisonerNumber: String = "A1234AC") = PrisonerIepLevel(
+      bookingId = bookingId,
+      prisonerNumber = prisonerNumber,
+      reviewTime = LocalDateTime.now(),
+      prisonId = "MDI",
+      locationId = "MDI-1",
+      iepCode = "STD",
+      commentText = "test comment",
+      reviewedBy = "TEST_USER",
       reviewType = ReviewType.REVIEW,
       current = true,
     )
@@ -492,6 +769,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
       val prisonerNumber = "A1234AC"
       val migrationRequest = syncPostRequest()
       prisonApiMockServer.stubGetPrisonerInfoByBooking(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = 77778L)
+      prisonApiMockServer.stubIepLevels()
 
       // When
       val response = webTestClient.post().uri("/iep/migration/booking/$bookingId")
@@ -513,17 +791,18 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
              "daysSinceReview":0,
              "iepDate":"${migrationRequest.iepTime.toLocalDate()}",
              "iepLevel":"Standard",
+             "nextReviewDate":"${migrationRequest.iepTime.toLocalDate().plusYears(1)}",
              "iepDetails":[
                 {
                    "bookingId":$bookingId,
                    "iepDate":"${migrationRequest.iepTime.toLocalDate()}",
                    "agencyId":"${migrationRequest.prisonId}",
-                   "locationId":"${migrationRequest.locationId}",
                    "iepLevel":"Standard",
+                   "iepCode": "STD",
                    "comments":"${migrationRequest.comment}",
                    "userId":"${migrationRequest.userId}",
                    "reviewType":"${migrationRequest.reviewType}",
-                   "auditModuleName":"Incentives-API"
+                   "auditModuleName":"INCENTIVES_API"
                 }
              ]
           }
@@ -576,7 +855,6 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
     private fun syncPostRequest(iepLevel: String = "STD") = SyncPostRequest(
       iepTime = LocalDateTime.now(),
       prisonId = "MDI",
-      locationId = "1-2-003",
       iepLevel = iepLevel,
       comment = "A comment",
       userId = "XYZ_GEN",

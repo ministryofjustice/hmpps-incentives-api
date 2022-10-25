@@ -1,3 +1,6 @@
+feature:
+  review-added-sync-mechanism: DOMAIN_EVENT
+
 server:
   shutdown: immediate
 
@@ -27,3 +30,6 @@ spring:
     properties:
       sslMode: DISABLE
       sslRootCert:
+
+  feature-toggles:
+    afine: true

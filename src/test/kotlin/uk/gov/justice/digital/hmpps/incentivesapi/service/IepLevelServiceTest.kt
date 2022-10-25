@@ -7,16 +7,12 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IepLevel
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IepPrison
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IepLevelRepository
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IepPrisonRepository
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 
 class IepLevelServiceTest {
 
-  private val iepLevelRepository: IepLevelRepository = mock()
-  private val iepPrisonRepository: IepPrisonRepository = mock()
-  private val iepLevelService = IepLevelService(iepLevelRepository, iepPrisonRepository)
+  private val prisonApiService: PrisonApiService = mock()
+  private val iepLevelService = IepLevelService(prisonApiService)
 
   @Test
   fun `prison has all 5 iep levels`() {
@@ -24,14 +20,13 @@ class IepLevelServiceTest {
       coroutineScope {
         // Given
         val prisonId = "XXX"
-        whenever(iepLevelRepository.findAll()).thenReturn(fiveIepLevels)
-        whenever(iepPrisonRepository.findAllByPrisonIdAndActiveIsTrue(prisonId)).thenReturn(
+        whenever(prisonApiService.getIepLevelsForPrison(prisonId)).thenReturn(
           flowOf(
-            IepPrison(iepCode = "BAS", prisonId = prisonId, defaultIep = true),
-            IepPrison(iepCode = "STD", prisonId = prisonId, defaultIep = false),
-            IepPrison(iepCode = "ENH", prisonId = prisonId, defaultIep = false),
-            IepPrison(iepCode = "ENH2", prisonId = prisonId, defaultIep = false),
-            IepPrison(iepCode = "ENH3", prisonId = prisonId, defaultIep = false),
+            IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1, default = true),
+            IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2, default = false),
+            IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3, default = false),
+            IepLevel(iepLevel = "ENH2", iepDescription = "Enhanced 2", sequence = 4, default = false),
+            IepLevel(iepLevel = "ENH3", iepDescription = "Enhanced 3", sequence = 5, default = false),
           )
         )
 
@@ -52,12 +47,11 @@ class IepLevelServiceTest {
       coroutineScope {
         // Given
         val prisonId = "XXX"
-        whenever(iepLevelRepository.findAll()).thenReturn(fiveIepLevels)
-        whenever(iepPrisonRepository.findAllByPrisonIdAndActiveIsTrue(prisonId)).thenReturn(
+        whenever(prisonApiService.getIepLevelsForPrison(prisonId)).thenReturn(
           flowOf(
-            IepPrison(iepCode = "BAS", prisonId = prisonId, defaultIep = true),
-            IepPrison(iepCode = "STD", prisonId = prisonId, defaultIep = false),
-            IepPrison(iepCode = "ENH", prisonId = prisonId, defaultIep = false),
+            IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1, default = true),
+            IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2, default = false),
+            IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3, default = false),
           )
         )
 
@@ -71,71 +65,4 @@ class IepLevelServiceTest {
       }
     }
   }
-
-  @Test
-  fun `do not return inactive IepLevel`() {
-    runBlocking {
-      coroutineScope {
-        // Given
-        val prisonId = "XXX"
-        whenever(iepLevelRepository.findAll()).thenReturn(
-          flowOf(
-            IepLevel(iepCode = "BAS", iepDescription = "Basic", sequence = 1),
-            IepLevel(iepCode = "STD", iepDescription = "Standard", sequence = 2, active = false),
-          )
-        )
-        whenever(iepPrisonRepository.findAllByPrisonIdAndActiveIsTrue(prisonId)).thenReturn(
-          flowOf(
-            IepPrison(iepCode = "BAS", prisonId = prisonId, defaultIep = true),
-            IepPrison(iepCode = "STD", prisonId = prisonId, defaultIep = false),
-          )
-        )
-
-        // When
-        val iepLevelsForPrison = iepLevelService.getIepLevelsForPrison(prisonId)
-
-        // Then - only BAS is returned as STD is inactive
-        assertThat(iepLevelsForPrison).hasSize(1)
-        assertThat(iepLevelsForPrison.last().iepLevel).isEqualTo("BAS")
-      }
-    }
-  }
-
-  @Test
-  fun `doesn't return unknown IepLevels (not present in IepLevel table)`() {
-    runBlocking {
-      coroutineScope {
-        // Given
-        val prisonId = "XXX"
-        whenever(iepLevelRepository.findAll()).thenReturn(
-          flowOf(
-            IepLevel(iepCode = "BAS", iepDescription = "Basic", sequence = 1),
-            IepLevel(iepCode = "STD", iepDescription = "Standard", sequence = 2, active = false),
-          )
-        )
-        whenever(iepPrisonRepository.findAllByPrisonIdAndActiveIsTrue(prisonId)).thenReturn(
-          flowOf(
-            IepPrison(iepCode = "BAS", prisonId = prisonId, defaultIep = true),
-            IepPrison(iepCode = "STD", prisonId = prisonId, defaultIep = false),
-            // Unknown IEP level
-            IepPrison(iepCode = "UNK", prisonId = prisonId, defaultIep = false),
-          )
-        )
-
-        // When
-        val iepLevelsForPrison = iepLevelService.getIepLevelsForPrison(prisonId)
-
-        // Then - only BAS is returned as STD is inactive and "UNK" is not in the IepLevels table
-        assertThat(iepLevelsForPrison.map { it.iepLevel }).isEqualTo(listOf("BAS"))
-      }
-    }
-  }
-
-  private val fiveIepLevels = flowOf(
-    IepLevel(iepCode = "BAS", iepDescription = "Basic", sequence = 1),
-    IepLevel(iepCode = "STD", iepDescription = "Standard", sequence = 2),
-    IepLevel(iepCode = "ENH", iepDescription = "Enhanced", sequence = 3),
-    IepLevel(iepCode = "ENH2", iepDescription = "Enhanced 2", sequence = 4),
-    IepLevel(iepCode = "ENH3", iepDescription = "Enhanced 3", sequence = 5),
-  )
 }

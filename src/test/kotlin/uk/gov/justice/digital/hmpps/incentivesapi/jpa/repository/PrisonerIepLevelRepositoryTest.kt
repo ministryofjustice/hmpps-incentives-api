@@ -2,12 +2,18 @@ package uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.Assert
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.incentivesapi.helper.TestBase
@@ -20,6 +26,16 @@ import java.time.LocalDateTime
 class PrisonerIepLevelRepositoryTest : TestBase() {
   @Autowired
   lateinit var repository: PrisonerIepLevelRepository
+
+  @BeforeEach
+  fun setUp(): Unit = runBlocking {
+    repository.deleteAll()
+  }
+
+  @AfterEach
+  fun tearDown(): Unit = runBlocking {
+    repository.deleteAll()
+  }
 
   @Test
   fun savePrisonerIepLevel(): Unit = runBlocking {
@@ -52,11 +68,11 @@ class PrisonerIepLevelRepositoryTest : TestBase() {
     )
 
     coroutineScope {
-      val prisonerLevelCurrent = async { repository.findOneByBookingIdAndCurrentIsTrue(bookingId) }
+      val prisonerLevelCurrent = async { repository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(listOf(bookingId)).first() }
       val prisonerLevelFirst = async { repository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId) }
       val prisonerAllLevels = async { repository.findAllByBookingIdOrderByReviewTimeDesc(bookingId) }
 
-      with(prisonerLevelCurrent.await()!!) {
+      with(prisonerLevelCurrent.await()) {
         assertThat(iepCode).isEqualTo("STD")
         assertThat(prisonId).isEqualTo("MDI")
         assertThat(current).isEqualTo(true)
@@ -72,6 +88,78 @@ class PrisonerIepLevelRepositoryTest : TestBase() {
 
       val levels = prisonerAllLevels.await().toList()
       assertThat(levels).hasSize(2)
+    }
+  }
+
+  @Nested
+  inner class CurrentTrueConstraint {
+    private val bookingId = 1234567L
+    private fun entity(bookingId: Long, current: Boolean): PrisonerIepLevel =
+      PrisonerIepLevel(
+        iepCode = "BAS",
+        prisonId = "LEI",
+        locationId = "LEI-1-1-001",
+        bookingId = bookingId,
+        current = current,
+        reviewedBy = "TEST_STAFF1",
+        reviewTime = LocalDateTime.now(),
+        prisonerNumber = "A1234AB",
+      )
+
+    @Test
+    fun `cannot persist another record for the same bookingId where current=true already exists`(): Unit = runBlocking {
+      // Given
+      repository.save(entity(bookingId, true))
+
+      // When
+      Assert.assertThrows(DataIntegrityViolationException::class.java) {
+        runBlocking { repository.save(entity(bookingId, true)) }
+      }
+
+      // Then
+      assertThat(repository.findAllByBookingIdOrderByReviewTimeDesc(bookingId).toList()).hasSize(1)
+    }
+
+    @Test
+    fun `can persist a current=false record for the same bookingId`(): Unit = runBlocking {
+      // Given
+      repository.save(entity(bookingId, true))
+
+      // When
+      repository.save(entity(bookingId, false))
+
+      // Then
+      assertThat(repository.findAllByBookingIdOrderByReviewTimeDesc(bookingId).toList()).hasSize(2)
+    }
+
+    @Test
+    fun `can persist a current=true record for different bookingIds`(): Unit = runBlocking {
+      // Given
+      repository.save(entity(bookingId, true))
+
+      // When
+      val secondBookingId = 42L
+      repository.save(entity(secondBookingId, true))
+
+      // Then
+      assertThat(repository.findAllByBookingIdOrderByReviewTimeDesc(bookingId).toList()).hasSize(1)
+      assertThat(repository.findAllByBookingIdOrderByReviewTimeDesc(secondBookingId).toList()).hasSize(1)
+    }
+
+    @Test
+    fun `can persist a current=false record for different bookingIds`(): Unit = runBlocking {
+      // Given
+      repository.save(entity(bookingId, true))
+      val secondBookingId = 42L
+      repository.save(entity(secondBookingId, true))
+
+      // When
+      repository.save(entity(bookingId, false))
+      repository.save(entity(secondBookingId, false))
+
+      // Then
+      assertThat(repository.findAllByBookingIdOrderByReviewTimeDesc(bookingId).toList()).hasSize(2)
+      assertThat(repository.findAllByBookingIdOrderByReviewTimeDesc(secondBookingId).toList()).hasSize(2)
     }
   }
 }

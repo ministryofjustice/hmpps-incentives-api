@@ -65,5 +65,8 @@ data class AuditEvent(
   val details: String? = null,
 )
 enum class AuditType {
-  IEP_REVIEW_ADDED
+  IEP_REVIEW_ADDED,
+  IEP_REVIEW_UPDATED,
+  IEP_REVIEW_DELETED,
+  PRISONER_NUMBER_MERGE,
 }
