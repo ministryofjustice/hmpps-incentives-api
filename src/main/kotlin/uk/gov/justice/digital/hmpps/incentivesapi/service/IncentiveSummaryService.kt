@@ -2,11 +2,13 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import org.apache.commons.text.WordUtils
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.incentivesapi.config.FeatureFlagsService
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.BehaviourSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevelSummary
@@ -15,13 +17,17 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsage
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocation
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.ProvenAdjudication
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import java.time.Duration
 import java.time.LocalDate
 
 @Service
 class IncentiveSummaryService(
   private val prisonApiService: PrisonApiService,
-  private val iepLevelService: IepLevelService
+  private val iepLevelService: IepLevelService,
+  private val featureFlagsService: FeatureFlagsService,
+  private val prisonerIepLevelRepository: PrisonerIepLevelRepository
 ) {
 
   suspend fun getIncentivesSummaryByLocation(
@@ -122,18 +128,50 @@ class IncentiveSummaryService(
     prisonApiService.retrieveProvenAdjudications(bookingIds)
       .toList().associateBy(ProvenAdjudication::bookingId)
 
-  private suspend fun getIEPDetails(bookingIds: List<Long>): Map<Long, IepResult> =
-    prisonApiService.getIEPSummaryPerPrisoner(bookingIds)
-      .map {
+  private suspend fun getIEPDetails(bookingIds: List<Long>): Map<Long, IepResult> {
 
-        IepResult(
-          bookingId = it.bookingId,
-          iepLevel = it.iepLevel,
-          daysSinceReview = it.daysSinceReview,
-          daysOnLevel = daysOnLevel(it.iepDetails)
-        )
-      }.toList().associateBy(IepResult::bookingId)
+    if (featureFlagsService.isIncentiveReviewsMasteredOutsideNomisInIncentivesDatabase()) {
 
+      val incentiveLevels = prisonApiService.getIncentiveLevels()
+      return prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds = bookingIds)
+        .filter { it.reviewType in listOf(ReviewType.REVIEW, ReviewType.ADJUSTMENT, ReviewType.MIGRATED) }
+        .toList()
+        .groupBy { it.bookingId }
+        .map {
+          val review = it.value
+          IepResult(
+            bookingId = it.key,
+            iepLevel = incentiveLevels[review.first().iepCode]?.iepDescription ?: "Unmapped",
+            daysSinceReview = Duration.between(review.first().reviewTime.toLocalDate().atStartOfDay(), LocalDate.now().atStartOfDay()).toDays().toInt(),
+            daysOnLevel = daysOnLevel(
+              review.map { iep ->
+                IepDetail(
+                  iepCode = iep.iepCode,
+                  iepLevel = incentiveLevels[iep.iepCode]?.iepDescription ?: "Unmapped",
+                  reviewType = iep.reviewType,
+                  bookingId = iep.bookingId,
+                  agencyId = iep.prisonId,
+                  userId = iep.reviewedBy,
+                  iepDate = iep.reviewTime.toLocalDate(),
+                  iepTime = iep.reviewTime
+                )
+              }.sortedByDescending { it.iepTime }
+            )
+          )
+        }
+        .associateBy(IepResult::bookingId)
+    } else {
+      return prisonApiService.getIEPSummaryPerPrisoner(bookingIds)
+        .map {
+          IepResult(
+            bookingId = it.bookingId,
+            iepLevel = it.iepLevel,
+            daysSinceReview = it.daysSinceReview,
+            daysOnLevel = daysOnLevel(it.iepDetails)
+          )
+        }.toList().associateBy(IepResult::bookingId)
+    }
+  }
   private suspend fun getCaseNoteUsage(type: String, subType: String, offenderNos: List<String>): Map<String, CaseNoteSummary> =
     prisonApiService.retrieveCaseNoteCounts(type, offenderNos)
       .toList()

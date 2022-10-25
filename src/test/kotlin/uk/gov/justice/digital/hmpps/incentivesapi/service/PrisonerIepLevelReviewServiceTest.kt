@@ -66,7 +66,7 @@ class PrisonerIepLevelReviewServiceTest {
     whenever(prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(any()))
       .thenReturn(emptyFlow())
 
-    whenever(prisonApiService.getIepLevels()).thenReturn(incentiveLevels)
+    whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
   }
 
   @Nested
@@ -103,7 +103,7 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId)).thenReturn(location)
       whenever(authenticationFacade.getUsername()).thenReturn(reviewerUserName)
       whenever(prisonerIepLevelRepository.save(any())).thenReturn(prisonerIepLevel.copy(id = 42))
-      whenever(prisonApiService.getIepLevels()).thenReturn(incentiveLevels)
+      whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
     }
 
     @ParameterizedTest
@@ -246,8 +246,8 @@ class PrisonerIepLevelReviewServiceTest {
     @Test
     fun `will query incentives db if useNomisData is false`(): Unit = runBlocking {
       coroutineScope {
-        whenever(featureFlagsService.isIncentivesDataSourceOfTruth()).thenReturn(true)
-        whenever(prisonApiService.getIepLevels()).thenReturn(incentiveLevels)
+        whenever(featureFlagsService.isIncentiveReviewsMasteredOutsideNomisInIncentivesDatabase()).thenReturn(true)
+        whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
 
         // Given
         whenever(prisonerIepLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(1234567)).thenReturn(
@@ -267,8 +267,8 @@ class PrisonerIepLevelReviewServiceTest {
     fun `will query incentives db if useNomisData is false and will not return iep details if withDetails is false`(): Unit =
       runBlocking {
         coroutineScope {
-          whenever(featureFlagsService.isIncentivesDataSourceOfTruth()).thenReturn(true)
-          whenever(prisonApiService.getIepLevels()).thenReturn(incentiveLevels)
+          whenever(featureFlagsService.isIncentiveReviewsMasteredOutsideNomisInIncentivesDatabase()).thenReturn(true)
+          whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
 
           // Given
           whenever(prisonerIepLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(1234567)).thenReturn(
@@ -292,7 +292,7 @@ class PrisonerIepLevelReviewServiceTest {
     fun setUp(): Unit = runBlocking {
       // This ensures save works and an id is set on the PrisonerIepLevel
       whenever(prisonerIepLevelRepository.save(any())).thenAnswer { i -> i.arguments[0] }
-      whenever(prisonApiService.getIepLevels()).thenReturn(incentiveLevels)
+      whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
     }
 
     @Test
@@ -725,7 +725,7 @@ class PrisonerIepLevelReviewServiceTest {
       // Mock PrisonerIepLevel being updated
       whenever(prisonerIepLevelRepository.delete(iepReview)).thenReturn(Unit)
 
-      whenever(prisonApiService.getIepLevels()).thenReturn(incentiveLevels)
+      whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
     }
 
     @Test
@@ -844,7 +844,7 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonerIepLevelRepository.save(expectedIepReview))
         .thenReturn(expectedIepReview)
 
-      whenever(prisonApiService.getIepLevels()).thenReturn(incentiveLevels)
+      whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
     }
 
     @Test
@@ -966,7 +966,7 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonerIepLevelRepository.save(iepReview))
         .thenReturn(iepReview.copy(id = iepReviewId))
 
-      whenever(prisonApiService.getIepLevels()).thenReturn(incentiveLevels)
+      whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
     }
 
     @Test
@@ -1178,9 +1178,9 @@ class PrisonerIepLevelReviewServiceTest {
 }
 
 val incentiveLevels =
-  flowOf(
+  listOf(
     IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1),
     IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2),
     IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3),
     IepLevel(iepLevel = "EN2", iepDescription = "Enhanced 2", sequence = 4),
-  )
+  ).associateBy { iep -> iep.iepLevel }

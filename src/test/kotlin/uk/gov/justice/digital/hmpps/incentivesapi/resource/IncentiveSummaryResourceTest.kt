@@ -2,8 +2,9 @@ package uk.gov.justice.digital.hmpps.incentivesapi.resource
 
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
-
+@ActiveProfiles("test", "test-nomis")
 class IncentiveSummaryResourceTest : SqsIntegrationTestBase() {
   @BeforeEach
   internal fun setUp() {

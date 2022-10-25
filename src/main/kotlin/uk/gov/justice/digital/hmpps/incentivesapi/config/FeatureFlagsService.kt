@@ -13,14 +13,14 @@ class FeatureFlagsService(
   @Value("\${feature.review-added-sync-mechanism}")
   val reviewAddedSyncMechanism: String,
   @Value("\${feature.incentives-data-source-of-truth:false}")
-  val incentivesDataSourceOfTruth: Boolean
+  val incentiveReviewsMasteredOutsideNomisInIncentivesDatabase: Boolean
 ) {
 
   fun reviewAddedSyncMechanism(): ReviewAddedSyncMechanism {
     return ReviewAddedSyncMechanism.valueOf(reviewAddedSyncMechanism)
   }
 
-  fun isIncentivesDataSourceOfTruth(): Boolean {
-    return incentivesDataSourceOfTruth
+  fun isIncentiveReviewsMasteredOutsideNomisInIncentivesDatabase(): Boolean {
+    return incentiveReviewsMasteredOutsideNomisInIncentivesDatabase
   }
 }
