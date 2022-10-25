@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.bind.support.WebExchangeBindException
 import org.springframework.web.reactive.function.client.WebClientResponseException.NotFound
 import org.springframework.web.server.ServerWebInputException
+import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveReviewNotFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.service.NoPrisonersAtLocationException
 import javax.validation.ValidationException
 
@@ -96,7 +97,7 @@ class HmppsIncentivesApiExceptionHandler {
   }
 
   @ExceptionHandler(NoPrisonersAtLocationException::class)
-  fun handleRoleNotFoundException(e: NoPrisonersAtLocationException): ResponseEntity<ErrorResponse?>? {
+  fun handleNoPrisonerAtLocationFoundException(e: NoPrisonersAtLocationException): ResponseEntity<ErrorResponse?>? {
     log.debug("No prisoners found exception caught: {}", e.message)
     return ResponseEntity
       .status(NOT_FOUND)
@@ -109,8 +110,22 @@ class HmppsIncentivesApiExceptionHandler {
       )
   }
 
+  @ExceptionHandler(IncentiveReviewNotFoundException::class)
+  fun handleIncentiveReviewNotFoundException(e: IncentiveReviewNotFoundException): ResponseEntity<ErrorResponse?>? {
+    log.debug("No incentive review found exception caught: {}", e.message)
+    return ResponseEntity
+      .status(NOT_FOUND)
+      .body(
+        ErrorResponse(
+          status = NOT_FOUND,
+          userMessage = "Not Found: ${e.message}",
+          developerMessage = e.message
+        )
+      )
+  }
+
   @ExceptionHandler(NoDataFoundException::class)
-  fun handleRoleNotFoundException(e: NoDataFoundException): ResponseEntity<ErrorResponse?>? {
+  fun handlDataNotFoundException(e: NoDataFoundException): ResponseEntity<ErrorResponse?>? {
     log.debug("No data found exception caught: {}", e.message)
     return ResponseEntity
       .status(NOT_FOUND)

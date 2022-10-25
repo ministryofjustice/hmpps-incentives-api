@@ -13,8 +13,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTest
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
-import java.time.Duration
-import java.time.LocalDate
 import java.time.LocalDate.now
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -34,8 +32,6 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
     prisonApiMockServer.resetRequests()
     repository.deleteAll()
   }
-
-  val matchByIepCode = "$.[?(@.iepLevel == '%s')]"
 
   @Test
   internal fun `requires a valid token to retrieve data`() {
@@ -97,97 +93,11 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
   }
 
   @Test
-  fun `get IEP Levels for a prisoner`() {
-    prisonApiMockServer.stubIEPSummaryForBooking()
-
-    val lastReviewDate = LocalDate.of(2021, 12, 2)
-    val daysSinceReview = Duration.between(lastReviewDate.atStartOfDay(), now().atStartOfDay()).toDays().toInt()
-
-    webTestClient.get().uri("/iep/reviews/booking/1234134")
-      .headers(setAuthorisation())
-      .exchange()
-      .expectStatus().isOk
-      .expectBody().json(
-        """
-            {
-             "bookingId":1234134,
-             "daysSinceReview": $daysSinceReview,
-             "iepDate":"2021-12-02",
-             "iepLevel":"Basic",
-             "iepTime":"2021-12-02T09:24:42.894",
-             "nextReviewDate": "2022-12-02",
-             "iepDetails":[
-                {
-                   "bookingId":1234134,
-                   "iepDate":"2021-12-02",
-                   "iepTime":"2021-12-02T09:24:42.894",
-                   "agencyId":"MDI",
-                   "iepLevel":"Basic",
-                   "userId":"TEST_USER",
-                   "auditModuleName":"PRISON_API"
-                },
-                {
-                   "bookingId":1234134,
-                   "iepDate":"2020-11-02",
-                   "iepTime":"2021-11-02T09:00:42.894",
-                   "agencyId":"BXI",
-                   "iepLevel":"Entry",
-                   "userId":"TEST_USER",
-                   "auditModuleName":"PRISON_API"
-                }
-             ]
-          }
-          """
-      )
-  }
-
-  @Test
   fun `handle undefined path variable`() {
     webTestClient.get().uri("/iep/reviews/booking/undefined")
       .headers(setAuthorisation())
       .exchange()
       .expectStatus().isBadRequest
-  }
-
-  @Test
-  fun `get IEP Levels for a list of prisoners`() {
-    prisonApiMockServer.stubIEPSummary()
-
-    webTestClient.post().uri("/iep/reviews/bookings")
-      .headers(setAuthorisation())
-      .bodyValue(listOf(1234134, 1234135, 1234136, 1234137, 1234138, 2734134))
-      .exchange()
-      .expectStatus().isOk
-      .expectBody().json(
-        """
-          [
-            {
-             "bookingId": 1234134,
-             "iepLevel": "Basic"
-             },
-               {
-             "bookingId": 1234135,
-             "iepLevel": "Standard"
-             },
-               {
-             "bookingId": 1234136,
-             "iepLevel": "Enhanced"
-             },
-               {
-             "bookingId": 1234137,
-             "iepLevel": "Basic"
-             },
-               {
-             "bookingId": 1234138,
-             "iepLevel": "Standard"
-             },
-               {
-             "bookingId": 2734134,
-             "iepLevel": "Entry"
-             }
-          ]
-          """
-      )
   }
 
   @Test
@@ -780,7 +690,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
       // Then
       response.expectStatus().isCreated
 
-      webTestClient.get().uri("/iep/reviews/booking/$bookingId?use-nomis-data=false")
+      webTestClient.get().uri("/iep/reviews/booking/$bookingId")
         .headers(setAuthorisation())
         .exchange()
         .expectStatus().isOk
