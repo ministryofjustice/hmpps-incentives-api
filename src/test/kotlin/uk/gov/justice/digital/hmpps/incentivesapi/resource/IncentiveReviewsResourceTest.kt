@@ -8,6 +8,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
   @BeforeEach
   internal fun setUp() {
     offenderSearchMockServer.resetAll()
+    prisonApiMockServer.resetAll()
   }
 
   @Test
@@ -32,6 +33,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
   @Test
   fun `loads prisoner details from offender search`() {
     offenderSearchMockServer.stubFindOffenders("MDI")
+    prisonApiMockServer.stubLocation("MDI-1")
 
     webTestClient.get()
       .uri("/incentives-reviews/prison/MDI/location/MDI-1")
@@ -40,25 +42,28 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
       .expectStatus().isOk
       .expectBody().json(
         """
-{
-  "reviewCount": 2,
-  "reviews": [
-    {
-      "prisonerNumber": "A1409AE",
-      "bookingId": 110001,
-      "firstName": "JAMES",
-      "lastName": "HALLS",
-      "acctOpenStatus": true
-    },
-    {
-      "prisonerNumber": "G6123VU",
-      "bookingId": 110002,
-      "firstName": "RHYS",
-      "lastName": "JONES",
-      "acctOpenStatus": false
-    }
-  ]
-}"""
+          {
+            "reviewCount": 2,
+            "reviews": [
+              {
+                "prisonerNumber": "A1409AE",
+                "bookingId": 110001,
+                "firstName": "JAMES",
+                "lastName": "HALLS",
+                "acctOpenStatus": true
+              },
+              {
+                "prisonerNumber": "G6123VU",
+                "bookingId": 110002,
+                "firstName": "RHYS",
+                "lastName": "JONES",
+                "acctOpenStatus": false
+              }
+            ],
+            "locationDescription": "Houseblock 1"
+          }
+        """,
+        true,
       )
   }
 }
