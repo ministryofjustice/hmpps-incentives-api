@@ -5,7 +5,7 @@ plugins {
   // id("jacoco")
   id("org.sonarqube") version "3.4.0.2513"
   kotlin("plugin.spring") version "1.7.10"
-  kotlin("plugin.jpa") version "1.7.10"
+  kotlin("plugin.jpa") version "1.7.20"
 }
 
 dependencyCheck {
