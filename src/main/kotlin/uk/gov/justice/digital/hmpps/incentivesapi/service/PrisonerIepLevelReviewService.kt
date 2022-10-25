@@ -56,7 +56,7 @@ class PrisonerIepLevelReviewService(
     withDetails: Boolean = true,
     useClientCredentials: Boolean = false,
   ): IepSummary {
-    return if (!featureFlagsService.isIncentiveReviewsMasteredOutsideNomisInIncentivesDatabase()) {
+    return if (!featureFlagsService.isIncentivesDataSourceOfTruth()) {
       prisonApiService.getIEPSummaryForPrisoner(bookingId, withDetails, useClientCredentials)
     } else {
       val reviews = prisonerIepLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(bookingId)
@@ -67,7 +67,7 @@ class PrisonerIepLevelReviewService(
 
   suspend fun getPrisonerIepLevelHistory(prisonerNumber: String): IepSummary {
 
-    return if (!featureFlagsService.isIncentiveReviewsMasteredOutsideNomisInIncentivesDatabase()) {
+    return if (!featureFlagsService.isIncentivesDataSourceOfTruth()) {
       val prisonerInfo = prisonApiService.getPrisonerInfo(prisonerNumber)
       prisonApiService.getIEPSummaryPerPrisoner(listOf(prisonerInfo.bookingId)).first()
     } else {
@@ -196,7 +196,7 @@ class PrisonerIepLevelReviewService(
   }
 
   suspend fun getCurrentIEPLevelForPrisoners(bookingIds: List<Long>): Flow<CurrentIepLevel> {
-    return if (!featureFlagsService.isIncentiveReviewsMasteredOutsideNomisInIncentivesDatabase()) {
+    return if (!featureFlagsService.isIncentivesDataSourceOfTruth()) {
       prisonApiService.getIEPSummaryPerPrisoner(bookingIds)
         .map {
           CurrentIepLevel(iepLevel = it.iepLevel, bookingId = it.bookingId)

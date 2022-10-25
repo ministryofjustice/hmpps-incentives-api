@@ -246,7 +246,7 @@ class PrisonerIepLevelReviewServiceTest {
     @Test
     fun `will query incentives db if useNomisData is false`(): Unit = runBlocking {
       coroutineScope {
-        whenever(featureFlagsService.isIncentiveReviewsMasteredOutsideNomisInIncentivesDatabase()).thenReturn(true)
+        whenever(featureFlagsService.isIncentivesDataSourceOfTruth()).thenReturn(true)
         whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
 
         // Given
@@ -267,7 +267,7 @@ class PrisonerIepLevelReviewServiceTest {
     fun `will query incentives db if useNomisData is false and will not return iep details if withDetails is false`(): Unit =
       runBlocking {
         coroutineScope {
-          whenever(featureFlagsService.isIncentiveReviewsMasteredOutsideNomisInIncentivesDatabase()).thenReturn(true)
+          whenever(featureFlagsService.isIncentivesDataSourceOfTruth()).thenReturn(true)
           whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
 
           // Given
