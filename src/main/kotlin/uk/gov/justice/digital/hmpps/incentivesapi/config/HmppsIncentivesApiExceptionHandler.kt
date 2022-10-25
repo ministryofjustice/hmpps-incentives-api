@@ -97,7 +97,7 @@ class HmppsIncentivesApiExceptionHandler {
   }
 
   @ExceptionHandler(NoPrisonersAtLocationException::class)
-  fun handleRoleNotFoundException(e: NoPrisonersAtLocationException): ResponseEntity<ErrorResponse?>? {
+  fun handleNoPrisonerAtLocationFoundException(e: NoPrisonersAtLocationException): ResponseEntity<ErrorResponse?>? {
     log.debug("No prisoners found exception caught: {}", e.message)
     return ResponseEntity
       .status(NOT_FOUND)
@@ -111,7 +111,7 @@ class HmppsIncentivesApiExceptionHandler {
   }
 
   @ExceptionHandler(IncentiveReviewNotFoundException::class)
-  fun handleRoleNotFoundException(e: IncentiveReviewNotFoundException): ResponseEntity<ErrorResponse?>? {
+  fun handleIncentiveReviewNotFoundException(e: IncentiveReviewNotFoundException): ResponseEntity<ErrorResponse?>? {
     log.debug("No incentive review found exception caught: {}", e.message)
     return ResponseEntity
       .status(NOT_FOUND)
@@ -125,7 +125,7 @@ class HmppsIncentivesApiExceptionHandler {
   }
 
   @ExceptionHandler(NoDataFoundException::class)
-  fun handleRoleNotFoundException(e: NoDataFoundException): ResponseEntity<ErrorResponse?>? {
+  fun handlDataNotFoundException(e: NoDataFoundException): ResponseEntity<ErrorResponse?>? {
     log.debug("No data found exception caught: {}", e.message)
     return ResponseEntity
       .status(NOT_FOUND)
