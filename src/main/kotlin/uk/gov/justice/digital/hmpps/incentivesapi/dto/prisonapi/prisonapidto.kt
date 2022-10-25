@@ -67,3 +67,18 @@ data class PrisonLocation(
 ) {
   fun getLocationDescription() = userDescription ?: description
 }
+
+data class IepReviewInNomis(
+  val iepLevel: String,
+  val comment: String,
+  val reviewTime: LocalDateTime,
+  val reviewerUserName: String,
+)
+
+data class IncentiveLevel(
+  val domain: String,
+  val code: String,
+  val description: String,
+  val activeFlag: String,
+  val listSeq: Int,
+)
