@@ -27,6 +27,7 @@ This is straight-forward as authentication is delegated down to the calling serv
 ```
 API_BASE_URL_OAUTH=https://sign-in-dev.hmpps.service.justice.gov.uk/auth
 API_BASE_URL_PRISON=https://api-dev.prison.service.justice.gov.uk
+API_BASE_URL_OFFENDER_SEARCH=https://prisoner-offender-search-dev.prison.service.justice.gov.uk
 ```
 
 ## Running integration tests
