@@ -17,7 +17,7 @@ class NextReviewDateService {
     val (lastReviewDate, lastReviewLevel, iepDetails) = input
 
     if (iepDetails.isNotEmpty() && lastReviewDate != iepDetails[0].iepDate) {
-      throw Exception("Arguments passed to NextReviewDateService#calculate() for bookingId = '${iepDetails[0].bookingId}' were wrong, lastReviewDate ($lastReviewDate) should match iepDate on first element of iepDetails argument (${iepDetails[0].iepDate})")
+      throw IllegalArgumentException("Arguments passed to NextReviewDateService#calculate() for bookingId = '${iepDetails[0].bookingId}' were wrong, lastReviewDate ($lastReviewDate) should match iepDate on first element of iepDetails argument (${iepDetails[0].iepDate})")
     }
 
     if (lastReviewLevel == BASIC) {
@@ -31,7 +31,7 @@ class NextReviewDateService {
     val (lastReviewDate, lastReviewLevel, iepDetails) = input
 
     if (lastReviewLevel != BASIC) {
-      throw Exception("Programming error: private method nextReviewDateForBasic() called when lastReviewLevel was $lastReviewLevel")
+      throw IllegalArgumentException("Programming error: private method nextReviewDateForBasic() called when lastReviewLevel was $lastReviewLevel")
     }
 
     // "if not suitable to return to Standard level further reviews must be undertaken at least every 28 days thereafter"
