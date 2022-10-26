@@ -31,6 +31,18 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
   }
 
   @Test
+  fun `validates path parameters`() {
+    offenderSearchMockServer.stubFindOffenders("Moorland")
+
+    webTestClient.get()
+      .uri("/incentives-reviews/prison/Moorland/location/MDI-1?page=0")
+      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
+      .exchange()
+      .expectStatus()
+      .isBadRequest
+  }
+
+  @Test
   fun `loads prisoner details from offender search`() {
     offenderSearchMockServer.stubFindOffenders("MDI")
     prisonApiMockServer.stubLocation("MDI-1")
