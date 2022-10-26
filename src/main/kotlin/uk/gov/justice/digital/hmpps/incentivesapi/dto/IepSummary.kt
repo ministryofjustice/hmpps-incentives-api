@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
+import uk.gov.justice.digital.hmpps.incentivesapi.service.NextReviewDateInput
+import uk.gov.justice.digital.hmpps.incentivesapi.service.NextReviewDateService
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -41,7 +43,16 @@ data class IepSummary(
 
   @get:Schema(description = "Date of next review", example = "2022-12-31", required = true)
   @get:JsonProperty
-  val nextReviewDate: LocalDate = iepDate.plusYears(1)
+  val nextReviewDate: LocalDate
+    get() {
+      return NextReviewDateService().calculate(
+        NextReviewDateInput(
+          lastReviewDate = iepDate,
+          lastReviewLevel = iepLevel,
+          iepDetails = iepDetails,
+        )
+      )
+    }
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)

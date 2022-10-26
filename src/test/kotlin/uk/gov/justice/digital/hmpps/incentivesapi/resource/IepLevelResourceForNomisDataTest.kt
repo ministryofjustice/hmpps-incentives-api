@@ -48,7 +48,7 @@ class IepLevelResourceForNomisDataTest : SqsIntegrationTestBase() {
              "iepDate":"2021-12-02",
              "iepLevel":"Basic",
              "iepTime":"2021-12-02T09:24:42.894",
-             "nextReviewDate": "2022-12-02",
+             "nextReviewDate": "2021-12-09",
              "iepDetails":[
                 {
                    "bookingId":1234134,
