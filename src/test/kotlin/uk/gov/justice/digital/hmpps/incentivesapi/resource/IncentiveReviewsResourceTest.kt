@@ -41,6 +41,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
       .exchange()
       .expectStatus().isOk
       .expectBody().json(
+        // language=json
         """
           {
             "reviewCount": 2,
@@ -61,6 +62,44 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
               }
             ],
             "locationDescription": "Houseblock 1"
+          }
+        """,
+        true,
+      )
+  }
+
+  @Test
+  fun `loads prisoner details even when location description not found`() {
+    offenderSearchMockServer.stubFindOffenders("MDI")
+    prisonApiMockServer.stubApi404for("/api/locations/code/MDI")
+
+    webTestClient.get()
+      .uri("/incentives-reviews/prison/MDI/location/MDI")
+      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
+      .exchange()
+      .expectStatus().isOk
+      .expectBody().json(
+        // language=json
+        """
+          {
+            "reviewCount": 2,
+            "reviews": [
+              {
+                "prisonerNumber": "A1409AE",
+                "bookingId": 110001,
+                "firstName": "JAMES",
+                "lastName": "HALLS",
+                "acctOpenStatus": true
+              },
+              {
+                "prisonerNumber": "G6123VU",
+                "bookingId": 110002,
+                "firstName": "RHYS",
+                "lastName": "JONES",
+                "acctOpenStatus": false
+              }
+            ],
+            "locationDescription": "Unknown location"
           }
         """,
         true,

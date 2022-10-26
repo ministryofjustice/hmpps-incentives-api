@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.springframework.stereotype.Service
+import org.springframework.web.reactive.function.client.WebClientResponseException.NotFound
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewResponse
 
@@ -22,7 +23,13 @@ class IncentiveReviewsService(
     size: Int = 20
   ): IncentiveReviewResponse = coroutineScope {
     val deferredOffenders = async { offenderSearchService.findOffenders(prisonId, cellLocationPrefix, page - 1, size) }
-    val deferredLocationDescription = async { prisonApiService.getLocation(cellLocationPrefix).description }
+    val deferredLocationDescription = async {
+      try {
+        prisonApiService.getLocation(cellLocationPrefix).description
+      } catch (e: NotFound) {
+        "Unknown location"
+      }
+    }
 
     val offenders = deferredOffenders.await()
     val locationDescription = deferredLocationDescription.await()
