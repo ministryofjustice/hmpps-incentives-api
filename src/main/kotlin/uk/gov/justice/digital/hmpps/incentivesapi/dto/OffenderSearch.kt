@@ -14,7 +14,7 @@ data class OffenderSearchPrisoner(
   val locationDescription: String,
   val alerts: List<OffenderSearchPrisonerAlert>,
 ) {
-  val acctOpen = alerts.find { it.alertCode == "HA" && it.active && !it.expired } != null
+  val acctOpen = alerts.any { it.alertCode == "HA" && it.active && !it.expired }
 }
 
 data class OffenderSearchPrisonerAlert(
