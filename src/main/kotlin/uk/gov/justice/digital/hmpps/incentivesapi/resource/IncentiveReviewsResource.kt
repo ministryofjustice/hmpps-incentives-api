@@ -43,7 +43,7 @@ class IncentiveReviewsResource(private val incentiveReviewsService: IncentiveRev
     ]
   )
   suspend fun getReviews(
-    @Schema(description = "Prison ID", required = true, example = "MDI")
+    @Schema(description = "Prison ID", required = true, example = "MDI", minLength = 3, maxLength = 5)
     @Size(max = 5, min = 3, message = "Prison ID must be 3-5 characters")
     @PathVariable
     prisonId: String,

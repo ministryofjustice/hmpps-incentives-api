@@ -88,17 +88,19 @@ data class IepReview(
   @Schema(
     description = "IEP Level",
     required = true,
-    allowableValues = ["STD", "BAS", "ENH", "EN2", "ENT"],
+    allowableValues = ["BAS", "STD", "ENH", "EN2", "EN3"],
     example = "STD",
+    minLength = 2, maxLength = 6,
+    nullable = false,
   )
-  @field:Size(
-    max = 6,
-    min = 2,
-    message = "IEP Level must be between 2 and 6"
-  ) @field:NotBlank(message = "IEP Level is required") val iepLevel: String,
-  @Schema(description = "Comment about review", required = true, example = "A review took place")
+  @field:Size(max = 6, min = 2, message = "IEP Level must be between 2 and 6")
+  @field:NotBlank(message = "IEP Level is required")
+  val iepLevel: String,
+
+  @Schema(description = "Comment about review", required = true, example = "A review took place", minLength = 1)
   @field:NotBlank(message = "Comment on IEP Level review is required")
   val comment: String,
+
   @Schema(description = "Review Type", example = "REVIEW", required = false, defaultValue = "REVIEW")
   val reviewType: ReviewType? = ReviewType.REVIEW,
 )
@@ -109,16 +111,20 @@ data class SyncPostRequest(
   @Schema(description = "Date and time when the review took place", required = true, example = "2021-12-31T12:34:56.789012")
   val iepTime: LocalDateTime,
 
-  @Schema(description = "Prison ID", required = true, example = "MDI")
+  @Schema(description = "Prison ID", required = true, example = "MDI", minLength = 2, maxLength = 5)
   @field:NotBlank(message = "Prison ID is required")
   val prisonId: String,
 
-  @Schema(description = "IEP Level", example = "STD", required = true, allowableValues = ["STD", "BAS", "ENH", "EN2", "EN3", "ENT"])
-  @field:Size(
-    max = 6,
-    min = 2,
-    message = "IEP Level must be between 2 and 6"
-  ) @field:NotBlank(message = "IEP Level is required") val iepLevel: String,
+  @Schema(
+    description = "IEP Level",
+    required = true,
+    allowableValues = ["BAS", "STD", "ENH", "EN2", "EN3"],
+    example = "STD",
+    minLength = 2, maxLength = 6,
+    nullable = false,
+  )
+  @field:Size(max = 6, min = 2, message = "IEP Level must be between 2 and 6")
+  @field:NotBlank(message = "IEP Level is required") val iepLevel: String,
 
   @Schema(description = "Comment about review", required = false, example = "A review took place")
   val comment: String?,

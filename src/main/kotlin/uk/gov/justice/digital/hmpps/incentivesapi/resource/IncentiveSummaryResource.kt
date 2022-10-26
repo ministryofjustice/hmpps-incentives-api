@@ -49,8 +49,8 @@ class IncentiveSummaryResource(private val incentiveSummaryService: IncentiveSum
     ]
   )
   suspend fun getIncentiveSummary(
-    @Schema(description = "Prison Id", required = true, example = "MDI")
-    @PathVariable @Size(max = 3, min = 3, message = "Prison ID must be 3 characters") prisonId: String,
+    @Schema(description = "Prison Id", required = true, example = "MDI", minLength = 3, maxLength = 5)
+    @PathVariable @Size(max = 5, min = 3, message = "Prison ID must be 3-5 characters") prisonId: String,
     @Schema(description = "Location Id", required = true, example = "MDI-1")
     @PathVariable locationId: String,
     @Schema(description = "Sort By", required = false, defaultValue = "NAME", example = "NAME")

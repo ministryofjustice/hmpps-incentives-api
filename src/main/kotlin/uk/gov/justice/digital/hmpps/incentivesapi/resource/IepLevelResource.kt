@@ -66,7 +66,7 @@ class IepLevelResource(
     ]
   )
   suspend fun getPrisonIepLevels(
-    @Schema(description = "Prison Id", example = "MDI", required = true, type = "string", pattern = "^[A-Z]{3}\$")
+    @Schema(description = "Prison Id", example = "MDI", required = true, minLength = 3, maxLength = 5)
     @PathVariable @Size(max = 3, min = 3, message = "Prison ID must be 3 characters") prisonId: String
   ): List<IepLevel> =
     iepLevelService.getIepLevelsForPrison(prisonId)
@@ -194,7 +194,7 @@ class IepLevelResource(
     ]
   )
   suspend fun getPrisonerIepLevelHistory(
-    @Schema(description = "Prisoner Number", example = "A1234AB", required = true, type = "string", pattern = "^[A-Z0-9]{7}$")
+    @Schema(description = "Prisoner Number", example = "A1234AB", required = true, pattern = "^[A-Z0-9]{7}$")
     @PathVariable prisonerNumber: String
   ): IepSummary =
     prisonerIepLevelReviewService.getPrisonerIepLevelHistory(prisonerNumber)
@@ -267,7 +267,7 @@ class IepLevelResource(
     ]
   )
   suspend fun addIepReview(
-    @Schema(description = "Prisoner Number", example = "A1234AB", required = true, type = "string", pattern = "^[A-Z0-9]{1,20}$")
+    @Schema(description = "Prisoner Number", example = "A1234AB", required = true, pattern = "^[A-Z0-9]{1,20}$")
     @PathVariable prisonerNumber: String,
     @Schema(
       description = "IEP Review",
