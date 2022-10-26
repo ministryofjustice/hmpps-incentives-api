@@ -10,7 +10,7 @@ import java.time.LocalDateTime
 internal class NextReviewDateServiceTest {
 
   @Test
-  fun `when IEP level is not Basic it, returns +1 year`() {
+  fun `when IEP level is not Basic, returns +1 year`() {
     val input = NextReviewDateInput(
       lastReviewLevel = "Standard",
       lastReviewDate = LocalDate.now(),
@@ -40,7 +40,7 @@ internal class NextReviewDateServiceTest {
     }
 
     @Test
-    fun `when IEP level is Basic and there is not previous review, returns +7 days`() {
+    fun `when IEP level is Basic and there is no previous review, returns +7 days`() {
       val input = NextReviewDateInput(
         lastReviewLevel = "Basic",
         lastReviewDate = LocalDate.now(),
