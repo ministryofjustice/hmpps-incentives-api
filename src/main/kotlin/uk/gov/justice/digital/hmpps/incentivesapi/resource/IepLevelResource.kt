@@ -29,9 +29,8 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IepLevelService
 import uk.gov.justice.digital.hmpps.incentivesapi.service.PrisonerIepLevelReviewService
+import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 import javax.validation.Valid
-import javax.validation.constraints.NotEmpty
-import javax.validation.constraints.Size
 
 @RestController
 @RequestMapping("/iep", produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -67,9 +66,13 @@ class IepLevelResource(
   )
   suspend fun getPrisonIepLevels(
     @Schema(description = "Prison Id", example = "MDI", required = true, minLength = 3, maxLength = 5)
-    @PathVariable @Size(max = 3, min = 3, message = "Prison ID must be 3 characters") prisonId: String
-  ): List<IepLevel> =
-    iepLevelService.getIepLevelsForPrison(prisonId)
+    @PathVariable prisonId: String
+  ): List<IepLevel> {
+    ensure {
+      ("prisonId" to prisonId).hasLengthAtLeast(3).hasLengthAtMost(5)
+    }
+    return iepLevelService.getIepLevelsForPrison(prisonId)
+  }
 
   @GetMapping("/reviews/booking/{bookingId}")
   @Operation(
@@ -163,9 +166,13 @@ class IepLevelResource(
   )
   suspend fun getCurrentIEPLevelForPrisoner(
     @ArraySchema(schema = Schema(description = "List of booking Ids", required = true, type = "array"), arraySchema = Schema(type = "integer", format = "int64", pattern = "^[0-9]{1,20}$", additionalProperties = Schema.AdditionalPropertiesValue.FALSE))
-    @RequestBody @Valid @NotEmpty bookingIds: List<Long>
-  ): Flow<CurrentIepLevel> =
-    prisonerIepLevelReviewService.getCurrentIEPLevelForPrisoners(bookingIds)
+    @RequestBody bookingIds: List<Long>
+  ): Flow<CurrentIepLevel> {
+    ensure {
+      ("bookingIds" to bookingIds).isNotEmpty()
+    }
+    return prisonerIepLevelReviewService.getCurrentIEPLevelForPrisoners(bookingIds)
+  }
 
   @GetMapping("/reviews/prisoner/{prisonerNumber}")
   @Operation(

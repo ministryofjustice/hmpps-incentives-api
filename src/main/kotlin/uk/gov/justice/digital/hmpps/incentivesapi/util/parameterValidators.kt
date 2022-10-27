@@ -43,6 +43,13 @@ class Ensure {
     }
     return this
   }
+
+  fun <T> Pair<String, List<T>>.isNotEmpty(): Pair<String, List<T>> {
+    if (second.isEmpty()) {
+      errors.add("`$first` list must not be empty")
+    }
+    return this
+  }
 }
 
 class ParameterValidationException(val errors: List<String>) :

@@ -4,11 +4,23 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
+
 @ActiveProfiles("test", "test-nomis")
 class IncentiveSummaryResourceTest : SqsIntegrationTestBase() {
   @BeforeEach
   internal fun setUp() {
     prisonApiMockServer.resetAll()
+  }
+
+  private fun stubPrisonApi(prisonId: String, locationId: String) {
+    prisonApiMockServer.stubIepLevels()
+    prisonApiMockServer.stubAgenciesIepLevels(prisonId)
+    prisonApiMockServer.stubPrisonersOnWing(locationId)
+    prisonApiMockServer.stubIEPSummary()
+    prisonApiMockServer.stubPositiveCaseNoteSummary()
+    prisonApiMockServer.stubNegativeCaseNoteSummary()
+    prisonApiMockServer.stubProvenAdj()
+    prisonApiMockServer.stubLocation(locationId)
   }
 
   @Test
@@ -22,15 +34,7 @@ class IncentiveSummaryResourceTest : SqsIntegrationTestBase() {
 
   @Test
   fun `get behaviour summary for wing`() {
-
-    prisonApiMockServer.stubIepLevels()
-    prisonApiMockServer.stubAgenciesIepLevels("MDI")
-    prisonApiMockServer.stubPrisonersOnWing("MDI-1")
-    prisonApiMockServer.stubIEPSummary()
-    prisonApiMockServer.stubPositiveCaseNoteSummary()
-    prisonApiMockServer.stubNegativeCaseNoteSummary()
-    prisonApiMockServer.stubProvenAdj()
-    prisonApiMockServer.stubLocation("MDI-1")
+    stubPrisonApi("MDI", "MDI-1")
 
     webTestClient.get().uri("incentives-summary/prison/MDI/location/MDI-1?sortBy=DAYS_ON_LEVEL&sortDirection=DESC")
       .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
@@ -171,5 +175,31 @@ class IncentiveSummaryResourceTest : SqsIntegrationTestBase() {
 }
          """
       )
+  }
+
+  @Test
+  fun `returns an error if prisonId is incorrect`() {
+    stubPrisonApi("Moorland", "MDI-1")
+
+    webTestClient.get().uri("incentives-summary/prison/Moorland/location/MDI-1?sortBy=DAYS_ON_LEVEL&sortDirection=DESC")
+      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
+      .exchange()
+      .expectStatus().isBadRequest
+      .expectBody()
+      .jsonPath("userMessage")
+      .isEqualTo("Invalid parameters: `prisonId` must have length of at most 5")
+  }
+
+  @Test
+  fun `returns an error if locationId is incorrect`() {
+    stubPrisonApi("MDI", "MDI")
+
+    webTestClient.get().uri("incentives-summary/prison/MDI/location/MDI?sortBy=DAYS_ON_LEVEL&sortDirection=DESC")
+      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
+      .exchange()
+      .expectStatus().isBadRequest
+      .expectBody()
+      .jsonPath("userMessage")
+      .isEqualTo("Invalid parameters: `locationId` must have length of at least 5")
   }
 }
