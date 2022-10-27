@@ -1,7 +1,8 @@
 {
   "extends": [
     "config:base",
-    ":disableDependencyDashboard"
+    ":disableDependencyDashboard",
+    ":preserveSemverRanges"
   ],
   "assigneesFromCodeOwners": true,
   "timezone": "Europe/London",
