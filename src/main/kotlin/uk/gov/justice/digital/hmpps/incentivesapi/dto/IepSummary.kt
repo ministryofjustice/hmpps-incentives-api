@@ -28,7 +28,9 @@ data class IepSummary(
   @Schema(description = "Location  of prisoner when review took place within prison (i.e. their cell)", example = "1-2-003", required = false)
   val locationId: String? = null,
   @Schema(description = "IEP Review History (descending in time)", required = true)
-  val iepDetails: List<IepDetail>,
+  var iepDetails: List<IepDetail>,
+  @Schema(description = "Date of next review", example = "2022-12-31", required = false)
+  var nextReviewDate: LocalDate? = null,
 ) {
 
   @get:Schema(description = "Days since last review", example = "23", required = true)
@@ -38,10 +40,6 @@ data class IepSummary(
       val today = LocalDate.now().atStartOfDay()
       return Duration.between(iepDate.atStartOfDay(), today).toDays().toInt()
     }
-
-  @get:Schema(description = "Date of next review", example = "2022-12-31", required = true)
-  @get:JsonProperty
-  val nextReviewDate: LocalDate = iepDate.plusYears(1)
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)

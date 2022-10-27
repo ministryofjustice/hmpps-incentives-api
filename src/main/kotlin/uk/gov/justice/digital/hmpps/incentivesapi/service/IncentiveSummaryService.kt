@@ -130,7 +130,7 @@ class IncentiveSummaryService(
 
   private suspend fun getIEPDetails(bookingIds: List<Long>): Map<Long, IepResult> {
 
-    if (featureFlagsService.isIncentiveReviewsMasteredOutsideNomisInIncentivesDatabase()) {
+    if (featureFlagsService.isIncentivesDataSourceOfTruth()) {
 
       val incentiveLevels = prisonApiService.getIncentiveLevels()
       return prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds = bookingIds)
