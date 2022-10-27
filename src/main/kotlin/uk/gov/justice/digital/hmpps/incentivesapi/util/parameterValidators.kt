@@ -44,7 +44,7 @@ class Ensure {
     return this
   }
 
-  fun <T> Pair<String, List<T>>.isNotEmpty(): Pair<String, List<T>> {
+  fun <T, C : Collection<T>> Pair<String, C>.isNotEmpty(): Pair<String, C> {
     if (second.isEmpty()) {
       errors.add("`$first` list must not be empty")
     }
