@@ -59,12 +59,15 @@ class WebClientConfiguration(
   }
 
   @Bean
-  fun offenderSearchWebClient(): WebClient {
+  fun offenderSearchWebClient(authorizedClientManager: ReactiveOAuth2AuthorizedClientManager): WebClient {
+    val oauth2Client = ServerOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager)
+    oauth2Client.setDefaultClientRegistrationId("incentives-api")
+
     val httpClient = HttpClient.create().responseTimeout(Duration.ofMinutes(2))
     return WebClient.builder()
       .baseUrl(offenderSearchUri)
       .clientConnector(ReactorClientHttpConnector(httpClient))
-      .filter(AuthTokenFilterFunction())
+      .filter(oauth2Client)
       .build()
   }
 
