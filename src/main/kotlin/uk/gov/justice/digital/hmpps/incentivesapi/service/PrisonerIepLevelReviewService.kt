@@ -3,8 +3,6 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.count
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flattenMerge
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -30,6 +28,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocati
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
+import java.lang.IllegalArgumentException
 import java.time.Clock
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -51,13 +50,35 @@ class PrisonerIepLevelReviewService(
     val log: Logger = LoggerFactory.getLogger(this::class.java)
   }
 
+  private fun setNextReviewDate(iepSummary: IepSummary): IepSummary {
+    if (iepSummary.iepDetails.isEmpty()) {
+      throw IllegalArgumentException("Cannot set nextReviewDate without iepDetails for bookingId = ${iepSummary.bookingId}")
+    }
+
+    iepSummary.nextReviewDate = NextReviewDateService().calculate(
+      NextReviewDateInput(
+        iepDetails = iepSummary.iepDetails,
+      ),
+    )
+
+    return iepSummary
+  }
+
   suspend fun getPrisonerIepLevelHistory(
     bookingId: Long,
     withDetails: Boolean = true,
     useClientCredentials: Boolean = false,
   ): IepSummary {
     return if (!featureFlagsService.isIncentivesDataSourceOfTruth()) {
-      prisonApiService.getIEPSummaryForPrisoner(bookingId, withDetails, useClientCredentials)
+      var iepSummary = prisonApiService.getIEPSummaryForPrisoner(bookingId, withDetails = true, useClientCredentials)
+
+      iepSummary = setNextReviewDate(iepSummary)
+
+      if (!withDetails) {
+        iepSummary.iepDetails = emptyList()
+      }
+
+      return iepSummary
     } else {
       val reviews = prisonerIepLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(bookingId)
       if (reviews.count() == 0) throw IncentiveReviewNotFoundException("No Incentive Reviews for booking ID $bookingId")
@@ -69,7 +90,11 @@ class PrisonerIepLevelReviewService(
 
     return if (!featureFlagsService.isIncentivesDataSourceOfTruth()) {
       val prisonerInfo = prisonApiService.getPrisonerInfo(prisonerNumber)
-      prisonApiService.getIEPSummaryPerPrisoner(listOf(prisonerInfo.bookingId)).first()
+      var iepSummary = prisonApiService.getIEPSummaryForPrisoner(prisonerInfo.bookingId, withDetails = true)
+
+      iepSummary = setNextReviewDate(iepSummary)
+
+      return iepSummary
     } else {
       val reviews = prisonerIepLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(prisonerNumber)
       if (reviews.count() == 0) throw IncentiveReviewNotFoundException("No Incentive Reviews for prisoner number $prisonerNumber")
@@ -296,11 +321,11 @@ class PrisonerIepLevelReviewService(
     incentiveLevels: Map<String, IepLevel>,
     withDetails: Boolean = true
   ): IepSummary {
-    val iepLevels = levels.map { it.translate(incentiveLevels) }
+    val iepDetails = levels.map { it.translate(incentiveLevels) }.toList()
 
-    val currentIep = iepLevels.firstOrNull() ?: throw IncentiveReviewNotFoundException("Not Found incentive reviews")
+    val currentIep = iepDetails.firstOrNull() ?: throw IncentiveReviewNotFoundException("Not Found incentive reviews")
 
-    return IepSummary(
+    var iepSummary = IepSummary(
       bookingId = currentIep.bookingId,
       iepDate = currentIep.iepDate,
       iepTime = currentIep.iepTime,
@@ -308,8 +333,16 @@ class PrisonerIepLevelReviewService(
       id = currentIep.id,
       prisonerNumber = currentIep.prisonerNumber,
       locationId = currentIep.locationId,
-      iepDetails = if (withDetails) iepLevels.toList() else emptyList(),
+      iepDetails = iepDetails,
     )
+
+    iepSummary = setNextReviewDate(iepSummary)
+
+    if (!withDetails) {
+      iepSummary.iepDetails = emptyList()
+    }
+
+    return iepSummary
   }
 
   private suspend fun addIepReviewForPrisonerAtLocation(

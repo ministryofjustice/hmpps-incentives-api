@@ -6,21 +6,16 @@ import java.time.LocalDate
 private const val BASIC = "Basic"
 
 data class NextReviewDateInput(
-  val lastReviewDate: LocalDate,
-  val lastReviewLevel: String,
   val iepDetails: List<IepDetail>,
 )
 
 class NextReviewDateService {
 
   fun calculate(input: NextReviewDateInput): LocalDate {
-    val (lastReviewDate, lastReviewLevel, iepDetails) = input
+    val (iepDetails) = input
+    val lastReviewDate = iepDetails[0].iepDate
 
-    if (iepDetails.isNotEmpty() && lastReviewDate != iepDetails[0].iepDate) {
-      throw IllegalArgumentException("Arguments passed to NextReviewDateService#calculate() for bookingId = '${iepDetails[0].bookingId}' were wrong, lastReviewDate ($lastReviewDate) should match iepDate on first element of iepDetails argument (${iepDetails[0].iepDate})")
-    }
-
-    if (lastReviewLevel == BASIC) {
+    if (iepDetails[0].iepLevel == BASIC) {
       return nextReviewDateForBasic(input)
     }
 
@@ -28,8 +23,10 @@ class NextReviewDateService {
   }
 
   private fun nextReviewDateForBasic(input: NextReviewDateInput): LocalDate {
-    val (lastReviewDate, lastReviewLevel, iepDetails) = input
+    val (iepDetails) = input
+    val lastReviewDate = iepDetails[0].iepDate
 
+    val lastReviewLevel = iepDetails[0].iepLevel
     if (lastReviewLevel != BASIC) {
       throw IllegalArgumentException("Programming error: private method nextReviewDateForBasic() called when lastReviewLevel was $lastReviewLevel")
     }

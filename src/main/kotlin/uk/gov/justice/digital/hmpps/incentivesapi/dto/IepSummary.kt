@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
-import uk.gov.justice.digital.hmpps.incentivesapi.service.NextReviewDateInput
-import uk.gov.justice.digital.hmpps.incentivesapi.service.NextReviewDateService
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -30,7 +28,9 @@ data class IepSummary(
   @Schema(description = "Location  of prisoner when review took place within prison (i.e. their cell)", example = "1-2-003", required = false)
   val locationId: String? = null,
   @Schema(description = "IEP Review History (descending in time)", required = true)
-  val iepDetails: List<IepDetail>,
+  var iepDetails: List<IepDetail>,
+  @Schema(description = "Date of next review", example = "2022-12-31", required = false)
+  var nextReviewDate: LocalDate? = null,
 ) {
 
   @get:Schema(description = "Days since last review", example = "23", required = true)
@@ -39,19 +39,6 @@ data class IepSummary(
     get() {
       val today = LocalDate.now().atStartOfDay()
       return Duration.between(iepDate.atStartOfDay(), today).toDays().toInt()
-    }
-
-  @get:Schema(description = "Date of next review", example = "2022-12-31", required = true)
-  @get:JsonProperty
-  val nextReviewDate: LocalDate
-    get() {
-      return NextReviewDateService().calculate(
-        NextReviewDateInput(
-          lastReviewDate = iepDate,
-          lastReviewLevel = iepLevel,
-          iepDetails = iepDetails,
-        )
-      )
     }
 }
 

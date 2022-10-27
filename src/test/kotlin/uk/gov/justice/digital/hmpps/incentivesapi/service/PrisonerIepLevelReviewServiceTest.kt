@@ -232,13 +232,13 @@ class PrisonerIepLevelReviewServiceTest {
       runBlocking {
         coroutineScope {
           // Given
-          whenever(prisonApiService.getIEPSummaryForPrisoner(1234567, withDetails = false)).thenReturn(iepSummary())
+          whenever(prisonApiService.getIEPSummaryForPrisoner(1234567, withDetails = true)).thenReturn(iepSummaryWithDetail)
 
           // When
           prisonerIepLevelReviewService.getPrisonerIepLevelHistory(1234567, withDetails = false)
 
           // Then
-          verify(prisonApiService, times(1)).getIEPSummaryForPrisoner(1234567, false)
+          verify(prisonApiService, times(1)).getIEPSummaryForPrisoner(1234567, true)
           verifyNoInteractions(prisonerIepLevelRepository)
         }
       }
@@ -491,7 +491,7 @@ class PrisonerIepLevelReviewServiceTest {
           withDetails = true,
           useClientCredentials = true
         )
-      ).thenReturn(iepSummary(iepDetails = emptyList()))
+      ).thenReturn(iepSummaryWithDetail)
 
       // When
       prisonerIepLevelReviewService.processOffenderEvent(prisonOffenderEvent)
