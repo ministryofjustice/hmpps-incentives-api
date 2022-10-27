@@ -6,7 +6,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisonerAlert
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisonerResponse
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisonerList
 
 class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
   companion object {
@@ -32,7 +32,7 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
           .withHeader("Content-Type", "application/json")
           .withBody(
             mapper.writeValueAsBytes(
-              OffenderSearchPrisonerResponse(
+              OffenderSearchPrisonerList(
                 totalElements = 2,
                 content = listOf(
                   OffenderSearchPrisoner(

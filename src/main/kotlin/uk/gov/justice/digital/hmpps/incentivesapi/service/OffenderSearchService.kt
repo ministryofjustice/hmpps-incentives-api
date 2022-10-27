@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitBody
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisonerResponse
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisonerList
 
 @Service
 class OffenderSearchService(private val offenderSearchWebClient: WebClient) {
@@ -24,5 +24,5 @@ class OffenderSearchService(private val offenderSearchWebClient: WebClient) {
         )
       )
       .retrieve()
-      .awaitBody<OffenderSearchPrisonerResponse>()
+      .awaitBody<OffenderSearchPrisonerList>()
 }
