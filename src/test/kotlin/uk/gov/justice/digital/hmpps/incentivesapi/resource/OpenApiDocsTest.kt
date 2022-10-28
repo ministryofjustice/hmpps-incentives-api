@@ -36,7 +36,9 @@ class OpenApiDocsTest : SqsIntegrationTestBase() {
       .accept(MediaType.APPLICATION_JSON)
       .exchange()
       .expectStatus().is3xxRedirection
-      .expectHeader().value("Location") { it.contains("/swagger-ui/index.html?configUrl=/v3/api-docs/swagger-config") }
+      .expectHeader().value("Location") {
+        assertThat(it).contains("/webjars/swagger-ui/index.html")
+      }
   }
 
   @Test
