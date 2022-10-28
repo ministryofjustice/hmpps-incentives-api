@@ -14,6 +14,7 @@ internal class NextReviewDateServiceTest {
       iepDetails = listOf(
         iepDetail(iepLevel = "Standard", iepTime = LocalDateTime.now()),
       ),
+      hasAcctOpen = false,
     )
     val expectedNextReviewDate = input.iepDetails[0].iepDate.plusYears(1)
 
@@ -23,7 +24,7 @@ internal class NextReviewDateServiceTest {
   }
 
   @Nested
-  inner class BasicTest {
+  inner class BasicRuleTest {
 
     @Test
     fun `when IEP level is Basic and there is no previous review, returns +7 days`() {
@@ -31,6 +32,7 @@ internal class NextReviewDateServiceTest {
         iepDetails = listOf(
           iepDetail(iepLevel = "Basic", iepTime = LocalDateTime.now()),
         ),
+        hasAcctOpen = false,
       )
       val expectedNextReviewDate = input.iepDetails[0].iepDate.plusDays(7)
 
@@ -46,6 +48,7 @@ internal class NextReviewDateServiceTest {
           iepDetail(iepLevel = "Basic", iepTime = LocalDateTime.now()),
           iepDetail(iepLevel = "Standard", iepTime = LocalDateTime.now().minusDays(10)),
         ),
+        hasAcctOpen = false,
       )
       val expectedNextReviewDate = input.iepDetails[0].iepDate.plusDays(7)
 
@@ -61,6 +64,7 @@ internal class NextReviewDateServiceTest {
           iepDetail(iepLevel = "Basic", iepTime = LocalDateTime.now()),
           iepDetail(iepLevel = "Basic", iepTime = LocalDateTime.now().minusDays(10)),
         ),
+        hasAcctOpen = false,
       )
       val expectedNextReviewDate = input.iepDetails[0].iepDate.plusDays(28)
 
@@ -68,6 +72,58 @@ internal class NextReviewDateServiceTest {
 
       assertThat(nextReviewDate).isEqualTo(expectedNextReviewDate)
     }
+  }
+
+  @Nested
+  inner class AcctRuleTest {
+
+    @Test
+    fun `when prisoner has open ACCT and they're not on Basic, returns +14 days`() {
+      val input = NextReviewDateInput(
+        iepDetails = listOf(
+          iepDetail(iepLevel = "Standard", iepTime = LocalDateTime.now()),
+        ),
+        hasAcctOpen = true,
+      )
+      val expectedNextReviewDate = input.iepDetails[0].iepDate.plusDays(14)
+
+      val nextReviewDate = NextReviewDateService().calculate(input)
+
+      assertThat(nextReviewDate).isEqualTo(expectedNextReviewDate)
+    }
+
+    @Test
+    fun `when last two IEP levels were Basic but prisoner has open ACCT, returns +14 days`() {
+      val input = NextReviewDateInput(
+        iepDetails = listOf(
+          iepDetail(iepLevel = "Basic", iepTime = LocalDateTime.now()),
+          iepDetail(iepLevel = "Basic", iepTime = LocalDateTime.now().minusDays(10)),
+        ),
+        hasAcctOpen = true,
+      )
+      val expectedNextReviewDate = input.iepDetails[0].iepDate.plusDays(14)
+
+      val nextReviewDate = NextReviewDateService().calculate(input)
+
+      assertThat(nextReviewDate).isEqualTo(expectedNextReviewDate)
+    }
+
+    @Test
+    fun `when IEP level is Basic, previous review is at different level but has open ACCT, returns +7 days`() {
+      val input = NextReviewDateInput(
+        iepDetails = listOf(
+          iepDetail(iepLevel = "Basic", iepTime = LocalDateTime.now()),
+          iepDetail(iepLevel = "Standard", iepTime = LocalDateTime.now().minusDays(10)),
+        ),
+        hasAcctOpen = true,
+      )
+      val expectedNextReviewDate = input.iepDetails[0].iepDate.plusDays(7)
+
+      val nextReviewDate = NextReviewDateService().calculate(input)
+
+      assertThat(nextReviewDate).isEqualTo(expectedNextReviewDate)
+    }
+
   }
 }
 
