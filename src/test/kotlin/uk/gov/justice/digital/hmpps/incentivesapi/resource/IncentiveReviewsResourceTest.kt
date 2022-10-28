@@ -101,9 +101,11 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
   }
 
   @Test
-  fun `loads prisoner details from offender search`() {
+  fun `loads prisoner details from offender search and prison api`() {
     offenderSearchMockServer.stubFindOffenders("MDI")
     prisonApiMockServer.stubLocation("MDI-1")
+    prisonApiMockServer.stubPositiveCaseNoteSummary()
+    prisonApiMockServer.stubNegativeCaseNoteSummary()
 
     webTestClient.get()
       .uri("/incentives-reviews/prison/MDI/location/MDI-1")
@@ -121,6 +123,8 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "bookingId": 110001,
                 "firstName": "JAMES",
                 "lastName": "HALLS",
+                "positiveBehaviours": 3,
+                "negativeBehaviours": 4,
                 "acctOpenStatus": true
               },
               {
@@ -128,6 +132,8 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "bookingId": 110002,
                 "firstName": "RHYS",
                 "lastName": "JONES",
+                "positiveBehaviours": 0,
+                "negativeBehaviours": 0,
                 "acctOpenStatus": false
               }
             ],
@@ -142,6 +148,8 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
   fun `loads prisoner details even when location description not found`() {
     offenderSearchMockServer.stubFindOffenders("MDI")
     prisonApiMockServer.stubApi404for("/api/locations/code/MDI-1")
+    prisonApiMockServer.stubPositiveCaseNoteSummary()
+    prisonApiMockServer.stubNegativeCaseNoteSummary()
 
     webTestClient.get()
       .uri("/incentives-reviews/prison/MDI/location/MDI-1")
@@ -159,6 +167,8 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "bookingId": 110001,
                 "firstName": "JAMES",
                 "lastName": "HALLS",
+                "positiveBehaviours": 3,
+                "negativeBehaviours": 4,
                 "acctOpenStatus": true
               },
               {
@@ -166,6 +176,8 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "bookingId": 110002,
                 "firstName": "RHYS",
                 "lastName": "JONES",
+                "positiveBehaviours": 0,
+                "negativeBehaviours": 0,
                 "acctOpenStatus": false
               }
             ],
