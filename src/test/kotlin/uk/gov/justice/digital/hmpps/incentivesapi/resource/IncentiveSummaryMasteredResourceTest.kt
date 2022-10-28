@@ -1,18 +1,24 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.resource
 
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
-import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDateTime
+import java.time.LocalDateTime.now
 import java.time.ZoneId
 
-@ActiveProfiles("test", "test-nomis")
-class IncentiveSummaryResourceTest : SqsIntegrationTestBase() {
+class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
+
   @TestConfiguration
   internal class FixedClockConfig {
     @Primary
@@ -24,34 +30,145 @@ class IncentiveSummaryResourceTest : SqsIntegrationTestBase() {
       )
     }
   }
+
+  @Autowired
+  private lateinit var repository: PrisonerIepLevelRepository
+
   @BeforeEach
-  internal fun setUp() {
+  internal fun setUp(): Unit = runBlocking {
     prisonApiMockServer.resetAll()
+
+    // Prisoner A1234AA has 2 incentive entries current BAS
+    prisonerIepLevel(
+      bookingId = 1234134,
+      prisonerNumber = "A1234AA",
+      level = "BAS",
+      reviewTime = LocalDateTime.of(2021, 12, 2, 9, 24, 42),
+      current = true
+    )
+
+    prisonerIepLevel(
+      bookingId = 1234134,
+      prisonerNumber = "A1234AA",
+      level = "ENT",
+      reviewType = ReviewType.INITIAL,
+      reviewTime = LocalDateTime.of(2021, 11, 2, 9, 24, 42),
+      current = false,
+      prisonId = "MDI"
+    )
+
+    // Prisoner A1234AB has 1 incentive entry current STD,
+    prisonerIepLevel(
+      bookingId = 1234135,
+      prisonerNumber = "A1234AB",
+      reviewType = ReviewType.MIGRATED,
+      reviewTime = LocalDateTime.of(2022, 1, 2, 9, 9, 24, 42),
+      current = true
+    )
+
+    // Prisoner A1234AC as 2 incentive entry current ENH,
+    prisonerIepLevel(
+      bookingId = 1234136,
+      prisonerNumber = "A1234AC",
+      reviewType = ReviewType.REVIEW,
+      level = "ENH",
+      reviewTime = LocalDateTime.of(2021, 10, 2, 9, 24, 42)
+    )
+    prisonerIepLevel(
+      bookingId = 1234136,
+      prisonerNumber = "A1234AC",
+      reviewType = ReviewType.INITIAL,
+      reviewTime = LocalDateTime.of(2021, 9, 9, 2, 9, 24, 42)
+    )
+
+    // Prisoner A1234AD as 3 incentive entry current BASic,
+    prisonerIepLevel(
+      bookingId = 1234137,
+      prisonerNumber = "A1234AD",
+      reviewType = ReviewType.TRANSFER,
+      level = "BAS",
+      reviewTime = LocalDateTime.of(2022, 1, 7, 2, 9, 24, 42),
+      prisonId = "MDI"
+    )
+
+    prisonerIepLevel(
+      bookingId = 1234137,
+      prisonerNumber = "A1234AD",
+      reviewType = ReviewType.REVIEW,
+      level = "BAS",
+      reviewTime = LocalDateTime.of(2021, 12, 2, 9, 24, 42),
+      prisonId = "LEI"
+    )
+
+    prisonerIepLevel(
+      bookingId = 1234137,
+      prisonerNumber = "A1234AD",
+      level = "STD",
+      reviewType = ReviewType.MIGRATED,
+      reviewTime = LocalDateTime.of(2020, 7, 2, 9, 24, 42),
+      prisonId = "LEI"
+    )
+
+    // Prisoner A1234AE as 1 incentive entry current Standard,
+    prisonerIepLevel(
+      bookingId = 1234138,
+      prisonerNumber = "A1234AE",
+      reviewType = ReviewType.REVIEW,
+      reviewTime = LocalDateTime.of(2021, 12, 2, 9, 24, 42),
+      prisonId = "MDI"
+    )
+
+    // Prisoner A1934AA as 2 incentive entry current Entry (Invalid),
+    prisonerIepLevel(
+      bookingId = 2734134,
+      prisonerNumber = "A1934AA",
+      reviewType = ReviewType.MIGRATED,
+      level = "ENT",
+      reviewTime = LocalDateTime.of(2022, 1, 2, 9, 24, 42),
+      prisonId = "MDI"
+    )
+    prisonerIepLevel(
+      bookingId = 2734134,
+      prisonerNumber = "A1934AA",
+      reviewType = ReviewType.MIGRATED,
+      reviewTime = LocalDateTime.of(2021, 11, 2, 9, 24, 42),
+      prisonId = "MDI"
+    )
   }
 
-  private fun stubPrisonApi(prisonId: String, locationId: String) {
-    prisonApiMockServer.stubIepLevels()
-    prisonApiMockServer.stubAgenciesIepLevels(prisonId)
-    prisonApiMockServer.stubPrisonersOnWing(locationId)
-    prisonApiMockServer.stubIEPSummary()
-    prisonApiMockServer.stubPositiveCaseNoteSummary()
-    prisonApiMockServer.stubNegativeCaseNoteSummary()
-    prisonApiMockServer.stubProvenAdj()
-    prisonApiMockServer.stubLocation(locationId)
-  }
-
-  @Test
-  internal fun `requires a valid token to retrieve data`() {
-    webTestClient.get()
-      .uri("/incentives-summary/prison/MDI/location/MDI-1")
-      .exchange()
-      .expectStatus()
-      .isUnauthorized
-  }
+  suspend fun prisonerIepLevel(
+    bookingId: Long,
+    prisonerNumber: String,
+    level: String = "STD",
+    reviewType: ReviewType = ReviewType.REVIEW,
+    reviewTime: LocalDateTime = now(),
+    current: Boolean = false,
+    prisonId: String = "MDI"
+  ) = repository.save(
+    PrisonerIepLevel(
+      bookingId = bookingId,
+      prisonerNumber = prisonerNumber,
+      reviewTime = reviewTime,
+      prisonId = prisonId,
+      iepCode = level,
+      reviewType = reviewType,
+      current = current,
+      locationId = "1-1-002",
+      commentText = "test comment",
+      reviewedBy = "TEST_USER",
+    )
+  )
 
   @Test
   fun `get behaviour summary for wing`() {
-    stubPrisonApi("MDI", "MDI-1")
+
+    prisonApiMockServer.stubIepLevels()
+    prisonApiMockServer.stubAgenciesIepLevels("MDI")
+    prisonApiMockServer.stubPrisonersOnWing("MDI-1")
+    prisonApiMockServer.stubPositiveCaseNoteSummary()
+    prisonApiMockServer.stubNegativeCaseNoteSummary()
+    prisonApiMockServer.stubProvenAdj()
+    prisonApiMockServer.stubLocation("MDI-1")
 
     webTestClient.get().uri("incentives-summary/prison/MDI/location/MDI-1?sortBy=DAYS_ON_LEVEL&sortDirection=DESC")
       .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
@@ -198,41 +315,15 @@ class IncentiveSummaryResourceTest : SqsIntegrationTestBase() {
                  "numberAtThisLevel":1
               }
            ],
-           "totalIncentiveWarnings":0,
+           "averageDaysSinceLastReview":30,
+           "totalIncentiveEncouragements":0,
+           "totalNumberOfPrisoners":7,
+           "averageDaysOnLevel":30,
            "totalPositiveBehaviours":14,
            "totalNegativeBehaviours":14,
-           "averageDaysOnLevel":30,
-           "totalNumberOfPrisoners":7,
-           "averageDaysSinceLastReview":30,
-           "totalIncentiveEncouragements":0
+           "totalIncentiveWarnings":0
         }
          """
       )
-  }
-
-  @Test
-  fun `returns an error if prisonId is incorrect`() {
-    stubPrisonApi("Moorland", "MDI-1")
-
-    webTestClient.get().uri("incentives-summary/prison/Moorland/location/MDI-1?sortBy=DAYS_ON_LEVEL&sortDirection=DESC")
-      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
-      .exchange()
-      .expectStatus().isBadRequest
-      .expectBody()
-      .jsonPath("userMessage")
-      .isEqualTo("Invalid parameters: `prisonId` must have length of at most 5")
-  }
-
-  @Test
-  fun `returns an error if locationId is incorrect`() {
-    stubPrisonApi("MDI", "MDI")
-
-    webTestClient.get().uri("incentives-summary/prison/MDI/location/MDI?sortBy=DAYS_ON_LEVEL&sortDirection=DESC")
-      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
-      .exchange()
-      .expectStatus().isBadRequest
-      .expectBody()
-      .jsonPath("userMessage")
-      .isEqualTo("Invalid parameters: `locationId` must have length of at least 5")
   }
 }
