@@ -13,7 +13,7 @@ import org.mockito.stubbing.OngoingStubbing
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisonerAlert
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisonerResponse
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisonerList
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonLocation
 
 class IncentiveReviewsServiceTest {
@@ -120,9 +120,9 @@ class IncentiveReviewsServiceTest {
     )
   }
 
-  private fun OngoingStubbing<OffenderSearchPrisonerResponse>.thenReturnOffenders(offenders: List<OffenderSearchPrisoner> = emptyList()) {
+  private fun OngoingStubbing<OffenderSearchPrisonerList>.thenReturnOffenders(offenders: List<OffenderSearchPrisoner> = emptyList()) {
     thenReturn(
-      OffenderSearchPrisonerResponse(
+      OffenderSearchPrisonerList(
         totalElements = offenders.size,
         content = offenders,
       )
