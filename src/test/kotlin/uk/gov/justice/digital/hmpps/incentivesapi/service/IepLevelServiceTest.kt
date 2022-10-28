@@ -111,6 +111,20 @@ class IepLevelServiceTest {
     }
 
     @Test
+    fun `when target and many other high levels are unavailable`(): Unit = runBlocking {
+      // exaggerated version of transferring from a prison that has high levels to another prison
+      stubLevelsForPrison(
+        IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1, default = true),
+        IepLevel(iepLevel = "ENT", iepDescription = "Entry", sequence = 2),
+        IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 3, active = false),
+        IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 4, active = false),
+        IepLevel(iepLevel = "EN2", iepDescription = "Enhanced 2", sequence = 5, active = false),
+        IepLevel(iepLevel = "EN3", iepDescription = "Enhanced 3", sequence = 6, active = false),
+      )
+      assertThat(iepLevelService.findNearestHighestLevel(prisonId, "EN3")).isEqualTo("BAS")
+    }
+
+    @Test
     fun `when target level is not present, but there is a higher one higher`(): Unit = runBlocking {
       // not likely to happen, but covers case where a prison may have mistakenly removed a level
       stubLevelsForPrison(
@@ -120,6 +134,20 @@ class IepLevelServiceTest {
         IepLevel(iepLevel = "EN3", iepDescription = "Enhanced 3", sequence = 6),
       )
       assertThat(iepLevelService.findNearestHighestLevel(prisonId, "EN2")).isEqualTo("EN3")
+    }
+
+    @Test
+    fun `when target and many other low levels are unavailable`(): Unit = runBlocking {
+      // exaggerated version of prisons with predominantly high levels
+      stubLevelsForPrison(
+        IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1, active = false),
+        IepLevel(iepLevel = "ENT", iepDescription = "Entry", sequence = 2),
+        IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 3, active = false),
+        IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 4, active = false),
+        IepLevel(iepLevel = "EN2", iepDescription = "Enhanced 2", sequence = 5),
+        IepLevel(iepLevel = "EN3", iepDescription = "Enhanced 3", sequence = 6, default = true),
+      )
+      assertThat(iepLevelService.findNearestHighestLevel(prisonId, "BAS")).isEqualTo("EN2")
     }
 
     @Test
