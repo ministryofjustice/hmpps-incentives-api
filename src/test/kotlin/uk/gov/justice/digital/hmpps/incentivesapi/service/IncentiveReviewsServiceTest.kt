@@ -120,29 +120,14 @@ class IncentiveReviewsServiceTest {
       )
     )
   }
+
   @Test
   fun `maps case notes from prison api`(): Unit = runBlocking {
     // Given
     val prisonerNumber = "G6123VU"
     whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-2-1")
-    whenever(offenderSearchService.findOffenders(any(), any(), any(), any())).thenReturnOffenders(
-      listOf(
-        OffenderSearchPrisoner(
-          prisonerNumber = prisonerNumber,
-          bookingId = "110002",
-          firstName = "RHYS",
-          middleNames = "BARRY",
-          lastName = "JONES",
-          status = "ACTIVE IN",
-          inOutStatus = "IN",
-          prisonId = "MDI",
-          prisonName = "Moorland (HMP & YOI)",
-          cellLocation = "2-1-003",
-          locationDescription = "Moorland (HMP & YOI)",
-          alerts = listOf(),
-        ),
-      )
-    )
+    whenever(offenderSearchService.findOffenders(any(), any(), any(), any()))
+      .thenReturnOffenders(listOf(offenderSearchPrisoner(prisonerNumber)))
 
     whenever(prisonApiService.retrieveCaseNoteCounts("POS", listOf(prisonerNumber)))
       .thenReturn(
@@ -193,24 +178,8 @@ class IncentiveReviewsServiceTest {
     // Given
     val prisonerNumber = "G6123VU"
     whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-2-1")
-    whenever(offenderSearchService.findOffenders(any(), any(), any(), any())).thenReturnOffenders(
-      listOf(
-        OffenderSearchPrisoner(
-          prisonerNumber = prisonerNumber,
-          bookingId = "110002",
-          firstName = "RHYS",
-          middleNames = "BARRY",
-          lastName = "JONES",
-          status = "ACTIVE IN",
-          inOutStatus = "IN",
-          prisonId = "MDI",
-          prisonName = "Moorland (HMP & YOI)",
-          cellLocation = "2-1-003",
-          locationDescription = "Moorland (HMP & YOI)",
-          alerts = listOf(),
-        ),
-      )
-    )
+    whenever(offenderSearchService.findOffenders(any(), any(), any(), any()))
+      .thenReturnOffenders(listOf(offenderSearchPrisoner(prisonerNumber)))
 
     whenever(prisonApiService.retrieveCaseNoteCounts("POS", listOf(prisonerNumber))).thenReturn(emptyFlow())
     whenever(prisonApiService.retrieveCaseNoteCounts("NEG", listOf(prisonerNumber))).thenReturn(emptyFlow())
@@ -255,4 +224,19 @@ class IncentiveReviewsServiceTest {
       )
     )
   }
+
+  private fun offenderSearchPrisoner(prisonerNumber: String) = OffenderSearchPrisoner(
+    prisonerNumber = prisonerNumber,
+    bookingId = "110002",
+    firstName = "RHYS",
+    middleNames = "BARRY",
+    lastName = "JONES",
+    status = "ACTIVE IN",
+    inOutStatus = "IN",
+    prisonId = "MDI",
+    prisonName = "Moorland (HMP & YOI)",
+    cellLocation = "2-1-003",
+    locationDescription = "Moorland (HMP & YOI)",
+    alerts = listOf(),
+  )
 }

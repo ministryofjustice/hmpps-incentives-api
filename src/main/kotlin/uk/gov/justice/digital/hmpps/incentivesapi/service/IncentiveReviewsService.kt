@@ -62,8 +62,8 @@ class IncentiveReviewsService(
   }
 
   // Lifted from IncentiveSummaryService, which will eventually be dropped entirely, hence didn't move this to a shared service to encapsulate the logic
-  private suspend fun getCaseNoteUsage(type: String, subType: String, offenderNos: List<String>): Map<String, CaseNoteSummary> =
-    prisonApiService.retrieveCaseNoteCounts(type, offenderNos)
+  private suspend fun getCaseNoteUsage(type: String, subType: String, prisonerNumbers: List<String>): Map<String, CaseNoteSummary> =
+    prisonApiService.retrieveCaseNoteCounts(type, prisonerNumbers)
       .toList()
       .groupBy(CaseNoteUsage::offenderNo)
       .map { cn ->
