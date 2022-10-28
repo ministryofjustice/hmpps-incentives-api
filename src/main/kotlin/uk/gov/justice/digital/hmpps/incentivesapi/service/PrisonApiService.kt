@@ -19,7 +19,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Location
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonLocation
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocation
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.ProvenAdjudication
-import javax.validation.constraints.NotEmpty
 
 @Service
 class PrisonApiService(
@@ -64,7 +63,7 @@ class PrisonApiService(
       .retrieve()
       .bodyToFlow()
 
-  fun getIEPSummaryPerPrisoner(@NotEmpty bookingIds: List<Long>): Flow<IepSummary> =
+  fun getIEPSummaryPerPrisoner(bookingIds: List<Long>): Flow<IepSummary> =
     prisonWebClient.post()
       .uri("/api/bookings/iepSummary")
       .bodyValue(bookingIds)
@@ -83,14 +82,14 @@ class PrisonApiService(
       .awaitBody()
   }
 
-  suspend fun retrieveCaseNoteCounts(type: String, @NotEmpty offenderNos: List<String>): Flow<CaseNoteUsage> =
+  suspend fun retrieveCaseNoteCounts(type: String, offenderNos: List<String>): Flow<CaseNoteUsage> =
     prisonWebClient.post()
       .uri("/api/case-notes/usage")
       .bodyValue(CaseNoteUsageRequest(numMonths = 3, offenderNos = offenderNos, type = type, subType = null))
       .retrieve()
       .bodyToFlow()
 
-  suspend fun retrieveProvenAdjudications(@NotEmpty bookingIds: List<Long>): Flow<ProvenAdjudication> =
+  suspend fun retrieveProvenAdjudications(bookingIds: List<Long>): Flow<ProvenAdjudication> =
     prisonWebClient.post()
       .uri("/api/bookings/proven-adjudications")
       .bodyValue(bookingIds)

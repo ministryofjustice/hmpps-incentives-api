@@ -114,4 +114,18 @@ class IepLevelResourceForNomisDataTest : SqsIntegrationTestBase() {
           """
       )
   }
+
+  @Test
+  fun `get IEP Levels returns an error if no booking IDs provided`() {
+    prisonApiMockServer.stubIEPSummary()
+
+    webTestClient.post().uri("/iep/reviews/bookings")
+      .headers(setAuthorisation())
+      .bodyValue(emptyList<Long>())
+      .exchange()
+      .expectStatus().isBadRequest
+      .expectBody()
+      .jsonPath("userMessage")
+      .isEqualTo("Invalid parameters: `bookingIds` list must not be empty")
+  }
 }
