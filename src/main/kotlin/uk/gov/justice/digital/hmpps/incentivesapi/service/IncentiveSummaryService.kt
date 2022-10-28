@@ -131,7 +131,7 @@ class IncentiveSummaryService(
       .toList().associateBy(ProvenAdjudication::bookingId)
 
   private suspend fun getIEPDetails(bookingIds: List<Long>): Map<Long, IepResult> {
-    return if (featureFlagsService.isIncentiveReviewsMasteredOutsideNomisInIncentivesDatabase()) {
+    return if (featureFlagsService.isIncentivesDataSourceOfTruth()) {
       getCurrentAndHistoricalReviews(bookingIds)
     } else {
       getCurrentAndHistoricalReviewsFromNOMIS(bookingIds)

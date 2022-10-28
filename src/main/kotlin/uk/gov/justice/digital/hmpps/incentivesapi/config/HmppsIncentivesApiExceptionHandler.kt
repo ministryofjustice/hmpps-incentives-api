@@ -19,6 +19,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.springframework.web.server.ServerWebInputException
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveReviewNotFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.service.NoPrisonersAtLocationException
+import uk.gov.justice.digital.hmpps.incentivesapi.util.ParameterValidationException
 import javax.validation.ValidationException
 
 @RestControllerAdvice
@@ -62,6 +63,20 @@ class HmppsIncentivesApiExceptionHandler {
         ErrorResponse(
           status = BAD_REQUEST,
           userMessage = "Validation failure: ${e.message}",
+          developerMessage = e.message
+        )
+      )
+  }
+
+  @ExceptionHandler(ParameterValidationException::class)
+  fun handleValidationException(e: ParameterValidationException): ResponseEntity<ErrorResponse> {
+    log.info("Invalid parameters: {}", e.errors)
+    return ResponseEntity
+      .status(BAD_REQUEST)
+      .body(
+        ErrorResponse(
+          status = BAD_REQUEST,
+          userMessage = e.message,
           developerMessage = e.message
         )
       )

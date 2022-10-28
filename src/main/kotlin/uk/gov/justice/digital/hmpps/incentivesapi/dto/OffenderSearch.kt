@@ -24,7 +24,7 @@ data class OffenderSearchPrisonerAlert(
   val expired: Boolean,
 )
 
-data class OffenderSearchPrisonerResponse(
+data class OffenderSearchPrisonerList(
   val totalElements: Int,
   val content: List<OffenderSearchPrisoner>,
 )

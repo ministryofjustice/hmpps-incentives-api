@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.BehaviourSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveSummaryService
 import uk.gov.justice.digital.hmpps.incentivesapi.service.SortColumn
-import javax.validation.constraints.Size
+import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 
 @RestController
 @RequestMapping("/incentives-summary", produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -49,14 +49,30 @@ class IncentiveSummaryResource(private val incentiveSummaryService: IncentiveSum
     ]
   )
   suspend fun getIncentiveSummary(
-    @Schema(description = "Prison Id", required = true, example = "MDI")
-    @PathVariable @Size(max = 3, min = 3, message = "Prison ID must be 3 characters") prisonId: String,
-    @Schema(description = "Location Id", required = true, example = "MDI-1")
-    @PathVariable locationId: String,
-    @Schema(description = "Sort By", required = false, defaultValue = "NAME", example = "NAME")
-    @RequestParam(required = false, defaultValue = "NAME") sortBy: SortColumn,
+    @Schema(description = "Prison Id", required = true, example = "MDI", minLength = 3, maxLength = 5)
+    @PathVariable
+    prisonId: String,
+
+    @Schema(description = "Location Id", required = true, example = "MDI-1", minLength = 5)
+    @PathVariable
+    locationId: String,
+
+    @Schema(
+      description = "Sort By", required = false, defaultValue = "NAME", example = "NAME",
+      allowableValues = ["NUMBER", "NAME", "DAYS_ON_LEVEL", "POS_BEHAVIOURS", "NEG_BEHAVIOURS", "DAYS_SINCE_LAST_REVIEW", "INCENTIVE_WARNINGS", "INCENTIVE_ENCOURAGEMENTS", "PROVEN_ADJUDICATIONS"],
+    )
+    @RequestParam(required = false, defaultValue = "NAME")
+    sortBy: SortColumn,
+
     @Schema(description = "Sort Direction", required = false, defaultValue = "ASC", example = "ASC")
-    @RequestParam(required = false, defaultValue = "ASC") sortDirection: Sort.Direction
-  ): BehaviourSummary =
-    incentiveSummaryService.getIncentivesSummaryByLocation(prisonId, locationId, sortBy, sortDirection)
+    @RequestParam(required = false, defaultValue = "ASC")
+    sortDirection: Sort.Direction
+  ): BehaviourSummary {
+    ensure {
+      ("prisonId" to prisonId).hasLengthAtLeast(3).hasLengthAtMost(5)
+      ("locationId" to locationId).hasLengthAtLeast(5)
+    }
+
+    return incentiveSummaryService.getIncentivesSummaryByLocation(prisonId, locationId, sortBy, sortDirection)
+  }
 }

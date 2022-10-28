@@ -29,9 +29,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IepLevelService
 import uk.gov.justice.digital.hmpps.incentivesapi.service.PrisonerIepLevelReviewService
-import javax.validation.Valid
-import javax.validation.constraints.NotEmpty
-import javax.validation.constraints.Size
+import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 
 @RestController
 @RequestMapping("/iep", produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -66,10 +64,14 @@ class IepLevelResource(
     ]
   )
   suspend fun getPrisonIepLevels(
-    @Schema(description = "Prison Id", example = "MDI", required = true, type = "string", pattern = "^[A-Z]{3}\$")
-    @PathVariable @Size(max = 3, min = 3, message = "Prison ID must be 3 characters") prisonId: String
-  ): List<IepLevel> =
-    iepLevelService.getIepLevelsForPrison(prisonId)
+    @Schema(description = "Prison Id", example = "MDI", required = true, minLength = 3, maxLength = 5)
+    @PathVariable prisonId: String
+  ): List<IepLevel> {
+    ensure {
+      ("prisonId" to prisonId).hasLengthAtLeast(3).hasLengthAtMost(5)
+    }
+    return iepLevelService.getIepLevelsForPrison(prisonId)
+  }
 
   @GetMapping("/reviews/booking/{bookingId}")
   @Operation(
@@ -163,9 +165,13 @@ class IepLevelResource(
   )
   suspend fun getCurrentIEPLevelForPrisoner(
     @ArraySchema(schema = Schema(description = "List of booking Ids", required = true, type = "array"), arraySchema = Schema(type = "integer", format = "int64", pattern = "^[0-9]{1,20}$", additionalProperties = Schema.AdditionalPropertiesValue.FALSE))
-    @RequestBody @Valid @NotEmpty bookingIds: List<Long>
-  ): Flow<CurrentIepLevel> =
-    prisonerIepLevelReviewService.getCurrentIEPLevelForPrisoners(bookingIds)
+    @RequestBody bookingIds: List<Long>
+  ): Flow<CurrentIepLevel> {
+    ensure {
+      ("bookingIds" to bookingIds).isNotEmpty()
+    }
+    return prisonerIepLevelReviewService.getCurrentIEPLevelForPrisoners(bookingIds)
+  }
 
   @GetMapping("/reviews/prisoner/{prisonerNumber}")
   @Operation(
@@ -194,7 +200,7 @@ class IepLevelResource(
     ]
   )
   suspend fun getPrisonerIepLevelHistory(
-    @Schema(description = "Prisoner Number", example = "A1234AB", required = true, type = "string", pattern = "^[A-Z0-9]{7}$")
+    @Schema(description = "Prisoner Number", example = "A1234AB", required = true, pattern = "^[A-Z0-9]{7}$")
     @PathVariable prisonerNumber: String
   ): IepSummary =
     prisonerIepLevelReviewService.getPrisonerIepLevelHistory(prisonerNumber)
@@ -235,7 +241,7 @@ class IepLevelResource(
       required = true,
       implementation = IepReview::class,
     )
-    @RequestBody @Valid iepReview: IepReview,
+    @RequestBody iepReview: IepReview,
   ): IepDetail = prisonerIepLevelReviewService.addIepReview(bookingId, iepReview)
 
   @PostMapping("/reviews/prisoner/{prisonerNumber}")
@@ -267,14 +273,14 @@ class IepLevelResource(
     ]
   )
   suspend fun addIepReview(
-    @Schema(description = "Prisoner Number", example = "A1234AB", required = true, type = "string", pattern = "^[A-Z0-9]{1,20}$")
+    @Schema(description = "Prisoner Number", example = "A1234AB", required = true, pattern = "^[A-Z0-9]{1,20}$")
     @PathVariable prisonerNumber: String,
     @Schema(
       description = "IEP Review",
       required = true,
       implementation = IepReview::class,
     )
-    @RequestBody @Valid iepReview: IepReview,
+    @RequestBody iepReview: IepReview,
   ): IepDetail = prisonerIepLevelReviewService.addIepReview(prisonerNumber, iepReview)
 
   @PostMapping("/migration/booking/{bookingId}")
@@ -313,7 +319,7 @@ class IepLevelResource(
       required = true,
       implementation = SyncPostRequest::class,
     )
-    @RequestBody @Valid syncPostRequest: SyncPostRequest,
+    @RequestBody syncPostRequest: SyncPostRequest,
   ): IepDetail =
     prisonerIepLevelReviewService.persistSyncPostRequest(bookingId, syncPostRequest, false)
 
@@ -353,7 +359,7 @@ class IepLevelResource(
       required = true,
       implementation = SyncPostRequest::class,
     )
-    @RequestBody @Valid syncPostRequest: SyncPostRequest,
+    @RequestBody syncPostRequest: SyncPostRequest,
   ): IepDetail = prisonerIepLevelReviewService.handleSyncPostIepReviewRequest(bookingId, syncPostRequest)
 
   @PatchMapping("/sync/booking/{bookingId}/id/{id}")
@@ -394,7 +400,7 @@ class IepLevelResource(
       required = true,
       implementation = SyncPatchRequest::class,
     )
-    @RequestBody @Valid syncPatchRequest: SyncPatchRequest,
+    @RequestBody syncPatchRequest: SyncPatchRequest,
   ): IepDetail = prisonerIepLevelReviewService.handleSyncPatchIepReviewRequest(bookingId, id, syncPatchRequest)
 
   @DeleteMapping("/sync/booking/{bookingId}/id/{id}")

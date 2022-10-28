@@ -12,8 +12,9 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorResponse
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveReviewsService
-import javax.validation.constraints.Size
+import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 
 @RestController
 @RequestMapping("/incentives-reviews", produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -43,21 +44,29 @@ class IncentiveReviewsResource(private val incentiveReviewsService: IncentiveRev
     ]
   )
   suspend fun getReviews(
-    @Schema(description = "Prison ID", required = true, example = "MDI")
-    @Size(max = 5, min = 3, message = "Prison ID must be 3-5 characters")
+    @Schema(description = "Prison ID", required = true, example = "MDI", minLength = 3, maxLength = 5)
     @PathVariable
     prisonId: String,
 
-    @Schema(description = "Cell location ID prefix", required = true, example = "MDI-1")
+    @Schema(description = "Cell location ID prefix", required = true, example = "MDI-1", minLength = 5)
     @PathVariable
     cellLocationPrefix: String,
 
-    @Schema(description = "Page (starts at 1)", defaultValue = "1", example = "2", type = "integer", required = false, format = "int32")
+    @Schema(description = "Page (starts at 1)", defaultValue = "1", minimum = "1", example = "2", type = "integer", required = false, format = "int32")
     @RequestParam(required = false, defaultValue = "1")
     page: Int,
 
-    @Schema(description = "Page size", defaultValue = "20", example = "20", type = "integer", required = false, format = "int32")
+    @Schema(description = "Page size", defaultValue = "20", minimum = "1", maximum = "100", example = "20", type = "integer", required = false, format = "int32")
     @RequestParam(required = false, defaultValue = "20")
     pageSize: Int,
-  ) = incentiveReviewsService.reviews(prisonId, cellLocationPrefix, page, pageSize)
+  ): IncentiveReviewResponse {
+    ensure {
+      ("prisonId" to prisonId).hasLengthAtLeast(3).hasLengthAtMost(5)
+      ("cellLocationPrefix" to cellLocationPrefix).hasLengthAtLeast(5)
+      ("page" to page).isAtLeast(1)
+      ("pageSize" to pageSize).isAtLeast(1).isAtMost(100)
+    }
+
+    return incentiveReviewsService.reviews(prisonId, cellLocationPrefix, page, pageSize)
+  }
 }
