@@ -35,5 +35,5 @@ data class PrisonerIepLevel(
 }
 
 enum class ReviewType {
-  INITIAL, REVIEW, TRANSFER, ADJUSTMENT, MIGRATED,
+  INITIAL, REVIEW, TRANSFER, MIGRATED,
 }

@@ -1,9 +1,11 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.dto
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
+import java.time.Clock
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -35,13 +37,18 @@ data class IepSummary(
   @get:JsonProperty
   val daysSinceReview: Int
     get() {
-      val today = LocalDate.now().atStartOfDay()
-      return Duration.between(iepDate.atStartOfDay(), today).toDays().toInt()
+      return daysSinceReviewCalc(Clock.systemDefaultZone())
     }
 
   @get:Schema(description = "Date of next review", example = "2022-12-31", required = true)
   @get:JsonProperty
   val nextReviewDate: LocalDate = iepDate.plusYears(1)
+
+  @JsonIgnore
+  fun daysSinceReviewCalc(clock: Clock): Int {
+    val today = LocalDate.now(clock).atStartOfDay()
+    return Duration.between(iepDate.atStartOfDay(), today).toDays().toInt()
+  }
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)

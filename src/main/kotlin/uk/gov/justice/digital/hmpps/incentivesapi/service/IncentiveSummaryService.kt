@@ -19,15 +19,17 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocati
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.ProvenAdjudication
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
+import java.time.Clock
 import java.time.Duration
-import java.time.LocalDate
+import java.time.LocalDateTime
 
 @Service
 class IncentiveSummaryService(
   private val prisonApiService: PrisonApiService,
   private val iepLevelService: IepLevelService,
   private val featureFlagsService: FeatureFlagsService,
-  private val prisonerIepLevelRepository: PrisonerIepLevelRepository
+  private val prisonerIepLevelRepository: PrisonerIepLevelRepository,
+  private val clock: Clock,
 ) {
 
   suspend fun getIncentivesSummaryByLocation(
@@ -129,22 +131,52 @@ class IncentiveSummaryService(
       .toList().associateBy(ProvenAdjudication::bookingId)
 
   private suspend fun getIEPDetails(bookingIds: List<Long>): Map<Long, IepResult> {
+    return if (featureFlagsService.isIncentiveReviewsMasteredOutsideNomisInIncentivesDatabase()) {
+      getCurrentAndHistoricalReviews(bookingIds)
+    } else {
+      getCurrentAndHistoricalReviewsFromNOMIS(bookingIds)
+    }.associateBy(IepResult::bookingId)
+  }
 
-    if (featureFlagsService.isIncentiveReviewsMasteredOutsideNomisInIncentivesDatabase()) {
+  private suspend fun getCurrentAndHistoricalReviewsFromNOMIS(bookingIds: List<Long>) =
+    prisonApiService.getIEPSummaryPerPrisoner(bookingIds)
+      .map {
+        IepResult(
+          bookingId = it.bookingId,
+          iepLevel = it.iepLevel,
+          daysSinceReview = it.daysSinceReviewCalc(clock),
+          daysOnLevel = daysOnLevel(clock, it.iepDetails)
+        )
+      }.toList()
 
-      val incentiveLevels = prisonApiService.getIncentiveLevels()
-      return prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds = bookingIds)
-        .filter { it.reviewType in listOf(ReviewType.REVIEW, ReviewType.ADJUSTMENT, ReviewType.MIGRATED) }
-        .toList()
-        .groupBy { it.bookingId }
-        .map {
-          val review = it.value
-          IepResult(
-            bookingId = it.key,
-            iepLevel = incentiveLevels[review.first().iepCode]?.iepDescription ?: "Unmapped",
-            daysSinceReview = Duration.between(review.first().reviewTime.toLocalDate().atStartOfDay(), LocalDate.now().atStartOfDay()).toDays().toInt(),
-            daysOnLevel = daysOnLevel(
-              review.map { iep ->
+  private suspend fun getCurrentAndHistoricalReviews(bookingIds: List<Long>): List<IepResult> {
+    val incentiveLevels = prisonApiService.getIncentiveLevels()
+    return prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds = bookingIds)
+      .toList()
+      .sortedByDescending { it.reviewTime }
+      .groupBy { it.bookingId }
+      .map {
+        val review = it.value
+        val latestReview = review.firstOrNull { possibleReview ->
+          possibleReview.reviewType in listOf(
+            ReviewType.REVIEW,
+            ReviewType.MIGRATED
+          )
+        }
+        IepResult(
+          bookingId = it.key,
+          iepLevel = latestReview?.let { incentiveLevels[latestReview.iepCode]?.iepDescription ?: "Unmapped" }
+            ?: "Not Entered",
+          daysSinceReview = latestReview?.let {
+            Duration.between(
+              latestReview.reviewTime.toLocalDate().atStartOfDay(),
+              LocalDateTime.now(clock)
+            ).toDays().toInt()
+          },
+          daysOnLevel = daysOnLevel(
+            clock,
+            review
+              .map { iep ->
                 IepDetail(
                   iepCode = iep.iepCode,
                   iepLevel = incentiveLevels[iep.iepCode]?.iepDescription ?: "Unmapped",
@@ -155,23 +187,12 @@ class IncentiveSummaryService(
                   iepDate = iep.reviewTime.toLocalDate(),
                   iepTime = iep.reviewTime
                 )
-              }.sortedByDescending { it.iepTime }
-            )
+              }.sortedByDescending { iep -> iep.iepTime }
           )
-        }
-        .associateBy(IepResult::bookingId)
-    } else {
-      return prisonApiService.getIEPSummaryPerPrisoner(bookingIds)
-        .map {
-          IepResult(
-            bookingId = it.bookingId,
-            iepLevel = it.iepLevel,
-            daysSinceReview = it.daysSinceReview,
-            daysOnLevel = daysOnLevel(it.iepDetails)
-          )
-        }.toList().associateBy(IepResult::bookingId)
-    }
+        )
+      }
   }
+
   private suspend fun getCaseNoteUsage(type: String, subType: String, offenderNos: List<String>): Map<String, CaseNoteSummary> =
     prisonApiService.retrieveCaseNoteCounts(type, offenderNos)
       .toList()
@@ -200,12 +221,12 @@ class NoPrisonersAtLocationException(prisonId: String, locationId: String) :
 data class IepResult(
   val bookingId: Long,
   val iepLevel: String,
-  val daysSinceReview: Int,
-  val daysOnLevel: Int
+  val daysSinceReview: Int?,
+  val daysOnLevel: Int?
 )
 
-fun daysOnLevel(iepDetails: List<IepDetail>): Int {
-  val today = LocalDate.now().atStartOfDay()
+fun daysOnLevel(clock: Clock, iepDetails: List<IepDetail>): Int {
+  val today = LocalDateTime.now(clock)
 
   val earliestMatchingIepDetail = iepDetails.reduce { earliestMatchingIepDetail, iepDetail ->
     if (iepDetail.iepLevel == earliestMatchingIepDetail.iepLevel) {
