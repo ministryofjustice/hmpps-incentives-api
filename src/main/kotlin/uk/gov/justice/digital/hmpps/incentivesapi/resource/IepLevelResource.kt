@@ -30,7 +30,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IepLevelService
 import uk.gov.justice.digital.hmpps.incentivesapi.service.PrisonerIepLevelReviewService
 import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
-import javax.validation.Valid
 
 @RestController
 @RequestMapping("/iep", produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -242,7 +241,7 @@ class IepLevelResource(
       required = true,
       implementation = IepReview::class,
     )
-    @RequestBody @Valid iepReview: IepReview,
+    @RequestBody iepReview: IepReview,
   ): IepDetail = prisonerIepLevelReviewService.addIepReview(bookingId, iepReview)
 
   @PostMapping("/reviews/prisoner/{prisonerNumber}")
@@ -281,7 +280,7 @@ class IepLevelResource(
       required = true,
       implementation = IepReview::class,
     )
-    @RequestBody @Valid iepReview: IepReview,
+    @RequestBody iepReview: IepReview,
   ): IepDetail = prisonerIepLevelReviewService.addIepReview(prisonerNumber, iepReview)
 
   @PostMapping("/migration/booking/{bookingId}")
@@ -320,7 +319,7 @@ class IepLevelResource(
       required = true,
       implementation = SyncPostRequest::class,
     )
-    @RequestBody @Valid syncPostRequest: SyncPostRequest,
+    @RequestBody syncPostRequest: SyncPostRequest,
   ): IepDetail =
     prisonerIepLevelReviewService.persistSyncPostRequest(bookingId, syncPostRequest, false)
 
@@ -360,7 +359,7 @@ class IepLevelResource(
       required = true,
       implementation = SyncPostRequest::class,
     )
-    @RequestBody @Valid syncPostRequest: SyncPostRequest,
+    @RequestBody syncPostRequest: SyncPostRequest,
   ): IepDetail = prisonerIepLevelReviewService.handleSyncPostIepReviewRequest(bookingId, syncPostRequest)
 
   @PatchMapping("/sync/booking/{bookingId}/id/{id}")
@@ -401,7 +400,7 @@ class IepLevelResource(
       required = true,
       implementation = SyncPatchRequest::class,
     )
-    @RequestBody @Valid syncPatchRequest: SyncPatchRequest,
+    @RequestBody syncPatchRequest: SyncPatchRequest,
   ): IepDetail = prisonerIepLevelReviewService.handleSyncPatchIepReviewRequest(bookingId, id, syncPatchRequest)
 
   @DeleteMapping("/sync/booking/{bookingId}/id/{id}")

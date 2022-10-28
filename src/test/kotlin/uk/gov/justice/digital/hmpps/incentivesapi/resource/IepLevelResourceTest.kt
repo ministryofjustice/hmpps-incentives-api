@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.resource
 
 import kotlinx.coroutines.runBlocking
+import org.assertj.core.api.Assertions.assertThat
 import org.json.JSONObject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
@@ -735,9 +736,25 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
 
       webTestClient.post().uri("/iep/migration/booking/$bookingId")
         .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("write")))
-        .bodyValue(syncPostRequest("Standard")) // fails validation because it's > 6 length
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """{
+            "iepTime": "${LocalDateTime.now()}",
+            "prisonId": "MDI",
+            "iepLevel": "Standard",
+            "comment": "A comment",
+            "userId": "XYZ_GEN",
+            "reviewType": "MIGRATED",
+            "current": true
+          }"""
+        )
         .exchange()
         .expectStatus().isBadRequest
+        .expectBody()
+        .jsonPath("userMessage").value<String> {
+          assertThat(it).contains("Invalid parameters: `iepLevel` must have length of at most 6")
+        }
     }
 
     @Test

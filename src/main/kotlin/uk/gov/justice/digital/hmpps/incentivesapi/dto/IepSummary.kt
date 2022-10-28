@@ -4,11 +4,10 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.swagger.v3.oas.annotations.media.Schema
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
+import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
-import javax.validation.constraints.NotBlank
-import javax.validation.constraints.Size
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "IEP Review Summary for Prisoner")
@@ -93,17 +92,21 @@ data class IepReview(
     minLength = 2, maxLength = 6,
     nullable = false,
   )
-  @field:Size(max = 6, min = 2, message = "IEP Level must be between 2 and 6")
-  @field:NotBlank(message = "IEP Level is required")
   val iepLevel: String,
 
   @Schema(description = "Comment about review", required = true, example = "A review took place", minLength = 1)
-  @field:NotBlank(message = "Comment on IEP Level review is required")
   val comment: String,
 
   @Schema(description = "Review Type", example = "REVIEW", required = false, defaultValue = "REVIEW")
   val reviewType: ReviewType? = ReviewType.REVIEW,
-)
+) {
+  init {
+    ensure {
+      ("iepLevel" to iepLevel).hasLengthAtLeast(2).hasLengthAtMost(6)
+      ("comment" to comment).hasLengthAtLeast(1)
+    }
+  }
+}
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Request to synchronise an IEP Review from NOMIS")
@@ -112,7 +115,6 @@ data class SyncPostRequest(
   val iepTime: LocalDateTime,
 
   @Schema(description = "Prison ID", required = true, example = "MDI", minLength = 2, maxLength = 5)
-  @field:NotBlank(message = "Prison ID is required")
   val prisonId: String,
 
   @Schema(
@@ -123,8 +125,7 @@ data class SyncPostRequest(
     minLength = 2, maxLength = 6,
     nullable = false,
   )
-  @field:Size(max = 6, min = 2, message = "IEP Level must be between 2 and 6")
-  @field:NotBlank(message = "IEP Level is required") val iepLevel: String,
+  val iepLevel: String,
 
   @Schema(description = "Comment about review", required = false, example = "A review took place")
   val comment: String?,
@@ -137,7 +138,14 @@ data class SyncPostRequest(
 
   @Schema(description = "Flag to indicate this is the current review for the prisoner", example = "true", required = true)
   val current: Boolean,
-)
+) {
+  init {
+    ensure {
+      ("prisonId" to prisonId).hasLengthAtLeast(3).hasLengthAtMost(5)
+      ("iepLevel" to iepLevel).hasLengthAtLeast(2).hasLengthAtMost(6)
+    }
+  }
+}
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Patch request to synchronise an IEP Review from NOMIS")
