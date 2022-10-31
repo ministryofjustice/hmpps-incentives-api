@@ -123,7 +123,6 @@ internal class NextReviewDateServiceTest {
 
       assertThat(nextReviewDate).isEqualTo(expectedNextReviewDate)
     }
-
   }
 }
 

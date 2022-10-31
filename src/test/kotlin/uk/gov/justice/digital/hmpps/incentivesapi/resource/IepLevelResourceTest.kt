@@ -127,11 +127,13 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
   fun `add IEP Level for a prisoner by booking Id`() {
     val bookingId = 3330000L
     val prisonerNumber = "A1234AC"
+    val prisonId = "MDI"
 
     prisonApiMockServer.stubIepLevels()
     prisonApiMockServer.stubGetPrisonerInfoByBooking(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = 77778L)
     prisonApiMockServer.stubGetLocationById(locationId = 77778L, locationDesc = "1-2-003")
     prisonApiMockServer.stubAddIep(bookingId = bookingId)
+    offenderSearchMockServer.stubGetOffender(prisonId, prisonerNumber, withOpenAcct = false)
 
     webTestClient.post().uri("/iep/reviews/booking/$bookingId")
       .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
@@ -174,11 +176,13 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
   fun `add IEP Level for a prisoner by noms`() {
     val bookingId = 1294134L
     val prisonerNumber = "A1244AB"
+    val prisonId = "MDI"
 
     prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = 77777L)
     prisonApiMockServer.stubGetLocationById(locationId = 77777L, locationDesc = "1-2-003")
     prisonApiMockServer.stubAddIep(bookingId = bookingId)
     prisonApiMockServer.stubIepLevels()
+    offenderSearchMockServer.stubGetOffender(prisonId, prisonerNumber, withOpenAcct = false)
 
     webTestClient.post().uri("/iep/reviews/prisoner/$prisonerNumber")
       .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
@@ -212,7 +216,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
                    "prisonerNumber": $prisonerNumber,
                    "bookingId":$bookingId,
                    "iepDate":"$today",
-                   "agencyId":"MDI",
+                   "agencyId": $prisonId,
                    "iepLevel":"Enhanced",
                    "iepCode": "ENH",
                    "comments":"A different comment",
@@ -225,7 +229,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
                    "prisonerNumber": $prisonerNumber,
                    "bookingId":$bookingId,
                    "iepDate":"$today",
-                   "agencyId":"MDI",
+                   "agencyId": $prisonId,
                    "iepLevel":"Basic",
                    "iepCode": "BAS",
                    "comments":"Basic Level",

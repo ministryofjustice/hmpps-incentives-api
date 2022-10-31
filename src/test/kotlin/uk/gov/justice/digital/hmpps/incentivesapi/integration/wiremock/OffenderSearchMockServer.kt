@@ -78,7 +78,16 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
     )
   }
 
-  fun stubGetOffender(prisonId: String, prisonerNumber: String) {
+  fun stubGetOffender(prisonId: String, prisonerNumber: String, withOpenAcct: Boolean = true) {
+    val alerts = if (withOpenAcct) listOf(
+      OffenderSearchPrisonerAlert(
+        alertType = "H",
+        alertCode = "HA",
+        active = true,
+        expired = false,
+      ),
+    ) else emptyList()
+
     val mapper = jacksonObjectMapper()
     stubFor(
       get("/prisoner/$prisonerNumber").willReturn(
@@ -98,14 +107,7 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
                 prisonName = "$prisonId prison",
                 cellLocation = "2-1-002",
                 locationDescription = "$prisonId prison",
-                alerts = listOf(
-                  OffenderSearchPrisonerAlert(
-                    alertType = "H",
-                    alertCode = "HA",
-                    active = true,
-                    expired = false,
-                  ),
-                ),
+                alerts = alerts,
               )
             )
           )

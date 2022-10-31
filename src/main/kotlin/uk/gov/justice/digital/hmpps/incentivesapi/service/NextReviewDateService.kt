@@ -58,5 +58,4 @@ class NextReviewDateService {
     // where further reviews must be undertaken at least every 14 days thereafter"
     return if (hasAcctOpen) lastReviewDate.plusDays(14) else null
   }
-
 }

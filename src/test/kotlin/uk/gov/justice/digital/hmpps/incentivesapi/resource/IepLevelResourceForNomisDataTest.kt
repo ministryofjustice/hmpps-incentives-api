@@ -31,7 +31,13 @@ class IepLevelResourceForNomisDataTest : SqsIntegrationTestBase() {
 
   @Test
   fun `get IEP Levels for a prisoner`() {
+    val bookingId = 1234134L
+    val prisonerNumber = "A1234BC"
+    val prisonId = "MDI"
+
     prisonApiMockServer.stubIEPSummaryForBooking()
+    prisonApiMockServer.stubGetPrisonerInfoByBooking(bookingId, prisonerNumber, locationId = 77778L)
+    offenderSearchMockServer.stubGetOffender(prisonId, prisonerNumber, withOpenAcct = false)
 
     val lastReviewDate = LocalDate.of(2021, 12, 2)
     val daysSinceReview = Duration.between(lastReviewDate.atStartOfDay(), now().atStartOfDay()).toDays().toInt()
@@ -43,7 +49,7 @@ class IepLevelResourceForNomisDataTest : SqsIntegrationTestBase() {
       .expectBody().json(
         """
             {
-             "bookingId":1234134,
+             "bookingId": $bookingId,
              "daysSinceReview": $daysSinceReview,
              "iepDate":"2021-12-02",
              "iepLevel":"Basic",
@@ -51,16 +57,16 @@ class IepLevelResourceForNomisDataTest : SqsIntegrationTestBase() {
              "nextReviewDate": "2021-12-09",
              "iepDetails":[
                 {
-                   "bookingId":1234134,
+                   "bookingId": $bookingId,
                    "iepDate":"2021-12-02",
                    "iepTime":"2021-12-02T09:24:42.894",
-                   "agencyId":"MDI",
+                   "agencyId": $prisonId,
                    "iepLevel":"Basic",
                    "userId":"TEST_USER",
                    "auditModuleName":"PRISON_API"
                 },
                 {
-                   "bookingId":1234134,
+                   "bookingId": $bookingId,
                    "iepDate":"2020-11-02",
                    "iepTime":"2021-11-02T09:00:42.894",
                    "agencyId":"BXI",
