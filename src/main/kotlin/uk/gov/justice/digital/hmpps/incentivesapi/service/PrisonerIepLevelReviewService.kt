@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.incentivesapi.config.AuthenticationFacade
+import uk.gov.justice.digital.hmpps.incentivesapi.config.DataIntegrityException
 import uk.gov.justice.digital.hmpps.incentivesapi.config.FeatureFlagsService
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ReviewAddedSyncMechanism
@@ -288,10 +289,15 @@ class PrisonerIepLevelReviewService(
 
   private suspend fun getIepLevelForReviewType(prisonerInfo: PrisonerAtLocation, reviewType: ReviewType): String {
     val iepLevelsForPrison = iepLevelService.getIepLevelsForPrison(prisonerInfo.agencyId, useClientCredentials = true)
-    val defaultLevel = iepLevelsForPrison.find(IepLevel::default) ?: iepLevelsForPrison.first() // if no default use the lowest sequence
-    val iepLevel = when (reviewType) {
+    val defaultLevelCode = iepLevelsForPrison.find(IepLevel::default)?.iepLevel
+      // NOMIS traditionally takes the first if no default was found
+      ?: iepLevelsForPrison.firstOrNull()?.iepLevel
+      // there are no available incentive levels at all at this prison
+      ?: throw DataIntegrityException("${prisonerInfo.agencyId} has no available incentive levels")
+
+    return when (reviewType) {
       ReviewType.INITIAL -> {
-        defaultLevel // admission should always be the default
+        defaultLevelCode // admission should always be the default
       }
       ReviewType.TRANSFER -> {
         try {
@@ -301,19 +307,17 @@ class PrisonerIepLevelReviewService(
               withDetails = true,
               useClientCredentials = true
             ).iepDetails
-          val iepLevelBeforeTransfer =
+          val levelCodeBeforeTransfer =
             iepHistory.sortedBy(IepDetail::iepTime).lastOrNull { it.agencyId != prisonerInfo.agencyId }?.iepCode
-              ?: defaultLevel // if no previous prison
-          iepLevelsForPrison.find { it.iepLevel == iepLevelBeforeTransfer }
-            ?: defaultLevel // if we don't match a level - go to the default.
+              ?: defaultLevelCode // if no previous prison
+          iepLevelService.findNearestHighestLevel(prisonerInfo.agencyId, levelCodeBeforeTransfer)
         } catch (e: IncentiveReviewNotFoundException) {
-          defaultLevel // this is to handle no reviews - only an issue before migration
+          defaultLevelCode // this is to handle no reviews - only an issue before migration
         }
       }
 
       else -> throw NotImplementedError("Not implemented for $reviewType")
     }
-    return iepLevel.iepLevel
   }
 
   private suspend fun buildIepSummary(

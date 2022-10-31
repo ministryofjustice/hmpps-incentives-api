@@ -83,7 +83,7 @@ class IepLevelServiceTest {
           IepLevel(iepLevel = "EN3", iepDescription = "Enhanced 3", sequence = 6),
         )
       )
-      whenever(prisonApiService.getIepLevelsForPrison(prisonId)).thenReturn(flowOf(*prisonLevels))
+      whenever(prisonApiService.getIepLevelsForPrison(prisonId, true)).thenReturn(flowOf(*prisonLevels))
     }
 
     @Test

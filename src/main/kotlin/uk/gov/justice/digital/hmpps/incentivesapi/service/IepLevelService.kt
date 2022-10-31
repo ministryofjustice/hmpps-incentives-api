@@ -25,7 +25,7 @@ class IepLevelService(
    */
   suspend fun findNearestHighestLevel(prisonId: String, levelCode: String): String {
     var maybeDefaultLevelCode: String? = null
-    val levelCodesAvailableInPrison = getIepLevelsForPrison(prisonId)
+    val levelCodesAvailableInPrison = getIepLevelsForPrison(prisonId, true)
       .filter { it.active }
       .map {
         if (it.default) {
