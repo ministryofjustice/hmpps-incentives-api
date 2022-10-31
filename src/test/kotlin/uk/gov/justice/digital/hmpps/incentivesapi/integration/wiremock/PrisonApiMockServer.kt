@@ -430,11 +430,15 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
 
   fun stubPositiveCaseNoteSummary() {
     stubFor(
-      post("/api/case-notes/usage").willReturn(
-        aResponse()
-          .withHeader("Content-Type", "application/json")
-          .withBody(
-            """
+      post("/api/case-notes/usage")
+        .withRequestBody(
+          WireMock.equalToJson("""{"numMonths": 3, "type": "POS"}""", true, true)
+        )
+        .willReturn(
+          aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBody(
+              """
               [
                 {
                   "caseNoteSubType": "POS",
@@ -477,20 +481,31 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                   "latestCaseNote": "2022-01-21T09:28:25.673Z",
                   "numCaseNotes": 5,
                   "offenderNo": "A1234AE"
+                },
+                {
+                  "caseNoteSubType": "POS",
+                  "caseNoteType": "IEP_ENC",
+                  "latestCaseNote": "2022-01-21T09:28:25.673Z",
+                  "numCaseNotes": 3,
+                  "offenderNo": "A1409AE"
                 }
               ]
-            """.trimIndent()
-          )
-      )
+              """.trimIndent()
+            )
+        )
     )
   }
   fun stubNegativeCaseNoteSummary() {
     stubFor(
-      post("/api/case-notes/usage").willReturn(
-        aResponse()
-          .withHeader("Content-Type", "application/json")
-          .withBody(
-            """
+      post("/api/case-notes/usage")
+        .withRequestBody(
+          WireMock.equalToJson("""{"numMonths": 3, "type": "NEG"}""", true, true)
+        )
+        .willReturn(
+          aResponse()
+            .withHeader("Content-Type", "application/json")
+            .withBody(
+              """
               [
                 {
                   "caseNoteSubType": "NEG",
@@ -533,11 +548,18 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                   "latestCaseNote": "2022-01-21T09:28:25.673Z",
                   "numCaseNotes": 5,
                   "offenderNo": "A1234AE"
+                },
+                {
+                  "caseNoteSubType": "NEG",
+                  "caseNoteType": "IEP_WARN",
+                  "latestCaseNote": "2022-01-21T09:28:25.673Z",
+                  "numCaseNotes": 4,
+                  "offenderNo": "A1409AE"
                 }
               ]
-            """.trimIndent()
-          )
-      )
+              """.trimIndent()
+            )
+        )
     )
   }
 

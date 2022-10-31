@@ -2,10 +2,12 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClientResponseException.NotFound
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewResponse
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsage
 
 @Service
 class IncentiveReviewsService(
@@ -32,6 +34,14 @@ class IncentiveReviewsService(
     }
 
     val offenders = deferredOffenders.await()
+
+    val prisonerNumbers = offenders.content.map { p -> p.prisonerNumber }
+    val deferredPositiveCaseNotesInLast3Months = async { getCaseNoteUsage("POS", "IEP_ENC", prisonerNumbers) }
+    val deferredNegativeCaseNotesInLast3Months = async { getCaseNoteUsage("NEG", "IEP_WARN", prisonerNumbers) }
+
+    val positiveCaseNotesInLast3Months = deferredPositiveCaseNotesInLast3Months.await()
+    val negativeCaseNotesInLast3Months = deferredNegativeCaseNotesInLast3Months.await()
+
     val locationDescription = deferredLocationDescription.await()
 
     IncentiveReviewResponse(
@@ -43,9 +53,27 @@ class IncentiveReviewsService(
           bookingId = it.bookingId.toLong(),
           firstName = it.firstName,
           lastName = it.lastName,
+          positiveBehaviours = positiveCaseNotesInLast3Months[it.prisonerNumber]?.totalCaseNotes ?: 0,
+          negativeBehaviours = negativeCaseNotesInLast3Months[it.prisonerNumber]?.totalCaseNotes ?: 0,
           acctOpenStatus = it.acctOpen,
         )
       }
     )
   }
+
+  // Lifted from IncentiveSummaryService, which will eventually be dropped entirely, hence didn't move this to a shared service to encapsulate the logic
+  private suspend fun getCaseNoteUsage(type: String, subType: String, prisonerNumbers: List<String>): Map<String, CaseNoteSummary> =
+    prisonApiService.retrieveCaseNoteCounts(type, prisonerNumbers)
+      .toList()
+      .groupBy(CaseNoteUsage::offenderNo)
+      .map { cn ->
+        CaseNoteSummary(
+          offenderNo = cn.key,
+          totalCaseNotes = calcTypeCount(cn.value.toList()),
+          numSubTypeCount = calcTypeCount(cn.value.filter { cnc -> cnc.caseNoteSubType == subType })
+        )
+      }.associateBy(CaseNoteSummary::offenderNo)
+
+  private fun calcTypeCount(caseNoteUsage: List<CaseNoteUsage>): Int =
+    caseNoteUsage.map { it.numCaseNotes }.fold(0) { acc, next -> acc + next }
 }

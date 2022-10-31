@@ -14,6 +14,12 @@ data class IncentiveReview(
   @Schema(description = "Prisoner’s last name", example = "Smith")
   val lastName: String,
 
+  @Schema(description = "Count of all the positive case note behaviour entries recorded in the last 3 months", example = "7")
+  val positiveBehaviours: Int,
+
+  @Schema(description = "Count of all the negative case note behaviour entries recorded in the last 3 months", example = "7")
+  val negativeBehaviours: Int,
+
   @Schema(description = "Whether the prisoner has an ACCT open alert", example = "true")
   val acctOpenStatus: Boolean,
 )
