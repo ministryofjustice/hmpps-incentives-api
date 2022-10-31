@@ -288,10 +288,11 @@ class PrisonerIepLevelReviewService(
 
   private suspend fun getIepLevelForReviewType(prisonerInfo: PrisonerAtLocation, reviewType: ReviewType): String {
     val iepLevelsForPrison = iepLevelService.getIepLevelsForPrison(prisonerInfo.agencyId, useClientCredentials = true)
-    val defaultLevel = iepLevelsForPrison.find(IepLevel::default) ?: iepLevelsForPrison.first() // if no default use the lowest sequence
-    val iepLevel = when (reviewType) {
+    val defaultLevelCode = iepLevelService.chooseDefaultLevel(prisonerInfo.agencyId, iepLevelsForPrison)
+
+    return when (reviewType) {
       ReviewType.INITIAL -> {
-        defaultLevel // admission should always be the default
+        defaultLevelCode // admission should always be the default
       }
       ReviewType.TRANSFER -> {
         try {
@@ -301,19 +302,17 @@ class PrisonerIepLevelReviewService(
               withDetails = true,
               useClientCredentials = true
             ).iepDetails
-          val iepLevelBeforeTransfer =
+          val levelCodeBeforeTransfer =
             iepHistory.sortedBy(IepDetail::iepTime).lastOrNull { it.agencyId != prisonerInfo.agencyId }?.iepCode
-              ?: defaultLevel // if no previous prison
-          iepLevelsForPrison.find { it.iepLevel == iepLevelBeforeTransfer }
-            ?: defaultLevel // if we don't match a level - go to the default.
+              ?: defaultLevelCode // if no previous prison
+          iepLevelService.findNearestHighestLevel(prisonerInfo.agencyId, iepLevelsForPrison, levelCodeBeforeTransfer)
         } catch (e: IncentiveReviewNotFoundException) {
-          defaultLevel // this is to handle no reviews - only an issue before migration
+          defaultLevelCode // this is to handle no reviews - only an issue before migration
         }
       }
 
       else -> throw NotImplementedError("Not implemented for $reviewType")
     }
-    return iepLevel.iepLevel
   }
 
   private suspend fun buildIepSummary(

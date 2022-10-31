@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
@@ -41,7 +42,7 @@ class PrisonerIepLevelReviewServiceTest {
 
   private val prisonApiService: PrisonApiService = mock()
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository = mock()
-  private val iepLevelService: IepLevelService = mock()
+  private val iepLevelService = IepLevelService(prisonApiService)
   private val authenticationFacade: AuthenticationFacade = mock()
   private var clock: Clock = Clock.fixed(Instant.ofEpochMilli(0), ZoneId.systemDefault())
   private val snsService: SnsService = mock()
@@ -302,18 +303,12 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(prisonerAtLocation())
       whenever(prisonApiService.getLocationById(prisonerAtLocation().assignedLivingUnitId, true)).thenReturn(location)
       // Enhanced is the default for this prison so use that
-      whenever(
-        iepLevelService.getIepLevelsForPrison(
-          prisonerAtLocation().agencyId,
-          useClientCredentials = true
-        )
-      ).thenReturn(
-        listOf(
+      whenever(prisonApiService.getIepLevelsForPrison("MDI", true)).thenReturn(
+        flowOf(
           IepLevel(
             iepLevel = "STD",
             iepDescription = "Standard",
             sequence = 1,
-            default = false,
           ),
           IepLevel(
             iepLevel = "ENH",
@@ -364,16 +359,11 @@ class PrisonerIepLevelReviewServiceTest {
       val prisonerAtLocation = prisonerAtLocation(agencyId = "MDI")
       whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(prisonerAtLocation)
       whenever(prisonApiService.getLocationById(prisonerAtLocation.assignedLivingUnitId, true)).thenReturn(location)
-      whenever(
-        iepLevelService.getIepLevelsForPrison(
-          prisonerAtLocation.agencyId,
-          useClientCredentials = true
-        )
-      ).thenReturn(basicStandardEnhanced)
+      whenever(prisonApiService.getIepLevelsForPrison(prisonerAtLocation.agencyId, true)).thenReturn(basicStandardEnhanced)
+      whenever(prisonApiService.getIepLevels()).thenReturn(globalIncentiveLevels.asFlow())
       val iepDetails = listOf(
-        iepDetail(prisonerAtLocation.agencyId, "Basic", "BAS", LocalDateTime.now()),
-        iepDetail("BXI", "Standard", "STD", LocalDateTime.now().minusDays(1)),
-        iepDetail("LEI", "Basic", "BAS", LocalDateTime.now().minusDays(2)),
+        iepDetail(prisonerAtLocation.agencyId, "Standard", "STD", LocalDateTime.now()),
+        iepDetail("BXI", "Basic", "BAS", LocalDateTime.now().minusDays(1)),
       )
       val iepSummary = iepSummary(iepDetails = iepDetails)
       whenever(
@@ -387,9 +377,9 @@ class PrisonerIepLevelReviewServiceTest {
       // When
       prisonerIepLevelReviewService.processOffenderEvent(prisonOffenderEvent)
 
-      // Then - the prisoner was on STD at BXI so they on this level
+      // Then - the prisoner was on BAS at BXI so they should remain on this level
       val expectedPrisonerIepLevel = PrisonerIepLevel(
-        iepCode = "STD",
+        iepCode = "BAS",
         commentText = prisonOffenderEvent.description,
         bookingId = prisonerAtLocation.bookingId,
         prisonId = location.agencyId,
@@ -412,7 +402,7 @@ class PrisonerIepLevelReviewServiceTest {
         .sendMessage(
           AuditType.IEP_REVIEW_ADDED,
           "0",
-          iepDetailFromIepLevel(expectedPrisonerIepLevel, "Standard", "STD"),
+          iepDetailFromIepLevel(expectedPrisonerIepLevel, "Basic", "BAS"),
           expectedPrisonerIepLevel.reviewedBy,
         )
     }
@@ -424,12 +414,8 @@ class PrisonerIepLevelReviewServiceTest {
       val prisonerAtLocation = prisonerAtLocation(agencyId = "MDI")
       whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(prisonerAtLocation)
       whenever(prisonApiService.getLocationById(prisonerAtLocation.assignedLivingUnitId, true)).thenReturn(location)
-      whenever(
-        iepLevelService.getIepLevelsForPrison(
-          prisonerAtLocation.agencyId,
-          useClientCredentials = true
-        )
-      ).thenReturn(basicStandardEnhanced)
+      whenever(prisonApiService.getIepLevelsForPrison(prisonerAtLocation.agencyId, true)).thenReturn(basicStandardEnhanced)
+      whenever(prisonApiService.getIepLevels()).thenReturn(globalIncentiveLevels.asFlow())
       val iepDetails = listOf(
         iepDetail(prisonerAtLocation.agencyId, "Standard", "STD", LocalDateTime.now()),
         iepDetail("BXI", "Enhanced 2", "ENH2", LocalDateTime.now().minusDays(1)),
@@ -484,7 +470,8 @@ class PrisonerIepLevelReviewServiceTest {
       val prisonOffenderEvent = prisonOffenderEvent("TRANSFERRED")
       whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(prisonerAtLocation)
       whenever(prisonApiService.getLocationById(prisonerAtLocation.assignedLivingUnitId, true)).thenReturn(location)
-      whenever(iepLevelService.getIepLevelsForPrison(prisonerAtLocation.agencyId, true)).thenReturn(basicStandardEnhanced)
+      whenever(prisonApiService.getIepLevelsForPrison(prisonerAtLocation.agencyId, true)).thenReturn(basicStandardEnhanced)
+      whenever(prisonApiService.getIepLevels()).thenReturn(globalIncentiveLevels.asFlow())
       whenever(
         prisonApiService.getIEPSummaryForPrisoner(
           prisonerAtLocation.bookingId,
@@ -1123,12 +1110,11 @@ class PrisonerIepLevelReviewServiceTest {
     agencyId = "MDI", locationId = 77777L, description = "Houseblock 1"
   )
 
-  private val basicStandardEnhanced = listOf(
+  private val basicStandardEnhanced = flowOf(
     IepLevel(
       iepLevel = "BAS",
       iepDescription = "Basic",
       sequence = 1,
-      default = false,
     ),
     IepLevel(
       iepLevel = "STD",
@@ -1140,7 +1126,6 @@ class PrisonerIepLevelReviewServiceTest {
       iepLevel = "ENH",
       iepDescription = "Enhanced",
       sequence = 3,
-      default = false,
     ),
   )
 
@@ -1177,10 +1162,10 @@ class PrisonerIepLevelReviewServiceTest {
     )
 }
 
-val incentiveLevels =
-  listOf(
-    IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1),
-    IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2),
-    IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3),
-    IepLevel(iepLevel = "EN2", iepDescription = "Enhanced 2", sequence = 4),
-  ).associateBy { iep -> iep.iepLevel }
+val globalIncentiveLevels = listOf(
+  IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1),
+  IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2),
+  IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3),
+  IepLevel(iepLevel = "EN2", iepDescription = "Enhanced 2", sequence = 4),
+)
+val incentiveLevels = globalIncentiveLevels.associateBy { iep -> iep.iepLevel }

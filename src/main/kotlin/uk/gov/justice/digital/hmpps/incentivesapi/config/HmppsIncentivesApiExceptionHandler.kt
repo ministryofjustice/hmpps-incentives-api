@@ -26,7 +26,7 @@ import javax.validation.ValidationException
 class HmppsIncentivesApiExceptionHandler {
 
   @ExceptionHandler(MethodArgumentNotValidException::class)
-  fun handleValidationException(e: MethodArgumentNotValidException): ResponseEntity<ErrorResponse> {
+  fun handleMethodArgumentNotValidException(e: MethodArgumentNotValidException): ResponseEntity<ErrorResponse> {
     log.debug("Validation error (400) returned: {}", e.message)
     val message = if (e.hasFieldErrors()) { e.fieldError?.defaultMessage } else { e.message }
     return ResponseEntity
@@ -98,7 +98,7 @@ class HmppsIncentivesApiExceptionHandler {
   }
 
   @ExceptionHandler(NotFound::class)
-  fun handleNotFoundException(e: NotFound): ResponseEntity<ErrorResponse?>? {
+  fun handleNotFound(e: NotFound): ResponseEntity<ErrorResponse?>? {
     log.debug("Not found exception caught: {}", e.message)
     return ResponseEntity
       .status(NOT_FOUND)
@@ -112,7 +112,7 @@ class HmppsIncentivesApiExceptionHandler {
   }
 
   @ExceptionHandler(NoPrisonersAtLocationException::class)
-  fun handleNoPrisonerAtLocationFoundException(e: NoPrisonersAtLocationException): ResponseEntity<ErrorResponse?>? {
+  fun handleNoPrisonersAtLocationException(e: NoPrisonersAtLocationException): ResponseEntity<ErrorResponse?>? {
     log.debug("No prisoners found exception caught: {}", e.message)
     return ResponseEntity
       .status(NOT_FOUND)
@@ -140,7 +140,7 @@ class HmppsIncentivesApiExceptionHandler {
   }
 
   @ExceptionHandler(NoDataFoundException::class)
-  fun handlDataNotFoundException(e: NoDataFoundException): ResponseEntity<ErrorResponse?>? {
+  fun handleNoDataFoundException(e: NoDataFoundException): ResponseEntity<ErrorResponse?>? {
     log.debug("No data found exception caught: {}", e.message)
     return ResponseEntity
       .status(NOT_FOUND)
@@ -148,6 +148,20 @@ class HmppsIncentivesApiExceptionHandler {
         ErrorResponse(
           status = NOT_FOUND,
           userMessage = "Not Found: ${e.message}",
+          developerMessage = e.message
+        )
+      )
+  }
+
+  @ExceptionHandler(DataIntegrityException::class)
+  fun handleDataIntegrityException(e: DataIntegrityException): ResponseEntity<ErrorResponse?>? {
+    log.error("Data integrity exception: {}", e.message)
+    return ResponseEntity
+      .status(INTERNAL_SERVER_ERROR)
+      .body(
+        ErrorResponse(
+          status = INTERNAL_SERVER_ERROR,
+          userMessage = "Data integrity exception: ${e.message}",
           developerMessage = e.message
         )
       )
@@ -182,7 +196,7 @@ class HmppsIncentivesApiExceptionHandler {
   }
 
   @ExceptionHandler(TypeMismatchException::class)
-  fun handleValidationException(e: TypeMismatchException): ResponseEntity<ErrorResponse> {
+  fun handleTypeMismatchException(e: TypeMismatchException): ResponseEntity<ErrorResponse> {
     log.error("Parameter conversion exception: {}", e.message)
     return ResponseEntity
       .status(BAD_REQUEST)
@@ -202,6 +216,9 @@ class HmppsIncentivesApiExceptionHandler {
 
 class NoDataFoundException(id: Long) :
   Exception("No Data found for ID $id")
+
+class DataIntegrityException(message: String) :
+  Exception(message)
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Error Response")
