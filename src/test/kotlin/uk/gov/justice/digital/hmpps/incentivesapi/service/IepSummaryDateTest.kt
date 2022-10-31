@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 
@@ -18,20 +19,19 @@ class IepSummaryDateTest {
   inner class GetDaysOnLevel {
     @Test
     fun `calc days on level when level added 60 days ago`() {
-      val iepTime = LocalDateTime.now(clock).minusDays(60)
       val iepSummary = IepSummary(
         bookingId = 1L,
-        iepDate = iepTime.toLocalDate(),
+        iepDate = LocalDate.of(2022, 6, 2),
         iepLevel = "Enhanced",
-        iepTime = iepTime,
+        iepTime = LocalDateTime.of(2022, 6, 2, 12, 45, 0),
         iepDetails = listOf(
           IepDetail(
             bookingId = 1L,
             agencyId = "MDI",
             iepLevel = "Enhanced",
             iepCode = "ENH",
-            iepDate = iepTime.toLocalDate(),
-            iepTime = iepTime,
+            iepDate = LocalDate.of(2022, 6, 2),
+            iepTime = LocalDateTime.of(2022, 6, 2, 12, 45, 0),
             userId = "TEST_USER",
             auditModuleName = "PRISON_API",
           ),
@@ -40,8 +40,8 @@ class IepSummaryDateTest {
             agencyId = "LEI",
             iepLevel = "Standard",
             iepCode = "STD",
-            iepDate = iepTime.minusDays(100).toLocalDate(),
-            iepTime = iepTime.minusDays(100),
+            iepDate = LocalDate.of(2022, 4, 23),
+            iepTime = LocalDateTime.of(2022, 4, 23, 12, 45, 0),
             userId = "TEST_USER",
             auditModuleName = "PRISON_API",
           ),
@@ -54,20 +54,19 @@ class IepSummaryDateTest {
 
     @Test
     fun `calc days on level when initial entry into prison`() {
-      val iepTime = LocalDateTime.now(clock).minusDays(3)
       val iepSummary = IepSummary(
         bookingId = 1L,
-        iepDate = iepTime.toLocalDate(),
+        iepDate = LocalDate.of(2022, 7, 29),
         iepLevel = "Basic",
-        iepTime = iepTime,
+        iepTime = LocalDateTime.of(2022, 7, 29, 12, 45, 0),
         iepDetails = listOf(
           IepDetail(
             bookingId = 1L,
             agencyId = "MDI",
             iepLevel = "Basic",
             iepCode = "BAS",
-            iepDate = iepTime.toLocalDate(),
-            iepTime = iepTime,
+            iepDate = LocalDate.of(2022, 7, 29),
+            iepTime = LocalDateTime.of(2022, 7, 29, 12, 45, 0),
             comments = "Default IEP",
             userId = "ADMISSION",
             auditModuleName = "OIDADMIS",
@@ -81,20 +80,19 @@ class IepSummaryDateTest {
 
     @Test
     fun `calc days on level when initial entry into prison and review 3 days later but up a level`() {
-      val iepTime = LocalDateTime.now(clock).minusDays(3)
       val iepSummary = IepSummary(
         bookingId = 1L,
-        iepDate = iepTime.toLocalDate().plusDays(3),
+        iepDate = LocalDate.of(2022, 8, 1),
         iepLevel = "Standard",
-        iepTime = iepTime.plusDays(3),
+        iepTime = LocalDateTime.of(2022, 8, 1, 8, 30, 0),
         iepDetails = listOf(
           IepDetail(
             bookingId = 1L,
             agencyId = "MDI",
             iepLevel = "Standard",
             iepCode = "STD",
-            iepDate = iepTime.toLocalDate().plusDays(3),
-            iepTime = iepTime.plusDays(3),
+            iepDate = LocalDate.of(2022, 8, 1),
+            iepTime = LocalDateTime.of(2022, 8, 1, 8, 30, 0),
             comments = "First Review",
             userId = "TESTUSER",
             auditModuleName = "PRISON_API",
@@ -104,8 +102,8 @@ class IepSummaryDateTest {
             agencyId = "MDI",
             iepLevel = "Basic",
             iepCode = "BAS",
-            iepDate = iepTime.toLocalDate(),
-            iepTime = iepTime,
+            iepDate = LocalDate.of(2022, 7, 29),
+            iepTime = LocalDateTime.of(2022, 7, 29, 12, 45, 0),
             comments = "corrected back to Enhanced",
             userId = "ADMISSION",
             auditModuleName = "OIDADMIS",
@@ -119,20 +117,19 @@ class IepSummaryDateTest {
 
     @Test
     fun `calc days on level when entry into a new prison and review 3 days later but same level`() {
-      val iepTime = LocalDateTime.now(clock).minusDays(10)
       val iepSummary = IepSummary(
         bookingId = 1L,
-        iepDate = iepTime.toLocalDate().plusDays(9),
+        iepDate = LocalDate.of(2022, 7, 31),
         iepLevel = "Basic",
-        iepTime = iepTime.plusDays(9),
+        iepTime = LocalDateTime.of(2022, 7, 31, 19, 0, 0),
         iepDetails = listOf(
           IepDetail(
             bookingId = 1L,
             agencyId = "MDI",
             iepLevel = "Basic",
             iepCode = "BAS",
-            iepDate = iepTime.toLocalDate().plusDays(9),
-            iepTime = iepTime.plusDays(9),
+            iepDate = LocalDate.of(2022, 7, 31),
+            iepTime = LocalDateTime.of(2022, 7, 31, 19, 0, 0),
             comments = "New Review",
             userId = "TESTUSER",
             auditModuleName = "PRISON_API",
@@ -142,8 +139,8 @@ class IepSummaryDateTest {
             agencyId = "MDI",
             iepLevel = "Basic",
             iepCode = "BAS",
-            iepDate = iepTime.toLocalDate().plusDays(6),
-            iepTime = iepTime.plusDays(6),
+            iepDate = LocalDate.of(2022, 7, 28),
+            iepTime = LocalDateTime.of(2022, 7, 28, 15, 10, 0),
             comments = "Admitted into MDI",
             userId = "ADMISSION",
             auditModuleName = "OIDADMIS",
@@ -153,8 +150,8 @@ class IepSummaryDateTest {
             agencyId = "LEI",
             iepLevel = "Basic",
             iepCode = "BAS",
-            iepDate = iepTime.toLocalDate(),
-            iepTime = iepTime,
+            iepDate = LocalDate.of(2022, 7, 22),
+            iepTime = LocalDateTime.of(2022, 7, 22, 10, 0, 0),
             comments = "Initial review",
             userId = "TESTUSER",
             auditModuleName = "PRISON_API",
@@ -168,21 +165,19 @@ class IepSummaryDateTest {
 
     @Test
     fun `calc days on level when new level added today`() {
-      val iepTime = LocalDateTime.now(clock)
-      val previousIep = iepTime.minusDays(60)
       val iepSummary = IepSummary(
         bookingId = 1L,
-        iepDate = iepTime.toLocalDate(),
+        iepDate = LocalDate.of(2022, 8, 1),
         iepLevel = "Enhanced",
-        iepTime = iepTime,
+        iepTime = LocalDateTime.of(2022, 8, 1, 8, 30, 0),
         iepDetails = listOf(
           IepDetail(
             bookingId = 1L,
             agencyId = "MDI",
             iepLevel = "Enhanced",
             iepCode = "ENH",
-            iepDate = iepTime.toLocalDate(),
-            iepTime = iepTime,
+            iepDate = LocalDate.of(2022, 8, 1),
+            iepTime = LocalDateTime.of(2022, 8, 1, 8, 30, 0),
             userId = "TEST_USER",
             auditModuleName = "PRISON_API",
           ),
@@ -191,8 +186,8 @@ class IepSummaryDateTest {
             agencyId = "MDI",
             iepLevel = "Standard",
             iepCode = "STD",
-            iepDate = previousIep.toLocalDate(),
-            iepTime = previousIep,
+            iepDate = LocalDate.of(2022, 6, 2),
+            iepTime = LocalDateTime.of(2022, 6, 2, 11, 25, 0),
             userId = "TEST_USER",
             auditModuleName = "PRISON_API",
           ),
@@ -205,23 +200,19 @@ class IepSummaryDateTest {
 
     @Test
     fun `calc days on level when multiple reviews resulting in same level`() {
-      val latestIepTime = LocalDateTime.now(clock).minusDays(30)
-      val previousIepTime = latestIepTime.minusDays(60)
-      val firstIepTime = previousIepTime.minusDays(60)
-
       val iepSummary = IepSummary(
         bookingId = 1L,
-        iepDate = latestIepTime.toLocalDate(),
+        iepDate = LocalDate.of(2022, 7, 2),
         iepLevel = "Enhanced",
-        iepTime = latestIepTime,
+        iepTime = LocalDateTime.of(2022, 7, 2, 12, 30, 0),
         iepDetails = listOf(
           IepDetail(
             bookingId = 1L,
             agencyId = "MDI",
             iepLevel = "Enhanced",
             iepCode = "ENH",
-            iepDate = latestIepTime.toLocalDate(),
-            iepTime = latestIepTime,
+            iepDate = LocalDate.of(2022, 7, 2),
+            iepTime = LocalDateTime.of(2022, 7, 2, 12, 30, 0),
             userId = "TEST_USER",
             auditModuleName = "PRISON_API",
           ),
@@ -230,8 +221,8 @@ class IepSummaryDateTest {
             agencyId = "MDI",
             iepLevel = "Enhanced",
             iepCode = "ENH",
-            iepDate = previousIepTime.toLocalDate(),
-            iepTime = previousIepTime,
+            iepDate = LocalDate.of(2022, 5, 3),
+            iepTime = LocalDateTime.of(2022, 5, 3, 11, 25, 0),
             userId = "TEST_USER",
             auditModuleName = "PRISON_API",
           ),
@@ -239,9 +230,9 @@ class IepSummaryDateTest {
             bookingId = 1L,
             agencyId = "MDI",
             iepLevel = "Entry",
-            iepCode = "ENT~",
-            iepDate = firstIepTime.toLocalDate(),
-            iepTime = firstIepTime,
+            iepCode = "ENT",
+            iepDate = LocalDate.of(2022, 4, 4),
+            iepTime = LocalDateTime.of(2022, 4, 4, 10, 30, 0),
             userId = "TEST_USER",
             auditModuleName = "PRISON_API",
           ),
@@ -254,12 +245,11 @@ class IepSummaryDateTest {
 
     @Test
     fun `days on level cannot be calculated when iepDetail history is missing`() {
-      val iepTime = LocalDateTime.now(clock).minusDays(3)
       val iepSummary = IepSummary(
         bookingId = 1L,
-        iepDate = iepTime.toLocalDate(),
+        iepDate = LocalDate.of(2022, 7, 29),
         iepLevel = "Basic",
-        iepTime = iepTime,
+        iepTime = LocalDateTime.of(2022, 7, 29, 12, 45, 0),
         iepDetails = emptyList(),
       )
 
