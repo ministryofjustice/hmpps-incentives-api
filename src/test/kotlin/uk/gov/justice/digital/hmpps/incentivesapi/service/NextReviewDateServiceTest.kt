@@ -18,7 +18,7 @@ internal class NextReviewDateServiceTest {
     )
     val expectedNextReviewDate = input.iepDetails[0].iepDate.plusYears(1)
 
-    val nextReviewDate = NextReviewDateService().calculate(input)
+    val nextReviewDate = NextReviewDateService(input).calculate()
 
     assertThat(nextReviewDate).isEqualTo(expectedNextReviewDate)
   }
@@ -36,7 +36,7 @@ internal class NextReviewDateServiceTest {
       )
       val expectedNextReviewDate = input.iepDetails[0].iepDate.plusDays(7)
 
-      val nextReviewDate = NextReviewDateService().calculate(input)
+      val nextReviewDate = NextReviewDateService(input).calculate()
 
       assertThat(nextReviewDate).isEqualTo(expectedNextReviewDate)
     }
@@ -52,7 +52,7 @@ internal class NextReviewDateServiceTest {
       )
       val expectedNextReviewDate = input.iepDetails[0].iepDate.plusDays(7)
 
-      val nextReviewDate = NextReviewDateService().calculate(input)
+      val nextReviewDate = NextReviewDateService(input).calculate()
 
       assertThat(nextReviewDate).isEqualTo(expectedNextReviewDate)
     }
@@ -68,7 +68,7 @@ internal class NextReviewDateServiceTest {
       )
       val expectedNextReviewDate = input.iepDetails[0].iepDate.plusDays(28)
 
-      val nextReviewDate = NextReviewDateService().calculate(input)
+      val nextReviewDate = NextReviewDateService(input).calculate()
 
       assertThat(nextReviewDate).isEqualTo(expectedNextReviewDate)
     }
@@ -78,16 +78,16 @@ internal class NextReviewDateServiceTest {
   inner class AcctRuleTest {
 
     @Test
-    fun `when prisoner has open ACCT and they're not on Basic, returns +14 days`() {
+    fun `when prisoner has open ACCT but they're not on Basic, returns +1 year`() {
       val input = NextReviewDateInput(
         iepDetails = listOf(
           iepDetail(iepLevel = "Standard", iepTime = LocalDateTime.now()),
         ),
         hasAcctOpen = true,
       )
-      val expectedNextReviewDate = input.iepDetails[0].iepDate.plusDays(14)
+      val expectedNextReviewDate = input.iepDetails[0].iepDate.plusYears(1)
 
-      val nextReviewDate = NextReviewDateService().calculate(input)
+      val nextReviewDate = NextReviewDateService(input).calculate()
 
       assertThat(nextReviewDate).isEqualTo(expectedNextReviewDate)
     }
@@ -103,7 +103,7 @@ internal class NextReviewDateServiceTest {
       )
       val expectedNextReviewDate = input.iepDetails[0].iepDate.plusDays(14)
 
-      val nextReviewDate = NextReviewDateService().calculate(input)
+      val nextReviewDate = NextReviewDateService(input).calculate()
 
       assertThat(nextReviewDate).isEqualTo(expectedNextReviewDate)
     }
@@ -119,7 +119,7 @@ internal class NextReviewDateServiceTest {
       )
       val expectedNextReviewDate = input.iepDetails[0].iepDate.plusDays(7)
 
-      val nextReviewDate = NextReviewDateService().calculate(input)
+      val nextReviewDate = NextReviewDateService(input).calculate()
 
       assertThat(nextReviewDate).isEqualTo(expectedNextReviewDate)
     }

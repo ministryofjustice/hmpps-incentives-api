@@ -65,12 +65,12 @@ class PrisonerIepLevelReviewService(
     // Get Prisoner/ACCT info from Offender Search API
     val prisoner = offenderSearchService.getOffender(prisonerNumber)
 
-    iepSummary.nextReviewDate = NextReviewDateService().calculate(
+    iepSummary.nextReviewDate = NextReviewDateService(
       NextReviewDateInput(
         iepDetails = iepSummary.iepDetails,
         hasAcctOpen = prisoner.acctOpen,
-      ),
-    )
+      )
+    ).calculate()
 
     return iepSummary
   }
