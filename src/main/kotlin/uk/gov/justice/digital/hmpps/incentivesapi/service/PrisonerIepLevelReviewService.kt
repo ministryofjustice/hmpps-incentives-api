@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.incentivesapi.config.AuthenticationFacade
-import uk.gov.justice.digital.hmpps.incentivesapi.config.DataIntegrityException
 import uk.gov.justice.digital.hmpps.incentivesapi.config.FeatureFlagsService
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ReviewAddedSyncMechanism
@@ -289,11 +288,7 @@ class PrisonerIepLevelReviewService(
 
   private suspend fun getIepLevelForReviewType(prisonerInfo: PrisonerAtLocation, reviewType: ReviewType): String {
     val iepLevelsForPrison = iepLevelService.getIepLevelsForPrison(prisonerInfo.agencyId, useClientCredentials = true)
-    val defaultLevelCode = iepLevelsForPrison.find(IepLevel::default)?.iepLevel
-      // NOMIS traditionally takes the first if no default was found
-      ?: iepLevelsForPrison.firstOrNull()?.iepLevel
-      // there are no available incentive levels at all at this prison
-      ?: throw DataIntegrityException("${prisonerInfo.agencyId} has no available incentive levels")
+    val defaultLevelCode = iepLevelService.chooseDefaultLevel(prisonerInfo.agencyId, iepLevelsForPrison)
 
     return when (reviewType) {
       ReviewType.INITIAL -> {
@@ -310,7 +305,7 @@ class PrisonerIepLevelReviewService(
           val levelCodeBeforeTransfer =
             iepHistory.sortedBy(IepDetail::iepTime).lastOrNull { it.agencyId != prisonerInfo.agencyId }?.iepCode
               ?: defaultLevelCode // if no previous prison
-          iepLevelService.findNearestHighestLevel(prisonerInfo.agencyId, levelCodeBeforeTransfer)
+          iepLevelService.findNearestHighestLevel(prisonerInfo.agencyId, iepLevelsForPrison, levelCodeBeforeTransfer)
         } catch (e: IncentiveReviewNotFoundException) {
           defaultLevelCode // this is to handle no reviews - only an issue before migration
         }

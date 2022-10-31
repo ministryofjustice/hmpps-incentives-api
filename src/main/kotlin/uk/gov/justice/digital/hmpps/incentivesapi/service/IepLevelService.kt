@@ -18,26 +18,23 @@ class IepLevelService(
       .sortedWith(compareBy(IepLevel::sequence))
   }
 
+  fun chooseDefaultLevel(prisonId: String, prisonLevels: List<IepLevel>): String {
+    val activePrisonLevels = prisonLevels.filter(IepLevel::active)
+    return activePrisonLevels.find(IepLevel::default)?.iepLevel
+      // NOMIS traditionally takes the first if no default was found
+      ?: activePrisonLevels.firstOrNull()?.iepLevel
+      // there are no available incentive levels at all at this prison
+      ?: throw DataIntegrityException("$prisonId has no available incentive levels")
+  }
+
   /**
    * Because not all levels are enabled at all prisons, and we want to maintain a
    * person’s level when they are transferred, we need to find the "nearest highest" level
    * according to HMPPS policy. Falls back to prison's default level when there's nothing else to do.
    */
-  suspend fun findNearestHighestLevel(prisonId: String, levelCode: String): String {
-    var maybeDefaultLevelCode: String? = null
-    val levelCodesAvailableInPrison = getIepLevelsForPrison(prisonId, true)
-      .filter { it.active }
-      .map {
-        if (it.default) {
-          maybeDefaultLevelCode = it.iepLevel
-        }
-        it.iepLevel
-      }
-    val defaultLevelCode = maybeDefaultLevelCode
-      // NOMIS traditionally takes the first if no default was found
-      ?: levelCodesAvailableInPrison.firstOrNull()
-      // there are no available incentive levels at all at this prison
-      ?: throw DataIntegrityException("$prisonId has no available incentive levels")
+  suspend fun findNearestHighestLevel(prisonId: String, prisonLevels: List<IepLevel>, levelCode: String): String {
+    val defaultLevelCode = chooseDefaultLevel(prisonId, prisonLevels)
+    val levelCodesAvailableInPrison = prisonLevels.filter(IepLevel::active).map(IepLevel::iepLevel).toSet()
 
     data class KnownLevel(val code: String, val available: Boolean)
     val allKnownLevels = prisonApiService.getIepLevels().toList()
