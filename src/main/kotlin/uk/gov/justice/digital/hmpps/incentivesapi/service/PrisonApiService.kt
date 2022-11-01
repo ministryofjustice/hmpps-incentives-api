@@ -56,7 +56,7 @@ class PrisonApiService(
       }
   }
 
-  suspend fun findPrisonersAtLocation(prisonId: String, locationId: String): Flow<PrisonerAtLocation> =
+  suspend fun findPrisonersAtLocation(locationId: String): Flow<PrisonerAtLocation> =
     prisonWebClient.get()
       .uri("/api/locations/description/$locationId/inmates")
       .header("Page-Limit", "3000")

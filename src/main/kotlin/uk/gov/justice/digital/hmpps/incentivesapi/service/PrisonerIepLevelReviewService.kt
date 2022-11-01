@@ -45,21 +45,32 @@ class PrisonerIepLevelReviewService(
   private val authenticationFacade: AuthenticationFacade,
   private val clock: Clock,
   private val featureFlagsService: FeatureFlagsService,
+  private val offenderSearchService: OffenderSearchService,
 ) {
   companion object {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
   }
 
-  private fun setNextReviewDate(iepSummary: IepSummary): IepSummary {
+  private suspend fun setNextReviewDate(iepSummary: IepSummary): IepSummary {
     if (iepSummary.iepDetails.isEmpty()) {
       throw IllegalArgumentException("Cannot set nextReviewDate without iepDetails for bookingId = ${iepSummary.bookingId}")
     }
 
-    iepSummary.nextReviewDate = NextReviewDateService().calculate(
+    // NOTE: `iepSummary.prisonerNumber` could be `null` (when data is coming from NOMIS)
+    val prisonerNumber = iepSummary.prisonerNumber ?: run {
+      val locationInfo = prisonApiService.getPrisonerInfo(iepSummary.bookingId, useClientCredentials = true)
+      locationInfo.offenderNo
+    }
+
+    // Get Prisoner/ACCT info from Offender Search API
+    val prisoner = offenderSearchService.getOffender(prisonerNumber)
+
+    iepSummary.nextReviewDate = NextReviewDateService(
       NextReviewDateInput(
         iepDetails = iepSummary.iepDetails,
-      ),
-    )
+        hasAcctOpen = prisoner.acctOpen,
+      )
+    ).calculate()
 
     return iepSummary
   }

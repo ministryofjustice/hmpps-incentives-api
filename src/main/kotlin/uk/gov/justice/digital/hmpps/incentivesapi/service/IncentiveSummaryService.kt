@@ -38,7 +38,7 @@ class IncentiveSummaryService(
     sortBy: SortColumn = SortColumn.NAME,
     sortDirection: Sort.Direction = Sort.Direction.ASC
   ): BehaviourSummary = coroutineScope {
-    val prisoners = prisonApiService.findPrisonersAtLocation(prisonId, locationId).toList()
+    val prisoners = prisonApiService.findPrisonersAtLocation(locationId).toList()
     if (prisoners.isEmpty()) throw NoPrisonersAtLocationException(prisonId, locationId)
 
     val iepLevelsDeferred = async { iepLevelService.getIepLevelsForPrison(prisonId) }
