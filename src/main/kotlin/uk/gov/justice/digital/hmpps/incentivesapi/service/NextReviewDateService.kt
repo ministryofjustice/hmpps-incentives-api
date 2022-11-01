@@ -53,5 +53,4 @@ class NextReviewDateService(private val input: NextReviewDateInput) {
 
     return isOnBasic() && iepDetails.size >= 2 && iepDetails[1].iepLevel == BASIC
   }
-
 }
