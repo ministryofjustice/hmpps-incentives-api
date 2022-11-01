@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisonerAlert
+import java.time.LocalDate
 
 class OffenderSearchServiceTest {
   @Test
@@ -16,6 +17,7 @@ class OffenderSearchServiceTest {
       lastName = "HALLS",
       status = "ACTIVE IN",
       inOutStatus = "IN",
+      receptionDate = LocalDate.parse("2020-07-01"),
       prisonId = "MDI",
       prisonName = "Moorland (HMP & YOI)",
       cellLocation = "2-1-002",
@@ -39,6 +41,7 @@ class OffenderSearchServiceTest {
       lastName = "HALLS",
       status = "ACTIVE IN",
       inOutStatus = "IN",
+      receptionDate = LocalDate.parse("2020-07-01"),
       prisonId = "MDI",
       prisonName = "Moorland (HMP & YOI)",
       cellLocation = "2-1-002",
@@ -62,6 +65,7 @@ class OffenderSearchServiceTest {
       lastName = "HALLS",
       status = "ACTIVE IN",
       inOutStatus = "IN",
+      receptionDate = LocalDate.parse("2020-07-01"),
       prisonId = "MDI",
       prisonName = "Moorland (HMP & YOI)",
       cellLocation = "2-1-002",

@@ -7,6 +7,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.get
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisonerList
+import java.time.LocalDate
 
 class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
   companion object {
@@ -25,7 +26,7 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
   }
 
   fun stubFindOffenders(prisonId: String) {
-    val mapper = jacksonObjectMapper()
+    val mapper = jacksonObjectMapper().findAndRegisterModules()
     stubFor(
       get("/prison/$prisonId/prisoners").willReturn(
         aResponse()
@@ -43,6 +44,7 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
                     lastName = "HALLS",
                     status = "ACTIVE IN",
                     inOutStatus = "IN",
+                    receptionDate = LocalDate.parse("2020-07-01"),
                     prisonId = prisonId,
                     prisonName = "$prisonId prison",
                     cellLocation = "2-1-002",
@@ -64,6 +66,7 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
                     lastName = "JONES",
                     status = "ACTIVE IN",
                     inOutStatus = "IN",
+                    receptionDate = LocalDate.parse("2020-07-01"),
                     prisonId = prisonId,
                     prisonName = "$prisonId prison",
                     cellLocation = "2-1-003",
@@ -88,7 +91,7 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
       ),
     ) else emptyList()
 
-    val mapper = jacksonObjectMapper()
+    val mapper = jacksonObjectMapper().findAndRegisterModules()
     stubFor(
       get("/prisoner/$prisonerNumber").willReturn(
         aResponse()
@@ -103,6 +106,7 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
                 lastName = "HALLS",
                 status = "ACTIVE IN",
                 inOutStatus = "IN",
+                receptionDate = LocalDate.parse("2020-07-01"),
                 prisonId = prisonId,
                 prisonName = "$prisonId prison",
                 cellLocation = "2-1-002",
