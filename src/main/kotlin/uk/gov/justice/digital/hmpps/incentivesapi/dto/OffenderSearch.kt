@@ -4,7 +4,7 @@ data class OffenderSearchPrisoner(
   val prisonerNumber: String,
   val bookingId: String,
   val firstName: String,
-  val middleNames: String,
+  val middleNames: String?,
   val lastName: String,
   val status: String,
   val inOutStatus: String,
