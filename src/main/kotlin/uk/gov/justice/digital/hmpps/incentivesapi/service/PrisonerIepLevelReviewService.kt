@@ -28,7 +28,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocati
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
-import java.lang.IllegalArgumentException
 import java.time.Clock
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -52,10 +51,6 @@ class PrisonerIepLevelReviewService(
   }
 
   private suspend fun setNextReviewDate(iepSummary: IepSummary): IepSummary {
-    if (iepSummary.iepDetails.isEmpty()) {
-      throw IllegalArgumentException("Cannot set nextReviewDate without iepDetails for bookingId = ${iepSummary.bookingId}")
-    }
-
     // NOTE: `iepSummary.prisonerNumber` could be `null` (when data is coming from NOMIS)
     val prisonerNumber = iepSummary.prisonerNumber ?: run {
       val locationInfo = prisonApiService.getPrisonerInfo(iepSummary.bookingId, useClientCredentials = true)
@@ -69,6 +64,7 @@ class PrisonerIepLevelReviewService(
       NextReviewDateInput(
         iepDetails = iepSummary.iepDetails,
         hasAcctOpen = prisoner.acctOpen,
+        receptionDate = prisoner.receptionDate,
       )
     ).calculate()
 
