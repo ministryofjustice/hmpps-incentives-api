@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -13,22 +14,30 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.mockito.stubbing.OngoingStubbing
+import uk.gov.justice.digital.hmpps.incentivesapi.config.ListOfDataNotFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisonerList
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsage
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonLocation
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
+import java.time.LocalDateTime
 
 class IncentiveReviewsServiceTest {
   private val prisonApiService: PrisonApiService = mock()
   private val offenderSearchService: OffenderSearchService = mock()
-  private val incentiveReviewsService = IncentiveReviewsService(offenderSearchService, prisonApiService)
+  private val prisonerIepLevelRepository: PrisonerIepLevelRepository = mock()
+  private val incentiveReviewsService = IncentiveReviewsService(offenderSearchService, prisonApiService, prisonerIepLevelRepository)
 
   @BeforeEach
   fun setUp(): Unit = runBlocking {
     // Fixes tests which do not explicitly mock retrieveCaseNoteCounts
     whenever(prisonApiService.retrieveCaseNoteCounts(any(), any())).thenReturn(emptyFlow())
+
+    whenever(prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(any()))
+      .thenReturn(flowOf(prisonerIepLevel(110001), prisonerIepLevel(110002)))
   }
 
   @Test
@@ -107,6 +116,7 @@ class IncentiveReviewsServiceTest {
           positiveBehaviours = 0,
           negativeBehaviours = 0,
           acctOpenStatus = true,
+          nextReviewDate = iepTime.toLocalDate().plusYears(1),
         ),
         IncentiveReview(
           prisonerNumber = "G6123VU",
@@ -116,6 +126,7 @@ class IncentiveReviewsServiceTest {
           positiveBehaviours = 0,
           negativeBehaviours = 0,
           acctOpenStatus = false,
+          nextReviewDate = iepTime.toLocalDate().plusYears(1),
         ),
       )
     )
@@ -168,6 +179,7 @@ class IncentiveReviewsServiceTest {
           positiveBehaviours = 5,
           negativeBehaviours = 7,
           acctOpenStatus = false,
+          nextReviewDate = iepTime.toLocalDate().plusYears(1),
         ),
       )
     )
@@ -198,9 +210,108 @@ class IncentiveReviewsServiceTest {
           positiveBehaviours = 0,
           negativeBehaviours = 0,
           acctOpenStatus = false,
+          nextReviewDate = iepTime.toLocalDate().plusYears(1),
         ),
       )
     )
+  }
+
+  @Test
+  fun `oldest date of next review is first`(): Unit = runBlocking {
+    // Given
+    val prisonerNumber = "G6123VU"
+    whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-2-1")
+    whenever(offenderSearchService.findOffenders(any(), any(), any(), any()))
+      .thenReturnOffenders(
+        listOf(
+          offenderSearchPrisoner(prisonerNumber, "110001"),
+          offenderSearchPrisoner(prisonerNumber, "110002")
+        )
+      )
+
+    val oldestReview = iepTime.minusDays(5)
+    whenever(prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(any()))
+      .thenReturn(
+        flowOf(
+          prisonerIepLevel(110001, iepTime),
+          prisonerIepLevel(110002, oldestReview)
+        )
+      )
+
+    // When
+    val reviews = incentiveReviewsService.reviews("MDI", "MDI-2-1")
+
+    // Then
+    assertThat(reviews.reviews).isEqualTo(
+      listOf(
+        IncentiveReview(
+          prisonerNumber = "G6123VU",
+          bookingId = 110002,
+          firstName = "RHYS",
+          lastName = "JONES",
+          positiveBehaviours = 0,
+          negativeBehaviours = 0,
+          acctOpenStatus = false,
+          nextReviewDate = oldestReview.toLocalDate().plusYears(1),
+        ),
+        IncentiveReview(
+          prisonerNumber = "G6123VU",
+          bookingId = 110001,
+          firstName = "RHYS",
+          lastName = "JONES",
+          positiveBehaviours = 0,
+          negativeBehaviours = 0,
+          acctOpenStatus = false,
+          nextReviewDate = iepTime.toLocalDate().plusYears(1),
+        ),
+      )
+    )
+  }
+
+  @Test
+  fun `throw exception if cannot calculate next review date for one bookingId`(): Unit = runBlocking {
+    // Given - we only have prisonerIepLevel records for 110001
+    val prisonerNumber = "G6123VU"
+    whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-2-1")
+    whenever(offenderSearchService.findOffenders(any(), any(), any(), any()))
+      .thenReturnOffenders(
+        listOf(
+          offenderSearchPrisoner(prisonerNumber, "110001"),
+          offenderSearchPrisoner(prisonerNumber, "110002")
+        )
+      )
+
+    whenever(prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(any()))
+      .thenReturn(flowOf(prisonerIepLevel(110001)))
+
+    // When
+    assertThatThrownBy {
+      runBlocking { incentiveReviewsService.reviews("MDI", "MDI-2-1") }
+    }.isInstanceOf(ListOfDataNotFoundException::class.java)
+      .hasMessage("No Data found for ID(s) [110002]")
+  }
+
+  @Test
+  fun `throw exception if cannot calculate next review date for all bookingIds`(): Unit = runBlocking {
+    // Given - we don't have prisonerIepLevel records for either bookingId
+    val prisonerNumber = "G6123VU"
+    whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-2-1")
+    whenever(offenderSearchService.findOffenders(any(), any(), any(), any()))
+      .thenReturnOffenders(
+        listOf(
+          offenderSearchPrisoner(prisonerNumber, "110001"),
+          offenderSearchPrisoner(prisonerNumber, "110002")
+        )
+      )
+
+    whenever(prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(any()))
+      .thenReturn(emptyFlow())
+
+    // When
+    assertThatThrownBy {
+      runBlocking { incentiveReviewsService.reviews("MDI", "MDI-2-1") }
+    }.isInstanceOf(ListOfDataNotFoundException::class.java)
+      .hasMessage("No Data found for ID(s) [110001, 110002]")
   }
 
   private fun OngoingStubbing<PrisonLocation>.thenReturnLocation(cellLocationPrefix: String) {
@@ -225,9 +336,9 @@ class IncentiveReviewsServiceTest {
     )
   }
 
-  private fun offenderSearchPrisoner(prisonerNumber: String) = OffenderSearchPrisoner(
+  private fun offenderSearchPrisoner(prisonerNumber: String, bookingId: String = "110002") = OffenderSearchPrisoner(
     prisonerNumber = prisonerNumber,
-    bookingId = "110002",
+    bookingId = bookingId,
     firstName = "RHYS",
     middleNames = "BARRY",
     lastName = "JONES",
@@ -238,5 +349,17 @@ class IncentiveReviewsServiceTest {
     cellLocation = "2-1-003",
     locationDescription = "Moorland (HMP & YOI)",
     alerts = listOf(),
+  )
+
+  private val iepTime: LocalDateTime = LocalDateTime.now()
+  private fun prisonerIepLevel(bookingId: Long, reviewTime: LocalDateTime = iepTime) = PrisonerIepLevel(
+    iepCode = "STD",
+    prisonId = "MDI",
+    locationId = "MDI-1-1-004",
+    bookingId = bookingId,
+    current = true,
+    reviewedBy = "TEST_STAFF1",
+    reviewTime = reviewTime,
+    prisonerNumber = "A1234AB"
   )
 }

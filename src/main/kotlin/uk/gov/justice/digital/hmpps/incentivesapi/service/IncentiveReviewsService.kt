@@ -5,14 +5,18 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClientResponseException.NotFound
+import uk.gov.justice.digital.hmpps.incentivesapi.config.ListOfDataNotFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsage
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
+import java.time.LocalDate
 
 @Service
 class IncentiveReviewsService(
   private val offenderSearchService: OffenderSearchService,
   private val prisonApiService: PrisonApiService,
+  private val prisonerIepLevelRepository: PrisonerIepLevelRepository,
 ) {
   /**
    * Returns incentive review information for a given location within a prison
@@ -39,6 +43,14 @@ class IncentiveReviewsService(
     val deferredPositiveCaseNotesInLast3Months = async { getCaseNoteUsage("POS", "IEP_ENC", prisonerNumbers) }
     val deferredNegativeCaseNotesInLast3Months = async { getCaseNoteUsage("NEG", "IEP_WARN", prisonerNumbers) }
 
+    val bookingIds = offenders.content.map { p -> p.bookingId.toLong() }.toSet()
+    val nextReviewDates = getNextReviewDatesForOffenders(bookingIds)
+
+    val bookingIdsMissingIepReviews = bookingIds subtract nextReviewDates.keys
+    if (bookingIdsMissingIepReviews.isNotEmpty()) {
+      throw ListOfDataNotFoundException(bookingIdsMissingIepReviews)
+    }
+
     val positiveCaseNotesInLast3Months = deferredPositiveCaseNotesInLast3Months.await()
     val negativeCaseNotesInLast3Months = deferredNegativeCaseNotesInLast3Months.await()
 
@@ -56,8 +68,9 @@ class IncentiveReviewsService(
           positiveBehaviours = positiveCaseNotesInLast3Months[it.prisonerNumber]?.totalCaseNotes ?: 0,
           negativeBehaviours = negativeCaseNotesInLast3Months[it.prisonerNumber]?.totalCaseNotes ?: 0,
           acctOpenStatus = it.acctOpen,
+          nextReviewDate = nextReviewDates[it.bookingId.toLong()]!!.nextReviewDate,
         )
-      }
+      }.sortedBy { it.nextReviewDate }
     )
   }
 
@@ -76,4 +89,21 @@ class IncentiveReviewsService(
 
   private fun calcTypeCount(caseNoteUsage: List<CaseNoteUsage>): Int =
     caseNoteUsage.map { it.numCaseNotes }.fold(0) { acc, next -> acc + next }
+
+  private suspend fun getNextReviewDatesForOffenders(bookingIds: Set<Long>): Map<Long, IepResult> {
+    return prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(bookingIds.toList())
+      .toList()
+      .groupBy { it.bookingId }
+      .map {
+        IepResult(
+          bookingId = it.key,
+          nextReviewDate = it.value.first().reviewTime.plusYears(1).toLocalDate()
+        )
+      }.associateBy(IepResult::bookingId)
+  }
+
+  data class IepResult(
+    val bookingId: Long,
+    val nextReviewDate: LocalDate,
+  )
 }
