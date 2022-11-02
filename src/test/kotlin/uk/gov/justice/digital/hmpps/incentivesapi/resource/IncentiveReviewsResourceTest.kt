@@ -163,6 +163,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
         """
           {
             "reviewCount": 2,
+            "overdueCount": 0,
             "reviews": [
               {
                 "prisonerNumber": "A1409AE",
@@ -209,6 +210,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
         """
           {
             "reviewCount": 2,
+            "overdueCount": 0,
             "reviews": [
               {
                 "prisonerNumber": "A1409AE",
