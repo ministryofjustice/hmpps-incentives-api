@@ -23,13 +23,18 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsage
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonLocation
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
+import java.time.Clock
+import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneId
 
 class IncentiveReviewsServiceTest {
   private val prisonApiService: PrisonApiService = mock()
   private val offenderSearchService: OffenderSearchService = mock()
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository = mock()
-  private val incentiveReviewsService = IncentiveReviewsService(offenderSearchService, prisonApiService, prisonerIepLevelRepository)
+  private var clock: Clock = Clock.fixed(Instant.parse("2022-08-01T12:45:00.00Z"), ZoneId.systemDefault())
+  private val incentiveReviewsService = IncentiveReviewsService(offenderSearchService, prisonApiService, prisonerIepLevelRepository, clock)
 
   @BeforeEach
   fun setUp(): Unit = runBlocking {
@@ -116,7 +121,7 @@ class IncentiveReviewsServiceTest {
           positiveBehaviours = 0,
           negativeBehaviours = 0,
           acctOpenStatus = true,
-          nextReviewDate = iepTime.toLocalDate().plusYears(1),
+          nextReviewDate = LocalDate.now(clock).plusYears(1),
         ),
         IncentiveReview(
           prisonerNumber = "G6123VU",
@@ -126,7 +131,7 @@ class IncentiveReviewsServiceTest {
           positiveBehaviours = 0,
           negativeBehaviours = 0,
           acctOpenStatus = false,
-          nextReviewDate = iepTime.toLocalDate().plusYears(1),
+          nextReviewDate = LocalDate.now(clock).plusYears(1),
         ),
       )
     )
@@ -179,7 +184,7 @@ class IncentiveReviewsServiceTest {
           positiveBehaviours = 5,
           negativeBehaviours = 7,
           acctOpenStatus = false,
-          nextReviewDate = iepTime.toLocalDate().plusYears(1),
+          nextReviewDate = LocalDate.now(clock).plusYears(1),
         ),
       )
     )
@@ -210,7 +215,7 @@ class IncentiveReviewsServiceTest {
           positiveBehaviours = 0,
           negativeBehaviours = 0,
           acctOpenStatus = false,
-          nextReviewDate = iepTime.toLocalDate().plusYears(1),
+          nextReviewDate = LocalDate.now(clock).plusYears(1),
         ),
       )
     )
@@ -228,11 +233,11 @@ class IncentiveReviewsServiceTest {
         )
       )
 
-    val oldestReview = iepTime.minusDays(5)
+    val oldestReview = LocalDateTime.now(clock).minusDays(5)
     whenever(prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(any()))
       .thenReturn(
         flowOf(
-          prisonerIepLevel(110001, iepTime),
+          prisonerIepLevel(110001, LocalDateTime.now(clock)),
           prisonerIepLevel(110002, oldestReview)
         )
       )
@@ -261,7 +266,7 @@ class IncentiveReviewsServiceTest {
           positiveBehaviours = 0,
           negativeBehaviours = 0,
           acctOpenStatus = false,
-          nextReviewDate = iepTime.toLocalDate().plusYears(1),
+          nextReviewDate = LocalDate.now(clock).plusYears(1),
         ),
       )
     )
@@ -311,6 +316,64 @@ class IncentiveReviewsServiceTest {
       .hasMessage("No Data found for ID(s) [110001, 110002]")
   }
 
+  @Test
+  fun `overdue count where 2 next review are in the past`(): Unit = runBlocking {
+    // Given
+    whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-2-1")
+    whenever(offenderSearchService.findOffenders(any(), any(), any(), any()))
+      .thenReturnOffenders(
+        listOf(
+          offenderSearchPrisoner("A1409AE", "110001"),
+          offenderSearchPrisoner("G6123VU", "110002"),
+          offenderSearchPrisoner("G6123VX", "110003"),
+        )
+      )
+
+    whenever(prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(any()))
+      .thenReturn(
+        flowOf(
+          prisonerIepLevel(110001, LocalDateTime.now(clock)),
+          // next review will be 1 day before LocalDateTime.now(clock)
+          prisonerIepLevel(110002, LocalDateTime.now(clock).minusYears(1).minusDays(1)),
+          // next review will be 10 days before LocalDateTime.now(clock)
+          prisonerIepLevel(110003, LocalDateTime.now(clock).minusYears(1).minusDays(10)),
+        )
+      )
+
+    // When
+    val reviews = incentiveReviewsService.reviews("MDI", "MDI-2-1")
+
+    // Then
+    assertThat(reviews.overdueCount).isEqualTo(2)
+  }
+
+  @Test
+  fun `overdue count where no next reviews are in the past`(): Unit = runBlocking {
+    // Given
+    whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-2-1")
+    whenever(offenderSearchService.findOffenders(any(), any(), any(), any()))
+      .thenReturnOffenders(
+        listOf(
+          offenderSearchPrisoner("A1409AE", "110001"),
+          offenderSearchPrisoner("G6123VU", "110002"),
+        )
+      )
+
+    whenever(prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(any()))
+      .thenReturn(
+        flowOf(
+          prisonerIepLevel(110001, LocalDateTime.now(clock)),
+          prisonerIepLevel(110002, LocalDateTime.now(clock)),
+        )
+      )
+
+    // When
+    val reviews = incentiveReviewsService.reviews("MDI", "MDI-2-1")
+
+    // Then
+    assertThat(reviews.overdueCount).isEqualTo(0)
+  }
+
   private fun OngoingStubbing<PrisonLocation>.thenReturnLocation(cellLocationPrefix: String) {
     val (prisonId, locationPrefix) = cellLocationPrefix.split("-", limit = 2)
     thenReturn(
@@ -348,8 +411,7 @@ class IncentiveReviewsServiceTest {
     alerts = listOf(),
   )
 
-  private val iepTime: LocalDateTime = LocalDateTime.now()
-  private fun prisonerIepLevel(bookingId: Long, reviewTime: LocalDateTime = iepTime) = PrisonerIepLevel(
+  private fun prisonerIepLevel(bookingId: Long, reviewTime: LocalDateTime = LocalDateTime.now(clock)) = PrisonerIepLevel(
     iepCode = "STD",
     prisonId = "MDI",
     locationId = "MDI-1-1-004",

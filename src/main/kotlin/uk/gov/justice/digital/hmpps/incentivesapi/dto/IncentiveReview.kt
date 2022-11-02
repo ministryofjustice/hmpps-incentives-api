@@ -36,6 +36,9 @@ data class IncentiveReviewResponse(
   @Schema(description = "Total number of reviews at given location", example = "102")
   val reviewCount: Int,
 
+  @Schema(description = "Total number of overdue prisoner reviews at given location", example = "102")
+  val overdueCount: Int,
+
   @Schema(description = "Description of given location", example = "Houseblock 1")
   val locationDescription: String,
 )

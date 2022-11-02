@@ -10,6 +10,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsage
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
+import java.time.Clock
 import java.time.LocalDate
 
 @Service
@@ -17,6 +18,7 @@ class IncentiveReviewsService(
   private val offenderSearchService: OffenderSearchService,
   private val prisonApiService: PrisonApiService,
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository,
+  private val clock: Clock,
 ) {
   /**
    * Returns incentive review information for a given location within a prison
@@ -50,6 +52,7 @@ class IncentiveReviewsService(
     if (bookingIdsMissingIepReviews.isNotEmpty()) {
       throw ListOfDataNotFoundException(bookingIdsMissingIepReviews)
     }
+    val overdueCount = nextReviewDates.map { r -> r.value.nextReviewDate }.count { it.isBefore(LocalDate.now(clock)) }
 
     val positiveCaseNotesInLast3Months = deferredPositiveCaseNotesInLast3Months.await()
     val negativeCaseNotesInLast3Months = deferredNegativeCaseNotesInLast3Months.await()
@@ -58,6 +61,7 @@ class IncentiveReviewsService(
 
     IncentiveReviewResponse(
       reviewCount = offenders.totalElements,
+      overdueCount = overdueCount,
       locationDescription = locationDescription,
       reviews = offenders.content.map {
         IncentiveReview(
