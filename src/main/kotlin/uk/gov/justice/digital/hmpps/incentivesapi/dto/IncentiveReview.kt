@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
+import java.time.LocalDate
 
 @Schema(description = "Incentive review information for a prisoner")
 data class IncentiveReview(
@@ -22,6 +23,9 @@ data class IncentiveReview(
 
   @Schema(description = "Whether the prisoner has an ACCT open alert", example = "true")
   val acctOpenStatus: Boolean,
+
+  @Schema(description = "Date of next review", example = "2022-12-31")
+  var nextReviewDate: LocalDate,
 )
 
 @Schema(description = "Incentive reviews list for prisoners at a given location")
