@@ -219,13 +219,12 @@ class IncentiveReviewsServiceTest {
   @Test
   fun `oldest date of next review is first`(): Unit = runBlocking {
     // Given
-    val prisonerNumber = "G6123VU"
     whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-2-1")
     whenever(offenderSearchService.findOffenders(any(), any(), any(), any()))
       .thenReturnOffenders(
         listOf(
-          offenderSearchPrisoner(prisonerNumber, "110001"),
-          offenderSearchPrisoner(prisonerNumber, "110002")
+          offenderSearchPrisoner("A1409AE", "110001"),
+          offenderSearchPrisoner("G6123VU", "110002"),
         )
       )
 
@@ -255,7 +254,7 @@ class IncentiveReviewsServiceTest {
           nextReviewDate = oldestReview.toLocalDate().plusYears(1),
         ),
         IncentiveReview(
-          prisonerNumber = "G6123VU",
+          prisonerNumber = "A1409AE",
           bookingId = 110001,
           firstName = "RHYS",
           lastName = "JONES",
@@ -271,13 +270,12 @@ class IncentiveReviewsServiceTest {
   @Test
   fun `throw exception if cannot calculate next review date for one bookingId`(): Unit = runBlocking {
     // Given - we only have prisonerIepLevel records for 110001
-    val prisonerNumber = "G6123VU"
     whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-2-1")
     whenever(offenderSearchService.findOffenders(any(), any(), any(), any()))
       .thenReturnOffenders(
         listOf(
-          offenderSearchPrisoner(prisonerNumber, "110001"),
-          offenderSearchPrisoner(prisonerNumber, "110002")
+          offenderSearchPrisoner("A1409AE", "110001"),
+          offenderSearchPrisoner("G6123VU", "110002"),
         )
       )
 
@@ -294,13 +292,12 @@ class IncentiveReviewsServiceTest {
   @Test
   fun `throw exception if cannot calculate next review date for all bookingIds`(): Unit = runBlocking {
     // Given - we don't have prisonerIepLevel records for either bookingId
-    val prisonerNumber = "G6123VU"
     whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-2-1")
     whenever(offenderSearchService.findOffenders(any(), any(), any(), any()))
       .thenReturnOffenders(
         listOf(
-          offenderSearchPrisoner(prisonerNumber, "110001"),
-          offenderSearchPrisoner(prisonerNumber, "110002")
+          offenderSearchPrisoner("A1409AE", "110001"),
+          offenderSearchPrisoner("G6123VU", "110002"),
         )
       )
 

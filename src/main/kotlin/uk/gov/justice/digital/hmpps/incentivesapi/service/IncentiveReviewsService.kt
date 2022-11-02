@@ -43,10 +43,10 @@ class IncentiveReviewsService(
     val deferredPositiveCaseNotesInLast3Months = async { getCaseNoteUsage("POS", "IEP_ENC", prisonerNumbers) }
     val deferredNegativeCaseNotesInLast3Months = async { getCaseNoteUsage("NEG", "IEP_WARN", prisonerNumbers) }
 
-    val bookingIds = offenders.content.map { p -> p.bookingId.toLong() }.toSet()
+    val bookingIds = offenders.content.map { p -> p.bookingId.toLong() }
     val nextReviewDates = getNextReviewDatesForOffenders(bookingIds)
 
-    val bookingIdsMissingIepReviews = bookingIds subtract nextReviewDates.keys
+    val bookingIdsMissingIepReviews = bookingIds.toSet() subtract nextReviewDates.keys
     if (bookingIdsMissingIepReviews.isNotEmpty()) {
       throw ListOfDataNotFoundException(bookingIdsMissingIepReviews)
     }
@@ -90,8 +90,8 @@ class IncentiveReviewsService(
   private fun calcTypeCount(caseNoteUsage: List<CaseNoteUsage>): Int =
     caseNoteUsage.map { it.numCaseNotes }.fold(0) { acc, next -> acc + next }
 
-  private suspend fun getNextReviewDatesForOffenders(bookingIds: Set<Long>): Map<Long, IepResult> {
-    return prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(bookingIds.toList())
+  private suspend fun getNextReviewDatesForOffenders(bookingIds: List<Long>): Map<Long, IepResult> {
+    return prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(bookingIds)
       .toList()
       .groupBy { it.bookingId }
       .map {
