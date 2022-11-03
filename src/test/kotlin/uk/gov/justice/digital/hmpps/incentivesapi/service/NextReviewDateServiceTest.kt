@@ -4,6 +4,7 @@ import org.assertj.core.api.AssertionsForClassTypes.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 internal class NextReviewDateServiceTest {
@@ -15,6 +16,7 @@ internal class NextReviewDateServiceTest {
         iepDetail(iepLevel = "Standard", iepTime = LocalDateTime.now()),
       ),
       hasAcctOpen = false,
+      receptionDate = LocalDate.now(),
     )
     val expectedNextReviewDate = input.iepDetails[0].iepDate.plusYears(1)
 
@@ -33,6 +35,7 @@ internal class NextReviewDateServiceTest {
           iepDetail(iepLevel = "Basic", iepTime = LocalDateTime.now()),
         ),
         hasAcctOpen = false,
+        receptionDate = LocalDate.now(),
       )
       val expectedNextReviewDate = input.iepDetails[0].iepDate.plusDays(7)
 
@@ -49,6 +52,7 @@ internal class NextReviewDateServiceTest {
           iepDetail(iepLevel = "Standard", iepTime = LocalDateTime.now().minusDays(10)),
         ),
         hasAcctOpen = false,
+        receptionDate = LocalDate.now(),
       )
       val expectedNextReviewDate = input.iepDetails[0].iepDate.plusDays(7)
 
@@ -65,6 +69,7 @@ internal class NextReviewDateServiceTest {
           iepDetail(iepLevel = "Basic", iepTime = LocalDateTime.now().minusDays(10)),
         ),
         hasAcctOpen = false,
+        receptionDate = LocalDate.now(),
       )
       val expectedNextReviewDate = input.iepDetails[0].iepDate.plusDays(28)
 
@@ -84,6 +89,7 @@ internal class NextReviewDateServiceTest {
           iepDetail(iepLevel = "Standard", iepTime = LocalDateTime.now()),
         ),
         hasAcctOpen = true,
+        receptionDate = LocalDate.now(),
       )
       val expectedNextReviewDate = input.iepDetails[0].iepDate.plusYears(1)
 
@@ -100,6 +106,7 @@ internal class NextReviewDateServiceTest {
           iepDetail(iepLevel = "Basic", iepTime = LocalDateTime.now().minusDays(10)),
         ),
         hasAcctOpen = true,
+        receptionDate = LocalDate.now(),
       )
       val expectedNextReviewDate = input.iepDetails[0].iepDate.plusDays(14)
 
@@ -116,8 +123,27 @@ internal class NextReviewDateServiceTest {
           iepDetail(iepLevel = "Standard", iepTime = LocalDateTime.now().minusDays(10)),
         ),
         hasAcctOpen = true,
+        receptionDate = LocalDate.now(),
       )
       val expectedNextReviewDate = input.iepDetails[0].iepDate.plusDays(7)
+
+      val nextReviewDate = NextReviewDateService(input).calculate()
+
+      assertThat(nextReviewDate).isEqualTo(expectedNextReviewDate)
+    }
+  }
+
+  @Nested
+  inner class NewPrisonerRulesTest {
+
+    @Test
+    fun `when prisoner is new, returns +3 months`() {
+      val input = NextReviewDateInput(
+        iepDetails = emptyList(),
+        hasAcctOpen = true,
+        receptionDate = LocalDate.now(),
+      )
+      val expectedNextReviewDate = input.receptionDate.plusMonths(3)
 
       val nextReviewDate = NextReviewDateService(input).calculate()
 

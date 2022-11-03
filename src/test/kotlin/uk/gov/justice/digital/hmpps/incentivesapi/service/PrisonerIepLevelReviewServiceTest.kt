@@ -35,6 +35,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import java.time.Clock
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -1267,6 +1268,7 @@ class PrisonerIepLevelReviewServiceTest {
     lastName = "HALLS",
     status = "ACTIVE IN",
     inOutStatus = "IN",
+    receptionDate = LocalDate.parse("2020-07-01"),
     prisonId = "MDI",
     prisonName = "Moorland",
     cellLocation = "2-1-002",

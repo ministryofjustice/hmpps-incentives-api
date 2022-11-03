@@ -1,13 +1,16 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.dto
 
+import java.time.LocalDate
+
 data class OffenderSearchPrisoner(
   val prisonerNumber: String,
   val bookingId: String,
   val firstName: String,
-  val middleNames: String,
+  val middleNames: String?,
   val lastName: String,
   val status: String,
   val inOutStatus: String,
+  val receptionDate: LocalDate,
   val prisonId: String,
   val prisonName: String,
   val cellLocation: String,
