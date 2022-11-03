@@ -10,6 +10,7 @@ data class OffenderSearchPrisoner(
   val lastName: String,
   val status: String,
   val inOutStatus: String,
+  val dateOfBirth: LocalDate,
   val receptionDate: LocalDate,
   val prisonId: String,
   val prisonName: String,
