@@ -4,9 +4,9 @@ import java.time.LocalDate
 
 data class OffenderSearchPrisoner(
   val prisonerNumber: String,
-  val bookingId: String,
+  val bookingId: Long,
   val firstName: String,
-  val middleNames: String?,
+  val middleNames: String? = null,
   val lastName: String,
   val status: String,
   val inOutStatus: String,
@@ -16,7 +16,7 @@ data class OffenderSearchPrisoner(
   val prisonName: String,
   val cellLocation: String,
   val locationDescription: String,
-  val alerts: List<OffenderSearchPrisonerAlert>,
+  val alerts: List<OffenderSearchPrisonerAlert> = emptyList(),
 ) {
   val acctOpen = alerts.any { it.alertCode == "HA" && it.active && !it.expired }
 }

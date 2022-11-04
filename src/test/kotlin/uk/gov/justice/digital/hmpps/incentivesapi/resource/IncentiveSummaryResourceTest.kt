@@ -29,10 +29,11 @@ class IncentiveSummaryResourceTest : SqsIntegrationTestBase() {
     prisonApiMockServer.resetAll()
   }
 
-  private fun stubPrisonApi(prisonId: String, locationId: String) {
+  private fun stubApis(prisonId: String, wingId: String = "1") {
+    val locationId = "$prisonId-$wingId"
     prisonApiMockServer.stubIepLevels()
     prisonApiMockServer.stubAgenciesIepLevels(prisonId)
-    prisonApiMockServer.stubPrisonersOnWing(prisonId, locationId)
+    offenderSearchMockServer.stubFindOffenders(prisonId, wingId, includeInvalid = true)
     prisonApiMockServer.stubIEPSummary()
     prisonApiMockServer.stubPositiveCaseNoteSummary()
     prisonApiMockServer.stubNegativeCaseNoteSummary()
@@ -51,7 +52,7 @@ class IncentiveSummaryResourceTest : SqsIntegrationTestBase() {
 
   @Test
   fun `get behaviour summary for wing`() {
-    stubPrisonApi("MDI", "MDI-1")
+    stubApis("MDI", "1")
 
     webTestClient.get().uri("incentives-summary/prison/MDI/location/MDI-1?sortBy=DAYS_ON_LEVEL&sortDirection=DESC")
       .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
@@ -71,7 +72,6 @@ class IncentiveSummaryResourceTest : SqsIntegrationTestBase() {
                     {
                        "prisonerNumber":"A1234AA",
                        "bookingId":1234134,
-                       "imageId":1241241,
                        "firstName":"John",
                        "lastName":"Smith",
                        "daysOnLevel":36,
@@ -85,7 +85,6 @@ class IncentiveSummaryResourceTest : SqsIntegrationTestBase() {
                     {
                        "prisonerNumber":"A1234AD",
                        "bookingId":1234137,
-                       "imageId":1241244,
                        "firstName":"Anthony",
                        "lastName":"Davies",
                        "daysOnLevel":36,
@@ -106,7 +105,6 @@ class IncentiveSummaryResourceTest : SqsIntegrationTestBase() {
                     {
                        "prisonerNumber":"A1234AE",
                        "bookingId":1234138,
-                       "imageId":1241245,
                        "firstName":"Paul",
                        "lastName":"Rudd",
                        "daysOnLevel":36,
@@ -120,7 +118,6 @@ class IncentiveSummaryResourceTest : SqsIntegrationTestBase() {
                     {
                        "prisonerNumber":"A1234AB",
                        "bookingId":1234135,
-                       "imageId":1241242,
                        "firstName":"David",
                        "lastName":"White",
                        "daysOnLevel":5,
@@ -141,7 +138,6 @@ class IncentiveSummaryResourceTest : SqsIntegrationTestBase() {
                     {
                        "prisonerNumber":"A1234AC",
                        "bookingId":1234136,
-                       "imageId":1241243,
                        "firstName":"Trevor",
                        "lastName":"Lee",
                        "daysOnLevel":97,
@@ -162,7 +158,6 @@ class IncentiveSummaryResourceTest : SqsIntegrationTestBase() {
                     {
                        "prisonerNumber":"A1934AA",
                        "bookingId":2734134,
-                       "imageId":1541242,
                        "firstName":"Old",
                        "lastName":"Entry",
                        "daysOnLevel":5,
@@ -183,7 +178,6 @@ class IncentiveSummaryResourceTest : SqsIntegrationTestBase() {
                     {
                        "prisonerNumber":"A1834AA",
                        "bookingId":2234134,
-                       "imageId":1541241,
                        "firstName":"Missing",
                        "lastName":"Iep",
                        "daysOnLevel":0,
@@ -212,7 +206,7 @@ class IncentiveSummaryResourceTest : SqsIntegrationTestBase() {
 
   @Test
   fun `returns an error if prisonId is incorrect`() {
-    stubPrisonApi("Moorland", "MDI-1")
+    stubApis("Moorland", "1")
 
     webTestClient.get().uri("incentives-summary/prison/Moorland/location/MDI-1?sortBy=DAYS_ON_LEVEL&sortDirection=DESC")
       .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
@@ -225,7 +219,7 @@ class IncentiveSummaryResourceTest : SqsIntegrationTestBase() {
 
   @Test
   fun `returns an error if locationId is incorrect`() {
-    stubPrisonApi("MDI", "MDI")
+    stubApis("MDI", "MDI")
 
     webTestClient.get().uri("incentives-summary/prison/MDI/location/MDI?sortBy=DAYS_ON_LEVEL&sortDirection=DESC")
       .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))

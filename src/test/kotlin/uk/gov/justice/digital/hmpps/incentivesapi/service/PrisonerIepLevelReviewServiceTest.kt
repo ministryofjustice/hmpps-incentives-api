@@ -1262,7 +1262,7 @@ class PrisonerIepLevelReviewServiceTest {
     bookingId: Long = 1234567L,
   ) = OffenderSearchPrisoner(
     prisonerNumber = prisonerNumber,
-    bookingId = bookingId.toString(),
+    bookingId = bookingId,
     firstName = "JAMES",
     middleNames = "",
     lastName = "HALLS",

@@ -25,15 +25,14 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
     )
   }
 
-  fun stubFindOffenders(prisonId: String) {
+  fun stubFindOffenders(prisonId: String = "MDI", wing: String = "1", includeInvalid: Boolean = false) {
     val mapper = jacksonObjectMapper().findAndRegisterModules()
-    val offenders = listOf(
-      // <editor-fold desc="mocked offenders">
+    // <editor-fold desc="mocked offenders">
+    val offenders = mutableListOf(
       OffenderSearchPrisoner(
         prisonerNumber = "A1234AA",
-        bookingId = "1234134",
+        bookingId = 1234134,
         firstName = "JOHN",
-        middleNames = null,
         lastName = "SMITH",
         status = "ACTIVE IN",
         inOutStatus = "IN",
@@ -41,7 +40,7 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
         receptionDate = LocalDate.parse("2020-07-01"),
         prisonId = prisonId,
         prisonName = "$prisonId prison",
-        cellLocation = "1-1-001",
+        cellLocation = "$wing-1-001",
         locationDescription = "$prisonId prison",
         alerts = listOf(
           OffenderSearchPrisonerAlert(
@@ -54,9 +53,8 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
       ),
       OffenderSearchPrisoner(
         prisonerNumber = "A1234AB",
-        bookingId = "1234135",
+        bookingId = 1234135,
         firstName = "DAVID",
-        middleNames = null,
         lastName = "WHITE",
         status = "ACTIVE IN",
         inOutStatus = "IN",
@@ -64,15 +62,13 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
         receptionDate = LocalDate.parse("2020-07-01"),
         prisonId = prisonId,
         prisonName = "$prisonId prison",
-        cellLocation = "1-1-002",
+        cellLocation = "$wing-1-002",
         locationDescription = "$prisonId prison",
-        alerts = emptyList(),
       ),
       OffenderSearchPrisoner(
         prisonerNumber = "A1234AC",
-        bookingId = "1234136",
+        bookingId = 1234136,
         firstName = "TREVOR",
-        middleNames = null,
         lastName = "LEE",
         status = "ACTIVE IN",
         inOutStatus = "IN",
@@ -80,15 +76,13 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
         receptionDate = LocalDate.parse("2020-07-01"),
         prisonId = prisonId,
         prisonName = "$prisonId prison",
-        cellLocation = "1-1-003",
+        cellLocation = "$wing-1-003",
         locationDescription = "$prisonId prison",
-        alerts = emptyList(),
       ),
       OffenderSearchPrisoner(
         prisonerNumber = "A1234AD",
-        bookingId = "1234137",
+        bookingId = 1234137,
         firstName = "ANTHONY",
-        middleNames = null,
         lastName = "DAVIES",
         status = "ACTIVE IN",
         inOutStatus = "IN",
@@ -96,15 +90,13 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
         receptionDate = LocalDate.parse("2020-07-01"),
         prisonId = prisonId,
         prisonName = "$prisonId prison",
-        cellLocation = "1-1-004",
+        cellLocation = "$wing-1-004",
         locationDescription = "$prisonId prison",
-        alerts = emptyList(),
       ),
       OffenderSearchPrisoner(
         prisonerNumber = "A1234AE",
-        bookingId = "1234138",
+        bookingId = 1234138,
         firstName = "PAUL",
-        middleNames = null,
         lastName = "RUDD",
         status = "ACTIVE IN",
         inOutStatus = "IN",
@@ -112,12 +104,47 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
         receptionDate = LocalDate.parse("2020-07-01"),
         prisonId = prisonId,
         prisonName = "$prisonId prison",
-        cellLocation = "1-1-005",
+        cellLocation = "$wing-1-005",
         locationDescription = "$prisonId prison",
-        alerts = emptyList(),
       ),
-      // </editor-fold>
     )
+    if (includeInvalid) {
+      offenders.addAll(
+        listOf(
+          // does not have a known incentive level according to prison-api
+          OffenderSearchPrisoner(
+            prisonerNumber = "A1834AA",
+            bookingId = 2234134,
+            firstName = "MISSING",
+            lastName = "IEP",
+            status = "ACTIVE IN",
+            inOutStatus = "IN",
+            dateOfBirth = LocalDate.parse("1970-03-05"),
+            receptionDate = LocalDate.parse("2020-07-01"),
+            prisonId = prisonId,
+            prisonName = "$prisonId prison",
+            cellLocation = "$wing-1-006",
+            locationDescription = "$prisonId prison"
+          ),
+          // has an unknown incentive level
+          OffenderSearchPrisoner(
+            prisonerNumber = "A1934AA",
+            bookingId = 2734134,
+            firstName = "OLD",
+            lastName = "ENTRY",
+            status = "ACTIVE IN",
+            inOutStatus = "IN",
+            dateOfBirth = LocalDate.parse("1970-03-06"),
+            receptionDate = LocalDate.parse("2020-07-01"),
+            prisonId = prisonId,
+            prisonName = "$prisonId prison",
+            cellLocation = "$wing-1-007",
+            locationDescription = "$prisonId prison"
+          ),
+        )
+      )
+    }
+    // </editor-fold>
     stubFor(
       get("/prison/$prisonId/prisoners").willReturn(
         aResponse()
@@ -150,7 +177,7 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
             mapper.writeValueAsBytes(
               OffenderSearchPrisoner(
                 prisonerNumber = prisonerNumber,
-                bookingId = "110001",
+                bookingId = 110001,
                 firstName = "JAMES",
                 middleNames = null,
                 lastName = "HALLS",

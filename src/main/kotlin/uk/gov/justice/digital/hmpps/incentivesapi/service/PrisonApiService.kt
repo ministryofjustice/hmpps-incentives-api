@@ -56,13 +56,6 @@ class PrisonApiService(
       }
   }
 
-  suspend fun findPrisonersAtLocation(locationId: String): Flow<PrisonerAtLocation> =
-    prisonWebClient.get()
-      .uri("/api/locations/description/$locationId/inmates")
-      .header("Page-Limit", "3000")
-      .retrieve()
-      .bodyToFlow()
-
   fun getIEPSummaryPerPrisoner(bookingIds: List<Long>): Flow<IepSummary> =
     prisonWebClient.post()
       .uri("/api/bookings/iepSummary")

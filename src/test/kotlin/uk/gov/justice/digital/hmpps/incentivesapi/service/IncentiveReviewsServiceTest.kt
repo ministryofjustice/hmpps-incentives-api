@@ -70,7 +70,7 @@ class IncentiveReviewsServiceTest {
       listOf(
         OffenderSearchPrisoner(
           prisonerNumber = "A1409AE",
-          bookingId = "110001",
+          bookingId = 110001,
           firstName = "JAMES",
           middleNames = "",
           lastName = "HALLS",
@@ -93,7 +93,7 @@ class IncentiveReviewsServiceTest {
         ),
         OffenderSearchPrisoner(
           prisonerNumber = "G6123VU",
-          bookingId = "110002",
+          bookingId = 110002,
           firstName = "RHYS",
           middleNames = "BARRY",
           lastName = "JONES",
@@ -232,8 +232,8 @@ class IncentiveReviewsServiceTest {
     whenever(offenderSearchService.findOffenders(any(), any(), any(), any()))
       .thenReturnOffenders(
         listOf(
-          offenderSearchPrisoner("A1409AE", "110001"),
-          offenderSearchPrisoner("G6123VU", "110002"),
+          offenderSearchPrisoner("A1409AE", 110001),
+          offenderSearchPrisoner("G6123VU", 110002),
         )
       )
 
@@ -283,8 +283,8 @@ class IncentiveReviewsServiceTest {
     whenever(offenderSearchService.findOffenders(any(), any(), any(), any()))
       .thenReturnOffenders(
         listOf(
-          offenderSearchPrisoner("A1409AE", "110001"),
-          offenderSearchPrisoner("G6123VU", "110002"),
+          offenderSearchPrisoner("A1409AE", 110001),
+          offenderSearchPrisoner("G6123VU", 110002),
         )
       )
 
@@ -305,8 +305,8 @@ class IncentiveReviewsServiceTest {
     whenever(offenderSearchService.findOffenders(any(), any(), any(), any()))
       .thenReturnOffenders(
         listOf(
-          offenderSearchPrisoner("A1409AE", "110001"),
-          offenderSearchPrisoner("G6123VU", "110002"),
+          offenderSearchPrisoner("A1409AE", 110001),
+          offenderSearchPrisoner("G6123VU", 110002),
         )
       )
 
@@ -327,9 +327,9 @@ class IncentiveReviewsServiceTest {
     whenever(offenderSearchService.findOffenders(any(), any(), any(), any()))
       .thenReturnOffenders(
         listOf(
-          offenderSearchPrisoner("A1409AE", "110001"),
-          offenderSearchPrisoner("G6123VU", "110002"),
-          offenderSearchPrisoner("G6123VX", "110003"),
+          offenderSearchPrisoner("A1409AE", 110001),
+          offenderSearchPrisoner("G6123VU", 110002),
+          offenderSearchPrisoner("G6123VX", 110003),
         )
       )
 
@@ -358,8 +358,8 @@ class IncentiveReviewsServiceTest {
     whenever(offenderSearchService.findOffenders(any(), any(), any(), any()))
       .thenReturnOffenders(
         listOf(
-          offenderSearchPrisoner("A1409AE", "110001"),
-          offenderSearchPrisoner("G6123VU", "110002"),
+          offenderSearchPrisoner("A1409AE", 110001),
+          offenderSearchPrisoner("G6123VU", 110002),
         )
       )
 
@@ -400,7 +400,7 @@ class IncentiveReviewsServiceTest {
     )
   }
 
-  private fun offenderSearchPrisoner(prisonerNumber: String, bookingId: String = "110002") = OffenderSearchPrisoner(
+  private fun offenderSearchPrisoner(prisonerNumber: String, bookingId: Long = 110002) = OffenderSearchPrisoner(
     prisonerNumber = prisonerNumber,
     bookingId = bookingId,
     firstName = "RHYS",

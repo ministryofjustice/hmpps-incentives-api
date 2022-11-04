@@ -164,7 +164,7 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
 
     prisonApiMockServer.stubIepLevels()
     prisonApiMockServer.stubAgenciesIepLevels("MDI")
-    prisonApiMockServer.stubPrisonersOnWing("MDI", "MDI-1")
+    offenderSearchMockServer.stubFindOffenders("MDI", "1", includeInvalid = true)
     prisonApiMockServer.stubPositiveCaseNoteSummary()
     prisonApiMockServer.stubNegativeCaseNoteSummary()
     prisonApiMockServer.stubProvenAdj()
@@ -188,7 +188,6 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
                     {
                        "prisonerNumber":"A1234AA",
                        "bookingId":1234134,
-                       "imageId":1241241,
                        "firstName":"John",
                        "lastName":"Smith",
                        "daysOnLevel":36,
@@ -202,7 +201,6 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
                     {
                        "prisonerNumber":"A1234AD",
                        "bookingId":1234137,
-                       "imageId":1241244,
                        "firstName":"Anthony",
                        "lastName":"Davies",
                        "daysOnLevel":36,
@@ -223,7 +221,6 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
                     {
                        "prisonerNumber":"A1234AE",
                        "bookingId":1234138,
-                       "imageId":1241245,
                        "firstName":"Paul",
                        "lastName":"Rudd",
                        "daysOnLevel":36,
@@ -237,7 +234,6 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
                     {
                        "prisonerNumber":"A1234AB",
                        "bookingId":1234135,
-                       "imageId":1241242,
                        "firstName":"David",
                        "lastName":"White",
                        "daysOnLevel":5,
@@ -258,7 +254,6 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
                     {
                        "prisonerNumber":"A1234AC",
                        "bookingId":1234136,
-                       "imageId":1241243,
                        "firstName":"Trevor",
                        "lastName":"Lee",
                        "daysOnLevel":97,
@@ -279,7 +274,6 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
                     {
                        "prisonerNumber":"A1934AA",
                        "bookingId":2734134,
-                       "imageId":1541242,
                        "firstName":"Old",
                        "lastName":"Entry",
                        "daysOnLevel":5,
@@ -300,7 +294,6 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
                     {
                        "prisonerNumber":"A1834AA",
                        "bookingId":2234134,
-                       "imageId":1541241,
                        "firstName":"Missing",
                        "lastName":"Iep",
                        "daysOnLevel":0,
