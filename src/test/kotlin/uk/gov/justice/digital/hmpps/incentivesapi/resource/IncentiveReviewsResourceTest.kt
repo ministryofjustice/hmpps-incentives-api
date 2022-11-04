@@ -22,15 +22,11 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
     prisonApiMockServer.resetAll()
 
     repository.deleteAll()
-    persistPrisonerIepLevel(
-      bookingId = 110001,
-      prisonerNumber = "A1409AE",
-    )
-
-    persistPrisonerIepLevel(
-      bookingId = 110002,
-      prisonerNumber = "G6123VU",
-    )
+    persistPrisonerIepLevel(bookingId = 1234134, prisonerNumber = "A1234AA")
+    persistPrisonerIepLevel(bookingId = 1234135, prisonerNumber = "A1234AB")
+    persistPrisonerIepLevel(bookingId = 1234136, prisonerNumber = "A1234AC")
+    persistPrisonerIepLevel(bookingId = 1234137, prisonerNumber = "A1234AD")
+    persistPrisonerIepLevel(bookingId = 1234138, prisonerNumber = "A1234AE")
   }
 
   private val iepTime: LocalDateTime = LocalDateTime.now()
@@ -162,26 +158,56 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
         // language=json
         """
           {
-            "reviewCount": 2,
+            "reviewCount": 5,
             "overdueCount": 0,
             "reviews": [
               {
-                "prisonerNumber": "A1409AE",
-                "bookingId": 110001,
-                "firstName": "JAMES",
-                "lastName": "HALLS",
+                "prisonerNumber": "A1234AA",
+                "bookingId": 1234134,
+                "firstName": "JOHN",
+                "lastName": "SMITH",
                 "positiveBehaviours": 3,
-                "negativeBehaviours": 4,
+                "negativeBehaviours": 3,
                 "acctOpenStatus": true,
                 "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
               },
               {
-                "prisonerNumber": "G6123VU",
-                "bookingId": 110002,
-                "firstName": "RHYS",
-                "lastName": "JONES",
-                "positiveBehaviours": 0,
-                "negativeBehaviours": 0,
+                "prisonerNumber": "A1234AB",
+                "bookingId": 1234135,
+                "firstName": "DAVID",
+                "lastName": "WHITE",
+                "positiveBehaviours": 3,
+                "negativeBehaviours": 3,
+                "acctOpenStatus": false,
+                "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
+              },
+              {
+                "prisonerNumber": "A1234AC",
+                "bookingId": 1234136,
+                "firstName": "TREVOR",
+                "lastName": "LEE",
+                "positiveBehaviours": 2,
+                "negativeBehaviours": 2,
+                "acctOpenStatus": false,
+                "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
+              },
+              {
+                "prisonerNumber": "A1234AD",
+                "bookingId": 1234137,
+                "firstName": "ANTHONY",
+                "lastName": "DAVIES",
+                "positiveBehaviours": 1,
+                "negativeBehaviours": 1,
+                "acctOpenStatus": false,
+                "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
+              },
+              {
+                "prisonerNumber": "A1234AE",
+                "bookingId": 1234138,
+                "firstName": "PAUL",
+                "lastName": "RUDD",
+                "positiveBehaviours": 5,
+                "negativeBehaviours": 5,
                 "acctOpenStatus": false,
                 "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
               }
@@ -209,26 +235,56 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
         // language=json
         """
           {
-            "reviewCount": 2,
+            "reviewCount": 5,
             "overdueCount": 0,
             "reviews": [
               {
-                "prisonerNumber": "A1409AE",
-                "bookingId": 110001,
-                "firstName": "JAMES",
-                "lastName": "HALLS",
+                "prisonerNumber": "A1234AA",
+                "bookingId": 1234134,
+                "firstName": "JOHN",
+                "lastName": "SMITH",
                 "positiveBehaviours": 3,
-                "negativeBehaviours": 4,
+                "negativeBehaviours": 3,
                 "acctOpenStatus": true,
                 "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
               },
               {
-                "prisonerNumber": "G6123VU",
-                "bookingId": 110002,
-                "firstName": "RHYS",
-                "lastName": "JONES",
-                "positiveBehaviours": 0,
-                "negativeBehaviours": 0,
+                "prisonerNumber": "A1234AB",
+                "bookingId": 1234135,
+                "firstName": "DAVID",
+                "lastName": "WHITE",
+                "positiveBehaviours": 3,
+                "negativeBehaviours": 3,
+                "acctOpenStatus": false,
+                "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
+              },
+              {
+                "prisonerNumber": "A1234AC",
+                "bookingId": 1234136,
+                "firstName": "TREVOR",
+                "lastName": "LEE",
+                "positiveBehaviours": 2,
+                "negativeBehaviours": 2,
+                "acctOpenStatus": false,
+                "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
+              },
+              {
+                "prisonerNumber": "A1234AD",
+                "bookingId": 1234137,
+                "firstName": "ANTHONY",
+                "lastName": "DAVIES",
+                "positiveBehaviours": 1,
+                "negativeBehaviours": 1,
+                "acctOpenStatus": false,
+                "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
+              },
+              {
+                "prisonerNumber": "A1234AE",
+                "bookingId": 1234138,
+                "firstName": "PAUL",
+                "lastName": "RUDD",
+                "positiveBehaviours": 5,
+                "negativeBehaviours": 5,
                 "acctOpenStatus": false,
                 "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
               }
@@ -259,8 +315,8 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
         """
           {
             "status": 404,
-            "userMessage": "Not Found: No Data found for ID(s) [110001, 110002]",
-            "developerMessage": "No Data found for ID(s) [110001, 110002]"
+            "userMessage": "Not Found: No Data found for ID(s) [1234134, 1234135, 1234136, 1234137, 1234138]",
+            "developerMessage": "No Data found for ID(s) [1234134, 1234135, 1234136, 1234137, 1234138]"
           }
           """
       )
