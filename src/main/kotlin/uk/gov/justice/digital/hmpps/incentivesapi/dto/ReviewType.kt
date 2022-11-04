@@ -14,5 +14,4 @@ interface IsRealReview {
     // Eventually all reviews will come from our DB and have a "review type".
     return reviewType == null || listOf(ReviewType.REVIEW, ReviewType.MIGRATED).contains(reviewType)
   }
-
 }

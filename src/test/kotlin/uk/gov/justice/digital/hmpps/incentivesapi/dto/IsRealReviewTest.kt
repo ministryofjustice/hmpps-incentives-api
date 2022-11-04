@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 
 internal class IsRealReviewTest {
 
-  inner class SomeReviewClass(override val reviewType: ReviewType?): IsRealReview
+  inner class SomeReviewClass(override val reviewType: ReviewType?) : IsRealReview
 
   @Test
   fun `when reviewType is REVIEW it is a real review`() {
@@ -36,5 +36,4 @@ internal class IsRealReviewTest {
     val review = SomeReviewClass(reviewType = ReviewType.TRANSFER)
     assertThat(review.isRealReview()).isFalse
   }
-
 }

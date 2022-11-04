@@ -35,4 +35,3 @@ data class PrisonerIepLevel(
 
   override fun getId(): Long = id
 }
-
