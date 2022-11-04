@@ -30,6 +30,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
         aResponse()
           .withHeader("Content-Type", "application/json")
           .withBody(
+            // language=json
             """
                 {
                   "agencyId": "MDI",
@@ -38,23 +39,24 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                   "locationType": "WING",
                   "userDescription": "Houseblock 1"
                 }
-            """.trimIndent()
+            """
           )
       )
     )
   }
 
-  fun stubPrisonersOnWing(locationId: String) {
+  fun stubPrisonersOnWing(prisonId: String, locationId: String) {
     stubFor(
       get("/api/locations/description/$locationId/inmates").willReturn(
         aResponse()
           .withHeader("Content-Type", "application/json")
           .withBody(
+            // language=json
             """
               [
                 {
-                  "agencyId": "MDI",
-                  "assignedLivingUnitDesc": "$locationId-1-1",
+                  "agencyId": "$prisonId",
+                  "assignedLivingUnitDesc": "$locationId-1-1-001",
                   "bookingId": 1234134,
                   "bookingNo": "A12121",
                   "facialImageId": 1241241,
@@ -62,9 +64,9 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                   "lastName": "SMITH",
                   "offenderNo": "A1234AA"
                 },
-                  {
-                  "agencyId": "MDI",
-                  "assignedLivingUnitDesc": "$locationId-1-2",
+                {
+                  "agencyId": "$prisonId",
+                  "assignedLivingUnitDesc": "$locationId-1-1-002",
                   "bookingId": 1234135,
                   "bookingNo": "A12122",
                   "facialImageId": 1241242,
@@ -72,27 +74,29 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                   "lastName": "WHITE",
                   "offenderNo": "A1234AB"
                 },
-                  {
-                  "agencyId": "MDI",
-                  "assignedLivingUnitDesc": "$locationId-1-3",
+                {
+                  "agencyId": "$prisonId",
+                  "assignedLivingUnitDesc": "$locationId-1-1-003",
                   "bookingId": 1234136,
                   "bookingNo": "A12123",
                   "facialImageId": 1241243,
                   "firstName": "TREVOR",
                   "lastName": "LEE",
                   "offenderNo": "A1234AC"
-                },  {
-                  "agencyId": "MDI",
-                  "assignedLivingUnitDesc": "$locationId-1-4",
+                },
+                {
+                  "agencyId": "$prisonId",
+                  "assignedLivingUnitDesc": "$locationId-1-1-004",
                   "bookingId": 1234137,
                   "bookingNo": "A12124",
                   "facialImageId": 1241244,
                   "firstName": "ANTHONY",
                   "lastName": "DAVIES",
                   "offenderNo": "A1234AD"
-                },  {
-                  "agencyId": "MDI",
-                  "assignedLivingUnitDesc": "$locationId-1-5",
+                },
+                {
+                  "agencyId": "$prisonId",
+                  "assignedLivingUnitDesc": "$locationId-1-1-005",
                   "bookingId": 1234138,
                   "bookingNo": "A12125",
                   "facialImageId": 1241245,
@@ -101,8 +105,8 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                   "offenderNo": "A1234AE"
                 },
                 {
-                  "agencyId": "MDI",
-                  "assignedLivingUnitDesc": "$locationId-1-6",
+                  "agencyId": "$prisonId",
+                  "assignedLivingUnitDesc": "$locationId-1-1-006",
                   "bookingId": 2234134,
                   "bookingNo": "B12121",
                   "facialImageId": 1541241,
@@ -111,17 +115,17 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                   "offenderNo": "A1834AA"
                 },
                 {
-                  "agencyId": "MDI",
-                  "assignedLivingUnitDesc": "$locationId-1-7",
+                  "agencyId": "$prisonId",
+                  "assignedLivingUnitDesc": "$locationId-1-1-007",
                   "bookingId": 2734134,
                   "bookingNo": "B12122",
-                  "facialImageId": 1241243,
+                  "facialImageId": 1541242,
                   "firstName": "OLD",
                   "lastName": "ENTRY",
                   "offenderNo": "A1934AA"
-                }                                
+                }
               ]
-            """.trimIndent()
+            """
           )
       )
     )
@@ -133,52 +137,53 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
         aResponse()
           .withHeader("Content-Type", "application/json")
           .withBody(
+            // language=json
             """
-              [                
-                 {
-                      "domain": "IEP_LEVEL",
-                      "code": "BAS",
-                      "description": "Basic",
-                      "listSeq": 1,
-                      "activeFlag": "Y"
-                  },
-                  {
-                      "domain": "IEP_LEVEL",
-                      "code": "ENT",
-                      "description": "Entry",
-                      "listSeq": 2,
-                      "activeFlag": "N"
-                  },
-                  {
-                      "domain": "IEP_LEVEL",
-                      "code": "STD",
-                      "description": "Standard",
-                      "listSeq": 3,
-                      "activeFlag": "Y"
-                  },
-                 {
-                      "domain": "IEP_LEVEL",
-                      "code": "ENH",
-                      "description": "Enhanced",
-                      "listSeq": 4,
-                      "activeFlag": "Y"
-                  },
-                 {
-                      "domain": "IEP_LEVEL",
-                      "code": "EN2",
-                      "description": "Enhanced 2",
-                      "listSeq": 5,
-                      "activeFlag": "Y"
-                  },
-                 {
-                      "domain": "IEP_LEVEL",
-                      "code": "EN3",
-                      "description": "Enhanced 3",
-                      "listSeq": 6,
-                      "activeFlag": "Y"
-                  }                                 
+              [
+                {
+                  "domain": "IEP_LEVEL",
+                  "code": "BAS",
+                  "description": "Basic",
+                  "listSeq": 1,
+                  "activeFlag": "Y"
+                },
+                {
+                  "domain": "IEP_LEVEL",
+                  "code": "ENT",
+                  "description": "Entry",
+                  "listSeq": 2,
+                  "activeFlag": "N"
+                },
+                {
+                  "domain": "IEP_LEVEL",
+                  "code": "STD",
+                  "description": "Standard",
+                  "listSeq": 3,
+                  "activeFlag": "Y"
+                },
+                {
+                  "domain": "IEP_LEVEL",
+                  "code": "ENH",
+                  "description": "Enhanced",
+                  "listSeq": 4,
+                  "activeFlag": "Y"
+                },
+                {
+                  "domain": "IEP_LEVEL",
+                  "code": "EN2",
+                  "description": "Enhanced 2",
+                  "listSeq": 5,
+                  "activeFlag": "Y"
+                },
+                {
+                  "domain": "IEP_LEVEL",
+                  "code": "EN3",
+                  "description": "Enhanced 3",
+                  "listSeq": 6,
+                  "activeFlag": "Y"
+                }
               ]
-            """.trimIndent()
+            """
           )
       )
     )
@@ -190,6 +195,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
         aResponse()
           .withHeader("Content-Type", "application/json")
           .withBody(
+            // language=json
             """
               [
                   {
@@ -211,7 +217,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                       "defaultLevel": false
                   }
               ]
-            """.trimIndent()
+            """
           )
       )
     )
@@ -223,6 +229,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
         aResponse()
           .withHeader("Content-Type", "application/json")
           .withBody(
+            // language=json
             """
               [
                 {
@@ -326,7 +333,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                     {
                       "agencyId": "MDI",
                       "bookingId": 1234138,
-                      "sequence": 1,  
+                      "sequence": 1,
                       "iepDate": "2021-12-02",
                       "iepLevel": "Standard",
                       "iepTime": "2021-12-02T09:24:42.894Z",
@@ -346,7 +353,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                     {
                       "agencyId": "MDI",
                       "bookingId": 2734134,
-                      "sequence": 1,  
+                      "sequence": 1,
                       "iepDate": "2022-01-02",
                       "iepLevel": "Entry",
                       "iepTime": "2022-01-02T09:24:42.894Z",
@@ -357,7 +364,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                   ]
                 }
               ]
-            """.trimIndent()
+            """
           )
       )
     )
@@ -369,6 +376,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
         aResponse()
           .withHeader("Content-Type", "application/json")
           .withBody(
+            // language=json
             """
               {
                 "bookingId": $bookingId,
@@ -401,7 +409,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                   }
                 ]
               }
-            """.trimIndent()
+            """
           )
       )
     )
@@ -414,6 +422,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
           .withHeader("Content-Type", "application/json")
           .withStatus(404)
           .withBody(
+            // language=json
             """
             {
               "status": 404,
@@ -422,7 +431,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
               "developerMessage": "This is a test 404 Not Found response",
               "moreInfo": "This is a test 404 Not Found response"
             }
-            """.trimIndent()
+            """
           )
       )
     )
@@ -438,6 +447,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
           aResponse()
             .withHeader("Content-Type", "application/json")
             .withBody(
+              // language=json
               """
               [
                 {
@@ -490,7 +500,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                   "offenderNo": "A1409AE"
                 }
               ]
-              """.trimIndent()
+              """
             )
         )
     )
@@ -505,6 +515,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
           aResponse()
             .withHeader("Content-Type", "application/json")
             .withBody(
+              // language=json
               """
               [
                 {
@@ -557,7 +568,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                   "offenderNo": "A1409AE"
                 }
               ]
-              """.trimIndent()
+              """
             )
         )
     )
@@ -569,26 +580,27 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
         aResponse()
           .withHeader("Content-Type", "application/json")
           .withBody(
+            // language=json
             """
-                    [
-                      {
-                        "bookingId": 1234134,
-                        "provenAdjudicationCount": 3
-                      },
-                      {
-                        "bookingId": 1234135,
-                        "provenAdjudicationCount": 1
-                      },
-                      {
-                        "bookingId": 1234136,
-                        "provenAdjudicationCount": 4
-                      },
-                      {
-                        "bookingId": 1234137,
-                        "provenAdjudicationCount": 2
-                      }
-                    ]
-            """.trimIndent()
+              [
+                {
+                  "bookingId": 1234134,
+                  "provenAdjudicationCount": 3
+                },
+                {
+                  "bookingId": 1234135,
+                  "provenAdjudicationCount": 1
+                },
+                {
+                  "bookingId": 1234136,
+                  "provenAdjudicationCount": 4
+                },
+                {
+                  "bookingId": 1234137,
+                  "provenAdjudicationCount": 2
+                }
+              ]
+            """
           )
       )
     )
@@ -609,18 +621,19 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
       get("/api/bookings/offenderNo/$prisonerNumber").willReturn(
         aResponse()
           .withHeader("Content-Type", "application/json")
+          // language=json
           .withBody(
             """
-                  {
-                  "agencyId": "MDI",
-                  "assignedLivingUnitId": $locationId,
-                  "bookingId": $bookingId,
-                  "bookingNo": "A12121",
-                  "firstName": "JOHN",
-                  "lastName": "SMITH",
-                  "offenderNo": "$prisonerNumber"
-                }
-            """.trimIndent()
+              {
+                "agencyId": "MDI",
+                "assignedLivingUnitId": $locationId,
+                "bookingId": $bookingId,
+                "bookingNo": "A12121",
+                "firstName": "JOHN",
+                "lastName": "SMITH",
+                "offenderNo": "$prisonerNumber"
+              }
+            """
           )
       )
     )
@@ -632,17 +645,18 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
         aResponse()
           .withHeader("Content-Type", "application/json")
           .withBody(
+            // language=json
             """
-                    {
-                  "agencyId": "MDI",
-                  "assignedLivingUnitId": $locationId,
-                  "bookingId": $bookingId,
-                  "bookingNo": "A12121",
-                  "firstName": "JOHN",
-                  "lastName": "SMITH",
-                  "offenderNo": "$prisonerNumber"
-                }
-            """.trimIndent()
+              {
+                "agencyId": "MDI",
+                "assignedLivingUnitId": $locationId,
+                "bookingId": $bookingId,
+                "bookingNo": "A12121",
+                "firstName": "JOHN",
+                "lastName": "SMITH",
+                "offenderNo": "$prisonerNumber"
+              }
+            """
           )
       )
     )
@@ -654,14 +668,15 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
         aResponse()
           .withHeader("Content-Type", "application/json")
           .withBody(
+            // language=json
             """
-                {
-                  "agencyId": "MDI",
-                  "locationId": $locationId,
-                  "description": "$locationDesc",
-                  "locationType": "CELL"
-                }
-            """.trimIndent()
+              {
+                "agencyId": "MDI",
+                "locationId": $locationId,
+                "description": "$locationDesc",
+                "locationType": "CELL"
+              }
+            """
           )
       )
     )
