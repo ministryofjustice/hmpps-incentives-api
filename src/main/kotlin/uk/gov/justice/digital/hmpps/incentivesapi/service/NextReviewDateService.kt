@@ -65,25 +65,29 @@ class NextReviewDateService(private val input: NextReviewDateInput) {
     return ageOnDate < 18
   }
 
-  private fun lastReview(): IepDetail {
-    return input.iepDetails.first()
+  private fun lastReview(): IepDetail? {
+    return reviews().firstOrNull()
   }
 
   private fun isOnBasic(): Boolean {
-    return lastReview().iepLevel == BASIC
+    return lastReview()?.iepLevel == BASIC
   }
 
   private fun lastReviewDate(): LocalDate {
-    return lastReview().iepDate
+    return lastReview()?.iepDate ?: input.receptionDate
   }
 
   private fun wasConfirmedBasic(): Boolean {
-    val iepDetails = input.iepDetails
+    val reviews = reviews()
 
-    return isOnBasic() && iepDetails.size >= 2 && iepDetails[1].iepLevel == BASIC
+    return isOnBasic() && reviews.size >= 2 && reviews[1].iepLevel == BASIC
   }
 
   private fun isNewPrisoner(): Boolean {
-    return input.iepDetails.isEmpty()
+    return reviews().isEmpty()
+  }
+
+  private fun reviews(): List<IepDetail> {
+    return input.iepDetails.filter(IepDetail::isRealReview)
   }
 }

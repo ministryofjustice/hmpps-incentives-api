@@ -4,8 +4,8 @@ import org.assertj.core.api.AssertionsForClassTypes.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 internal class NextReviewDateServiceTest {
 
@@ -13,11 +13,34 @@ internal class NextReviewDateServiceTest {
   fun `when IEP level is not Basic, returns +1 year`() {
     val input = NextReviewDateInput(
       iepDetails = listOf(
-        iepDetail(iepLevel = "Standard", iepTime = LocalDateTime.now()),
+        review("2015-08-01", "ACI", "Standard", ReviewType.MIGRATED),
+        review("2015-07-01", "ACI", "Basic", ReviewType.MIGRATED),
+        review("2010-07-01", "MDI", "Enhanced", ReviewType.MIGRATED),
+        review("2000-07-01", "MDI", "Standard", ReviewType.MIGRATED),
       ),
       hasAcctOpen = false,
       dateOfBirth = LocalDate.parse("1971-07-01"),
-      receptionDate = LocalDate.now(),
+      receptionDate = LocalDate.parse("2000-07-01"),
+    )
+    val expectedNextReviewDate = input.iepDetails[0].iepDate.plusYears(1)
+
+    val nextReviewDate = NextReviewDateService(input).calculate()
+
+    assertThat(nextReviewDate).isEqualTo(expectedNextReviewDate)
+  }
+
+  @Test
+  fun `when IEP level is not Basic, returns +1 year (data from NOMIS)`() {
+    val input = NextReviewDateInput(
+      iepDetails = listOf(
+        review("2015-08-01", "ACI", "Standard", reviewType = null),
+        review("2015-07-01", "ACI", "Basic", reviewType = null),
+        review("2010-07-01", "MDI", "Enhanced", reviewType = null),
+        review("2000-07-01", "MDI", "Standard", reviewType = null),
+      ),
+      hasAcctOpen = false,
+      dateOfBirth = LocalDate.parse("1971-07-01"),
+      receptionDate = LocalDate.parse("2000-07-01"),
     )
     val expectedNextReviewDate = input.iepDetails[0].iepDate.plusYears(1)
 
@@ -33,11 +56,47 @@ internal class NextReviewDateServiceTest {
     fun `when IEP level is Basic and there is no previous review, returns +7 days`() {
       val input = NextReviewDateInput(
         iepDetails = listOf(
-          iepDetail(iepLevel = "Basic", iepTime = LocalDateTime.now()),
+          review("2000-07-01", "MDI", "Basic", ReviewType.MIGRATED),
         ),
         hasAcctOpen = false,
         dateOfBirth = LocalDate.parse("1971-07-01"),
-        receptionDate = LocalDate.now(),
+        receptionDate = LocalDate.parse("2000-07-01"),
+      )
+      val expectedNextReviewDate = input.iepDetails[0].iepDate.plusDays(7)
+
+      val nextReviewDate = NextReviewDateService(input).calculate()
+
+      assertThat(nextReviewDate).isEqualTo(expectedNextReviewDate)
+    }
+
+    @Test
+    fun `when IEP level is Basic and there is no previous review, returns +7 days (data from NOMIS)`() {
+      val input = NextReviewDateInput(
+        iepDetails = listOf(
+          review("2000-07-01", "MDI", "Basic", reviewType = null),
+        ),
+        hasAcctOpen = false,
+        dateOfBirth = LocalDate.parse("1971-07-01"),
+        receptionDate = LocalDate.parse("2000-07-01"),
+      )
+      val expectedNextReviewDate = input.iepDetails[0].iepDate.plusDays(7)
+
+      val nextReviewDate = NextReviewDateService(input).calculate()
+
+      assertThat(nextReviewDate).isEqualTo(expectedNextReviewDate)
+    }
+
+    @Test
+    fun `when IEP level is Basic and there is no previous "real" review, returns +7 days`() {
+      val input = NextReviewDateInput(
+        iepDetails = listOf(
+          review("2023-01-29", "ACI", "Basic", ReviewType.REVIEW),
+          review("2022-12-01", "ACI", "Standard", ReviewType.TRANSFER),
+          review("2022-11-29", "MDI", "Standard", ReviewType.INITIAL),
+        ),
+        hasAcctOpen = false,
+        dateOfBirth = LocalDate.parse("1971-07-01"),
+        receptionDate = LocalDate.parse("2022-11-29"),
       )
       val expectedNextReviewDate = input.iepDetails[0].iepDate.plusDays(7)
 
@@ -50,8 +109,8 @@ internal class NextReviewDateServiceTest {
     fun `when IEP level is Basic but previous review is at different level, returns +7 days`() {
       val input = NextReviewDateInput(
         iepDetails = listOf(
-          iepDetail(iepLevel = "Basic", iepTime = LocalDateTime.now()),
-          iepDetail(iepLevel = "Standard", iepTime = LocalDateTime.now().minusDays(10)),
+          review("2010-07-01", "MDI", "Basic", ReviewType.MIGRATED),
+          review("2000-07-01", "MDI", "Standard", ReviewType.MIGRATED),
         ),
         hasAcctOpen = false,
         dateOfBirth = LocalDate.parse("1971-07-01"),
@@ -68,12 +127,12 @@ internal class NextReviewDateServiceTest {
     fun `when IEP level is Basic and previous IEP level was also Basic, returns +28 days`() {
       val input = NextReviewDateInput(
         iepDetails = listOf(
-          iepDetail(iepLevel = "Basic", iepTime = LocalDateTime.now()),
-          iepDetail(iepLevel = "Basic", iepTime = LocalDateTime.now().minusDays(10)),
+          review("2010-07-01", "MDI", "Basic", ReviewType.MIGRATED),
+          review("2000-07-01", "MDI", "Basic", ReviewType.MIGRATED),
         ),
         hasAcctOpen = false,
         dateOfBirth = LocalDate.parse("1971-07-01"),
-        receptionDate = LocalDate.now(),
+        receptionDate = LocalDate.parse("2000-07-01"),
       )
       val expectedNextReviewDate = input.iepDetails[0].iepDate.plusDays(28)
 
@@ -90,11 +149,11 @@ internal class NextReviewDateServiceTest {
     fun `when prisoner has open ACCT but they're not on Basic, returns +1 year`() {
       val input = NextReviewDateInput(
         iepDetails = listOf(
-          iepDetail(iepLevel = "Standard", iepTime = LocalDateTime.now()),
+          review("2000-07-01", "MDI", "Standard", ReviewType.MIGRATED),
         ),
         hasAcctOpen = true,
         dateOfBirth = LocalDate.parse("1971-07-01"),
-        receptionDate = LocalDate.now(),
+        receptionDate = LocalDate.parse("2000-07-01"),
       )
       val expectedNextReviewDate = input.iepDetails[0].iepDate.plusYears(1)
 
@@ -107,12 +166,12 @@ internal class NextReviewDateServiceTest {
     fun `when last two IEP levels were Basic but prisoner has open ACCT, returns +14 days`() {
       val input = NextReviewDateInput(
         iepDetails = listOf(
-          iepDetail(iepLevel = "Basic", iepTime = LocalDateTime.now()),
-          iepDetail(iepLevel = "Basic", iepTime = LocalDateTime.now().minusDays(10)),
+          review("2010-07-01", "MDI", "Basic", ReviewType.MIGRATED),
+          review("2000-07-01", "MDI", "Basic", ReviewType.MIGRATED),
         ),
         hasAcctOpen = true,
         dateOfBirth = LocalDate.parse("1971-07-01"),
-        receptionDate = LocalDate.now(),
+        receptionDate = LocalDate.parse("2000-07-01"),
       )
       val expectedNextReviewDate = input.iepDetails[0].iepDate.plusDays(14)
 
@@ -125,12 +184,13 @@ internal class NextReviewDateServiceTest {
     fun `when last two IEP levels were Basic but is "young person", returns +14 days`() {
       val input = NextReviewDateInput(
         iepDetails = listOf(
-          iepDetail(iepLevel = "Basic", iepTime = LocalDateTime.now()),
-          iepDetail(iepLevel = "Basic", iepTime = LocalDateTime.now().minusDays(10)),
+          // 16yo on last review date
+          review("2016-07-01", "MDI", "Basic", ReviewType.MIGRATED),
+          review("2016-05-01", "MDI", "Basic", ReviewType.MIGRATED),
         ),
         hasAcctOpen = false,
-        dateOfBirth = LocalDate.now().minusYears(16),
-        receptionDate = LocalDate.now(),
+        dateOfBirth = LocalDate.parse("2000-07-01"),
+        receptionDate = LocalDate.parse("2016-05-01"),
       )
       val expectedNextReviewDate = input.iepDetails[0].iepDate.plusDays(14)
 
@@ -143,12 +203,31 @@ internal class NextReviewDateServiceTest {
     fun `when IEP level is Basic, previous review is at different level but has open ACCT, returns +7 days`() {
       val input = NextReviewDateInput(
         iepDetails = listOf(
-          iepDetail(iepLevel = "Basic", iepTime = LocalDateTime.now()),
-          iepDetail(iepLevel = "Standard", iepTime = LocalDateTime.now().minusDays(10)),
+          review("2023-01-07", "MDI", "Basic", ReviewType.REVIEW),
+          review("2022-12-01", "MDI", "Standard", ReviewType.REVIEW),
+          review("2000-07-01", "MDI", "Standard", ReviewType.MIGRATED),
         ),
         hasAcctOpen = true,
         dateOfBirth = LocalDate.parse("1971-07-01"),
-        receptionDate = LocalDate.now(),
+        receptionDate = LocalDate.parse("2000-07-01"),
+      )
+      val expectedNextReviewDate = input.iepDetails[0].iepDate.plusDays(7)
+
+      val nextReviewDate = NextReviewDateService(input).calculate()
+
+      assertThat(nextReviewDate).isEqualTo(expectedNextReviewDate)
+    }
+
+    @Test
+    fun `when IEP level is Basic, previous review is at different level but has open ACCT, returns +7 days (data from NOMIS)`() {
+      val input = NextReviewDateInput(
+        iepDetails = listOf(
+          review("2023-01-07", "MDI", "Basic", reviewType = null),
+          review("2000-07-01", "MDI", "Standard", reviewType = null),
+        ),
+        hasAcctOpen = true,
+        dateOfBirth = LocalDate.parse("1971-07-01"),
+        receptionDate = LocalDate.parse("2000-07-01"),
       )
       val expectedNextReviewDate = input.iepDetails[0].iepDate.plusDays(7)
 
@@ -179,14 +258,51 @@ internal class NextReviewDateServiceTest {
     }
 
     @Test
+    fun `has no real reviews yet (age 18+), returns +3 months`() {
+      val input = NextReviewDateInput(
+        iepDetails = listOf(
+          review("2018-08-15", "ACI", "Standard", ReviewType.TRANSFER),
+          review("2018-07-01", "MDI", "Standard", ReviewType.INITIAL),
+        ),
+        hasAcctOpen = true,
+        dateOfBirth = LocalDate.parse("2000-07-01"),
+        // At reception, was 18th birthday, not a "young person" anymore
+        receptionDate = LocalDate.parse("2018-07-01"),
+      )
+      val expectedNextReviewDate = input.receptionDate.plusMonths(3)
+
+      val nextReviewDate = NextReviewDateService(input).calculate()
+
+      assertThat(nextReviewDate).isEqualTo(expectedNextReviewDate)
+    }
+
+    @Test
     fun `when prisoner is new and "young person" (under age of 18), returns +1 months`() {
-      val receptionDate = LocalDate.now().minusMonths(6)
       val input = NextReviewDateInput(
         iepDetails = emptyList(),
         hasAcctOpen = true,
+        dateOfBirth = LocalDate.parse("2000-07-01"),
         // At reception, was almost 18yo, so still a "young person"
-        dateOfBirth = receptionDate.minusYears(18).plusDays(1),
-        receptionDate = receptionDate,
+        receptionDate = LocalDate.parse("2018-06-30"),
+      )
+      val expectedNextReviewDate = input.receptionDate.plusMonths(1)
+
+      val nextReviewDate = NextReviewDateService(input).calculate()
+
+      assertThat(nextReviewDate).isEqualTo(expectedNextReviewDate)
+    }
+
+    @Test
+    fun `has no real reviews yet and is "young person" (under age of 18), returns +1 months`() {
+      val input = NextReviewDateInput(
+        iepDetails = listOf(
+          review("2018-08-15", "ACI", "Standard", ReviewType.TRANSFER),
+          review("2018-06-30", "MDI", "Standard", ReviewType.INITIAL),
+        ),
+        hasAcctOpen = true,
+        dateOfBirth = LocalDate.parse("2000-07-01"),
+        // At reception, was almost 18yo, so still a "young person"
+        receptionDate = LocalDate.parse("2018-06-30"),
       )
       val expectedNextReviewDate = input.receptionDate.plusMonths(1)
 
@@ -197,12 +313,14 @@ internal class NextReviewDateServiceTest {
   }
 }
 
-fun iepDetail(iepLevel: String, iepTime: LocalDateTime): IepDetail {
+private fun review(iepDate: String, prisonId: String, iepLevel: String, reviewType: ReviewType?): IepDetail {
+  val iepDate = LocalDate.parse(iepDate)
   return IepDetail(
     iepLevel = iepLevel,
-    iepTime = iepTime,
-    iepDate = iepTime.toLocalDate(),
-    agencyId = "MDI",
+    iepTime = iepDate.atTime(10, 0),
+    iepDate = iepDate,
+    reviewType = reviewType,
+    agencyId = prisonId,
     bookingId = 1234567L,
     userId = null,
   )
