@@ -164,7 +164,7 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
 
     prisonApiMockServer.stubIepLevels()
     prisonApiMockServer.stubAgenciesIepLevels("MDI")
-    prisonApiMockServer.stubPrisonersOnWing("MDI-1")
+    prisonApiMockServer.stubPrisonersOnWing("MDI", "MDI-1")
     prisonApiMockServer.stubPositiveCaseNoteSummary()
     prisonApiMockServer.stubNegativeCaseNoteSummary()
     prisonApiMockServer.stubProvenAdj()
@@ -279,7 +279,7 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
                     {
                        "prisonerNumber":"A1934AA",
                        "bookingId":2734134,
-                       "imageId":1241243,
+                       "imageId":1541242,
                        "firstName":"Old",
                        "lastName":"Entry",
                        "daysOnLevel":5,

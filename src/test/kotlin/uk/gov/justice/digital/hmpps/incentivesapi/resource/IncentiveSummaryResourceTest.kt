@@ -32,7 +32,7 @@ class IncentiveSummaryResourceTest : SqsIntegrationTestBase() {
   private fun stubPrisonApi(prisonId: String, locationId: String) {
     prisonApiMockServer.stubIepLevels()
     prisonApiMockServer.stubAgenciesIepLevels(prisonId)
-    prisonApiMockServer.stubPrisonersOnWing(locationId)
+    prisonApiMockServer.stubPrisonersOnWing(prisonId, locationId)
     prisonApiMockServer.stubIEPSummary()
     prisonApiMockServer.stubPositiveCaseNoteSummary()
     prisonApiMockServer.stubNegativeCaseNoteSummary()
@@ -162,7 +162,7 @@ class IncentiveSummaryResourceTest : SqsIntegrationTestBase() {
                     {
                        "prisonerNumber":"A1934AA",
                        "bookingId":2734134,
-                       "imageId":1241243,
+                       "imageId":1541242,
                        "firstName":"Old",
                        "lastName":"Entry",
                        "daysOnLevel":5,
