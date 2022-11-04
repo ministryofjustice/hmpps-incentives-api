@@ -16,6 +16,7 @@ internal class NextReviewDateServiceTest {
         iepDetail(iepLevel = "Standard", iepTime = LocalDateTime.now()),
       ),
       hasAcctOpen = false,
+      dateOfBirth = LocalDate.parse("1971-07-01"),
       receptionDate = LocalDate.now(),
     )
     val expectedNextReviewDate = input.iepDetails[0].iepDate.plusYears(1)
@@ -35,6 +36,7 @@ internal class NextReviewDateServiceTest {
           iepDetail(iepLevel = "Basic", iepTime = LocalDateTime.now()),
         ),
         hasAcctOpen = false,
+        dateOfBirth = LocalDate.parse("1971-07-01"),
         receptionDate = LocalDate.now(),
       )
       val expectedNextReviewDate = input.iepDetails[0].iepDate.plusDays(7)
@@ -52,6 +54,7 @@ internal class NextReviewDateServiceTest {
           iepDetail(iepLevel = "Standard", iepTime = LocalDateTime.now().minusDays(10)),
         ),
         hasAcctOpen = false,
+        dateOfBirth = LocalDate.parse("1971-07-01"),
         receptionDate = LocalDate.now(),
       )
       val expectedNextReviewDate = input.iepDetails[0].iepDate.plusDays(7)
@@ -69,6 +72,7 @@ internal class NextReviewDateServiceTest {
           iepDetail(iepLevel = "Basic", iepTime = LocalDateTime.now().minusDays(10)),
         ),
         hasAcctOpen = false,
+        dateOfBirth = LocalDate.parse("1971-07-01"),
         receptionDate = LocalDate.now(),
       )
       val expectedNextReviewDate = input.iepDetails[0].iepDate.plusDays(28)
@@ -89,6 +93,7 @@ internal class NextReviewDateServiceTest {
           iepDetail(iepLevel = "Standard", iepTime = LocalDateTime.now()),
         ),
         hasAcctOpen = true,
+        dateOfBirth = LocalDate.parse("1971-07-01"),
         receptionDate = LocalDate.now(),
       )
       val expectedNextReviewDate = input.iepDetails[0].iepDate.plusYears(1)
@@ -106,6 +111,7 @@ internal class NextReviewDateServiceTest {
           iepDetail(iepLevel = "Basic", iepTime = LocalDateTime.now().minusDays(10)),
         ),
         hasAcctOpen = true,
+        dateOfBirth = LocalDate.parse("1971-07-01"),
         receptionDate = LocalDate.now(),
       )
       val expectedNextReviewDate = input.iepDetails[0].iepDate.plusDays(14)
@@ -123,6 +129,7 @@ internal class NextReviewDateServiceTest {
           iepDetail(iepLevel = "Standard", iepTime = LocalDateTime.now().minusDays(10)),
         ),
         hasAcctOpen = true,
+        dateOfBirth = LocalDate.parse("1971-07-01"),
         receptionDate = LocalDate.now(),
       )
       val expectedNextReviewDate = input.iepDetails[0].iepDate.plusDays(7)
@@ -137,13 +144,33 @@ internal class NextReviewDateServiceTest {
   inner class NewPrisonerRulesTest {
 
     @Test
-    fun `when prisoner is new, returns +3 months`() {
+    fun `when prisoner is new (age 18+), returns +3 months`() {
+      val receptionDate = LocalDate.now().minusMonths(6)
       val input = NextReviewDateInput(
         iepDetails = emptyList(),
         hasAcctOpen = true,
-        receptionDate = LocalDate.now(),
+        // At reception, was 18th birthday, not a "young person" anymore
+        dateOfBirth = receptionDate.minusYears(18),
+        receptionDate = receptionDate,
       )
       val expectedNextReviewDate = input.receptionDate.plusMonths(3)
+
+      val nextReviewDate = NextReviewDateService(input).calculate()
+
+      assertThat(nextReviewDate).isEqualTo(expectedNextReviewDate)
+    }
+
+    @Test
+    fun `when prisoner is new and "young person" (under age of 18), returns +1 months`() {
+      val receptionDate = LocalDate.now().minusMonths(6)
+      val input = NextReviewDateInput(
+        iepDetails = emptyList(),
+        hasAcctOpen = true,
+        // At reception, was almost 18yo, so still a "young person"
+        dateOfBirth = receptionDate.minusYears(18).plusDays(1),
+        receptionDate = receptionDate,
+      )
+      val expectedNextReviewDate = input.receptionDate.plusMonths(1)
 
       val nextReviewDate = NextReviewDateService(input).calculate()
 

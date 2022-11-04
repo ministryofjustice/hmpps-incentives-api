@@ -64,6 +64,7 @@ class PrisonerIepLevelReviewService(
       NextReviewDateInput(
         iepDetails = iepSummary.iepDetails,
         hasAcctOpen = prisoner.acctOpen,
+        dateOfBirth = prisoner.dateOfBirth,
         receptionDate = prisoner.receptionDate,
       )
     ).calculate()

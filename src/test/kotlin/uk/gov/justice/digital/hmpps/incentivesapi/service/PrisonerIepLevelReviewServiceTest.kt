@@ -1268,6 +1268,7 @@ class PrisonerIepLevelReviewServiceTest {
     lastName = "HALLS",
     status = "ACTIVE IN",
     inOutStatus = "IN",
+    dateOfBirth = LocalDate.parse("1971-07-01"),
     receptionDate = LocalDate.parse("2020-07-01"),
     prisonId = "MDI",
     prisonName = "Moorland",
