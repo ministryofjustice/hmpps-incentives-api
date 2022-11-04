@@ -122,6 +122,24 @@ internal class NextReviewDateServiceTest {
     }
 
     @Test
+    fun `when last two IEP levels were Basic but is "young person", returns +14 days`() {
+      val input = NextReviewDateInput(
+        iepDetails = listOf(
+          iepDetail(iepLevel = "Basic", iepTime = LocalDateTime.now()),
+          iepDetail(iepLevel = "Basic", iepTime = LocalDateTime.now().minusDays(10)),
+        ),
+        hasAcctOpen = false,
+        dateOfBirth = LocalDate.now().minusYears(16),
+        receptionDate = LocalDate.now(),
+      )
+      val expectedNextReviewDate = input.iepDetails[0].iepDate.plusDays(14)
+
+      val nextReviewDate = NextReviewDateService(input).calculate()
+
+      assertThat(nextReviewDate).isEqualTo(expectedNextReviewDate)
+    }
+
+    @Test
     fun `when IEP level is Basic, previous review is at different level but has open ACCT, returns +7 days`() {
       val input = NextReviewDateInput(
         iepDetails = listOf(
