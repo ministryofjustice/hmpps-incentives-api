@@ -68,6 +68,7 @@ class WebClientConfiguration(
       .baseUrl(offenderSearchUri)
       .clientConnector(ReactorClientHttpConnector(httpClient))
       .filter(oauth2Client)
+      .codecs { codecs -> codecs.defaultCodecs().maxInMemorySize(2 * 1024 * 1024) }
       .build()
   }
 
