@@ -76,8 +76,6 @@ data class PrisonerIncentiveSummary(
     example = "1234567"
   )
   val bookingId: Long,
-  @Schema(description = "Internal reference for looking up the prisoners latest photo", example = "112233")
-  val imageId: Long?,
   @Schema(description = "Prisoners First Name", example = "John")
   val firstName: String,
   @Schema(description = "Prisoners Last Name", example = "Smith")

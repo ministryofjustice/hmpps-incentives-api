@@ -23,11 +23,15 @@ For running locally against docker instances of the following services:
 
 ## Running locally against T3 test services
 
-This is straight-forward as authentication is delegated down to the calling services.  Environment variables to be set are as follows:-
+This is straight-forward as authentication is delegated down to the calling services.
+Environment variables to be set are as follows:
+
 ```
 API_BASE_URL_OAUTH=https://sign-in-dev.hmpps.service.justice.gov.uk/auth
 API_BASE_URL_PRISON=https://api-dev.prison.service.justice.gov.uk
 API_BASE_URL_OFFENDER_SEARCH=https://prisoner-offender-search-dev.prison.service.justice.gov.uk
+INCENTIVES_API_CLIENT_ID=[choose a suitable hmpps-auth client]
+INCENTIVES_API_CLIENT_SECRET=
 ```
 
 ## Running integration tests

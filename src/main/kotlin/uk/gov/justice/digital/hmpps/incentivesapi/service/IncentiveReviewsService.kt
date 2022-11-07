@@ -8,6 +8,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ListOfDataNotFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewResponse
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsage
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import java.time.Clock
@@ -41,11 +42,11 @@ class IncentiveReviewsService(
 
     val offenders = deferredOffenders.await()
 
-    val prisonerNumbers = offenders.content.map { p -> p.prisonerNumber }
+    val prisonerNumbers = offenders.content.map(OffenderSearchPrisoner::prisonerNumber)
     val deferredPositiveCaseNotesInLast3Months = async { getCaseNoteUsage("POS", "IEP_ENC", prisonerNumbers) }
     val deferredNegativeCaseNotesInLast3Months = async { getCaseNoteUsage("NEG", "IEP_WARN", prisonerNumbers) }
 
-    val bookingIds = offenders.content.map { p -> p.bookingId.toLong() }
+    val bookingIds = offenders.content.map(OffenderSearchPrisoner::bookingId)
     val nextReviewDates = getNextReviewDatesForOffenders(bookingIds)
 
     val bookingIdsMissingIepReviews = bookingIds.toSet() subtract nextReviewDates.keys
@@ -66,13 +67,13 @@ class IncentiveReviewsService(
       reviews = offenders.content.map {
         IncentiveReview(
           prisonerNumber = it.prisonerNumber,
-          bookingId = it.bookingId.toLong(),
+          bookingId = it.bookingId,
           firstName = it.firstName,
           lastName = it.lastName,
           positiveBehaviours = positiveCaseNotesInLast3Months[it.prisonerNumber]?.totalCaseNotes ?: 0,
           negativeBehaviours = negativeCaseNotesInLast3Months[it.prisonerNumber]?.totalCaseNotes ?: 0,
           acctOpenStatus = it.acctOpen,
-          nextReviewDate = nextReviewDates[it.bookingId.toLong()]!!.nextReviewDate,
+          nextReviewDate = nextReviewDates[it.bookingId]!!.nextReviewDate,
         )
       }.sortedBy { it.nextReviewDate }
     )

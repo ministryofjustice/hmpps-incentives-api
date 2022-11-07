@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import org.apache.commons.text.WordUtils
@@ -12,10 +11,10 @@ import uk.gov.justice.digital.hmpps.incentivesapi.config.FeatureFlagsService
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.BehaviourSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevelSummary
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonerIncentiveSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsage
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocation
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.ProvenAdjudication
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
@@ -26,6 +25,7 @@ import java.time.LocalDateTime
 @Service
 class IncentiveSummaryService(
   private val prisonApiService: PrisonApiService,
+  private val offenderSearchService: OffenderSearchService,
   private val iepLevelService: IepLevelService,
   private val featureFlagsService: FeatureFlagsService,
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository,
@@ -38,16 +38,17 @@ class IncentiveSummaryService(
     sortBy: SortColumn = SortColumn.NAME,
     sortDirection: Sort.Direction = Sort.Direction.ASC
   ): BehaviourSummary = coroutineScope {
-    val prisoners = prisonApiService.findPrisonersAtLocation(locationId).toList()
+    val prisoners = offenderSearchService.findOffenders(prisonId, locationId, 0, 1000).content.toList()
+
     if (prisoners.isEmpty()) throw NoPrisonersAtLocationException(prisonId, locationId)
 
     val iepLevelsDeferred = async { iepLevelService.getIepLevelsForPrison(prisonId) }
 
-    val offenderNos = prisoners.map { p -> p.offenderNo }
+    val offenderNos = prisoners.map(OffenderSearchPrisoner::prisonerNumber)
     val positiveCaseNotes = async { getCaseNoteUsage("POS", "IEP_ENC", offenderNos) }
     val negativeCaseNotes = async { getCaseNoteUsage("NEG", "IEP_WARN", offenderNos) }
 
-    val bookingIds = prisoners.map { p -> p.bookingId }
+    val bookingIds = prisoners.map(OffenderSearchPrisoner::bookingId)
     val provenAdjudications = async { getProvenAdjudications(bookingIds) }
     val iepDetails = getIEPDetails(bookingIds)
 
@@ -69,15 +70,14 @@ class IncentiveSummaryService(
             PrisonerIncentiveSummary(
               firstName = WordUtils.capitalizeFully(p.firstName),
               lastName = WordUtils.capitalizeFully(p.lastName),
-              prisonerNumber = p.offenderNo,
+              prisonerNumber = p.prisonerNumber,
               bookingId = p.bookingId,
-              imageId = p.facialImageId,
               daysOnLevel = iepDetails[p.bookingId]?.daysOnLevel ?: 0,
               daysSinceLastReview = iepDetails[p.bookingId]?.daysSinceReview ?: 0,
-              positiveBehaviours = positiveCount[p.offenderNo]?.totalCaseNotes ?: 0,
-              incentiveEncouragements = positiveCount[p.offenderNo]?.numSubTypeCount ?: 0,
-              negativeBehaviours = negativeCount[p.offenderNo]?.totalCaseNotes ?: 0,
-              incentiveWarnings = negativeCount[p.offenderNo]?.numSubTypeCount ?: 0,
+              positiveBehaviours = positiveCount[p.prisonerNumber]?.totalCaseNotes ?: 0,
+              incentiveEncouragements = positiveCount[p.prisonerNumber]?.numSubTypeCount ?: 0,
+              negativeBehaviours = negativeCount[p.prisonerNumber]?.totalCaseNotes ?: 0,
+              incentiveWarnings = negativeCount[p.prisonerNumber]?.numSubTypeCount ?: 0,
               provenAdjudications = provenAdjudications.await()[p.bookingId]?.provenAdjudicationCount ?: 0,
             )
           }.sortedWith(sortBy.applySorting(sortDirection))
@@ -94,7 +94,7 @@ class IncentiveSummaryService(
     )
   }
 
-  private fun lookupIepLevel(prisonerMap: Map.Entry<String, List<PrisonerAtLocation>>, levels: Map<String, IepLevel>) =
+  private fun lookupIepLevel(prisonerMap: Map.Entry<String, List<OffenderSearchPrisoner>>, levels: Map<String, IepLevel>) =
     if (prisonerMap.key == missingLevel().iepLevel) {
       missingLevel()
     } else {
@@ -102,9 +102,9 @@ class IncentiveSummaryService(
     }
 
   private fun getPrisonersByLevel(
-    prisoners: List<PrisonerAtLocation>,
+    prisoners: List<OffenderSearchPrisoner>,
     prisonerLevels: Map<Long, IepResult>
-  ): Map<String, List<PrisonerAtLocation>> =
+  ): Map<String, List<OffenderSearchPrisoner>> =
     prisoners.groupBy {
       prisonerLevels[it.bookingId]?.iepLevel ?: missingLevel().iepLevel
     }

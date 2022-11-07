@@ -11,7 +11,7 @@ class OffenderSearchServiceTest {
   fun `offender search object indicates if ACCT open`() {
     val offenderWithHaAlert = OffenderSearchPrisoner(
       prisonerNumber = "A1409AE",
-      bookingId = "110001",
+      bookingId = 110001,
       firstName = "JAMES",
       middleNames = "",
       lastName = "HALLS",
@@ -36,7 +36,7 @@ class OffenderSearchServiceTest {
 
     val offenderWithoutHaAlert = OffenderSearchPrisoner(
       prisonerNumber = "A1409AE",
-      bookingId = "110001",
+      bookingId = 110001,
       firstName = "JAMES",
       middleNames = "",
       lastName = "HALLS",
@@ -61,7 +61,7 @@ class OffenderSearchServiceTest {
 
     val offenderWithoutAlerts = OffenderSearchPrisoner(
       prisonerNumber = "A1409AE",
-      bookingId = "110001",
+      bookingId = 110001,
       firstName = "JAMES",
       middleNames = "",
       lastName = "HALLS",
