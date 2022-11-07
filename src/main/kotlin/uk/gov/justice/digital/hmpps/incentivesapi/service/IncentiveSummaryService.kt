@@ -16,7 +16,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonerIncentiveSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsage
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.ProvenAdjudication
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.ReviewType
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import java.time.Clock
 import java.time.Duration
@@ -157,12 +157,7 @@ class IncentiveSummaryService(
       .groupBy { it.bookingId }
       .map {
         val review = it.value
-        val latestReview = review.firstOrNull { possibleReview ->
-          possibleReview.reviewType in listOf(
-            ReviewType.REVIEW,
-            ReviewType.MIGRATED
-          )
-        }
+        val latestReview = review.firstOrNull(PrisonerIepLevel::isRealReview)
         IepResult(
           bookingId = it.key,
           iepLevel = latestReview?.let { incentiveLevels[latestReview.iepCode]?.iepDescription ?: "Unmapped" }

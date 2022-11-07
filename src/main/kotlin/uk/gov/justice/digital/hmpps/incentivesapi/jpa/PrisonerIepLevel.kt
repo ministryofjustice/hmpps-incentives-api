@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Transient
 import org.springframework.data.domain.Persistable
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.IsRealReview
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import java.time.LocalDateTime
 
 data class PrisonerIepLevel(
@@ -19,7 +21,7 @@ data class PrisonerIepLevel(
   val iepCode: String,
   val commentText: String? = null,
   val current: Boolean = true,
-  val reviewType: ReviewType = ReviewType.REVIEW,
+  override val reviewType: ReviewType = ReviewType.REVIEW,
 
   @Transient
   @Value("false")
@@ -27,13 +29,9 @@ data class PrisonerIepLevel(
 
   val whenCreated: LocalDateTime? = null
 
-) : Persistable<Long> {
+) : Persistable<Long>, IsRealReview {
 
   override fun isNew(): Boolean = new
 
   override fun getId(): Long = id
-}
-
-enum class ReviewType {
-  INITIAL, REVIEW, TRANSFER, MIGRATED,
 }
