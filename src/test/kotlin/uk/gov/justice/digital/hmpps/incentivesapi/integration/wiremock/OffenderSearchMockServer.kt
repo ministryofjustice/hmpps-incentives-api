@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get
+import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisonerList
@@ -146,7 +147,7 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
     }
     // </editor-fold>
     stubFor(
-      get("/prison/$prisonId/prisoners").willReturn(
+      get(urlPathEqualTo("/prison/$prisonId/prisoners")).willReturn(
         aResponse()
           .withHeader("Content-Type", "application/json")
           .withBody(
