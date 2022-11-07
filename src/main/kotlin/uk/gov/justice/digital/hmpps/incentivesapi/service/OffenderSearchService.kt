@@ -17,7 +17,7 @@ class OffenderSearchService(private val offenderSearchWebClient: WebClient) {
     offenderSearchWebClient.get()
       .uri(
         "/prison/$prisonId/prisoners?cellLocationPrefix=$cellLocationPrefix&size=$size&page=$page&sort=prisonerNumber,asc"
-        )
+      )
       .retrieve()
       .awaitBody<OffenderSearchPrisonerList>()
 
