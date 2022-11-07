@@ -16,7 +16,14 @@ class OffenderSearchService(private val offenderSearchWebClient: WebClient) {
   suspend fun findOffenders(prisonId: String, cellLocationPrefix: String, page: Int = 0, size: Int = 20) =
     offenderSearchWebClient.get()
       .uri(
-        "/prison/$prisonId/prisoners?cellLocationPrefix=$cellLocationPrefix&size=$size&page=$page&sort=prisonerNumber,asc"
+        "/prison/{prisonId}/prisoners?cellLocationPrefix={cellLocationPrefix}&size={size}&page={page}&sort={sort}",
+        mapOf(
+          "prisonId" to prisonId,
+          "cellLocationPrefix" to cellLocationPrefix,
+          "size" to size,
+          "page" to page,
+          "sort" to "prisonerNumber,ASC",
+        ),
       )
       .retrieve()
       .awaitBody<OffenderSearchPrisonerList>()
