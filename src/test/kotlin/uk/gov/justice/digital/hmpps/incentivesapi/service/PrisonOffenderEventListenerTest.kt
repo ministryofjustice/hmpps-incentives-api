@@ -23,7 +23,7 @@ class PrisonOffenderEventListenerTest {
   }
 
   @BeforeEach
-  internal fun setUp() {
+  fun setUp() {
     listener = PrisonOffenderEventListener(prisonerIepLevelReviewService, objectMapper)
   }
 

@@ -20,7 +20,7 @@ import java.time.ZoneId
 class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
 
   @TestConfiguration
-  internal class FixedClockConfig {
+  class FixedClockConfig {
     @Primary
     @Bean
     fun fixedClock(): Clock {
@@ -35,7 +35,7 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
   private lateinit var repository: PrisonerIepLevelRepository
 
   @BeforeEach
-  internal fun setUp(): Unit = runBlocking {
+  fun setUp(): Unit = runBlocking {
     prisonApiMockServer.resetAll()
 
     // Prisoner A1234AA has 2 incentive entries current BAS

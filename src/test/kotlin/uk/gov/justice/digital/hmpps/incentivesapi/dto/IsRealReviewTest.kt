@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.dto
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
 import org.junit.jupiter.api.Test
 
-internal class IsRealReviewTest {
+class IsRealReviewTest {
 
   inner class SomeReviewClass(override val reviewType: ReviewType?) : IsRealReview
 

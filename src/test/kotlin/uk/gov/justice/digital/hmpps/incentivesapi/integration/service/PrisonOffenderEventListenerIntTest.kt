@@ -21,7 +21,7 @@ import java.time.Duration
 import java.time.Instant
 import java.time.LocalDateTime
 
-internal class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
+class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
 
   @Autowired
   private lateinit var repository: PrisonerIepLevelRepository

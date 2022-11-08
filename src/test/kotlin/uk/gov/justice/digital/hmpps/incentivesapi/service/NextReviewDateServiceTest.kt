@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import java.time.LocalDate
 
-internal class NextReviewDateServiceTest {
+class NextReviewDateServiceTest {
 
   @Test
   fun `when IEP level is not Basic, returns +1 year`() {

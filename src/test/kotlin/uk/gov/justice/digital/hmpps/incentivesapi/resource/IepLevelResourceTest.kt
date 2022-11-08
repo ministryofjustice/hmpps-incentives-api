@@ -35,7 +35,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
   }
 
   @Test
-  internal fun `requires a valid token to retrieve data`() {
+  fun `requires a valid token to retrieve data`() {
     webTestClient.get()
       .uri("/iep/levels/MDI")
       .exchange()

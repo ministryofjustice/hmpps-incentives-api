@@ -34,8 +34,8 @@ class SqsIntegrationTestBase : IntegrationTestBase() {
   protected val domainEventsTopicSnsClient by lazy { domainEventsTopic.snsClient }
   protected val domainEventsTopicArn by lazy { domainEventsTopic.arn }
 
-  internal val auditQueue by lazy { hmppsQueueService.findByQueueId("audit") as HmppsQueue }
-  internal val incentivesQueue by lazy { hmppsQueueService.findByQueueId("incentives") as HmppsQueue }
+  protected val auditQueue by lazy { hmppsQueueService.findByQueueId("audit") as HmppsQueue }
+  protected val incentivesQueue by lazy { hmppsQueueService.findByQueueId("incentives") as HmppsQueue }
 
   fun HmppsSqsProperties.domaineventsTopicConfig() =
     topics["domainevents"] ?: throw MissingTopicException("domainevents has not been loaded from configuration properties")
