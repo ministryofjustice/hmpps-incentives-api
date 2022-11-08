@@ -10,7 +10,6 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.LocalStackContainer.setLocalStackProperties
-import uk.gov.justice.digital.hmpps.incentivesapi.service.PrisonOffenderEventListenerTest
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.HmppsSqsProperties
@@ -57,9 +56,6 @@ class SqsIntegrationTestBase : IntegrationTestBase() {
   }
 
   protected fun jsonString(any: Any) = objectMapper.writeValueAsString(any) as String
-  protected fun String.readResourceAsText(): String {
-    return PrisonOffenderEventListenerTest::class.java.getResource(this)?.readText() ?: throw AssertionError("can not find file")
-  }
 
   fun getNumberOfMessagesCurrentlyOnQueue(): Int? {
     val queueAttributes = incentivesQueue.sqsClient.getQueueAttributes(incentivesQueue.queueUrl, listOf("ApproximateNumberOfMessages"))
