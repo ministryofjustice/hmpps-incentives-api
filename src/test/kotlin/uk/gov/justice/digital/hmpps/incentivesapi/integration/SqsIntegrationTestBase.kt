@@ -48,6 +48,7 @@ class SqsIntegrationTestBase : IntegrationTestBase() {
   companion object {
     private val localStackContainer = LocalStackContainer.instance
 
+    @Suppress("unused")
     @JvmStatic
     @DynamicPropertySource
     fun testcontainers(registry: DynamicPropertyRegistry) {
