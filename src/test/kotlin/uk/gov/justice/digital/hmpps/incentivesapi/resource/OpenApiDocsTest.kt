@@ -12,7 +12,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTest
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-@Suppress("SpringJavaInjectionPointsAutowiringInspection")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 class OpenApiDocsTest : SqsIntegrationTestBase() {

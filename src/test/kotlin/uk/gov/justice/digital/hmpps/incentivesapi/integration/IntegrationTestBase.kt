@@ -18,7 +18,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.integration.wiremock.PrisonApi
 @ActiveProfiles("test")
 abstract class IntegrationTestBase : TestBase() {
 
-  @Suppress("SpringJavaInjectionPointsAutowiringInspection")
   @Autowired
   lateinit var webTestClient: WebTestClient
 
@@ -35,7 +34,6 @@ abstract class IntegrationTestBase : TestBase() {
     @JvmField
     val offenderSearchMockServer = OffenderSearchMockServer()
 
-    @Suppress("unused")
     @BeforeAll
     @JvmStatic
     fun startMocks() {
@@ -46,7 +44,6 @@ abstract class IntegrationTestBase : TestBase() {
       offenderSearchMockServer.start()
     }
 
-    @Suppress("unused")
     @AfterAll
     @JvmStatic
     fun stopMocks() {
