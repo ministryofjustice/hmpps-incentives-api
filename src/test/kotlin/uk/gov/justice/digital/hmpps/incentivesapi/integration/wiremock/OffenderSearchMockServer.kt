@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.integration.wiremock
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get
@@ -15,6 +15,8 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
     private const val WIREMOCK_PORT = 8094
   }
 
+  private val mapper = ObjectMapper().findAndRegisterModules()
+
   fun stubHealthPing(status: Int) {
     stubFor(
       get("/health/ping").willReturn(
@@ -27,7 +29,6 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
   }
 
   fun stubFindOffenders(prisonId: String = "MDI", wing: String = "1", includeInvalid: Boolean = false) {
-    val mapper = jacksonObjectMapper().findAndRegisterModules()
     // <editor-fold desc="mocked offenders">
     val offenders = mutableListOf(
       OffenderSearchPrisoner(
@@ -169,7 +170,6 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
       ),
     ) else emptyList()
 
-    val mapper = jacksonObjectMapper().findAndRegisterModules()
     stubFor(
       get("/prisoner/$prisonerNumber").willReturn(
         aResponse()

@@ -2,8 +2,6 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
@@ -17,9 +15,8 @@ import org.mockito.kotlin.verifyNoInteractions
 class PrisonOffenderEventListenerTest {
   private lateinit var listener: PrisonOffenderEventListener
   private val prisonerIepLevelReviewService: PrisonerIepLevelReviewService = mock()
-  private val objectMapper: ObjectMapper = ObjectMapper().registerKotlinModule().apply {
-    this.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-    this.registerModule(JavaTimeModule())
+  private val objectMapper = ObjectMapper().findAndRegisterModules().apply {
+    configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
   }
 
   @BeforeEach
