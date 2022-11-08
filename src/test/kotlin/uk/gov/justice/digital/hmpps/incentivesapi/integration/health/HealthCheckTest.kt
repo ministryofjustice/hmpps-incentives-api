@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.function.Consumer
 
 class HealthCheckTest : SqsIntegrationTestBase() {
 
@@ -27,11 +26,9 @@ class HealthCheckTest : SqsIntegrationTestBase() {
     webTestClient.get().uri("/health")
       .exchange()
       .expectStatus().isOk
-      .expectBody().jsonPath("components.healthInfo.details.version").value(
-        Consumer<String> {
-          assertThat(it).startsWith(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE))
-        }
-      )
+      .expectBody().jsonPath("components.healthInfo.details.version").value<String> {
+        assertThat(it).startsWith(LocalDateTime.now().format(DateTimeFormatter.ISO_DATE))
+      }
   }
 
   @Test
