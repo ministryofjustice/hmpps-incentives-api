@@ -14,7 +14,7 @@ import java.time.ZoneId
 @ActiveProfiles("test", "test-nomis")
 class IncentiveSummaryResourceTest : SqsIntegrationTestBase() {
   @TestConfiguration
-  internal class FixedClockConfig {
+  class FixedClockConfig {
     @Primary
     @Bean
     fun fixedClock(): Clock {
@@ -25,7 +25,7 @@ class IncentiveSummaryResourceTest : SqsIntegrationTestBase() {
     }
   }
   @BeforeEach
-  internal fun setUp() {
+  fun setUp() {
     prisonApiMockServer.resetAll()
   }
 
@@ -42,7 +42,7 @@ class IncentiveSummaryResourceTest : SqsIntegrationTestBase() {
   }
 
   @Test
-  internal fun `requires a valid token to retrieve data`() {
+  fun `requires a valid token to retrieve data`() {
     webTestClient.get()
       .uri("/incentives-summary/prison/MDI/location/MDI-1")
       .exchange()

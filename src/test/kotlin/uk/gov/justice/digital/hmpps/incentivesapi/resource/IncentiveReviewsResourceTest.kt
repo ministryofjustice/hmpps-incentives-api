@@ -17,7 +17,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
   private lateinit var repository: PrisonerIepLevelRepository
 
   @BeforeEach
-  internal fun setUp(): Unit = runBlocking {
+  fun setUp(): Unit = runBlocking {
     offenderSearchMockServer.resetAll()
     prisonApiMockServer.resetAll()
 

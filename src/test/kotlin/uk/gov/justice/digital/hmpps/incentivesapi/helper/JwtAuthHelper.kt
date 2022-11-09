@@ -41,7 +41,7 @@ class JwtAuthHelper {
     return { it.set(HttpHeaders.AUTHORIZATION, "Bearer $token") }
   }
 
-  internal fun createJwt(
+  fun createJwt(
     subject: String?,
     scope: List<String>? = listOf(),
     roles: List<String>? = listOf(),

@@ -10,7 +10,6 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.LocalStackContainer.setLocalStackProperties
-import uk.gov.justice.digital.hmpps.incentivesapi.service.PrisonOffenderEventListenerTest
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.HmppsSqsProperties
@@ -34,8 +33,8 @@ class SqsIntegrationTestBase : IntegrationTestBase() {
   protected val domainEventsTopicSnsClient by lazy { domainEventsTopic.snsClient }
   protected val domainEventsTopicArn by lazy { domainEventsTopic.arn }
 
-  internal val auditQueue by lazy { hmppsQueueService.findByQueueId("audit") as HmppsQueue }
-  internal val incentivesQueue by lazy { hmppsQueueService.findByQueueId("incentives") as HmppsQueue }
+  protected val auditQueue by lazy { hmppsQueueService.findByQueueId("audit") as HmppsQueue }
+  protected val incentivesQueue by lazy { hmppsQueueService.findByQueueId("incentives") as HmppsQueue }
 
   fun HmppsSqsProperties.domaineventsTopicConfig() =
     topics["domainevents"] ?: throw MissingTopicException("domainevents has not been loaded from configuration properties")
@@ -49,6 +48,7 @@ class SqsIntegrationTestBase : IntegrationTestBase() {
   companion object {
     private val localStackContainer = LocalStackContainer.instance
 
+    @Suppress("unused")
     @JvmStatic
     @DynamicPropertySource
     fun testcontainers(registry: DynamicPropertyRegistry) {
@@ -57,9 +57,6 @@ class SqsIntegrationTestBase : IntegrationTestBase() {
   }
 
   protected fun jsonString(any: Any) = objectMapper.writeValueAsString(any) as String
-  protected fun String.readResourceAsText(): String {
-    return PrisonOffenderEventListenerTest::class.java.getResource(this)?.readText() ?: throw AssertionError("can not find file")
-  }
 
   fun getNumberOfMessagesCurrentlyOnQueue(): Int? {
     val queueAttributes = incentivesQueue.sqsClient.getQueueAttributes(incentivesQueue.queueUrl, listOf("ApproximateNumberOfMessages"))

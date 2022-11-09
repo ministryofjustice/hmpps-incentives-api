@@ -18,7 +18,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.integration.wiremock.PrisonApi
 @ActiveProfiles("test")
 abstract class IntegrationTestBase : TestBase() {
 
-  @Suppress("SpringJavaInjectionPointsAutowiringInspection")
   @Autowired
   lateinit var webTestClient: WebTestClient
 
@@ -27,15 +26,14 @@ abstract class IntegrationTestBase : TestBase() {
 
   companion object {
     @JvmField
-    internal val prisonApiMockServer = PrisonApiMockServer()
+    val prisonApiMockServer = PrisonApiMockServer()
 
     @JvmField
-    internal val hmppsAuthMockServer = HmppsAuthMockServer()
+    val hmppsAuthMockServer = HmppsAuthMockServer()
 
     @JvmField
-    internal val offenderSearchMockServer = OffenderSearchMockServer()
+    val offenderSearchMockServer = OffenderSearchMockServer()
 
-    @Suppress("unused")
     @BeforeAll
     @JvmStatic
     fun startMocks() {
@@ -46,7 +44,6 @@ abstract class IntegrationTestBase : TestBase() {
       offenderSearchMockServer.start()
     }
 
-    @Suppress("unused")
     @AfterAll
     @JvmStatic
     fun stopMocks() {
@@ -61,7 +58,7 @@ abstract class IntegrationTestBase : TestBase() {
     System.setProperty("http.keepAlive", "false")
   }
 
-  internal fun setAuthorisation(
+  protected fun setAuthorisation(
     user: String = "INCENTIVES_ADM",
     roles: List<String> = listOf(),
     scopes: List<String> = listOf()
