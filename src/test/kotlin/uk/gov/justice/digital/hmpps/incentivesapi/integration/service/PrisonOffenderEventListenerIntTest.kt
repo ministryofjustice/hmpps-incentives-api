@@ -157,7 +157,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
         domainEventsTopicArn,
         jsonString(
           HMPPSDomainEvent(
-            eventType = "prison-offender-search.prisoner.received",
+            eventType = "prisoner-offender-search.prisoner.received",
             additionalInformation = AdditionalInformation(
               id = 123,
               nomsNumber = "A1244AB",
@@ -171,7 +171,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
         .withMessageAttributes(
           mapOf(
             "eventType" to MessageAttributeValue().withDataType("String")
-              .withStringValue("prison-offender-search.prisoner.received"),
+              .withStringValue("prisoner-offender-search.prisoner.received"),
           )
         )
     )

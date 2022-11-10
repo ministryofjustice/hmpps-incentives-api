@@ -682,7 +682,7 @@ class PrisonerIepLevelReviewServiceTest {
     fun `do not create IEP level if prisonerNumber is null`(): Unit = runBlocking {
       // Given
       val prisonOffenderEvent = HMPPSDomainEvent(
-        eventType = "prison-offender-search.prisoner.received",
+        eventType = "prisoner-offender-search.prisoner.received",
         additionalInformation = AdditionalInformation(
           id = 123,
           reason = "NEW_ADMISSION"
@@ -1178,7 +1178,7 @@ class PrisonerIepLevelReviewServiceTest {
   private val currentAndPreviousLevels = flowOf(previousLevel, currentLevel)
 
   private fun prisonOffenderEvent(reason: String, prisonerNumber: String = "A1244AB") = HMPPSDomainEvent(
-    eventType = "prison-offender-search.prisoner.received",
+    eventType = "prisoner-offender-search.prisoner.received",
     additionalInformation = AdditionalInformation(
       id = 123,
       nomsNumber = prisonerNumber,
