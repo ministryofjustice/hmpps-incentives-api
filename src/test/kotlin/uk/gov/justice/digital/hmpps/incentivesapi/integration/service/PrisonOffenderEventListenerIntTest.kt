@@ -10,6 +10,8 @@ import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
@@ -38,8 +40,9 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     repository.deleteAll()
   }
 
-  @Test
-  fun `prisoner with ADMISSION reason is processed`(): Unit = runBlocking {
+  @ParameterizedTest
+  @ValueSource(strings = ["NEW_ADMISSION", "READMISSION"])
+  fun `process admissions`(reason: String): Unit = runBlocking {
     // Given
     val bookingId = 1294134L
     val prisonerNumber = "A1244AB"
@@ -50,7 +53,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     prisonApiMockServer.stubGetLocationById(locationId = locationId, locationDesc = "1-2-003")
 
     // When
-    publishPrisonerReceivedMessage("ADMISSION")
+    publishPrisonerReceivedMessage(reason)
 
     await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
     await untilCallTo { prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber") } matches { it == 1 }
@@ -154,7 +157,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
         domainEventsTopicArn,
         jsonString(
           HMPPSDomainEvent(
-            eventType = "prison-offender-events.prisoner.received",
+            eventType = "prison-offender-search.prisoner.received",
             additionalInformation = AdditionalInformation(
               id = 123,
               nomsNumber = "A1244AB",
@@ -168,7 +171,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
         .withMessageAttributes(
           mapOf(
             "eventType" to MessageAttributeValue().withDataType("String")
-              .withStringValue("prison-offender-events.prisoner.received"),
+              .withStringValue("prison-offender-search.prisoner.received"),
           )
         )
     )

@@ -11,7 +11,7 @@
   "MessageAttributes": {
     "eventType": {
       "Type": "String",
-      "Value": "prison-offender-events.prisoner.received"
+      "Value": "prison-offender-search.prisoner.received"
     },
     "id": {
       "Type": "String",

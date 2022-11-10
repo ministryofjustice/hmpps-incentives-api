@@ -252,7 +252,7 @@ class PrisonerIepLevelReviewService(
   @Transactional
   suspend fun processOffenderEvent(prisonOffenderEvent: HMPPSDomainEvent) =
     when (prisonOffenderEvent.additionalInformation.reason) {
-      "ADMISSION" -> createIepForReceivedPrisoner(prisonOffenderEvent, ReviewType.INITIAL)
+      "NEW_ADMISSION", "READMISSION" -> createIepForReceivedPrisoner(prisonOffenderEvent, ReviewType.INITIAL)
       "TRANSFERRED" -> createIepForReceivedPrisoner(prisonOffenderEvent, ReviewType.TRANSFER)
       "MERGE" -> mergedPrisonerDetails(prisonOffenderEvent)
       else -> {
