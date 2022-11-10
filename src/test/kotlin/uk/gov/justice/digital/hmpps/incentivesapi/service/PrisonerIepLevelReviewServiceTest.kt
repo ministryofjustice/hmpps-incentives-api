@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
@@ -353,10 +354,11 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
     }
 
-    @Test
-    fun `process ADMISSION`(): Unit = runBlocking {
+    @ParameterizedTest
+    @ValueSource(strings = ["NEW_ADMISSION", "READMISSION"])
+    fun `process admissions`(reason: String): Unit = runBlocking {
       // Given - default for that prison is Enhanced
-      val prisonOffenderEvent = prisonOffenderEvent("ADMISSION")
+      val prisonOffenderEvent = prisonOffenderEvent(reason)
       whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(prisonerAtLocation())
       whenever(prisonApiService.getLocationById(prisonerAtLocation().assignedLivingUnitId, true)).thenReturn(location)
       // Enhanced is the default for this prison so use that
@@ -680,10 +682,10 @@ class PrisonerIepLevelReviewServiceTest {
     fun `do not create IEP level if prisonerNumber is null`(): Unit = runBlocking {
       // Given
       val prisonOffenderEvent = HMPPSDomainEvent(
-        eventType = "prison-offender-events.prisoner.received",
+        eventType = "prison-offender-search.prisoner.received",
         additionalInformation = AdditionalInformation(
           id = 123,
-          reason = "ADMISSION"
+          reason = "NEW_ADMISSION"
         ),
         occurredAt = Instant.now(),
         description = "A prisoner has been received into prison"
@@ -1176,7 +1178,7 @@ class PrisonerIepLevelReviewServiceTest {
   private val currentAndPreviousLevels = flowOf(previousLevel, currentLevel)
 
   private fun prisonOffenderEvent(reason: String, prisonerNumber: String = "A1244AB") = HMPPSDomainEvent(
-    eventType = "prison-offender-events.prisoner.received",
+    eventType = "prison-offender-search.prisoner.received",
     additionalInformation = AdditionalInformation(
       id = 123,
       nomsNumber = prisonerNumber,
