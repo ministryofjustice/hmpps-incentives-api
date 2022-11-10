@@ -44,7 +44,7 @@ hmpps.sqs:
       queueName: incentives-event-queue
       dlqName: incentives-event-dlq
       subscribeTopicId: domainevents
-      subscribeFilter: '{"eventType":[ "prison-offender-events.prisoner.merged", "prison-offender-search.prisoner.received" ] }'
+      subscribeFilter: '{"eventType":[ "prison-offender-events.prisoner.merged", "prisoner-offender-search.prisoner.received" ] }'
   topics:
     domainevents:
       arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
