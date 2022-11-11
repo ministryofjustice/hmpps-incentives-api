@@ -19,7 +19,23 @@ class NextReviewDateUpdaterService(
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository,
   private val nextReviewDateRepository: NextReviewDateRepository,
   private val prisonApiService: PrisonApiService,
+  private val offenderSearchService: OffenderSearchService,
 ) {
+
+  /**
+   * Update next review date for the given bookingId
+   *
+   * @param bookingId of the offender to update
+   *
+   * @return the nextReviewDate for the given bookingId
+   * */
+  suspend fun update(bookingId: Long): LocalDate {
+    val locationInfo = prisonApiService.getPrisonerInfo(bookingId, useClientCredentials = true)
+    val prisonerNumber = locationInfo.offenderNo
+    val offender = offenderSearchService.getOffender(prisonerNumber)
+
+    return updateMany(listOf(offender))[offender.bookingId]!!
+  }
 
   /**
    * Update next review date for the given offenders
