@@ -48,24 +48,6 @@ class IncentiveReviewsServiceTest {
   }
 
   @Test
-  fun `defaults to page 1, size 20`(): Unit = runBlocking {
-    whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-1-2")
-    whenever(offenderSearchService.findOffenders(any(), any(), any(), any())).thenReturnOffenders()
-
-    incentiveReviewsService.reviews("MDI", "MDI-1-2")
-    verify(offenderSearchService, times(1)).findOffenders("MDI", "MDI-1-2", 0, 20)
-  }
-
-  @Test
-  fun `accepts different pagination params`(): Unit = runBlocking {
-    whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-1-2")
-    whenever(offenderSearchService.findOffenders(any(), any(), any(), any())).thenReturnOffenders()
-
-    incentiveReviewsService.reviews("MDI", "MDI-1-2", 2, 40)
-    verify(offenderSearchService, times(1)).findOffenders("MDI", "MDI-1-2", 1, 40)
-  }
-
-  @Test
   fun `maps responses from offender search`(): Unit = runBlocking {
     val offenders = listOf(
       OffenderSearchPrisoner(
@@ -105,7 +87,6 @@ class IncentiveReviewsServiceTest {
         prisonName = "Moorland (HMP & YOI)",
         cellLocation = "2-1-003",
         locationDescription = "Moorland (HMP & YOI)",
-        alerts = listOf(),
       ),
     )
     whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-2-1")
@@ -118,7 +99,7 @@ class IncentiveReviewsServiceTest {
 
     val reviews = incentiveReviewsService.reviews("MDI", "MDI-2-1")
 
-    verify(offenderSearchService, times(1)).findOffenders(any(), eq("MDI-2-1"), any(), any())
+    verify(offenderSearchService, times(1)).findOffenders(any(), eq("MDI-2-1"), eq(0), eq(1000))
     assertThat(reviews.locationDescription).isEqualTo("A houseblock")
     assertThat(reviews.reviewCount).isEqualTo(2)
     assertThat(reviews.reviews).isEqualTo(
@@ -368,6 +349,5 @@ class IncentiveReviewsServiceTest {
     prisonName = "Moorland (HMP & YOI)",
     cellLocation = "2-1-003",
     locationDescription = "Moorland (HMP & YOI)",
-    alerts = listOf(),
   )
 }

@@ -30,7 +30,10 @@ class IncentiveReviewsService(
     page: Int = 1,
     size: Int = 20
   ): IncentiveReviewResponse = coroutineScope {
-    val deferredOffenders = async { offenderSearchService.findOffenders(prisonId, cellLocationPrefix, page - 1, size) }
+    val deferredOffenders = async {
+      // all offenders at location are required to determine total number with overdue reviews
+      offenderSearchService.findOffenders(prisonId, cellLocationPrefix, 0, 1000)
+    }
     val deferredLocationDescription = async {
       try {
         prisonApiService.getLocation(cellLocationPrefix).description
