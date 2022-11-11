@@ -15,9 +15,11 @@ data class IncentiveReview(
   @Schema(description = "Prisoner’s last name", example = "Smith")
   val lastName: String,
 
+  @Schema(description = "Prisoner’s incentive level code", example = "STD")
+  val levelCode: String,
+
   @Schema(description = "Count of all the positive case note behaviour entries recorded in the last 3 months", example = "7")
   val positiveBehaviours: Int,
-
   @Schema(description = "Count of all the negative case note behaviour entries recorded in the last 3 months", example = "7")
   val negativeBehaviours: Int,
 
