@@ -260,6 +260,11 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
     prisonApiMockServer.stubGetLocationById(locationId = 77778L, locationDesc = "1-2-003")
     prisonApiMockServer.stubAddIep(bookingId = bookingId)
     prisonApiMockServer.stubIepLevels()
+    offenderSearchMockServer.stubGetOffender(
+      prisonId = "MDI",
+      prisonerNumber,
+      bookingId,
+    )
 
     webTestClient.post().uri("/iep/reviews/booking/$bookingId")
       .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
@@ -283,6 +288,11 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
     )
     prisonApiMockServer.stubGetLocationById(locationId = 77779L, locationDesc = "1-2-004")
     prisonApiMockServer.stubAddIep(bookingId = bookingId2)
+    offenderSearchMockServer.stubGetOffender(
+      prisonId = "MDI",
+      prisonerNumber2,
+      bookingId2,
+    )
 
     webTestClient.post().uri("/iep/reviews/booking/$bookingId2")
       .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))

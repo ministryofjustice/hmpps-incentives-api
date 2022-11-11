@@ -78,6 +78,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     prisonApiMockServer.stubIepLevels()
     prisonApiMockServer.stubAgenciesIepLevels(prisonId)
     prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = locationId)
+    prisonApiMockServer.stubGetPrisonerInfoByBooking(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = locationId)
     prisonApiMockServer.stubGetLocationById(locationId = locationId, locationDesc = "1-2-003")
     prisonApiMockServer.stubIEPSummaryForBooking(bookingId = bookingId)
     offenderSearchMockServer.stubGetOffender(prisonId, prisonerNumber, bookingId)

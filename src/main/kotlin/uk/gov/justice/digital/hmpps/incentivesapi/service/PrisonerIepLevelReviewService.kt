@@ -400,7 +400,7 @@ class PrisonerIepLevelReviewService(
   ): PrisonerIepLevel {
     updateIepLevelsWithCurrentFlagToFalse(prisonerInfo.bookingId)
 
-    return prisonerIepLevelRepository.save(
+    val review = prisonerIepLevelRepository.save(
       PrisonerIepLevel(
         iepCode = iepReview.iepLevel,
         commentText = iepReview.comment,
@@ -414,6 +414,10 @@ class PrisonerIepLevelReviewService(
         prisonerNumber = prisonerInfo.offenderNo
       )
     )
+
+    nextReviewDateUpdaterService.update(prisonerInfo.bookingId)
+
+    return review
   }
 
   private suspend fun publishDomainEvent(
