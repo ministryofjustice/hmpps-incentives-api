@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -51,6 +52,7 @@ class PrisonerIepLevelReviewServiceTest {
   private val snsService: SnsService = mock()
   private val auditService: AuditService = mock()
   private val featureFlagsService: FeatureFlagsService = mock()
+  private val nextReviewDateGetterService: NextReviewDateGetterService = mock()
   private val offenderSearchService: OffenderSearchService = mock()
 
   private val prisonerIepLevelReviewService = PrisonerIepLevelReviewService(
@@ -62,6 +64,7 @@ class PrisonerIepLevelReviewServiceTest {
     authenticationFacade,
     clock,
     featureFlagsService,
+    nextReviewDateGetterService,
     offenderSearchService,
   )
 
@@ -285,16 +288,11 @@ class PrisonerIepLevelReviewServiceTest {
     fun `will query incentives db if useNomisData is false`(): Unit = runBlocking {
       coroutineScope {
         val bookingId = currentLevel.bookingId
-        val prisonerNumber = currentLevel.prisonerNumber
+        val expectedNextReviewDate = currentLevel.reviewTime.plusYears(1).toLocalDate()
 
         whenever(featureFlagsService.isIncentivesDataSourceOfTruth()).thenReturn(true)
         whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
-        // Mock request to get ACCT status
-        whenever(
-          offenderSearchService.getOffender(prisonerNumber)
-        ).thenReturn(
-          offenderSearchPrisoner(prisonerNumber, bookingId)
-        )
+        whenever(nextReviewDateGetterService.get(bookingId)).thenReturn(expectedNextReviewDate)
 
         // Given
         whenever(prisonerIepLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(bookingId)).thenReturn(
@@ -307,6 +305,7 @@ class PrisonerIepLevelReviewServiceTest {
         // Then
         verify(prisonerIepLevelRepository, times(1)).findAllByBookingIdOrderByReviewTimeDesc(bookingId)
         assertThat(result.iepDetails.size).isEqualTo(2)
+        assertThat(result.nextReviewDate).isEqualTo(expectedNextReviewDate)
       }
     }
 
@@ -314,20 +313,12 @@ class PrisonerIepLevelReviewServiceTest {
     fun `will query incentives db if useNomisData is false and will not return iep details if withDetails is false`(): Unit =
       runBlocking {
         coroutineScope {
-          val prisonerNumber = currentLevel.prisonerNumber
           val bookingId = currentLevel.bookingId
+          val expectedNextReviewDate = currentAndPreviousLevels.first().reviewTime.plusYears(1).toLocalDate()
 
           whenever(featureFlagsService.isIncentivesDataSourceOfTruth()).thenReturn(true)
           whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
-          // Mock request to get ACCT status
-          whenever(
-            offenderSearchService.getOffender(prisonerNumber)
-          ).thenReturn(
-            offenderSearchPrisoner(
-              prisonerNumber,
-              bookingId,
-            )
-          )
+          whenever(nextReviewDateGetterService.get(bookingId)).thenReturn(expectedNextReviewDate)
 
           // Given
           whenever(prisonerIepLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(bookingId)).thenReturn(
@@ -340,7 +331,8 @@ class PrisonerIepLevelReviewServiceTest {
 
           // Then
           verify(prisonerIepLevelRepository, times(1)).findAllByBookingIdOrderByReviewTimeDesc(bookingId)
-          assertThat(result.iepDetails.size).isZero()
+          assertThat(result.iepDetails.size).isZero
+          assertThat(result.nextReviewDate).isEqualTo(expectedNextReviewDate)
         }
       }
   }
