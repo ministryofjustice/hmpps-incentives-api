@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.toList
+import org.apache.commons.text.WordUtils
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClientResponseException.NotFound
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ListOfDataNotFoundException
@@ -68,8 +69,8 @@ class IncentiveReviewsService(
         IncentiveReview(
           prisonerNumber = it.prisonerNumber,
           bookingId = it.bookingId,
-          firstName = it.firstName,
-          lastName = it.lastName,
+          firstName = WordUtils.capitalizeFully(it.firstName),
+          lastName = WordUtils.capitalizeFully(it.lastName),
           positiveBehaviours = positiveCaseNotesInLast3Months[it.prisonerNumber]?.totalCaseNotes ?: 0,
           negativeBehaviours = negativeCaseNotesInLast3Months[it.prisonerNumber]?.totalCaseNotes ?: 0,
           acctOpenStatus = it.acctOpen,
