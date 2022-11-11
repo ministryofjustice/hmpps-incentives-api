@@ -479,14 +479,18 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
 
     @Test
     fun `POST to sync endpoint when request valid creates the IEP review`() {
+      val locationId = 77778L
+
       // Given the bookingId is valid
       prisonApiMockServer.stubGetPrisonerInfoByBooking(
         bookingId = bookingId,
         prisonerNumber = prisonerNumber,
-        locationId = 77778L,
+        locationId = locationId,
       )
-      prisonApiMockServer.stubGetLocationById(locationId = 77778L, locationDesc = "1-2-003")
+      prisonApiMockServer.stubGetLocationById(locationId = locationId, locationDesc = "1-2-003")
       prisonApiMockServer.stubIepLevels()
+      prisonApiMockServer.stubGetPrisonerInfoByBooking(bookingId, prisonerNumber, locationId)
+      offenderSearchMockServer.stubGetOffender(requestBody.prisonId, prisonerNumber, bookingId)
 
       // API responds 201 Created with the created IEP review record
       val responseBytes = webTestClient.post().uri(syncCreateEndpoint)

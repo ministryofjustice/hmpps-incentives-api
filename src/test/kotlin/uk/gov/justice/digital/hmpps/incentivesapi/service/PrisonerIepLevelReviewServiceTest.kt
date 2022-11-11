@@ -53,6 +53,7 @@ class PrisonerIepLevelReviewServiceTest {
   private val auditService: AuditService = mock()
   private val featureFlagsService: FeatureFlagsService = mock()
   private val nextReviewDateGetterService: NextReviewDateGetterService = mock()
+  private val nextReviewDateUpdaterService: NextReviewDateUpdaterService = mock()
   private val offenderSearchService: OffenderSearchService = mock()
 
   private val prisonerIepLevelReviewService = PrisonerIepLevelReviewService(
@@ -65,6 +66,7 @@ class PrisonerIepLevelReviewServiceTest {
     clock,
     featureFlagsService,
     nextReviewDateGetterService,
+    nextReviewDateUpdaterService,
     offenderSearchService,
   )
 
@@ -720,6 +722,9 @@ class PrisonerIepLevelReviewServiceTest {
           prisonerNumber = prisonerAtLocation().offenderNo
         )
       )
+
+      // Triggers the update of next review date when a new review is created
+      verify(nextReviewDateUpdaterService, times(1)).update(bookingId)
     }
 
     @Test

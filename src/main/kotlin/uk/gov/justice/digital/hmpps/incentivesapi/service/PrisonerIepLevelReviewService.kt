@@ -46,6 +46,7 @@ class PrisonerIepLevelReviewService(
   private val clock: Clock,
   private val featureFlagsService: FeatureFlagsService,
   private val nextReviewDateGetterService: NextReviewDateGetterService,
+  private val nextReviewDateUpdaterService: NextReviewDateUpdaterService,
   private val offenderSearchService: OffenderSearchService,
 ) {
   companion object {
@@ -136,7 +137,7 @@ class PrisonerIepLevelReviewService(
       updateIepLevelsWithCurrentFlagToFalse(bookingId)
     }
 
-    return prisonerIepLevelRepository.save(
+    val review = prisonerIepLevelRepository.save(
       PrisonerIepLevel(
         iepCode = syncPostRequest.iepLevel,
         commentText = syncPostRequest.comment,
@@ -149,7 +150,11 @@ class PrisonerIepLevelReviewService(
         reviewType = syncPostRequest.reviewType,
         prisonerNumber = prisonerInfo.offenderNo
       )
-    ).translate(prisonApiService.getIncentiveLevels())
+    )
+
+    nextReviewDateUpdaterService.update(review.bookingId)
+
+    return review.translate(prisonApiService.getIncentiveLevels())
   }
 
   suspend fun handleSyncPostIepReviewRequest(bookingId: Long, syncPostRequest: SyncPostRequest): IepDetail {
