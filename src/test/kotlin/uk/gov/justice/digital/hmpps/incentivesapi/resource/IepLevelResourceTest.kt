@@ -133,7 +133,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
     prisonApiMockServer.stubGetPrisonerInfoByBooking(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = 77778L)
     prisonApiMockServer.stubGetLocationById(locationId = 77778L, locationDesc = "1-2-003")
     prisonApiMockServer.stubAddIep(bookingId = bookingId)
-    offenderSearchMockServer.stubGetOffender(prisonId, prisonerNumber, withOpenAcct = false)
+    offenderSearchMockServer.stubGetOffender(prisonId, prisonerNumber, bookingId, withOpenAcct = false)
 
     webTestClient.post().uri("/iep/reviews/booking/$bookingId")
       .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
@@ -177,12 +177,14 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
     val bookingId = 1294134L
     val prisonerNumber = "A1244AB"
     val prisonId = "MDI"
+    val locationId = 77777L
 
-    prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = 77777L)
-    prisonApiMockServer.stubGetLocationById(locationId = 77777L, locationDesc = "1-2-003")
+    prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = locationId)
+    prisonApiMockServer.stubGetPrisonerInfoByBooking(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = locationId)
+    prisonApiMockServer.stubGetLocationById(locationId = locationId, locationDesc = "1-2-003")
     prisonApiMockServer.stubAddIep(bookingId = bookingId)
     prisonApiMockServer.stubIepLevels()
-    offenderSearchMockServer.stubGetOffender(prisonId, prisonerNumber, withOpenAcct = false)
+    offenderSearchMockServer.stubGetOffender(prisonId, prisonerNumber, bookingId, withOpenAcct = false)
 
     webTestClient.post().uri("/iep/reviews/prisoner/$prisonerNumber")
       .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))

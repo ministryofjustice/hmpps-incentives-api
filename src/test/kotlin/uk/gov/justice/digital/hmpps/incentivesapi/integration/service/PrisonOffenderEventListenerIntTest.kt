@@ -80,7 +80,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = locationId)
     prisonApiMockServer.stubGetLocationById(locationId = locationId, locationDesc = "1-2-003")
     prisonApiMockServer.stubIEPSummaryForBooking(bookingId = bookingId)
-    offenderSearchMockServer.stubGetOffender(prisonId, prisonerNumber)
+    offenderSearchMockServer.stubGetOffender(prisonId, prisonerNumber, bookingId)
 
     // When
     publishPrisonerReceivedMessage("TRANSFERRED")

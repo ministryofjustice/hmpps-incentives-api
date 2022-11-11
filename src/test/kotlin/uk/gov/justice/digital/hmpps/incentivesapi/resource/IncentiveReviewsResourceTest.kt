@@ -297,5 +297,4 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
         true,
       )
   }
-
 }
