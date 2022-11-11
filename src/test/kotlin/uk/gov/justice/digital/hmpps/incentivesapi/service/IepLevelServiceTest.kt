@@ -187,11 +187,22 @@ class IepLevelServiceTest {
     }
 
     @Test
-    fun `falls back to the prison's first level when target is not found and there is no default`(): Unit = runBlocking {
-      // extreme edge case when a level is globally removed AND the prison does not have a default set
+    fun `falls back to standard when target is not found and there is no default`(): Unit = runBlocking {
+      // extreme edge case when a level is globally removed AND the prison does not have a default set but standard is available
       val prisonLevels = listOf(
         IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1),
         IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2),
+        IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3),
+      )
+      assertThat(iepLevelService.findNearestHighestLevel(prisonId, prisonLevels, "ABC")).isEqualTo("STD")
+    }
+
+    @Test
+    fun `falls back to the prison's first level when target is not found and there is no default or standard`(): Unit = runBlocking {
+      // extreme edge case when a level is globally removed AND the prison does not have a default set AND standard is unavailable
+      val prisonLevels = listOf(
+        IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1),
+        IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2, active = false),
         IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3),
       )
       assertThat(iepLevelService.findNearestHighestLevel(prisonId, prisonLevels, "ABC")).isEqualTo("BAS")
