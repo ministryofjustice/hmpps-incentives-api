@@ -490,9 +490,8 @@ class PrisonerIepLevelReviewService(
         .map { review -> review.copy(bookingId = remainingBookingId, current = false) }
 
     val reviewsToUpdate = merge(activeReviews, inactiveReviews)
-    reviewsToUpdate.collect {
-      prisonerIepLevelRepository.save(it)
-    }
+    prisonerIepLevelRepository.saveAll(reviewsToUpdate)
+    nextReviewDateUpdaterService.update(remainingBookingId)
 
     val numberUpdated = reviewsToUpdate.count()
     if (numberUpdated > 0) {

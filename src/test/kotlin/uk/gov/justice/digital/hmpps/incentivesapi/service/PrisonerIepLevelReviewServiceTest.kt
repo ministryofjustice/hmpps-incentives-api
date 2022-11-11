@@ -615,12 +615,12 @@ class PrisonerIepLevelReviewServiceTest {
     fun `process MERGE event`(): Unit = runBlocking {
       // Given - default for that prison is Enhanced
       val prisonMergeEvent = prisonMergeEvent()
-      whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(
-        prisonerAtLocation(
-          bookingId = 1234567,
-          offenderNo = "A1244AB"
-        )
+      val prisonerAtLocation = prisonerAtLocation(
+        bookingId = 1234567,
+        offenderNo = "A1244AB"
       )
+      whenever(prisonApiService.getPrisonerInfo("A1244AB", true))
+        .thenReturn(prisonerAtLocation)
       whenever(prisonerIepLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDesc("A8765SS"))
         .thenReturn(
           flowOf(
@@ -662,6 +662,10 @@ class PrisonerIepLevelReviewServiceTest {
           )
         )
       prisonerIepLevelReviewService.mergedPrisonerDetails(prisonMergeEvent)
+
+      // check next review date is updated for new bookingId
+      verify(nextReviewDateUpdaterService, times(1))
+        .update(prisonerAtLocation.bookingId)
 
       verify(auditService, times(1))
         .sendMessage(
