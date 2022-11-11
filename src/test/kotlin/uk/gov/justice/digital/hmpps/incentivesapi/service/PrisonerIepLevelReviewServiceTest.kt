@@ -941,6 +941,16 @@ class PrisonerIepLevelReviewServiceTest {
     }
 
     @Test
+    fun `updates the next review date for the prisoner`(): Unit = runBlocking {
+      // When
+      prisonerIepLevelReviewService.handleSyncPatchIepReviewRequest(bookingId, iepReview.id, syncPatchRequest)
+
+      // Then check the next review date was updated for the affected prisoner
+      verify(nextReviewDateUpdaterService, times(1))
+        .update(bookingId)
+    }
+
+    @Test
     fun `sends IepReview event and audit message`(): Unit = runBlocking {
       // When sync POST request is handled
       prisonerIepLevelReviewService.handleSyncPatchIepReviewRequest(bookingId, iepReview.id, syncPatchRequest)

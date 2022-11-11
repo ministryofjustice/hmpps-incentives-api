@@ -559,6 +559,12 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
       val updatedComment = "Updated comment"
       val requestBody = mapOf("comment" to updatedComment)
       prisonApiMockServer.stubIepLevels()
+      prisonApiMockServer.stubGetPrisonerInfoByBooking(bookingId, prisonerNumber, 777L)
+      offenderSearchMockServer.stubGetOffender(
+        prisonId = existingPrisonerIepLevel!!.prisonId,
+        prisonerNumber,
+        bookingId,
+      )
 
       val expectedResponseBody = """
         {
@@ -605,6 +611,12 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
         "current" to updatedCurrent,
       )
       prisonApiMockServer.stubIepLevels()
+      prisonApiMockServer.stubGetPrisonerInfoByBooking(bookingId, prisonerNumber, locationId = 777L)
+      offenderSearchMockServer.stubGetOffender(
+        prisonId = existingPrisonerIepLevel!!.prisonId,
+        prisonerNumber,
+        bookingId,
+      )
 
       val expectedResponseBody = """
         {

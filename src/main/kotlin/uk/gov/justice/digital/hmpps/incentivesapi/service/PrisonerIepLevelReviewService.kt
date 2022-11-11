@@ -196,8 +196,10 @@ class PrisonerIepLevelReviewService(
       current = syncPatchRequest.current ?: prisonerIepLevel.current,
     )
 
-    val iepDetail = prisonerIepLevelRepository.save(prisonerIepLevel).translate(prisonApiService.getIncentiveLevels())
+    val updatedReview = prisonerIepLevelRepository.save(prisonerIepLevel)
+    nextReviewDateUpdaterService.update(updatedReview.bookingId)
 
+    val iepDetail = updatedReview.translate(prisonApiService.getIncentiveLevels())
     publishDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_UPDATED)
     publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_UPDATED)
 
