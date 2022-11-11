@@ -46,11 +46,14 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     // Given
     val bookingId = 1294134L
     val prisonerNumber = "A1244AB"
+    val prisonId = "MDI"
     val locationId = 77777L
     prisonApiMockServer.stubIepLevels()
-    prisonApiMockServer.stubAgenciesIepLevels("MDI")
+    prisonApiMockServer.stubAgenciesIepLevels(prisonId)
     prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = locationId)
     prisonApiMockServer.stubGetLocationById(locationId = locationId, locationDesc = "1-2-003")
+    prisonApiMockServer.stubGetPrisonerInfoByBooking(bookingId, prisonerNumber, locationId)
+    offenderSearchMockServer.stubGetOffender(prisonId, prisonerNumber, bookingId)
 
     // When
     publishPrisonerReceivedMessage(reason)
