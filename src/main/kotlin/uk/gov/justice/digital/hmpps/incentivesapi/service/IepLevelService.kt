@@ -20,8 +20,10 @@ class IepLevelService(
 
   fun chooseDefaultLevel(prisonId: String, prisonLevels: List<IepLevel>): String {
     val activePrisonLevels = prisonLevels.filter(IepLevel::active)
-    return activePrisonLevels.find(IepLevel::default)?.iepLevel
-      // NOMIS traditionally takes the first if no default was found
+    return activePrisonLevels.firstOrNull(IepLevel::default)?.iepLevel
+      // fall back to standard if available
+      ?: activePrisonLevels.firstOrNull { it.iepLevel == "STD" }?.iepLevel
+      // fall back to first available level
       ?: activePrisonLevels.firstOrNull()?.iepLevel
       // there are no available incentive levels at all at this prison
       ?: throw DataIntegrityException("$prisonId has no available incentive levels")
