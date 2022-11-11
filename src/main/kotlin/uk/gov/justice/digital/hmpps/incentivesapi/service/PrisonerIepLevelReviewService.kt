@@ -219,6 +219,7 @@ class PrisonerIepLevelReviewService(
     }
 
     prisonerIepLevelRepository.delete(prisonerIepLevel)
+    nextReviewDateUpdaterService.update(bookingId)
 
     // If the deleted record had `current=true`, the latest IEP review becomes current
     prisonerIepLevel.current.let {

@@ -818,6 +818,16 @@ class PrisonerIepLevelReviewServiceTest {
     }
 
     @Test
+    fun `updates the next review date of the affected prisoner`(): Unit = runBlocking {
+      // When
+      prisonerIepLevelReviewService.handleSyncDeleteIepReviewRequest(bookingId, iepReview.id)
+
+      // Then check it's saved
+      verify(nextReviewDateUpdaterService, times(1))
+        .update(bookingId)
+    }
+
+    @Test
     fun `sends IepReview event and audit message`(): Unit = runBlocking {
       // When sync DELETE request is handled
       prisonerIepLevelReviewService.handleSyncDeleteIepReviewRequest(bookingId, iepReview.id)

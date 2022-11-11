@@ -662,6 +662,11 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
       )
       prisonApiMockServer.stubGetLocationById(locationId = 77778L, locationDesc = "1-2-003")
       prisonApiMockServer.stubIepLevels()
+      offenderSearchMockServer.stubGetOffender(
+        prisonId = existingPrisonerIepLevel!!.prisonId,
+        prisonerNumber,
+        bookingId,
+      )
 
       // API responds 201 Created with the created IEP review record
       webTestClient.delete().uri(syncDeleteEndpoint)
