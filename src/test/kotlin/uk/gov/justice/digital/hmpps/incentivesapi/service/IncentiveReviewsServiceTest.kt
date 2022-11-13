@@ -230,7 +230,67 @@ class IncentiveReviewsServiceTest {
   }
 
   @Test
-  fun `oldest date of next review is first`(): Unit = runBlocking {
+  fun `filters reviews by level`(): Unit = runBlocking {
+    val offenders = listOf(
+      offenderSearchPrisoner("A1409AE", 110001),
+      offenderSearchPrisoner("G6123VU", 110002),
+      offenderSearchPrisoner("G6123VX", 110003),
+    )
+    val someFutureNextReviewDate = LocalDate.now(clock).plusYears(1)
+
+    whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-2-1")
+    whenever(offenderSearchService.findOffenders(any(), any(), any(), any()))
+      .thenReturnOffenders(offenders)
+    whenever(prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(any()))
+      .thenReturn(
+        flowOf(
+          prisonerIepLevel(110001, iepCode = "STD"),
+          prisonerIepLevel(110002, iepCode = "ENH"),
+          prisonerIepLevel(110003, iepCode = "STD"),
+        )
+      )
+    whenever(nextReviewDateGetterService.getMany(offenders))
+      .thenReturn(
+        mapOf(
+          110001L to someFutureNextReviewDate,
+          110002L to someFutureNextReviewDate,
+          110003L to someFutureNextReviewDate,
+        )
+      )
+
+    val reviews = incentiveReviewsService.reviews("MDI", "MDI-2-1", "STD")
+
+    assertThat(reviews.reviewCount).isEqualTo(2)
+    assertThat(reviews.reviews).isEqualTo(
+      listOf(
+        IncentiveReview(
+          prisonerNumber = "A1409AE",
+          bookingId = 110001,
+          firstName = "Rhys",
+          lastName = "Jones",
+          levelCode = "STD",
+          positiveBehaviours = 0,
+          negativeBehaviours = 0,
+          acctOpenStatus = false,
+          nextReviewDate = someFutureNextReviewDate,
+        ),
+        IncentiveReview(
+          prisonerNumber = "G6123VX",
+          bookingId = 110003,
+          firstName = "Rhys",
+          lastName = "Jones",
+          levelCode = "STD",
+          positiveBehaviours = 0,
+          negativeBehaviours = 0,
+          acctOpenStatus = false,
+          nextReviewDate = someFutureNextReviewDate,
+        ),
+      )
+    )
+  }
+
+  @Test
+  fun `oldest date of next review is first by default`(): Unit = runBlocking {
     // Given
     whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-2-1")
     val offenders = listOf(

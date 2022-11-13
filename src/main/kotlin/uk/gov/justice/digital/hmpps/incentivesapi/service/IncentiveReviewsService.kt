@@ -72,11 +72,8 @@ class IncentiveReviewsService(
 
     val locationDescription = deferredLocationDescription.await()
 
-    IncentiveReviewResponse(
-      reviewCount = offenders.totalElements,
-      overdueCount = overdueCount,
-      locationDescription = locationDescription,
-      reviews = offenders.content.map {
+    val reviews = offenders.content
+      .map {
         IncentiveReview(
           prisonerNumber = it.prisonerNumber,
           bookingId = it.bookingId,
@@ -88,7 +85,15 @@ class IncentiveReviewsService(
           acctOpenStatus = it.acctOpen,
           nextReviewDate = nextReviewDates[it.bookingId]!!,
         )
-      }.sortedBy { it.nextReviewDate }
+      }
+      .filter { it.levelCode == levelCode }
+      .sortedBy { it.nextReviewDate }
+
+    IncentiveReviewResponse(
+      locationDescription = locationDescription,
+      overdueCount = overdueCount,
+      reviewCount = reviews.size,
+      reviews = reviews,
     )
   }
 
