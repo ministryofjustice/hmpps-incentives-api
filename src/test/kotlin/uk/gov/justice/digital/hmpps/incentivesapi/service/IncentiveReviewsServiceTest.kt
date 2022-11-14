@@ -19,7 +19,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisonerAler
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisonerList
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsage
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonLocation
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
@@ -370,16 +369,5 @@ class IncentiveReviewsServiceTest {
     cellLocation = "2-1-003",
     locationDescription = "Moorland (HMP & YOI)",
     alerts = listOf(),
-  )
-
-  private fun prisonerIepLevel(bookingId: Long, reviewTime: LocalDateTime = LocalDateTime.now(clock)) = PrisonerIepLevel(
-    iepCode = "STD",
-    prisonId = "MDI",
-    locationId = "MDI-1-1-004",
-    bookingId = bookingId,
-    current = true,
-    reviewedBy = "TEST_STAFF1",
-    reviewTime = reviewTime,
-    prisonerNumber = "A1234AB"
   )
 }

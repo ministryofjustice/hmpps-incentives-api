@@ -13,7 +13,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.NextReviewDate
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.NextReviewDateRepository
 import java.time.LocalDate
 
-internal class NextReviewDateGetterServiceTest {
+class NextReviewDateGetterServiceTest {
   private val nextReviewDateRepository: NextReviewDateRepository = mock()
   private val prisonApiService: PrisonApiService = mock()
   private val offenderSearchService: OffenderSearchService = mock()
