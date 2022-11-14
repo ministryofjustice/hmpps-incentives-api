@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.NextReviewDate
@@ -84,23 +83,4 @@ class NextReviewDateUpdaterService(
 
     return nextReviewDateRecords.toMap()
   }
-}
-
-fun List<PrisonerIepLevel>.toIepDetails(iepLevels: Map<String, IepLevel>): List<IepDetail> {
-  return this.map { review ->
-    IepDetail(
-      bookingId = review.bookingId,
-      prisonerNumber = review.prisonerNumber,
-      iepCode = review.iepCode,
-      iepLevel = iepLevels[review.iepCode]?.iepDescription ?: "Unmapped",
-      iepTime = review.reviewTime,
-      iepDate = review.reviewTime.toLocalDate(),
-      agencyId = review.prisonId,
-      userId = review.reviewedBy,
-    )
-  }
-}
-
-fun List<NextReviewDate>.toMap(): Map<Long, LocalDate> {
-  return this.associate { record -> Pair(record.bookingId, record.nextReviewDate) }
 }

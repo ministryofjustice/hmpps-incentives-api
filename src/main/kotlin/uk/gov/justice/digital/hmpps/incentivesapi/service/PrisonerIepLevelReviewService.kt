@@ -457,23 +457,6 @@ class PrisonerIepLevelReviewService(
       }
   }
 
-  private suspend fun PrisonerIepLevel.translate(incentiveLevels: Map<String, IepLevel>) =
-    IepDetail(
-      id = id,
-      bookingId = bookingId,
-      iepDate = reviewTime.toLocalDate(),
-      iepTime = reviewTime,
-      agencyId = prisonId,
-      iepLevel = incentiveLevels[iepCode]?.iepDescription ?: "Unmapped",
-      iepCode = iepCode,
-      reviewType = reviewType,
-      comments = commentText,
-      userId = reviewedBy,
-      locationId = locationId,
-      prisonerNumber = prisonerNumber,
-      auditModuleName = "INCENTIVES_API",
-    )
-
   @Transactional
   suspend fun mergedPrisonerDetails(prisonerMergeEvent: HMPPSDomainEvent) {
 
