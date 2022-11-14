@@ -130,7 +130,7 @@ class PrisonerIepLevelReviewService(
   ): IepDetail {
     val prisonerInfo = prisonApiService.getPrisonerInfo(bookingId, true)
     var locationInfo: Location? = null
-    if (includeLocation) {
+    if (includeLocation && prisonerInfo.assignedLivingUnitId > 0) {
       locationInfo = prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId, true)
     }
 
