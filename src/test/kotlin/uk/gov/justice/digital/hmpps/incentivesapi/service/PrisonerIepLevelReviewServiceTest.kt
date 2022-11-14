@@ -32,7 +32,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepReviewInNomis
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Location
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocation
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import java.time.Clock
@@ -1219,11 +1218,6 @@ class PrisonerIepLevelReviewServiceTest {
     occurredAt = Instant.now(),
     description = "A prisoner has been merged from A8765SS to A1244AB"
   )
-
-  private fun prisonerAtLocation(bookingId: Long = 1234567, offenderNo: String = "A1234AA", agencyId: String = "MDI") =
-    PrisonerAtLocation(
-      bookingId, 1, "John", "Smith", offenderNo, agencyId, 1
-    )
 
   private val location = Location(
     agencyId = "MDI", locationId = 77777L, description = "Houseblock 1"
