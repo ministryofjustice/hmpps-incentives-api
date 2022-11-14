@@ -64,7 +64,7 @@ jobs:
             - gradle-
       - hmpps/wait_till_ready_postgres
       - run:
-          command: ./gradlew -Dorg.gradle.jvmargs="--illegal-access=permit" -Dkotlin.daemon.jvm.options="--illegal-access=permit" -Pdocs generateOpenApiDocs
+          command: ./gradlew -Pdocs generateOpenApiDocs
       - run:
           command: mv build/docs ~/
       - save_cache:
