@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
@@ -79,7 +80,7 @@ class NextReviewDateUpdaterService(
       )
     }
 
-    nextReviewDateRepository.saveAll(nextReviewDateRecords)
+    nextReviewDateRepository.saveAll(nextReviewDateRecords).collect()
 
     return nextReviewDateRecords.toMap()
   }

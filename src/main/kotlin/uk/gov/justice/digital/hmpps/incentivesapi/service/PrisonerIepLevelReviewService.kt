@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.flattenMerge
 import kotlinx.coroutines.flow.flowOf
@@ -473,7 +474,7 @@ class PrisonerIepLevelReviewService(
         .map { review -> review.copy(bookingId = remainingBookingId, current = false) }
 
     val reviewsToUpdate = merge(activeReviews, inactiveReviews)
-    prisonerIepLevelRepository.saveAll(reviewsToUpdate)
+    prisonerIepLevelRepository.saveAll(reviewsToUpdate).collect()
     nextReviewDateUpdaterService.update(remainingBookingId)
 
     val numberUpdated = reviewsToUpdate.count()
