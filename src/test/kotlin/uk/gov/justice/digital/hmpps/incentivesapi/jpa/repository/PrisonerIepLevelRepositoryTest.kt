@@ -50,20 +50,6 @@ class PrisonerIepLevelRepositoryTest : TestBase() {
   }
 
   @Test
-  fun `getAllBookingIds() returns all the bookingIds`(): Unit = runBlocking {
-    // Given some records
-    repository.save(entity(2, true))
-    repository.save(entity(4, true))
-    repository.save(entity(8, true))
-
-    // When I get the list of bookingIds
-    val bookingIds = repository.getAllBookingIds().toList().sorted()
-
-    // Then
-    assertThat(bookingIds).isEqualTo(listOf<Long>(2, 4, 8))
-  }
-
-  @Test
   fun savePrisonerIepLevel(): Unit = runBlocking {
     val bookingId = 1234567L
 
