@@ -14,7 +14,7 @@ data class OffenderSearchPrisoner(
   val receptionDate: LocalDate,
   val prisonId: String,
   val prisonName: String,
-  val cellLocation: String,
+  val cellLocation: String? = null,
   val locationDescription: String,
   val alerts: List<OffenderSearchPrisonerAlert> = emptyList(),
 ) {
