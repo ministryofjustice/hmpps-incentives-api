@@ -18,7 +18,7 @@ jobs:
   validate:
     executor:
       name: hmpps/java_localstack_postgres
-      jdk_tag: "18.0"
+      jdk_tag: "19.0"
       localstack_tag: "0.14.0"
       services: "sns,sqs"
       postgres_tag: "14"
@@ -50,7 +50,7 @@ jobs:
   generate-api-docs:
     executor:
       name: hmpps/java_localstack_postgres
-      jdk_tag: "18.0"
+      jdk_tag: "19.0"
       localstack_tag: "0.14.0"
       services: "sns,sqs"
       postgres_tag: "14"
@@ -64,7 +64,7 @@ jobs:
             - gradle-
       - hmpps/wait_till_ready_postgres
       - run:
-          command: ./gradlew -Dorg.gradle.jvmargs="--illegal-access=permit" -Dkotlin.daemon.jvm.options="--illegal-access=permit" -Pdocs generateOpenApiDocs
+          command: ./gradlew -Pdocs generateOpenApiDocs
       - run:
           command: mv build/docs ~/
       - save_cache:
