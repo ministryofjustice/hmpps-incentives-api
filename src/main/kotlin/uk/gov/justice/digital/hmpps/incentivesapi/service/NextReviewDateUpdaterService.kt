@@ -77,6 +77,7 @@ class NextReviewDateUpdaterService(
       NextReviewDate(
         bookingId = bookingId,
         nextReviewDate = nextReviewDate,
+        new = !nextReviewDateRepository.existsById(bookingId),
       )
     }
 
