@@ -85,12 +85,13 @@ class NextReviewDateUpdaterServiceTest {
         .thenReturn(false)
       whenever(nextReviewDateRepository.existsById(offender2.bookingId))
         .thenReturn(false)
-      val expectedRecordsList = listOf(
+      val expectedRecordsFlow = flowOf(
         NextReviewDate(offender1.bookingId, expectedDate1, new = true),
         NextReviewDate(offender2.bookingId, expectedDate2, new = true),
       )
+      val expectedRecordsList = expectedRecordsFlow.toList()
       whenever(nextReviewDateRepository.saveAll(expectedRecordsList))
-        .thenReturn(emptyFlow())
+        .thenReturn(expectedRecordsFlow)
 
       val result = nextReviewDateUpdaterService.updateMany(offenders)
 
@@ -137,12 +138,13 @@ class NextReviewDateUpdaterServiceTest {
         )
       ).calculate()
 
-      val expectedRecordsList = listOf(
+      val expectedRecordsFlow = flowOf(
         NextReviewDate(offender1.bookingId, expectedDate1, new = true),
         NextReviewDate(offender2.bookingId, expectedDate2, new = false),
       )
+      val expectedRecordsList = expectedRecordsFlow.toList()
       whenever(nextReviewDateRepository.saveAll(expectedRecordsList))
-        .thenReturn(emptyFlow())
+        .thenReturn(expectedRecordsFlow)
 
       val result = nextReviewDateUpdaterService.updateMany(offenders)
 
@@ -186,11 +188,12 @@ class NextReviewDateUpdaterServiceTest {
     ).calculate()
 
     whenever(nextReviewDateRepository.existsById(bookingId)).thenReturn(true)
-    val expectedRecordsList = listOf(
+    val expectedRecordsFlow = flowOf(
       NextReviewDate(bookingId, expectedNextReviewDate, new = false),
     )
+    val expectedRecordsList = expectedRecordsFlow.toList()
     whenever(nextReviewDateRepository.saveAll(expectedRecordsList))
-      .thenReturn(emptyFlow())
+      .thenReturn(expectedRecordsFlow)
 
     val result = nextReviewDateUpdaterService.update(bookingId)
 
