@@ -42,7 +42,7 @@ class NextReviewDateGetterService(
     val existingNextReviewDates = nextReviewDateRepository.findAllById(bookingIds).toList().toMapByBookingId()
 
     val bookingIdsWithDate = existingNextReviewDates.keys
-    val bookingIdsWithoutDate = bookingIds.subtract(bookingIdsWithDate)
+    val bookingIdsWithoutDate = bookingIds subtract bookingIdsWithDate
 
     val offendersWithoutDate = offenders.filter { offender -> offender.bookingId in bookingIdsWithoutDate }
 

@@ -9,19 +9,23 @@ import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.NextReviewDateRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import java.time.LocalDateTime
 
 class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
   @Autowired
-  private lateinit var repository: PrisonerIepLevelRepository
+  private lateinit var prisonerIepLevelRepository: PrisonerIepLevelRepository
+  @Autowired
+  private lateinit var nextReviewDateRepository: NextReviewDateRepository
 
   @BeforeEach
   fun setUp(): Unit = runBlocking {
     offenderSearchMockServer.resetAll()
     prisonApiMockServer.resetAll()
 
-    repository.deleteAll()
+    prisonerIepLevelRepository.deleteAll()
+    nextReviewDateRepository.deleteAll()
     persistPrisonerIepLevel(bookingId = 1234134, prisonerNumber = "A1234AA")
     persistPrisonerIepLevel(bookingId = 1234135, prisonerNumber = "A1234AB")
     persistPrisonerIepLevel(bookingId = 1234136, prisonerNumber = "A1234AC")
@@ -33,7 +37,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
   suspend fun persistPrisonerIepLevel(
     bookingId: Long,
     prisonerNumber: String,
-  ) = repository.save(
+  ) = prisonerIepLevelRepository.save(
     PrisonerIepLevel(
       bookingId = bookingId,
       prisonerNumber = prisonerNumber,
@@ -51,7 +55,8 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
   @AfterEach
   fun tearDown(): Unit = runBlocking {
     prisonApiMockServer.resetRequests()
-    repository.deleteAll()
+    prisonerIepLevelRepository.deleteAll()
+    nextReviewDateRepository.deleteAll()
   }
 
   @Test
@@ -338,7 +343,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
     prisonApiMockServer.stubNegativeCaseNoteSummary()
     prisonApiMockServer.stubIepLevels()
 
-    repository.deleteAll()
+    prisonerIepLevelRepository.deleteAll()
 
     webTestClient.get()
       .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD")
