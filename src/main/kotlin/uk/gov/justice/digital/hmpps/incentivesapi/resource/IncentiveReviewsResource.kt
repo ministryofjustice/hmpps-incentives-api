@@ -20,12 +20,12 @@ import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 @RequestMapping("/incentives-reviews", produces = [MediaType.APPLICATION_JSON_VALUE])
 @PreAuthorize("hasRole('ROLE_INCENTIVES')")
 class IncentiveReviewsResource(private val incentiveReviewsService: IncentiveReviewsService) {
-  @GetMapping("/prison/{prisonId}/location/{cellLocationPrefix}")
+  @GetMapping("/prison/{prisonId}/location/{cellLocationPrefix}/level/{levelCode}")
   @Operation(
-    summary = "List of incentive review information for a given location within a prison",
+    summary = "List of incentive review information for a given location within a prison and on a given level",
     description = "location should be a cell ID prefix like `MDI-1`",
     responses = [
-      ApiResponse(responseCode = "200", description = "Reviews returned"),
+      ApiResponse(responseCode = "200", description = "Reviews information returned"),
       ApiResponse(
         responseCode = "400",
         description = "Invalid request parameters",
@@ -52,6 +52,10 @@ class IncentiveReviewsResource(private val incentiveReviewsService: IncentiveRev
     @PathVariable
     cellLocationPrefix: String,
 
+    @Schema(description = "Incentive level code", required = true, example = "STD", minLength = 2)
+    @PathVariable
+    levelCode: String,
+
     @Schema(description = "Page (starts at 1)", defaultValue = "1", minimum = "1", example = "2", type = "integer", required = false, format = "int32")
     @RequestParam(required = false, defaultValue = "1")
     page: Int,
@@ -63,10 +67,11 @@ class IncentiveReviewsResource(private val incentiveReviewsService: IncentiveRev
     ensure {
       ("prisonId" to prisonId).hasLengthAtLeast(3).hasLengthAtMost(5)
       ("cellLocationPrefix" to cellLocationPrefix).hasLengthAtLeast(5)
+      ("levelCode" to levelCode).hasLengthAtLeast(2)
       ("page" to page).isAtLeast(1)
       ("pageSize" to pageSize).isAtLeast(1).isAtMost(100)
     }
 
-    return incentiveReviewsService.reviews(prisonId, cellLocationPrefix, page, pageSize)
+    return incentiveReviewsService.reviews(prisonId, cellLocationPrefix, levelCode, page, pageSize)
   }
 }

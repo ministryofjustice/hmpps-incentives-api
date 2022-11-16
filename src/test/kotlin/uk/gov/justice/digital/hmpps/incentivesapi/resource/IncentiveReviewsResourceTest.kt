@@ -9,19 +9,23 @@ import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.NextReviewDateRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import java.time.LocalDateTime
 
 class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
   @Autowired
-  private lateinit var repository: PrisonerIepLevelRepository
+  private lateinit var prisonerIepLevelRepository: PrisonerIepLevelRepository
+  @Autowired
+  private lateinit var nextReviewDateRepository: NextReviewDateRepository
 
   @BeforeEach
   fun setUp(): Unit = runBlocking {
     offenderSearchMockServer.resetAll()
     prisonApiMockServer.resetAll()
 
-    repository.deleteAll()
+    prisonerIepLevelRepository.deleteAll()
+    nextReviewDateRepository.deleteAll()
     persistPrisonerIepLevel(bookingId = 1234134, prisonerNumber = "A1234AA")
     persistPrisonerIepLevel(bookingId = 1234135, prisonerNumber = "A1234AB")
     persistPrisonerIepLevel(bookingId = 1234136, prisonerNumber = "A1234AC")
@@ -33,7 +37,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
   suspend fun persistPrisonerIepLevel(
     bookingId: Long,
     prisonerNumber: String,
-  ) = repository.save(
+  ) = prisonerIepLevelRepository.save(
     PrisonerIepLevel(
       bookingId = bookingId,
       prisonerNumber = prisonerNumber,
@@ -51,13 +55,14 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
   @AfterEach
   fun tearDown(): Unit = runBlocking {
     prisonApiMockServer.resetRequests()
-    repository.deleteAll()
+    prisonerIepLevelRepository.deleteAll()
+    nextReviewDateRepository.deleteAll()
   }
 
   @Test
   fun `requires a valid token to retrieve data`() {
     webTestClient.get()
-      .uri("/incentives-reviews/prison/MDI/location/MDI-1")
+      .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD")
       .exchange()
       .expectStatus()
       .isUnauthorized
@@ -66,7 +71,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
   @Test
   fun `requires correct role to retrieve data`() {
     webTestClient.get()
-      .uri("/incentives-reviews/prison/MDI/location/MDI-1")
+      .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD")
       .headers(setAuthorisation(roles = emptyList()))
       .exchange()
       .expectStatus()
@@ -81,7 +86,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
       prisonApiMockServer.stubLocation("MDI-1")
 
       webTestClient.get()
-        .uri("/incentives-reviews/prison/Moorland/location/MDI-1")
+        .uri("/incentives-reviews/prison/Moorland/location/MDI-1/level/STD")
         .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
         .exchange()
         .expectStatus().isBadRequest
@@ -98,12 +103,34 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
     }
 
     @Test
+    fun `when level code is incorrect`() {
+      offenderSearchMockServer.stubFindOffenders("Moorland")
+      prisonApiMockServer.stubLocation("MDI-1")
+
+      webTestClient.get()
+        .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/s")
+        .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
+        .exchange()
+        .expectStatus().isBadRequest
+        .expectBody().json(
+          // language=json
+          """
+          {
+            "status": 400,
+            "userMessage": "Invalid parameters: `levelCode` must have length of at least 2",
+            "developerMessage": "Invalid parameters: `levelCode` must have length of at least 2"
+          }
+          """
+        )
+    }
+
+    @Test
     fun `when page is incorrect`() {
       offenderSearchMockServer.stubFindOffenders("MDI")
       prisonApiMockServer.stubLocation("MDI-1")
 
       webTestClient.get()
-        .uri("/incentives-reviews/prison/MDI/location/MDI-1?page=0")
+        .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?page=0")
         .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
         .exchange()
         .expectStatus().isBadRequest
@@ -125,7 +152,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
       prisonApiMockServer.stubLocation("MDI-1")
 
       webTestClient.get()
-        .uri("/incentives-reviews/prison/MDI/location/MDI-1?page=0&pageSize=0")
+        .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?page=0&pageSize=0")
         .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
         .exchange()
         .expectStatus().isBadRequest
@@ -151,7 +178,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
     prisonApiMockServer.stubIepLevels()
 
     webTestClient.get()
-      .uri("/incentives-reviews/prison/MDI/location/MDI-1")
+      .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD")
       .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
       .exchange()
       .expectStatus().isOk
@@ -167,6 +194,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "bookingId": 1234134,
                 "firstName": "John",
                 "lastName": "Smith",
+                "levelCode": "STD",
                 "positiveBehaviours": 3,
                 "negativeBehaviours": 3,
                 "acctOpenStatus": true,
@@ -177,6 +205,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "bookingId": 1234135,
                 "firstName": "David",
                 "lastName": "White",
+                "levelCode": "STD",
                 "positiveBehaviours": 3,
                 "negativeBehaviours": 3,
                 "acctOpenStatus": false,
@@ -187,6 +216,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "bookingId": 1234136,
                 "firstName": "Trevor",
                 "lastName": "Lee",
+                "levelCode": "STD",
                 "positiveBehaviours": 2,
                 "negativeBehaviours": 2,
                 "acctOpenStatus": false,
@@ -197,6 +227,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "bookingId": 1234137,
                 "firstName": "Anthony",
                 "lastName": "Davies",
+                "levelCode": "STD",
                 "positiveBehaviours": 1,
                 "negativeBehaviours": 1,
                 "acctOpenStatus": false,
@@ -207,6 +238,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "bookingId": 1234138,
                 "firstName": "Paul",
                 "lastName": "Rudd",
+                "levelCode": "STD",
                 "positiveBehaviours": 5,
                 "negativeBehaviours": 5,
                 "acctOpenStatus": false,
@@ -229,7 +261,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
     prisonApiMockServer.stubIepLevels()
 
     webTestClient.get()
-      .uri("/incentives-reviews/prison/MDI/location/MDI-1")
+      .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD")
       .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
       .exchange()
       .expectStatus().isOk
@@ -245,6 +277,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "bookingId": 1234134,
                 "firstName": "John",
                 "lastName": "Smith",
+                "levelCode": "STD",
                 "positiveBehaviours": 3,
                 "negativeBehaviours": 3,
                 "acctOpenStatus": true,
@@ -255,6 +288,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "bookingId": 1234135,
                 "firstName": "David",
                 "lastName": "White",
+                "levelCode": "STD",
                 "positiveBehaviours": 3,
                 "negativeBehaviours": 3,
                 "acctOpenStatus": false,
@@ -265,6 +299,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "bookingId": 1234136,
                 "firstName": "Trevor",
                 "lastName": "Lee",
+                "levelCode": "STD",
                 "positiveBehaviours": 2,
                 "negativeBehaviours": 2,
                 "acctOpenStatus": false,
@@ -275,6 +310,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "bookingId": 1234137,
                 "firstName": "Anthony",
                 "lastName": "Davies",
+                "levelCode": "STD",
                 "positiveBehaviours": 1,
                 "negativeBehaviours": 1,
                 "acctOpenStatus": false,
@@ -285,6 +321,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "bookingId": 1234138,
                 "firstName": "Paul",
                 "lastName": "Rudd",
+                "levelCode": "STD",
                 "positiveBehaviours": 5,
                 "negativeBehaviours": 5,
                 "acctOpenStatus": false,
@@ -295,6 +332,33 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
           }
         """,
         true,
+      )
+  }
+
+  @Test
+  fun `when incentive levels not available in DB`(): Unit = runBlocking {
+    offenderSearchMockServer.stubFindOffenders("MDI")
+    prisonApiMockServer.stubLocation("MDI-1")
+    prisonApiMockServer.stubPositiveCaseNoteSummary()
+    prisonApiMockServer.stubNegativeCaseNoteSummary()
+    prisonApiMockServer.stubIepLevels()
+
+    prisonerIepLevelRepository.deleteAll()
+
+    webTestClient.get()
+      .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD")
+      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
+      .exchange()
+      .expectStatus().isNotFound
+      .expectBody().json(
+        // language=json
+        """
+          {
+            "status": 404,
+            "userMessage": "No incentive levels found for ID(s) [1234134, 1234135, 1234136, 1234137, 1234138]",
+            "developerMessage": "No incentive levels found for ID(s) [1234134, 1234135, 1234136, 1234137, 1234138]"
+          }
+          """
       )
   }
 }

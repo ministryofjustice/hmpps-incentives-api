@@ -153,6 +153,20 @@ class HmppsIncentivesApiExceptionHandler {
       )
   }
 
+  @ExceptionHandler(ListOfDataNotFoundException::class)
+  fun handleListOfDataNotFoundException(e: ListOfDataNotFoundException): ResponseEntity<ErrorResponse?>? {
+    log.debug("List of data not found exception caught: {}", e.message)
+    return ResponseEntity
+      .status(NOT_FOUND)
+      .body(
+        ErrorResponse(
+          status = NOT_FOUND,
+          userMessage = e.message,
+          developerMessage = e.message
+        )
+      )
+  }
+
   @ExceptionHandler(DataIntegrityException::class)
   fun handleDataIntegrityException(e: DataIntegrityException): ResponseEntity<ErrorResponse?>? {
     log.error("Data integrity exception: {}", e.message)
@@ -216,6 +230,9 @@ class HmppsIncentivesApiExceptionHandler {
 
 class NoDataFoundException(id: Long) :
   Exception("No Data found for ID $id")
+
+class ListOfDataNotFoundException(dataType: String, ids: Collection<Long>) :
+  Exception("No $dataType found for ID(s) $ids")
 
 class DataIntegrityException(message: String) :
   Exception(message)

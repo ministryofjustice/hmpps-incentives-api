@@ -31,13 +31,14 @@ fun prisonerAtLocation(bookingId: Long = 1234567, offenderNo: String = "A1234AA"
     bookingId, 1, "John", "Smith", offenderNo, agencyId, 1
   )
 
-fun prisonerIepLevel(bookingId: Long, reviewTime: LocalDateTime = LocalDateTime.now()) = PrisonerIepLevel(
-  iepCode = "STD",
-  prisonId = "MDI",
-  locationId = "MDI-1-1-004",
-  bookingId = bookingId,
-  current = true,
-  reviewedBy = "TEST_STAFF1",
-  reviewTime = reviewTime,
-  prisonerNumber = "A1234AB"
-)
+fun prisonerIepLevel(bookingId: Long, iepCode: String = "STD", reviewTime: LocalDateTime = LocalDateTime.now()) =
+  PrisonerIepLevel(
+    iepCode = iepCode,
+    prisonId = "MDI",
+    locationId = "MDI-1-1-004",
+    bookingId = bookingId,
+    current = true,
+    reviewedBy = "TEST_STAFF1",
+    reviewTime = reviewTime,
+    prisonerNumber = "A1234AB"
+  )
