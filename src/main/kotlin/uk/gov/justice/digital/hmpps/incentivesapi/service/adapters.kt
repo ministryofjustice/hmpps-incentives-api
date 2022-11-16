@@ -28,5 +28,5 @@ fun List<PrisonerIepLevel>.toIepDetails(iepLevels: Map<String, IepLevel>): List<
 }
 
 fun List<NextReviewDate>.toMap(): Map<Long, LocalDate> {
-  return this.associate { record -> Pair(record.bookingId, record.nextReviewDate) }
+  return this.associate { it.bookingId to it.nextReviewDate }
 }
