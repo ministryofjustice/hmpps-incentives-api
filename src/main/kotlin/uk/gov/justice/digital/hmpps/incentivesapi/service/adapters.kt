@@ -24,9 +24,9 @@ fun PrisonerIepLevel.translate(incentiveLevels: Map<String, IepLevel>) =
   )
 
 fun List<PrisonerIepLevel>.toIepDetails(iepLevels: Map<String, IepLevel>): List<IepDetail> {
-  return this.map { review -> review.translate(iepLevels) }
+  return map { review -> review.translate(iepLevels) }
 }
 
 fun List<NextReviewDate>.toMap(): Map<Long, LocalDate> {
-  return this.associate { it.bookingId to it.nextReviewDate }
+  return associate { it.bookingId to it.nextReviewDate }
 }
