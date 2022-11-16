@@ -39,7 +39,7 @@ class NextReviewDateGetterService(
    */
   suspend fun getMany(offenders: List<OffenderSearchPrisoner>): Map<Long, LocalDate> {
     val bookingIds = offenders.map(OffenderSearchPrisoner::bookingId)
-    val existingNextReviewDates = nextReviewDateRepository.findAllById(bookingIds).toList().toMap()
+    val existingNextReviewDates = nextReviewDateRepository.findAllById(bookingIds).toList().toMapByBookingId()
 
     val bookingIdsWithDate = existingNextReviewDates.keys
     val bookingIdsWithoutDate = bookingIds.subtract(bookingIdsWithDate)

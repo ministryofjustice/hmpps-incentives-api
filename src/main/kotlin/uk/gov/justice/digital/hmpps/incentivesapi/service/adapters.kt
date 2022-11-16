@@ -6,7 +6,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.NextReviewDate
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import java.time.LocalDate
 
-fun PrisonerIepLevel.translate(incentiveLevels: Map<String, IepLevel>) =
+fun PrisonerIepLevel.toIepDetail(incentiveLevels: Map<String, IepLevel>) =
   IepDetail(
     id = id,
     bookingId = bookingId,
@@ -24,9 +24,9 @@ fun PrisonerIepLevel.translate(incentiveLevels: Map<String, IepLevel>) =
   )
 
 fun List<PrisonerIepLevel>.toIepDetails(iepLevels: Map<String, IepLevel>): List<IepDetail> {
-  return map { review -> review.translate(iepLevels) }
+  return map { review -> review.toIepDetail(iepLevels) }
 }
 
-fun List<NextReviewDate>.toMap(): Map<Long, LocalDate> {
+fun List<NextReviewDate>.toMapByBookingId(): Map<Long, LocalDate> {
   return associate { it.bookingId to it.nextReviewDate }
 }

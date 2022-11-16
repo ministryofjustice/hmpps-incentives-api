@@ -80,6 +80,6 @@ class NextReviewDateUpdaterService(
       )
     }
 
-    return nextReviewDateRepository.saveAll(nextReviewDateRecords).toList().toMap()
+    return nextReviewDateRepository.saveAll(nextReviewDateRecords).toList().toMapByBookingId()
   }
 }

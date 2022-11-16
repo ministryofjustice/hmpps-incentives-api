@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.flattenMerge
 import kotlinx.coroutines.flow.flowOf
@@ -155,7 +154,7 @@ class PrisonerIepLevelReviewService(
 
     nextReviewDateUpdaterService.update(review.bookingId)
 
-    return review.translate(prisonApiService.getIncentiveLevels())
+    return review.toIepDetail(prisonApiService.getIncentiveLevels())
   }
 
   suspend fun handleSyncPostIepReviewRequest(bookingId: Long, syncPostRequest: SyncPostRequest): IepDetail {
@@ -200,7 +199,7 @@ class PrisonerIepLevelReviewService(
     val updatedReview = prisonerIepLevelRepository.save(prisonerIepLevel)
     nextReviewDateUpdaterService.update(updatedReview.bookingId)
 
-    val iepDetail = updatedReview.translate(prisonApiService.getIncentiveLevels())
+    val iepDetail = updatedReview.toIepDetail(prisonApiService.getIncentiveLevels())
     publishDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_UPDATED)
     publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_UPDATED)
 
@@ -230,7 +229,7 @@ class PrisonerIepLevelReviewService(
       }
     }
 
-    val iepDetail = prisonerIepLevel.translate(prisonApiService.getIncentiveLevels())
+    val iepDetail = prisonerIepLevel.toIepDetail(prisonApiService.getIncentiveLevels())
     publishDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_DELETED)
     publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_DELETED)
   }
@@ -254,7 +253,7 @@ class PrisonerIepLevelReviewService(
   }
 
   suspend fun getReviewById(id: Long): IepDetail =
-    prisonerIepLevelRepository.findById(id)?.translate(prisonApiService.getIncentiveLevels()) ?: throw NoDataFoundException(id)
+    prisonerIepLevelRepository.findById(id)?.toIepDetail(prisonApiService.getIncentiveLevels()) ?: throw NoDataFoundException(id)
 
   @Transactional
   suspend fun processOffenderEvent(prisonOffenderEvent: HMPPSDomainEvent) =
@@ -287,7 +286,7 @@ class PrisonerIepLevelReviewService(
         "INCENTIVES_API"
       )
 
-      val iepDetail = prisonerIepLevel.translate(prisonApiService.getIncentiveLevels())
+      val iepDetail = prisonerIepLevel.toIepDetail(prisonApiService.getIncentiveLevels())
       publishDomainEvent(
         iepDetail,
         IncentivesDomainEventType.IEP_REVIEW_INSERTED,
@@ -335,7 +334,7 @@ class PrisonerIepLevelReviewService(
     incentiveLevels: Map<String, IepLevel>,
     withDetails: Boolean = true
   ): IepSummary {
-    val iepDetails = levels.map { it.translate(incentiveLevels) }.toList()
+    val iepDetails = levels.map { it.toIepDetail(incentiveLevels) }.toList()
 
     val currentIep = iepDetails.firstOrNull() ?: throw IncentiveReviewNotFoundException("Not Found incentive reviews")
 
@@ -373,7 +372,7 @@ class PrisonerIepLevelReviewService(
       locationInfo,
       reviewTime,
       reviewerUserName
-    ).translate(prisonApiService.getIncentiveLevels())
+    ).toIepDetail(prisonApiService.getIncentiveLevels())
 
     // Propagate new IEP review to other services
     if (featureFlagsService.reviewAddedSyncMechanism() == ReviewAddedSyncMechanism.DOMAIN_EVENT) {
