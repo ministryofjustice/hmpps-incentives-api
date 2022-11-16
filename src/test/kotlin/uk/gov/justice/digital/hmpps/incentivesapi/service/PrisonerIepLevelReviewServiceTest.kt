@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -31,7 +32,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepReviewInNomis
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Location
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocation
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import java.time.Clock
@@ -51,6 +51,8 @@ class PrisonerIepLevelReviewServiceTest {
   private val snsService: SnsService = mock()
   private val auditService: AuditService = mock()
   private val featureFlagsService: FeatureFlagsService = mock()
+  private val nextReviewDateGetterService: NextReviewDateGetterService = mock()
+  private val nextReviewDateUpdaterService: NextReviewDateUpdaterService = mock()
   private val offenderSearchService: OffenderSearchService = mock()
 
   private val prisonerIepLevelReviewService = PrisonerIepLevelReviewService(
@@ -62,6 +64,8 @@ class PrisonerIepLevelReviewServiceTest {
     authenticationFacade,
     clock,
     featureFlagsService,
+    nextReviewDateGetterService,
+    nextReviewDateUpdaterService,
     offenderSearchService,
   )
 
@@ -285,16 +289,11 @@ class PrisonerIepLevelReviewServiceTest {
     fun `will query incentives db if useNomisData is false`(): Unit = runBlocking {
       coroutineScope {
         val bookingId = currentLevel.bookingId
-        val prisonerNumber = currentLevel.prisonerNumber
+        val expectedNextReviewDate = currentLevel.reviewTime.plusYears(1).toLocalDate()
 
         whenever(featureFlagsService.isIncentivesDataSourceOfTruth()).thenReturn(true)
         whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
-        // Mock request to get ACCT status
-        whenever(
-          offenderSearchService.getOffender(prisonerNumber)
-        ).thenReturn(
-          offenderSearchPrisoner(prisonerNumber, bookingId)
-        )
+        whenever(nextReviewDateGetterService.get(bookingId)).thenReturn(expectedNextReviewDate)
 
         // Given
         whenever(prisonerIepLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(bookingId)).thenReturn(
@@ -307,6 +306,7 @@ class PrisonerIepLevelReviewServiceTest {
         // Then
         verify(prisonerIepLevelRepository, times(1)).findAllByBookingIdOrderByReviewTimeDesc(bookingId)
         assertThat(result.iepDetails.size).isEqualTo(2)
+        assertThat(result.nextReviewDate).isEqualTo(expectedNextReviewDate)
       }
     }
 
@@ -314,20 +314,12 @@ class PrisonerIepLevelReviewServiceTest {
     fun `will query incentives db if useNomisData is false and will not return iep details if withDetails is false`(): Unit =
       runBlocking {
         coroutineScope {
-          val prisonerNumber = currentLevel.prisonerNumber
           val bookingId = currentLevel.bookingId
+          val expectedNextReviewDate = currentAndPreviousLevels.first().reviewTime.plusYears(1).toLocalDate()
 
           whenever(featureFlagsService.isIncentivesDataSourceOfTruth()).thenReturn(true)
           whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
-          // Mock request to get ACCT status
-          whenever(
-            offenderSearchService.getOffender(prisonerNumber)
-          ).thenReturn(
-            offenderSearchPrisoner(
-              prisonerNumber,
-              bookingId,
-            )
-          )
+          whenever(nextReviewDateGetterService.get(bookingId)).thenReturn(expectedNextReviewDate)
 
           // Given
           whenever(prisonerIepLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(bookingId)).thenReturn(
@@ -340,7 +332,8 @@ class PrisonerIepLevelReviewServiceTest {
 
           // Then
           verify(prisonerIepLevelRepository, times(1)).findAllByBookingIdOrderByReviewTimeDesc(bookingId)
-          assertThat(result.iepDetails.size).isZero()
+          assertThat(result.iepDetails.size).isZero
+          assertThat(result.nextReviewDate).isEqualTo(expectedNextReviewDate)
         }
       }
   }
@@ -621,12 +614,12 @@ class PrisonerIepLevelReviewServiceTest {
     fun `process MERGE event`(): Unit = runBlocking {
       // Given - default for that prison is Enhanced
       val prisonMergeEvent = prisonMergeEvent()
-      whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(
-        prisonerAtLocation(
-          bookingId = 1234567,
-          offenderNo = "A1244AB"
-        )
+      val prisonerAtLocation = prisonerAtLocation(
+        bookingId = 1234567,
+        offenderNo = "A1244AB"
       )
+      whenever(prisonApiService.getPrisonerInfo("A1244AB", true))
+        .thenReturn(prisonerAtLocation)
       whenever(prisonerIepLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDesc("A8765SS"))
         .thenReturn(
           flowOf(
@@ -668,6 +661,10 @@ class PrisonerIepLevelReviewServiceTest {
           )
         )
       prisonerIepLevelReviewService.mergedPrisonerDetails(prisonMergeEvent)
+
+      // check next review date is updated for new bookingId
+      verify(nextReviewDateUpdaterService, times(1))
+        .update(prisonerAtLocation.bookingId)
 
       verify(auditService, times(1))
         .sendMessage(
@@ -728,6 +725,9 @@ class PrisonerIepLevelReviewServiceTest {
           prisonerNumber = prisonerAtLocation().offenderNo
         )
       )
+
+      // Triggers the update of next review date when a new review is created
+      verify(nextReviewDateUpdaterService, times(1)).update(bookingId)
     }
 
     @Test
@@ -818,6 +818,16 @@ class PrisonerIepLevelReviewServiceTest {
       // Then check it's saved
       verify(prisonerIepLevelRepository, times(1))
         .delete(iepReview)
+    }
+
+    @Test
+    fun `updates the next review date of the affected prisoner`(): Unit = runBlocking {
+      // When
+      prisonerIepLevelReviewService.handleSyncDeleteIepReviewRequest(bookingId, iepReview.id)
+
+      // Then check it's saved
+      verify(nextReviewDateUpdaterService, times(1))
+        .update(bookingId)
     }
 
     @Test
@@ -941,6 +951,16 @@ class PrisonerIepLevelReviewServiceTest {
 
       // Then check it's returned
       assertThat(result).isEqualTo(iepDetail)
+    }
+
+    @Test
+    fun `updates the next review date for the prisoner`(): Unit = runBlocking {
+      // When
+      prisonerIepLevelReviewService.handleSyncPatchIepReviewRequest(bookingId, iepReview.id, syncPatchRequest)
+
+      // Then check the next review date was updated for the affected prisoner
+      verify(nextReviewDateUpdaterService, times(1))
+        .update(bookingId)
     }
 
     @Test
@@ -1198,11 +1218,6 @@ class PrisonerIepLevelReviewServiceTest {
     occurredAt = Instant.now(),
     description = "A prisoner has been merged from A8765SS to A1244AB"
   )
-
-  private fun prisonerAtLocation(bookingId: Long = 1234567, offenderNo: String = "A1234AA", agencyId: String = "MDI") =
-    PrisonerAtLocation(
-      bookingId, 1, "John", "Smith", offenderNo, agencyId, 1
-    )
 
   private val location = Location(
     agencyId = "MDI", locationId = 77777L, description = "Houseblock 1"

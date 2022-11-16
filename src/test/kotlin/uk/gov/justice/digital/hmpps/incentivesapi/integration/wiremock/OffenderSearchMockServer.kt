@@ -160,7 +160,7 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
     )
   }
 
-  fun stubGetOffender(prisonId: String, prisonerNumber: String, withOpenAcct: Boolean = true) {
+  fun stubGetOffender(prisonId: String, prisonerNumber: String, bookingId: Long, withOpenAcct: Boolean = true) {
     val alerts = if (withOpenAcct) listOf(
       OffenderSearchPrisonerAlert(
         alertType = "H",
@@ -178,7 +178,7 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
             mapper.writeValueAsBytes(
               OffenderSearchPrisoner(
                 prisonerNumber = prisonerNumber,
-                bookingId = 110001,
+                bookingId = bookingId,
                 firstName = "JAMES",
                 middleNames = null,
                 lastName = "HALLS",

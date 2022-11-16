@@ -27,6 +27,18 @@ class PrisonerIepLevelRepositoryTest : TestBase() {
   @Autowired
   lateinit var repository: PrisonerIepLevelRepository
 
+  private fun entity(bookingId: Long, current: Boolean): PrisonerIepLevel =
+    PrisonerIepLevel(
+      iepCode = "BAS",
+      prisonId = "LEI",
+      locationId = "LEI-1-1-001",
+      bookingId = bookingId,
+      current = current,
+      reviewedBy = "TEST_STAFF1",
+      reviewTime = LocalDateTime.now(),
+      prisonerNumber = "A1234AB",
+    )
+
   @BeforeEach
   fun setUp(): Unit = runBlocking {
     repository.deleteAll()
@@ -94,17 +106,6 @@ class PrisonerIepLevelRepositoryTest : TestBase() {
   @Nested
   inner class CurrentTrueConstraint {
     private val bookingId = 1234567L
-    private fun entity(bookingId: Long, current: Boolean): PrisonerIepLevel =
-      PrisonerIepLevel(
-        iepCode = "BAS",
-        prisonId = "LEI",
-        locationId = "LEI-1-1-001",
-        bookingId = bookingId,
-        current = current,
-        reviewedBy = "TEST_STAFF1",
-        reviewTime = LocalDateTime.now(),
-        prisonerNumber = "A1234AB",
-      )
 
     @Test
     fun `cannot persist another record for the same bookingId where current=true already exists`(): Unit = runBlocking {

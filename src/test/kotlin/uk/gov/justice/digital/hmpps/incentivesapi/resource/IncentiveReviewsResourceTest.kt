@@ -148,6 +148,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
     prisonApiMockServer.stubLocation("MDI-1")
     prisonApiMockServer.stubPositiveCaseNoteSummary()
     prisonApiMockServer.stubNegativeCaseNoteSummary()
+    prisonApiMockServer.stubIepLevels()
 
     webTestClient.get()
       .uri("/incentives-reviews/prison/MDI/location/MDI-1")
@@ -225,6 +226,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
     prisonApiMockServer.stubApi404for("/api/locations/code/MDI-1")
     prisonApiMockServer.stubPositiveCaseNoteSummary()
     prisonApiMockServer.stubNegativeCaseNoteSummary()
+    prisonApiMockServer.stubIepLevels()
 
     webTestClient.get()
       .uri("/incentives-reviews/prison/MDI/location/MDI-1")
@@ -293,32 +295,6 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
           }
         """,
         true,
-      )
-  }
-
-  @Test
-  fun `when insufficient data to calculate next review date`(): Unit = runBlocking {
-    offenderSearchMockServer.stubFindOffenders("MDI")
-    prisonApiMockServer.stubLocation("MDI-1")
-    prisonApiMockServer.stubPositiveCaseNoteSummary()
-    prisonApiMockServer.stubNegativeCaseNoteSummary()
-
-    repository.deleteAll()
-
-    webTestClient.get()
-      .uri("/incentives-reviews/prison/MDI/location/MDI-1")
-      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
-      .exchange()
-      .expectStatus().isNotFound
-      .expectBody().json(
-        // language=json
-        """
-          {
-            "status": 404,
-            "userMessage": "Not Found: No Data found for ID(s) [1234134, 1234135, 1234136, 1234137, 1234138]",
-            "developerMessage": "No Data found for ID(s) [1234134, 1234135, 1234136, 1234137, 1234138]"
-          }
-          """
       )
   }
 }

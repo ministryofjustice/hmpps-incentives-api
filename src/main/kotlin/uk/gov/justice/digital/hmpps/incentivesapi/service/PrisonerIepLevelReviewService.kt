@@ -29,6 +29,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocati
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import java.time.Clock
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.function.Supplier
@@ -44,32 +45,30 @@ class PrisonerIepLevelReviewService(
   private val authenticationFacade: AuthenticationFacade,
   private val clock: Clock,
   private val featureFlagsService: FeatureFlagsService,
+  private val nextReviewDateGetterService: NextReviewDateGetterService,
+  private val nextReviewDateUpdaterService: NextReviewDateUpdaterService,
   private val offenderSearchService: OffenderSearchService,
 ) {
   companion object {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
   }
 
-  private suspend fun setNextReviewDate(iepSummary: IepSummary): IepSummary {
-    // NOTE: `iepSummary.prisonerNumber` could be `null` (when data is coming from NOMIS)
-    val prisonerNumber = iepSummary.prisonerNumber ?: run {
-      val locationInfo = prisonApiService.getPrisonerInfo(iepSummary.bookingId, useClientCredentials = true)
-      locationInfo.offenderNo
-    }
+  private suspend fun calculateNextReviewDateFromNomisData(iepSummary: IepSummary): LocalDate {
+    // NOTE: `iepSummary.prisonerNumber` is `null` for data coming from NOMIS
+    val locationInfo = prisonApiService.getPrisonerInfo(iepSummary.bookingId, useClientCredentials = true)
+    val prisonerNumber = locationInfo.offenderNo
 
     // Get Prisoner/ACCT info from Offender Search API
-    val prisoner = offenderSearchService.getOffender(prisonerNumber)
+    val offender = offenderSearchService.getOffender(prisonerNumber)
 
-    iepSummary.nextReviewDate = NextReviewDateService(
+    return NextReviewDateService(
       NextReviewDateInput(
         iepDetails = iepSummary.iepDetails,
-        hasAcctOpen = prisoner.acctOpen,
-        dateOfBirth = prisoner.dateOfBirth,
-        receptionDate = prisoner.receptionDate,
+        hasAcctOpen = offender.acctOpen,
+        dateOfBirth = offender.dateOfBirth,
+        receptionDate = offender.receptionDate,
       )
     ).calculate()
-
-    return iepSummary
   }
 
   suspend fun getPrisonerIepLevelHistory(
@@ -80,7 +79,7 @@ class PrisonerIepLevelReviewService(
     return if (!featureFlagsService.isIncentivesDataSourceOfTruth()) {
       var iepSummary = prisonApiService.getIEPSummaryForPrisoner(bookingId, withDetails = true, useClientCredentials)
 
-      iepSummary = setNextReviewDate(iepSummary)
+      iepSummary.nextReviewDate = calculateNextReviewDateFromNomisData(iepSummary)
 
       if (!withDetails) {
         iepSummary.iepDetails = emptyList()
@@ -100,7 +99,7 @@ class PrisonerIepLevelReviewService(
       val prisonerInfo = prisonApiService.getPrisonerInfo(prisonerNumber)
       var iepSummary = prisonApiService.getIEPSummaryForPrisoner(prisonerInfo.bookingId, withDetails = true)
 
-      iepSummary = setNextReviewDate(iepSummary)
+      iepSummary.nextReviewDate = calculateNextReviewDateFromNomisData(iepSummary)
 
       return iepSummary
     } else {
@@ -138,7 +137,7 @@ class PrisonerIepLevelReviewService(
       updateIepLevelsWithCurrentFlagToFalse(bookingId)
     }
 
-    return prisonerIepLevelRepository.save(
+    val review = prisonerIepLevelRepository.save(
       PrisonerIepLevel(
         iepCode = syncPostRequest.iepLevel,
         commentText = syncPostRequest.comment,
@@ -151,7 +150,11 @@ class PrisonerIepLevelReviewService(
         reviewType = syncPostRequest.reviewType,
         prisonerNumber = prisonerInfo.offenderNo
       )
-    ).translate(prisonApiService.getIncentiveLevels())
+    )
+
+    nextReviewDateUpdaterService.update(review.bookingId)
+
+    return review.toIepDetail(prisonApiService.getIncentiveLevels())
   }
 
   suspend fun handleSyncPostIepReviewRequest(bookingId: Long, syncPostRequest: SyncPostRequest): IepDetail {
@@ -193,8 +196,10 @@ class PrisonerIepLevelReviewService(
       current = syncPatchRequest.current ?: prisonerIepLevel.current,
     )
 
-    val iepDetail = prisonerIepLevelRepository.save(prisonerIepLevel).translate(prisonApiService.getIncentiveLevels())
+    val updatedReview = prisonerIepLevelRepository.save(prisonerIepLevel)
+    nextReviewDateUpdaterService.update(updatedReview.bookingId)
 
+    val iepDetail = updatedReview.toIepDetail(prisonApiService.getIncentiveLevels())
     publishDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_UPDATED)
     publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_UPDATED)
 
@@ -214,6 +219,7 @@ class PrisonerIepLevelReviewService(
     }
 
     prisonerIepLevelRepository.delete(prisonerIepLevel)
+    nextReviewDateUpdaterService.update(bookingId)
 
     // If the deleted record had `current=true`, the latest IEP review becomes current
     prisonerIepLevel.current.let {
@@ -223,7 +229,7 @@ class PrisonerIepLevelReviewService(
       }
     }
 
-    val iepDetail = prisonerIepLevel.translate(prisonApiService.getIncentiveLevels())
+    val iepDetail = prisonerIepLevel.toIepDetail(prisonApiService.getIncentiveLevels())
     publishDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_DELETED)
     publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_DELETED)
   }
@@ -247,7 +253,7 @@ class PrisonerIepLevelReviewService(
   }
 
   suspend fun getReviewById(id: Long): IepDetail =
-    prisonerIepLevelRepository.findById(id)?.translate(prisonApiService.getIncentiveLevels()) ?: throw NoDataFoundException(id)
+    prisonerIepLevelRepository.findById(id)?.toIepDetail(prisonApiService.getIncentiveLevels()) ?: throw NoDataFoundException(id)
 
   @Transactional
   suspend fun processOffenderEvent(prisonOffenderEvent: HMPPSDomainEvent) =
@@ -280,7 +286,7 @@ class PrisonerIepLevelReviewService(
         "INCENTIVES_API"
       )
 
-      val iepDetail = prisonerIepLevel.translate(prisonApiService.getIncentiveLevels())
+      val iepDetail = prisonerIepLevel.toIepDetail(prisonApiService.getIncentiveLevels())
       publishDomainEvent(
         iepDetail,
         IncentivesDomainEventType.IEP_REVIEW_INSERTED,
@@ -328,11 +334,11 @@ class PrisonerIepLevelReviewService(
     incentiveLevels: Map<String, IepLevel>,
     withDetails: Boolean = true
   ): IepSummary {
-    val iepDetails = levels.map { it.translate(incentiveLevels) }.toList()
+    val iepDetails = levels.map { it.toIepDetail(incentiveLevels) }.toList()
 
     val currentIep = iepDetails.firstOrNull() ?: throw IncentiveReviewNotFoundException("Not Found incentive reviews")
 
-    var iepSummary = IepSummary(
+    val iepSummary = IepSummary(
       bookingId = currentIep.bookingId,
       iepDate = currentIep.iepDate,
       iepTime = currentIep.iepTime,
@@ -341,9 +347,8 @@ class PrisonerIepLevelReviewService(
       prisonerNumber = currentIep.prisonerNumber,
       locationId = currentIep.locationId,
       iepDetails = iepDetails,
+      nextReviewDate = nextReviewDateGetterService.get(currentIep.bookingId),
     )
-
-    iepSummary = setNextReviewDate(iepSummary)
 
     if (!withDetails) {
       iepSummary.iepDetails = emptyList()
@@ -367,7 +372,7 @@ class PrisonerIepLevelReviewService(
       locationInfo,
       reviewTime,
       reviewerUserName
-    ).translate(prisonApiService.getIncentiveLevels())
+    ).toIepDetail(prisonApiService.getIncentiveLevels())
 
     // Propagate new IEP review to other services
     if (featureFlagsService.reviewAddedSyncMechanism() == ReviewAddedSyncMechanism.DOMAIN_EVENT) {
@@ -398,7 +403,7 @@ class PrisonerIepLevelReviewService(
   ): PrisonerIepLevel {
     updateIepLevelsWithCurrentFlagToFalse(prisonerInfo.bookingId)
 
-    return prisonerIepLevelRepository.save(
+    val review = prisonerIepLevelRepository.save(
       PrisonerIepLevel(
         iepCode = iepReview.iepLevel,
         commentText = iepReview.comment,
@@ -412,6 +417,10 @@ class PrisonerIepLevelReviewService(
         prisonerNumber = prisonerInfo.offenderNo
       )
     )
+
+    nextReviewDateUpdaterService.update(prisonerInfo.bookingId)
+
+    return review
   }
 
   private suspend fun publishDomainEvent(
@@ -448,23 +457,6 @@ class PrisonerIepLevelReviewService(
       }
   }
 
-  private suspend fun PrisonerIepLevel.translate(incentiveLevels: Map<String, IepLevel>) =
-    IepDetail(
-      id = id,
-      bookingId = bookingId,
-      iepDate = reviewTime.toLocalDate(),
-      iepTime = reviewTime,
-      agencyId = prisonId,
-      iepLevel = incentiveLevels[iepCode]?.iepDescription ?: "Unmapped",
-      iepCode = iepCode,
-      reviewType = reviewType,
-      comments = commentText,
-      userId = reviewedBy,
-      locationId = locationId,
-      prisonerNumber = prisonerNumber,
-      auditModuleName = "INCENTIVES_API",
-    )
-
   @Transactional
   suspend fun mergedPrisonerDetails(prisonerMergeEvent: HMPPSDomainEvent) {
 
@@ -484,6 +476,7 @@ class PrisonerIepLevelReviewService(
     reviewsToUpdate.collect {
       prisonerIepLevelRepository.save(it)
     }
+    nextReviewDateUpdaterService.update(remainingBookingId)
 
     val numberUpdated = reviewsToUpdate.count()
     if (numberUpdated > 0) {
