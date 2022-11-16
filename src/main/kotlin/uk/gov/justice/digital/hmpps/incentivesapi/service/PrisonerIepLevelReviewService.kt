@@ -157,6 +157,7 @@ class PrisonerIepLevelReviewService(
     return review.toIepDetail(prisonApiService.getIncentiveLevels())
   }
 
+  @Transactional
   suspend fun handleSyncPostIepReviewRequest(bookingId: Long, syncPostRequest: SyncPostRequest): IepDetail {
     val iepDetail = persistSyncPostRequest(bookingId, syncPostRequest, true)
 
@@ -166,6 +167,7 @@ class PrisonerIepLevelReviewService(
     return iepDetail
   }
 
+  @Transactional
   suspend fun handleSyncPatchIepReviewRequest(
     bookingId: Long,
     id: Long,
@@ -206,6 +208,7 @@ class PrisonerIepLevelReviewService(
     return iepDetail
   }
 
+  @Transactional
   suspend fun handleSyncDeleteIepReviewRequest(bookingId: Long, id: Long) {
     val prisonerIepLevel: PrisonerIepLevel? = prisonerIepLevelRepository.findById(id)
     if (prisonerIepLevel == null) {
