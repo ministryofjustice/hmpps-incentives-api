@@ -340,7 +340,7 @@ class IncentiveReviewsServiceTest {
   }
 
   @Test
-  fun `throw exception if cannot calculate next review date for one bookingId`(): Unit = runBlocking {
+  fun `throw exception if cannot find incentive level one bookingId`(): Unit = runBlocking {
     // Given - we only have prisonerIepLevel records for 110001
     whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-2-1")
     whenever(offenderSearchService.findOffenders(any(), any(), any(), any()))
@@ -362,7 +362,7 @@ class IncentiveReviewsServiceTest {
   }
 
   @Test
-  fun `throw exception if cannot calculate next review date for all bookingIds`(): Unit = runBlocking {
+  fun `throw exception if cannot find incentive levels all bookingIds`(): Unit = runBlocking {
     // Given - we don't have prisonerIepLevel records for either bookingId
     whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-2-1")
     whenever(offenderSearchService.findOffenders(any(), any(), any(), any()))
