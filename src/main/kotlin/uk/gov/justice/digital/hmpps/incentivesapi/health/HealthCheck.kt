@@ -12,7 +12,7 @@ abstract class HealthCheck(private val webClient: WebClient, private val timeout
       .uri("/health/ping")
       .retrieve()
       .toEntity(String::class.java)
-      .block(timeout)
+      .block(timeout) ?: throw Exception("/health/ping did not return a response")
     Health.up().withDetail("HttpStatus", responseEntity.statusCode).build()
   } catch (e: WebClientResponseException) {
     Health.down(e).withDetail("body", e.responseBodyAsString).build()
