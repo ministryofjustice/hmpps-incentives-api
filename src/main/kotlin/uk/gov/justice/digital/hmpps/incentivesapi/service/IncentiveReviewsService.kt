@@ -25,6 +25,10 @@ class IncentiveReviewsService(
   private val nextReviewDateGetterService: NextReviewDateGetterService,
   private val clock: Clock,
 ) {
+  companion object {
+    const val DEFAULT_PAGE_SIZE = 20
+  }
+
   /**
    * Returns incentive review information for a given location within a prison and on a given level
    * NB: page is 1-based
@@ -34,7 +38,7 @@ class IncentiveReviewsService(
     cellLocationPrefix: String,
     levelCode: String,
     page: Int = 1,
-    size: Int = 20
+    size: Int = DEFAULT_PAGE_SIZE,
   ): IncentiveReviewResponse = coroutineScope {
     val deferredOffenders = async {
       // all offenders at location are required to determine total number with overdue reviews

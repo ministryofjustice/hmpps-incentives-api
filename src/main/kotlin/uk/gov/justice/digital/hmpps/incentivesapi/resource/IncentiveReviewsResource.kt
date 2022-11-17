@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveReviewsService
+import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveReviewsService.Companion.DEFAULT_PAGE_SIZE
 import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 
 @RestController
@@ -58,11 +59,11 @@ class IncentiveReviewsResource(private val incentiveReviewsService: IncentiveRev
 
     @Schema(description = "Page (starts at 1)", defaultValue = "1", minimum = "1", example = "2", type = "integer", required = false, format = "int32")
     @RequestParam(required = false, defaultValue = "1")
-    page: Int,
+    page: Int = 1,
 
-    @Schema(description = "Page size", defaultValue = "20", minimum = "1", maximum = "100", example = "20", type = "integer", required = false, format = "int32")
-    @RequestParam(required = false, defaultValue = "20")
-    pageSize: Int,
+    @Schema(description = "Page size", defaultValue = "$DEFAULT_PAGE_SIZE", minimum = "1", maximum = "100", example = "20", type = "integer", required = false, format = "int32")
+    @RequestParam(required = false, defaultValue = "$DEFAULT_PAGE_SIZE")
+    pageSize: Int = DEFAULT_PAGE_SIZE,
   ): IncentiveReviewResponse {
     ensure {
       ("prisonId" to prisonId).hasLengthAtLeast(3).hasLengthAtMost(5)
