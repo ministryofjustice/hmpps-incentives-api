@@ -161,7 +161,7 @@ class PrisonerIepLevelReviewService(
   suspend fun handleSyncPostIepReviewRequest(bookingId: Long, syncPostRequest: SyncPostRequest): IepDetail {
     val iepDetail = persistSyncPostRequest(bookingId, syncPostRequest, true)
 
-    publishDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
+    publishReviewDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
     publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_ADDED)
 
     return iepDetail
@@ -202,7 +202,7 @@ class PrisonerIepLevelReviewService(
     nextReviewDateUpdaterService.update(updatedReview.bookingId)
 
     val iepDetail = updatedReview.toIepDetail(prisonApiService.getIncentiveLevels())
-    publishDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_UPDATED)
+    publishReviewDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_UPDATED)
     publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_UPDATED)
 
     return iepDetail
@@ -233,7 +233,7 @@ class PrisonerIepLevelReviewService(
     }
 
     val iepDetail = prisonerIepLevel.toIepDetail(prisonApiService.getIncentiveLevels())
-    publishDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_DELETED)
+    publishReviewDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_DELETED)
     publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_DELETED)
   }
 
@@ -310,7 +310,7 @@ class PrisonerIepLevelReviewService(
       )
 
       val iepDetail = prisonerIepLevel.toIepDetail(prisonApiService.getIncentiveLevels())
-      publishDomainEvent(
+      publishReviewDomainEvent(
         iepDetail,
         IncentivesDomainEventType.IEP_REVIEW_INSERTED,
       )
@@ -399,7 +399,7 @@ class PrisonerIepLevelReviewService(
 
     // Propagate new IEP review to other services
     if (featureFlagsService.reviewAddedSyncMechanism() == ReviewAddedSyncMechanism.DOMAIN_EVENT) {
-      publishDomainEvent(newIepReview, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
+      publishReviewDomainEvent(newIepReview, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
     } else {
       prisonApiService.addIepReview(
         prisonerInfo.bookingId,
@@ -446,12 +446,21 @@ class PrisonerIepLevelReviewService(
     return review
   }
 
-  private suspend fun publishDomainEvent(
+  private suspend fun publishReviewDomainEvent(
     iepDetail: IepDetail,
     eventType: IncentivesDomainEventType,
   ) {
     iepDetail.id?.let {
-      snsService.sendIepReviewEvent(iepDetail.id, iepDetail.prisonerNumber ?: "N/A", iepDetail.iepTime, eventType)
+      val description: String = when (eventType) {
+        IncentivesDomainEventType.IEP_REVIEW_INSERTED -> "An IEP review has been added"
+        IncentivesDomainEventType.IEP_REVIEW_UPDATED -> "An IEP review has been updated"
+        IncentivesDomainEventType.IEP_REVIEW_DELETED -> "An IEP review has been deleted"
+        else -> {
+          throw IllegalArgumentException("Tried to publish a review event with a non-review event type: $eventType")
+        }
+      }
+
+      snsService.publishDomainEvent(iepDetail.id, iepDetail.prisonerNumber ?: "N/A", iepDetail.iepTime, eventType, description)
     } ?: run {
       log.warn("IepDetail has `null` id, domain event not published: $iepDetail")
     }
