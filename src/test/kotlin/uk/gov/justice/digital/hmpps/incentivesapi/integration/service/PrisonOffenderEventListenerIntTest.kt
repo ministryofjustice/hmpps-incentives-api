@@ -24,6 +24,8 @@ import java.time.Instant
 import java.time.LocalDateTime
 
 class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
+  private val awaitAtMost30Secs
+    get() = await.atMost(Duration.ofSeconds(30))
 
   @Autowired
   private lateinit var repository: PrisonerIepLevelRepository
@@ -58,12 +60,12 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     // When
     publishPrisonerReceivedMessage(reason)
 
-    await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
-    await untilCallTo { prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber") } matches { it == 1 }
-    await untilCallTo { prisonApiMockServer.getCountFor("/api/locations/$locationId?includeInactive=true") } matches { it == 1 }
+    awaitAtMost30Secs untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
+    awaitAtMost30Secs untilCallTo { prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber") } matches { it == 1 }
+    awaitAtMost30Secs untilCallTo { prisonApiMockServer.getCountFor("/api/locations/$locationId?includeInactive=true") } matches { it == 1 }
 
     // Then
-    await.atMost(Duration.ofSeconds(30)) untilCallTo {
+    awaitAtMost30Secs untilCallTo {
       runBlocking {
         val booking = repository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId)
         assertThat(booking?.reviewType).isEqualTo(ReviewType.INITIAL)
@@ -88,12 +90,12 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
 
     // When
     publishPrisonerReceivedMessage("TRANSFERRED")
-    await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
-    await untilCallTo { prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber") } matches { it == 1 }
-    await untilCallTo { prisonApiMockServer.getCountFor("/api/locations/$locationId?includeInactive=true") } matches { it == 1 }
+    awaitAtMost30Secs untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
+    awaitAtMost30Secs untilCallTo { prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber") } matches { it == 1 }
+    awaitAtMost30Secs untilCallTo { prisonApiMockServer.getCountFor("/api/locations/$locationId?includeInactive=true") } matches { it == 1 }
 
     // Then
-    await.atMost(Duration.ofSeconds(30)) untilCallTo {
+    awaitAtMost30Secs untilCallTo {
       runBlocking {
         val booking = repository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId)
         assertThat(booking?.reviewType).isEqualTo(ReviewType.TRANSFER)
@@ -151,8 +153,8 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     // When
     publishPrisonerMergedMessage(prisonerNumber, removedNomsNumber)
 
-    await untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
-    await untilCallTo { prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber") } matches { it == 1 }
+    awaitAtMost30Secs untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
+    awaitAtMost30Secs untilCallTo { prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber") } matches { it == 1 }
   }
 
   private fun publishPrisonerReceivedMessage(reason: String) =
