@@ -269,6 +269,26 @@ class PrisonerIepLevelReviewService(
       }
     }
 
+  @Transactional
+  suspend fun processPrisonerUpdatedEvent(prisonOffenderEvent: HMPPSDomainEvent) {
+    val alertsChanged: Boolean = prisonOffenderEvent.additionalInformation.categoriesChanged?.contains("ALERTS") ?: false
+
+    if (alertsChanged) {
+      updateNextReviewDate(prisonOffenderEvent)
+    } else {
+      log.debug("Ignoring 'prisoner-offender-search.prisoner.updated' event, alerts didn't change: categoriesChanged = ${prisonOffenderEvent.additionalInformation.categoriesChanged}")
+    }
+  }
+
+  private suspend fun updateNextReviewDate(prisonOffenderEvent: HMPPSDomainEvent) {
+    prisonOffenderEvent.additionalInformation.nomsNumber?.let { prisonerNumber ->
+      val offender = offenderSearchService.getOffender(prisonerNumber)
+      nextReviewDateUpdaterService.updateMany(listOf(offender))
+    } ?: run {
+      log.warn("prisonerNumber null for prisonOffenderEvent: $prisonOffenderEvent ")
+    }
+  }
+
   private suspend fun createIepForReceivedPrisoner(prisonOffenderEvent: HMPPSDomainEvent, reviewType: ReviewType) {
     prisonOffenderEvent.additionalInformation.nomsNumber?.let {
       val prisonerInfo = prisonApiService.getPrisonerInfo(it, true)

@@ -68,6 +68,17 @@ class PrisonOffenderEventListenerTest {
     }
   }
 
+  @Test
+  fun `process prisoner updated message`(): Unit = runBlocking {
+    coroutineScope {
+      // When
+      listener.onPrisonOffenderEvent("/messages/prisonerUpdated.json".readResourceAsText())
+
+      // Then
+      verify(prisonerIepLevelReviewService, times(1)).processPrisonerUpdatedEvent(any())
+    }
+  }
+
   private fun String.readResourceAsText(): String {
     return PrisonOffenderEventListenerTest::class.java.getResource(this)?.readText() ?: throw AssertionError("can not find file")
   }

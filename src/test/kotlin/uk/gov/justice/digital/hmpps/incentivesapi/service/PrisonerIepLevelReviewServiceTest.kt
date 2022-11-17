@@ -602,6 +602,46 @@ class PrisonerIepLevelReviewServiceTest {
     }
 
     @Test
+    fun `process 'prisoner updated' event when alerts changed`(): Unit = runBlocking {
+      val bookingId = 1234567L
+      val prisonerNumber = "A1244AB"
+
+      // Given
+      val prisonerUpdatedEvent = prisonerUpdatedEvent(
+        prisonerNumber,
+        categoriesChanged = listOf("STATUS", "ALERTS"),
+      )
+      val offender = offenderSearchPrisoner(prisonerNumber, bookingId)
+      whenever(offenderSearchService.getOffender(prisonerNumber)).thenReturn(offender)
+
+      // When
+      prisonerIepLevelReviewService.processPrisonerUpdatedEvent(prisonerUpdatedEvent)
+
+      verify(nextReviewDateUpdaterService, times(1))
+        .updateMany(listOf(offender))
+    }
+
+    @Test
+    fun `process 'prisoner updated' event when alerts didn't change`(): Unit = runBlocking {
+      val bookingId = 1234567L
+      val prisonerNumber = "A1244AB"
+
+      // Given
+      val prisonerUpdatedEvent = prisonerUpdatedEvent(
+        prisonerNumber,
+        categoriesChanged = listOf("STATUS", "PERSONAL_DETAILS"),
+      )
+      val offender = offenderSearchPrisoner(prisonerNumber, bookingId)
+      whenever(offenderSearchService.getOffender(prisonerNumber)).thenReturn(offender)
+
+      // When
+      prisonerIepLevelReviewService.processPrisonerUpdatedEvent(prisonerUpdatedEvent)
+
+      verify(nextReviewDateUpdaterService, times(0))
+        .updateMany(listOf(offender))
+    }
+
+    @Test
     fun `do not process reason RETURN_FROM_COURT`(): Unit = runBlocking {
       // When
       prisonerIepLevelReviewService.processOffenderEvent(prisonOffenderEvent("RETURN_FROM_COURT"))
@@ -1229,6 +1269,16 @@ class PrisonerIepLevelReviewServiceTest {
       id = 123,
       nomsNumber = prisonerNumber,
       reason = reason
+    ),
+    occurredAt = Instant.now(),
+    description = "A prisoner has been received into prison"
+  )
+
+  private fun prisonerUpdatedEvent(prisonerNumber: String = "A1244AB", categoriesChanged: List<String> = listOf("ALERTS")) = HMPPSDomainEvent(
+    eventType = "prisoner-offender-search.prisoner.updated",
+    additionalInformation = AdditionalInformation(
+      nomsNumber = prisonerNumber,
+      categoriesChanged = categoriesChanged,
     ),
     occurredAt = Instant.now(),
     description = "A prisoner has been received into prison"

@@ -51,6 +51,7 @@ data class AdditionalInformation(
   val nomsNumber: String? = null,
   val reason: String? = null,
   val removedNomsNumber: String? = null,
+  val categoriesChanged: List<String>? = null,
 )
 
 data class HMPPSDomainEvent(
