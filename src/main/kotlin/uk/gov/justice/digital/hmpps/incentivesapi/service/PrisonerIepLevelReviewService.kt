@@ -225,7 +225,7 @@ class PrisonerIepLevelReviewService(
     nextReviewDateUpdaterService.update(bookingId)
 
     // If the deleted record had `current=true`, the latest IEP review becomes current
-    prisonerIepLevel.current.let {
+    if (prisonerIepLevel.current) {
       // The deleted record was current, set new current to the latest IEP review
       prisonerIepLevelRepository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId)?.run {
         prisonerIepLevelRepository.save(this.copy(current = true))
