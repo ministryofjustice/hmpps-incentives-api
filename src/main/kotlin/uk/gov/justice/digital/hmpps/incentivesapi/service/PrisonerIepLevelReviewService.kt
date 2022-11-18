@@ -276,7 +276,7 @@ class PrisonerIepLevelReviewService(
     if (alertsChanged) {
       updateNextReviewDate(prisonOffenderEvent)
     } else {
-      log.debug("Ignoring 'prisoner-offender-search.prisoner.updated' event, alerts didn't change: categoriesChanged = ${prisonOffenderEvent.additionalInformation.categoriesChanged}")
+      log.debug("Ignoring 'prisoner-offender-search.prisoner.updated' event, alerts didn't change: prisonerNumber = ${prisonOffenderEvent.additionalInformation.nomsNumber}, categoriesChanged = ${prisonOffenderEvent.additionalInformation.categoriesChanged}")
     }
   }
 
@@ -293,7 +293,7 @@ class PrisonerIepLevelReviewService(
         description = "A prisoner next review date was updated",
       )
     } ?: run {
-      log.warn("prisonerNumber null for prisonOffenderEvent: $prisonOffenderEvent ")
+      log.warn("Could not update next review date: prisonerNumber null for prisonOffenderEvent: $prisonOffenderEvent ")
     }
   }
 
