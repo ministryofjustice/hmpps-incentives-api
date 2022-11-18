@@ -177,8 +177,25 @@ class PrisonerIepLevelReviewServiceTest {
         )
 
         // Domain event not published
-        verify(snsService, times(0)).publishDomainEvent(any(), any(), any(), any(), any())
+        verify(snsService, times(0)).publishDomainEvent(
+          42,
+          prisonerNumber,
+          reviewTime,
+          IncentivesDomainEventType.IEP_REVIEW_INSERTED,
+          "An IEP review has been added",
+        )
       }
+
+      // Next review date is updated/event is published
+      verify(nextReviewDateUpdaterService, times(1))
+        .update(bookingId)
+      verify(snsService, times(1)).publishDomainEvent(
+        bookingId,
+        prisonerNumber,
+        LocalDateTime.now(clock),
+        IncentivesDomainEventType.PRISONER_NEXT_REVIEW_DATE_UPDATED,
+        "A prisoner next review date was updated",
+      )
 
       // An audit event is published
       verify(auditService, times(1)).sendMessage(
@@ -624,6 +641,15 @@ class PrisonerIepLevelReviewServiceTest {
 
       verify(nextReviewDateUpdaterService, times(1))
         .updateMany(listOf(offender))
+
+      verify(snsService, times(1))
+        .publishDomainEvent(
+          id = bookingId,
+          nomsNumber = prisonerNumber,
+          occurredAt = LocalDateTime.now(clock),
+          eventType = IncentivesDomainEventType.PRISONER_NEXT_REVIEW_DATE_UPDATED,
+          description = "A prisoner next review date was updated",
+        )
     }
 
     @Test

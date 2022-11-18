@@ -79,6 +79,7 @@ enum class IncentivesDomainEventType(val value: String) {
   IEP_REVIEW_INSERTED("incentives.iep-review.inserted"),
   IEP_REVIEW_UPDATED("incentives.iep-review.updated"),
   IEP_REVIEW_DELETED("incentives.iep-review.deleted"),
+  PRISONER_NEXT_REVIEW_DATE_UPDATED("incentives.prisoner.next-review-date-updated"),
 }
 
 fun Instant.toOffsetDateFormat(): String =
