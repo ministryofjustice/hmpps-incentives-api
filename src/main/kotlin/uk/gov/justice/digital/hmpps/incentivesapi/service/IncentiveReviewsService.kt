@@ -4,6 +4,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.toList
 import org.apache.commons.text.WordUtils
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClientResponseException.NotFound
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ListOfDataNotFoundException
@@ -37,6 +38,8 @@ class IncentiveReviewsService(
     prisonId: String,
     cellLocationPrefix: String,
     levelCode: String,
+    sort: IncentiveReviewSort? = null,
+    order: Sort.Direction? = null,
     page: Int = 1,
     size: Int = DEFAULT_PAGE_SIZE,
   ): IncentiveReviewResponse = coroutineScope {
@@ -120,4 +123,8 @@ class IncentiveReviewsService(
 
   private fun calcTypeCount(caseNoteUsage: List<CaseNoteUsage>): Int =
     caseNoteUsage.map { it.numCaseNotes }.fold(0) { acc, next -> acc + next }
+}
+
+enum class IncentiveReviewSort(val defaultOrder: Sort.Direction) {
+  NEXT_REVIEW_DATE(Sort.Direction.ASC)
 }

@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.resource
 
 import kotlinx.coroutines.runBlocking
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -122,6 +123,23 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
           }
           """
         )
+    }
+
+    @Test
+    fun `when sorting is incorrect`() {
+      offenderSearchMockServer.stubFindOffenders("MDI")
+      prisonApiMockServer.stubLocation("MDI-1")
+
+      webTestClient.get()
+        .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?sort=PRISON")
+        .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
+        .exchange()
+        .expectStatus().isBadRequest
+        .expectBody()
+        .jsonPath("status").isEqualTo(400)
+        .jsonPath("userMessage").value<String> {
+          assertThat(it).contains("No enum constant")
+        }
     }
 
     @Test
@@ -336,7 +354,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
   }
 
   @Test
-  fun `when incentive levels not available in DB`(): Unit = runBlocking {
+  fun `describes error when incentive levels not available in DB`(): Unit = runBlocking {
     offenderSearchMockServer.stubFindOffenders("MDI")
     prisonApiMockServer.stubLocation("MDI-1")
     prisonApiMockServer.stubPositiveCaseNoteSummary()
