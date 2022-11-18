@@ -878,6 +878,32 @@ class PrisonerIepLevelReviewServiceTest {
         verify(prisonerIepLevelRepository, times(1))
           .save(olderIepReview.copy(current = true))
       }
+
+    @Test
+    fun `If deleted IEP review had current = false, doesn't update latest IEP review`(): Unit =
+      runBlocking {
+        // Prisoner had few IEP reviews
+        val currentIepReview = iepReview.copy(current = false)
+        val olderIepReview = iepReview.copy(id = currentIepReview.id - 1, current = false)
+
+        // Mock find query
+        whenever(prisonerIepLevelRepository.findById(id)).thenReturn(currentIepReview)
+
+        // Mock find of latest IEP review
+        whenever(prisonerIepLevelRepository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId))
+          .thenReturn(olderIepReview)
+
+        // When
+        prisonerIepLevelReviewService.handleSyncDeleteIepReviewRequest(bookingId, currentIepReview.id)
+
+        // Then desired IEP review is deletes as usual
+        verify(prisonerIepLevelRepository, times(1))
+          .delete(currentIepReview)
+
+        // and the older IEP is not updated
+        verify(prisonerIepLevelRepository, times(0))
+          .save(olderIepReview.copy(current = true))
+      }
   }
 
   @Nested
