@@ -152,7 +152,7 @@ class PrisonerIepLevelReviewService(
       )
     )
 
-    nextReviewDateUpdaterService.update(review.bookingId)
+    updateNextReviewDate(review.bookingId, prisonerInfo.offenderNo)
 
     return review.toIepDetail(prisonApiService.getIncentiveLevels())
   }
@@ -199,7 +199,7 @@ class PrisonerIepLevelReviewService(
     )
 
     val updatedReview = prisonerIepLevelRepository.save(prisonerIepLevel)
-    nextReviewDateUpdaterService.update(updatedReview.bookingId)
+    updateNextReviewDate(updatedReview.bookingId, updatedReview.prisonerNumber)
 
     val iepDetail = updatedReview.toIepDetail(prisonApiService.getIncentiveLevels())
     publishReviewDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_UPDATED)
@@ -222,7 +222,7 @@ class PrisonerIepLevelReviewService(
     }
 
     prisonerIepLevelRepository.delete(prisonerIepLevel)
-    nextReviewDateUpdaterService.update(bookingId)
+    updateNextReviewDate(bookingId, prisonerIepLevel.prisonerNumber)
 
     // If the deleted record had `current=true`, the latest IEP review becomes current
     prisonerIepLevel.current.let {
@@ -284,6 +284,14 @@ class PrisonerIepLevelReviewService(
     prisonOffenderEvent.additionalInformation.nomsNumber?.let { prisonerNumber ->
       val offender = offenderSearchService.getOffender(prisonerNumber)
       nextReviewDateUpdaterService.updateMany(listOf(offender))
+
+      snsService.publishDomainEvent(
+        id = offender.bookingId,
+        nomsNumber = offender.prisonerNumber,
+        occurredAt = LocalDateTime.now(clock),
+        eventType = IncentivesDomainEventType.PRISONER_NEXT_REVIEW_DATE_UPDATED,
+        description = "A prisoner next review date was updated",
+      )
     } ?: run {
       log.warn("prisonerNumber null for prisonOffenderEvent: $prisonOffenderEvent ")
     }
@@ -417,6 +425,18 @@ class PrisonerIepLevelReviewService(
     return newIepReview
   }
 
+  suspend fun updateNextReviewDate(bookingId: Long, prisonerNumber: String) {
+    nextReviewDateUpdaterService.update(bookingId)
+
+    snsService.publishDomainEvent(
+      id = bookingId,
+      nomsNumber = prisonerNumber,
+      occurredAt = LocalDateTime.now(clock),
+      eventType = IncentivesDomainEventType.PRISONER_NEXT_REVIEW_DATE_UPDATED,
+      description = "A prisoner next review date was updated",
+    )
+  }
+
   suspend fun persistIepLevel(
     prisonerInfo: PrisonerAtLocation,
     iepReview: IepReview,
@@ -441,7 +461,7 @@ class PrisonerIepLevelReviewService(
       )
     )
 
-    nextReviewDateUpdaterService.update(prisonerInfo.bookingId)
+    updateNextReviewDate(prisonerInfo.bookingId, prisonerInfo.offenderNo)
 
     return review
   }
@@ -508,7 +528,7 @@ class PrisonerIepLevelReviewService(
     reviewsToUpdate.collect {
       prisonerIepLevelRepository.save(it)
     }
-    nextReviewDateUpdaterService.update(remainingBookingId)
+    updateNextReviewDate(remainingBookingId, remainingPrisonerNumber)
 
     val numberUpdated = reviewsToUpdate.count()
     if (numberUpdated > 0) {

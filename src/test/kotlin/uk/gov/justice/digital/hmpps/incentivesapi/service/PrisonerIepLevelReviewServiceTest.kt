@@ -624,6 +624,15 @@ class PrisonerIepLevelReviewServiceTest {
 
       verify(nextReviewDateUpdaterService, times(1))
         .updateMany(listOf(offender))
+
+      verify(snsService, times(1))
+        .publishDomainEvent(
+          id = bookingId,
+          nomsNumber = prisonerNumber,
+          occurredAt = LocalDateTime.now(clock),
+          eventType = IncentivesDomainEventType.PRISONER_NEXT_REVIEW_DATE_UPDATED,
+          description = "A prisoner next review date was updated",
+        )
     }
 
     @Test
