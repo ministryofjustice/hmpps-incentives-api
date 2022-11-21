@@ -361,6 +361,31 @@ class IncentiveReviewsServiceTest {
       // Then
       assertThat(reviews.reviews).isSortedAccordingTo(compareByDescending(IncentiveReview::nextReviewDate))
     }
+
+    @Test
+    fun `can sort by non-default parameters`(): Unit = runBlocking {
+      // Given
+      whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-2-1")
+      val offenders = listOf(
+        offenderSearchPrisoner("A1409AE", 110001L),
+        offenderSearchPrisoner("G6123VU", 110002L),
+      )
+      whenever(offenderSearchService.findOffenders(any(), any(), any(), any()))
+        .thenReturnOffenders(offenders)
+      whenever(nextReviewDateGetterService.getMany(offenders)).thenReturn(nextReviewDatesMap)
+
+      // When
+      val reviews = incentiveReviewsService.reviews(
+        "MDI",
+        "MDI-2-1",
+        "STD",
+        sort = IncentiveReviewSort.PRISONER_NUMBER,
+        order = Sort.Direction.DESC,
+      )
+
+      // Then
+      assertThat(reviews.reviews).isSortedAccordingTo(compareByDescending(IncentiveReview::prisonerNumber))
+    }
   }
 
   @Test

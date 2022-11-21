@@ -128,11 +128,19 @@ class IncentiveReviewsService(
     caseNoteUsage.map { it.numCaseNotes }.fold(0) { acc, next -> acc + next }
 }
 
+@Suppress("unused") // not all enum variants are referred to in code
 enum class IncentiveReviewSort(
-  private val defaultOrder: Sort.Direction,
+  val field: String,
   private val selector: (IncentiveReview) -> Comparable<*>,
+  private val defaultOrder: Sort.Direction,
 ) {
-  NEXT_REVIEW_DATE(Sort.Direction.ASC, IncentiveReview::nextReviewDate);
+  NEXT_REVIEW_DATE("nextReviewDate", IncentiveReview::nextReviewDate, Sort.Direction.ASC),
+  FIRST_NAME("firstName", IncentiveReview::firstName, Sort.Direction.ASC),
+  LAST_NAME("lastName", IncentiveReview::lastName, Sort.Direction.ASC),
+  PRISONER_NUMBER("prisonerNumber", IncentiveReview::prisonerNumber, Sort.Direction.ASC),
+  POSITIVE_BEHAVIOURS("positiveBehaviours", IncentiveReview::positiveBehaviours, Sort.Direction.DESC),
+  NEGATIVE_BEHAVIOURS("negativeBehaviours", IncentiveReview::negativeBehaviours, Sort.Direction.DESC),
+  ACCT_STATUS("acctOpenStatus", IncentiveReview::acctOpenStatus, Sort.Direction.DESC);
 
   companion object {
     fun orDefault(sort: IncentiveReviewSort?) = sort ?: NEXT_REVIEW_DATE

@@ -59,7 +59,12 @@ class IncentiveReviewsResource(private val incentiveReviewsService: IncentiveRev
     @PathVariable
     levelCode: String,
 
-    @Schema(description = "Sort reviews by", required = false, defaultValue = "NEXT_REVIEW_DATE", example = "NEXT_REVIEW_DATE", allowableValues = ["NEXT_REVIEW_DATE"])
+    @Schema(
+      description = "Sort reviews by", required = false, defaultValue = "NEXT_REVIEW_DATE", example = "PRISONER_NUMBER",
+      allowableValues = [
+        "NEXT_REVIEW_DATE", "FIRST_NAME", "LAST_NAME", "PRISONER_NUMBER", "POSITIVE_BEHAVIOURS", "NEGATIVE_BEHAVIOURS", "ACCT_STATUS",
+      ]
+    )
     @RequestParam(required = false)
     sort: IncentiveReviewSort? = null,
 
