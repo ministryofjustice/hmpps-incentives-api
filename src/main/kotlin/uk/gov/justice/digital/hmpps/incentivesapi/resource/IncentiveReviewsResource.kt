@@ -68,7 +68,10 @@ class IncentiveReviewsResource(private val incentiveReviewsService: IncentiveRev
     @RequestParam(required = false)
     sort: IncentiveReviewSort? = null,
 
-    @Schema(description = "Sort direction", required = false, defaultValue = "asc", example = "asc", allowableValues = ["asc", "desc"])
+    @Schema(
+      description = "Sort direction", required = false, defaultValue = "ASC", example = "ASC",
+      allowableValues = ["ASC", "DESC"]
+    )
     @RequestParam(required = false)
     order: Sort.Direction? = null,
 
