@@ -17,6 +17,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLeve
 import uk.gov.justice.digital.hmpps.incentivesapi.util.flow.toMap
 import java.time.Clock
 import java.time.LocalDate
+import java.util.Comparator
 
 @Service
 class IncentiveReviewsService(
@@ -79,6 +80,8 @@ class IncentiveReviewsService(
 
     val locationDescription = deferredLocationDescription.await()
 
+    val comparator = IncentiveReviewSort.orDefault(sort) comparingIn order
+
     val reviews = offenders.content
       .map {
         IncentiveReview(
@@ -94,7 +97,7 @@ class IncentiveReviewsService(
         )
       }
       .filter { it.levelCode == levelCode }
-      .sortedBy { it.nextReviewDate }
+      .sortedWith(comparator)
 
     IncentiveReviewResponse(
       locationDescription = locationDescription,
@@ -125,6 +128,19 @@ class IncentiveReviewsService(
     caseNoteUsage.map { it.numCaseNotes }.fold(0) { acc, next -> acc + next }
 }
 
-enum class IncentiveReviewSort(val defaultOrder: Sort.Direction) {
-  NEXT_REVIEW_DATE(Sort.Direction.ASC)
+enum class IncentiveReviewSort(
+  private val defaultOrder: Sort.Direction,
+  private val selector: (IncentiveReview) -> Comparable<*>,
+) {
+  NEXT_REVIEW_DATE(Sort.Direction.ASC, IncentiveReview::nextReviewDate);
+
+  companion object {
+    fun orDefault(sort: IncentiveReviewSort?) = sort ?: NEXT_REVIEW_DATE
+  }
+
+  infix fun comparingIn(order: Sort.Direction?): Comparator<IncentiveReview> = if ((order ?: defaultOrder).isDescending) {
+    compareBy(selector).reversed()
+  } else {
+    compareBy(selector)
+  }
 }

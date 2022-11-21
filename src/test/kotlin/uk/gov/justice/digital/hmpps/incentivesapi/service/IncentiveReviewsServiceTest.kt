@@ -6,6 +6,7 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
@@ -14,6 +15,7 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.mockito.stubbing.OngoingStubbing
+import org.springframework.data.domain.Sort
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ListOfDataNotFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
@@ -289,54 +291,76 @@ class IncentiveReviewsServiceTest {
     )
   }
 
-  @Test
-  fun `oldest date of next review is first by default`(): Unit = runBlocking {
-    // Given
-    whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-2-1")
-    val offenders = listOf(
-      offenderSearchPrisoner("A1409AE", 110001L),
-      offenderSearchPrisoner("G6123VU", 110002L),
-    )
-    whenever(offenderSearchService.findOffenders(any(), any(), any(), any()))
-      .thenReturnOffenders(offenders)
-
-    val oldestReview = LocalDateTime.now(clock).minusDays(5)
-    val nextReviewDatesMap = mapOf(
+  @Nested
+  inner class `sorting and filtering` {
+    private val oldestReview = LocalDateTime.now(clock).minusDays(5)
+    private val nextReviewDatesMap = mapOf(
       110001L to LocalDate.now(clock).plusYears(1),
       110002L to oldestReview.toLocalDate().plusYears(1),
     )
-    whenever(nextReviewDateGetterService.getMany(offenders)).thenReturn(nextReviewDatesMap)
 
-    // When
-    val reviews = incentiveReviewsService.reviews("MDI", "MDI-2-1", "STD")
-
-    // Then
-    assertThat(reviews.reviews).isEqualTo(
-      listOf(
-        IncentiveReview(
-          prisonerNumber = "G6123VU",
-          bookingId = 110002,
-          firstName = "Rhys",
-          lastName = "Jones",
-          levelCode = "STD",
-          positiveBehaviours = 0,
-          negativeBehaviours = 0,
-          acctOpenStatus = false,
-          nextReviewDate = nextReviewDatesMap[110002L]!!,
-        ),
-        IncentiveReview(
-          prisonerNumber = "A1409AE",
-          bookingId = 110001,
-          firstName = "Rhys",
-          lastName = "Jones",
-          levelCode = "STD",
-          positiveBehaviours = 0,
-          negativeBehaviours = 0,
-          acctOpenStatus = false,
-          nextReviewDate = nextReviewDatesMap[110001L]!!,
-        ),
+    @Test
+    fun `oldest date of next review is first by default`(): Unit = runBlocking {
+      // Given
+      whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-2-1")
+      val offenders = listOf(
+        offenderSearchPrisoner("A1409AE", 110001L),
+        offenderSearchPrisoner("G6123VU", 110002L),
       )
-    )
+      whenever(offenderSearchService.findOffenders(any(), any(), any(), any()))
+        .thenReturnOffenders(offenders)
+      whenever(nextReviewDateGetterService.getMany(offenders)).thenReturn(nextReviewDatesMap)
+
+      // When
+      val reviews = incentiveReviewsService.reviews("MDI", "MDI-2-1", "STD")
+
+      // Then
+      assertThat(reviews.reviews).isEqualTo(
+        listOf(
+          IncentiveReview(
+            prisonerNumber = "G6123VU",
+            bookingId = 110002,
+            firstName = "Rhys",
+            lastName = "Jones",
+            levelCode = "STD",
+            positiveBehaviours = 0,
+            negativeBehaviours = 0,
+            acctOpenStatus = false,
+            nextReviewDate = nextReviewDatesMap[110002L]!!,
+          ),
+          IncentiveReview(
+            prisonerNumber = "A1409AE",
+            bookingId = 110001,
+            firstName = "Rhys",
+            lastName = "Jones",
+            levelCode = "STD",
+            positiveBehaviours = 0,
+            negativeBehaviours = 0,
+            acctOpenStatus = false,
+            nextReviewDate = nextReviewDatesMap[110001L]!!,
+          ),
+        )
+      )
+    }
+
+    @Test
+    fun `can reverse order by date of next review`(): Unit = runBlocking {
+      // Given
+      whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-2-1")
+      val offenders = listOf(
+        offenderSearchPrisoner("A1409AE", 110001L),
+        offenderSearchPrisoner("G6123VU", 110002L),
+      )
+      whenever(offenderSearchService.findOffenders(any(), any(), any(), any()))
+        .thenReturnOffenders(offenders)
+      whenever(nextReviewDateGetterService.getMany(offenders)).thenReturn(nextReviewDatesMap)
+
+      // When
+      val reviews = incentiveReviewsService.reviews("MDI", "MDI-2-1", "STD", order = Sort.Direction.DESC)
+
+      // Then
+      assertThat(reviews.reviews).isSortedAccordingTo(compareByDescending(IncentiveReview::nextReviewDate))
+    }
   }
 
   @Test
