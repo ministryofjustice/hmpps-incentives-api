@@ -220,7 +220,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "levelCode": "STD",
                 "positiveBehaviours": 3,
                 "negativeBehaviours": 3,
-                "acctOpenStatus": true,
+                "hasAcctOpen": true,
                 "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
               },
               {
@@ -231,7 +231,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "levelCode": "STD",
                 "positiveBehaviours": 3,
                 "negativeBehaviours": 3,
-                "acctOpenStatus": false,
+                "hasAcctOpen": false,
                 "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
               },
               {
@@ -242,7 +242,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "levelCode": "STD",
                 "positiveBehaviours": 2,
                 "negativeBehaviours": 2,
-                "acctOpenStatus": false,
+                "hasAcctOpen": false,
                 "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
               },
               {
@@ -253,7 +253,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "levelCode": "STD",
                 "positiveBehaviours": 1,
                 "negativeBehaviours": 1,
-                "acctOpenStatus": false,
+                "hasAcctOpen": false,
                 "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
               },
               {
@@ -264,7 +264,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "levelCode": "STD",
                 "positiveBehaviours": 5,
                 "negativeBehaviours": 5,
-                "acctOpenStatus": false,
+                "hasAcctOpen": false,
                 "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
               }
             ],
@@ -303,7 +303,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "levelCode": "STD",
                 "positiveBehaviours": 3,
                 "negativeBehaviours": 3,
-                "acctOpenStatus": true,
+                "hasAcctOpen": true,
                 "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
               },
               {
@@ -314,7 +314,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "levelCode": "STD",
                 "positiveBehaviours": 3,
                 "negativeBehaviours": 3,
-                "acctOpenStatus": false,
+                "hasAcctOpen": false,
                 "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
               },
               {
@@ -325,7 +325,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "levelCode": "STD",
                 "positiveBehaviours": 2,
                 "negativeBehaviours": 2,
-                "acctOpenStatus": false,
+                "hasAcctOpen": false,
                 "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
               },
               {
@@ -336,7 +336,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "levelCode": "STD",
                 "positiveBehaviours": 1,
                 "negativeBehaviours": 1,
-                "acctOpenStatus": false,
+                "hasAcctOpen": false,
                 "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
               },
               {
@@ -347,7 +347,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "levelCode": "STD",
                 "positiveBehaviours": 5,
                 "negativeBehaviours": 5,
-                "acctOpenStatus": false,
+                "hasAcctOpen": false,
                 "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
               }
             ],

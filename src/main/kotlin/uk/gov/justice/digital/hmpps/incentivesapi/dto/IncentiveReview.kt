@@ -24,7 +24,7 @@ data class IncentiveReview(
   val negativeBehaviours: Int,
 
   @Schema(description = "Whether the prisoner has an ACCT open alert", example = "true")
-  val acctOpenStatus: Boolean,
+  val hasAcctOpen: Boolean,
 
   @Schema(description = "Date of next review", example = "2022-12-31")
   var nextReviewDate: LocalDate,

@@ -92,7 +92,7 @@ class IncentiveReviewsService(
           levelCode = incentiveLevels[it.bookingId]!!.iepCode,
           positiveBehaviours = positiveCaseNotesInLast3Months[it.prisonerNumber]?.totalCaseNotes ?: 0,
           negativeBehaviours = negativeCaseNotesInLast3Months[it.prisonerNumber]?.totalCaseNotes ?: 0,
-          acctOpenStatus = it.acctOpen,
+          hasAcctOpen = it.acctOpen,
           nextReviewDate = nextReviewDates[it.bookingId]!!,
         )
       }
@@ -140,7 +140,7 @@ enum class IncentiveReviewSort(
   PRISONER_NUMBER("prisonerNumber", IncentiveReview::prisonerNumber, Sort.Direction.ASC),
   POSITIVE_BEHAVIOURS("positiveBehaviours", IncentiveReview::positiveBehaviours, Sort.Direction.DESC),
   NEGATIVE_BEHAVIOURS("negativeBehaviours", IncentiveReview::negativeBehaviours, Sort.Direction.DESC),
-  ACCT_STATUS("acctOpenStatus", IncentiveReview::acctOpenStatus, Sort.Direction.DESC);
+  HAS_ACCT_OPEN("hasAcctOpen", IncentiveReview::hasAcctOpen, Sort.Direction.DESC);
 
   companion object {
     fun orDefault(sort: IncentiveReviewSort?) = sort ?: NEXT_REVIEW_DATE

@@ -120,7 +120,7 @@ class IncentiveReviewsServiceTest {
           levelCode = "STD",
           positiveBehaviours = 0,
           negativeBehaviours = 0,
-          acctOpenStatus = true,
+          hasAcctOpen = true,
           nextReviewDate = nextReviewDatesMap[110001L]!!,
         ),
         IncentiveReview(
@@ -131,7 +131,7 @@ class IncentiveReviewsServiceTest {
           levelCode = "STD",
           positiveBehaviours = 0,
           negativeBehaviours = 0,
-          acctOpenStatus = false,
+          hasAcctOpen = false,
           nextReviewDate = nextReviewDatesMap[110002L]!!,
         ),
       )
@@ -188,7 +188,7 @@ class IncentiveReviewsServiceTest {
           levelCode = "STD",
           positiveBehaviours = 5,
           negativeBehaviours = 7,
-          acctOpenStatus = false,
+          hasAcctOpen = false,
           nextReviewDate = nextReviewDatesMap[110002L]!!,
         ),
       )
@@ -224,7 +224,7 @@ class IncentiveReviewsServiceTest {
           levelCode = "STD",
           positiveBehaviours = 0,
           negativeBehaviours = 0,
-          acctOpenStatus = false,
+          hasAcctOpen = false,
           nextReviewDate = expectedNextReviewDate,
         ),
       )
@@ -273,7 +273,7 @@ class IncentiveReviewsServiceTest {
           levelCode = "STD",
           positiveBehaviours = 0,
           negativeBehaviours = 0,
-          acctOpenStatus = false,
+          hasAcctOpen = false,
           nextReviewDate = someFutureNextReviewDate,
         ),
         IncentiveReview(
@@ -284,7 +284,7 @@ class IncentiveReviewsServiceTest {
           levelCode = "STD",
           positiveBehaviours = 0,
           negativeBehaviours = 0,
-          acctOpenStatus = false,
+          hasAcctOpen = false,
           nextReviewDate = someFutureNextReviewDate,
         ),
       )
@@ -325,7 +325,7 @@ class IncentiveReviewsServiceTest {
             levelCode = "STD",
             positiveBehaviours = 0,
             negativeBehaviours = 0,
-            acctOpenStatus = false,
+            hasAcctOpen = false,
             nextReviewDate = nextReviewDatesMap[110002L]!!,
           ),
           IncentiveReview(
@@ -336,7 +336,7 @@ class IncentiveReviewsServiceTest {
             levelCode = "STD",
             positiveBehaviours = 0,
             negativeBehaviours = 0,
-            acctOpenStatus = false,
+            hasAcctOpen = false,
             nextReviewDate = nextReviewDatesMap[110001L]!!,
           ),
         )
