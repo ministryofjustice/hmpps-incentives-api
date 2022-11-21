@@ -40,7 +40,8 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
   }
 
   private val iepTime: LocalDateTime = LocalDateTime.now()
-  suspend fun persistPrisonerIepLevel(
+
+  private suspend fun persistPrisonerIepLevel(
     bookingId: Long,
     prisonerNumber: String,
   ) = prisonerIepLevelRepository.save(
@@ -86,6 +87,13 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
 
   @Nested
   inner class `validates request parameters` {
+    @BeforeEach
+    fun setUp() {
+      prisonApiMockServer.stubPositiveCaseNoteSummary()
+      prisonApiMockServer.stubNegativeCaseNoteSummary()
+      prisonApiMockServer.stubIepLevels()
+    }
+
     @Test
     fun `when prisonId is incorrect`() {
       offenderSearchMockServer.stubFindOffenders("Moorland")
@@ -153,7 +161,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
       prisonApiMockServer.stubLocation("MDI-1")
 
       webTestClient.get()
-        .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?page=0")
+        .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?page=-1")
         .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
         .exchange()
         .expectStatus().isBadRequest
@@ -162,8 +170,8 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
           """
           {
             "status": 400,
-            "userMessage": "Invalid parameters: `page` must be at least 1",
-            "developerMessage": "Invalid parameters: `page` must be at least 1"
+            "userMessage": "Invalid parameters: `page` must be at least 0",
+            "developerMessage": "Invalid parameters: `page` must be at least 0"
           }
           """
         )
@@ -175,7 +183,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
       prisonApiMockServer.stubLocation("MDI-1")
 
       webTestClient.get()
-        .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?page=0&pageSize=0")
+        .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?page=-1&pageSize=0")
         .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
         .exchange()
         .expectStatus().isBadRequest
@@ -184,8 +192,8 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
           """
           {
             "status": 400,
-            "userMessage": "Invalid parameters: `page` must be at least 1, `pageSize` must be at least 1",
-            "developerMessage": "Invalid parameters: `page` must be at least 1, `pageSize` must be at least 1"
+            "userMessage": "Invalid parameters: `page` must be at least 0, `pageSize` must be at least 1",
+            "developerMessage": "Invalid parameters: `page` must be at least 0, `pageSize` must be at least 1"
           }
           """
         )

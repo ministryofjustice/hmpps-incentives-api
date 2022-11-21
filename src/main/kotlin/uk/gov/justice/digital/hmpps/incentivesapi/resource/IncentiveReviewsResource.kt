@@ -75,9 +75,9 @@ class IncentiveReviewsResource(private val incentiveReviewsService: IncentiveRev
     @RequestParam(required = false)
     order: Sort.Direction? = null,
 
-    @Schema(description = "Page (starts at 1)", defaultValue = "1", minimum = "1", example = "2", type = "integer", required = false, format = "int32")
-    @RequestParam(required = false, defaultValue = "1")
-    page: Int = 1,
+    @Schema(description = "Page (starts at 0)", defaultValue = "0", minimum = "0", example = "2", type = "integer", required = false, format = "int32")
+    @RequestParam(required = false, defaultValue = "0")
+    page: Int = 0,
 
     @Schema(description = "Page size", defaultValue = "$DEFAULT_PAGE_SIZE", minimum = "1", maximum = "100", example = "20", type = "integer", required = false, format = "int32")
     @RequestParam(required = false, defaultValue = "$DEFAULT_PAGE_SIZE")
@@ -87,7 +87,7 @@ class IncentiveReviewsResource(private val incentiveReviewsService: IncentiveRev
       ("prisonId" to prisonId).hasLengthAtLeast(3).hasLengthAtMost(5)
       ("cellLocationPrefix" to cellLocationPrefix).hasLengthAtLeast(5)
       ("levelCode" to levelCode).hasLengthAtLeast(2)
-      ("page" to page).isAtLeast(1)
+      ("page" to page).isAtLeast(0)
       ("pageSize" to pageSize).isAtLeast(1).isAtMost(100)
     }
 

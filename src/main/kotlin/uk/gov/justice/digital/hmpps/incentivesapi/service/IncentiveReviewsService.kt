@@ -33,7 +33,7 @@ class IncentiveReviewsService(
 
   /**
    * Returns incentive review information for a given location within a prison and on a given level
-   * NB: page is 1-based
+   * NB: page is 0-based
    */
   suspend fun reviews(
     prisonId: String,
@@ -41,7 +41,7 @@ class IncentiveReviewsService(
     levelCode: String,
     sort: IncentiveReviewSort? = null,
     order: Sort.Direction? = null,
-    page: Int = 1,
+    page: Int = 0,
     size: Int = DEFAULT_PAGE_SIZE,
   ): IncentiveReviewResponse = coroutineScope {
     val deferredOffenders = async {
