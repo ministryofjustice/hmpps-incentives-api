@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import org.springframework.data.domain.Sort
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -13,7 +14,9 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewResponse
+import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveReviewSort
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveReviewsService
+import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveReviewsService.Companion.DEFAULT_PAGE_SIZE
 import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 
 @RestController
@@ -56,13 +59,29 @@ class IncentiveReviewsResource(private val incentiveReviewsService: IncentiveRev
     @PathVariable
     levelCode: String,
 
+    @Schema(
+      description = "Sort reviews by", required = false, defaultValue = "NEXT_REVIEW_DATE", example = "PRISONER_NUMBER",
+      allowableValues = [
+        "NEXT_REVIEW_DATE", "FIRST_NAME", "LAST_NAME", "PRISONER_NUMBER", "POSITIVE_BEHAVIOURS", "NEGATIVE_BEHAVIOURS", "HAS_ACCT_OPEN",
+      ]
+    )
+    @RequestParam(required = false)
+    sort: IncentiveReviewSort? = null,
+
+    @Schema(
+      description = "Sort direction", required = false, defaultValue = "ASC", example = "ASC",
+      allowableValues = ["ASC", "DESC"]
+    )
+    @RequestParam(required = false)
+    order: Sort.Direction? = null,
+
     @Schema(description = "Page (starts at 1)", defaultValue = "1", minimum = "1", example = "2", type = "integer", required = false, format = "int32")
     @RequestParam(required = false, defaultValue = "1")
-    page: Int,
+    page: Int = 1,
 
-    @Schema(description = "Page size", defaultValue = "20", minimum = "1", maximum = "100", example = "20", type = "integer", required = false, format = "int32")
-    @RequestParam(required = false, defaultValue = "20")
-    pageSize: Int,
+    @Schema(description = "Page size", defaultValue = "$DEFAULT_PAGE_SIZE", minimum = "1", maximum = "100", example = "20", type = "integer", required = false, format = "int32")
+    @RequestParam(required = false, defaultValue = "$DEFAULT_PAGE_SIZE")
+    pageSize: Int = DEFAULT_PAGE_SIZE,
   ): IncentiveReviewResponse {
     ensure {
       ("prisonId" to prisonId).hasLengthAtLeast(3).hasLengthAtMost(5)
@@ -72,6 +91,6 @@ class IncentiveReviewsResource(private val incentiveReviewsService: IncentiveRev
       ("pageSize" to pageSize).isAtLeast(1).isAtMost(100)
     }
 
-    return incentiveReviewsService.reviews(prisonId, cellLocationPrefix, levelCode, page, pageSize)
+    return incentiveReviewsService.reviews(prisonId, cellLocationPrefix, levelCode, sort, order, page, pageSize)
   }
 }

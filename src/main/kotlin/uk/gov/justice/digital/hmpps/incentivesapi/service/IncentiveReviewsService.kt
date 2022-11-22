@@ -4,6 +4,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.toList
 import org.apache.commons.text.WordUtils
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClientResponseException.NotFound
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ListOfDataNotFoundException
@@ -16,6 +17,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLeve
 import uk.gov.justice.digital.hmpps.incentivesapi.util.flow.toMap
 import java.time.Clock
 import java.time.LocalDate
+import java.util.Comparator
 
 @Service
 class IncentiveReviewsService(
@@ -25,6 +27,10 @@ class IncentiveReviewsService(
   private val nextReviewDateGetterService: NextReviewDateGetterService,
   private val clock: Clock,
 ) {
+  companion object {
+    const val DEFAULT_PAGE_SIZE = 20
+  }
+
   /**
    * Returns incentive review information for a given location within a prison and on a given level
    * NB: page is 1-based
@@ -33,8 +39,10 @@ class IncentiveReviewsService(
     prisonId: String,
     cellLocationPrefix: String,
     levelCode: String,
+    sort: IncentiveReviewSort? = null,
+    order: Sort.Direction? = null,
     page: Int = 1,
-    size: Int = 20
+    size: Int = DEFAULT_PAGE_SIZE,
   ): IncentiveReviewResponse = coroutineScope {
     val deferredOffenders = async {
       // all offenders at location are required to determine total number with overdue reviews
@@ -72,6 +80,8 @@ class IncentiveReviewsService(
 
     val locationDescription = deferredLocationDescription.await()
 
+    val comparator = IncentiveReviewSort.orDefault(sort) comparingIn order
+
     val reviews = offenders.content
       .map {
         IncentiveReview(
@@ -82,12 +92,12 @@ class IncentiveReviewsService(
           levelCode = incentiveLevels[it.bookingId]!!.iepCode,
           positiveBehaviours = positiveCaseNotesInLast3Months[it.prisonerNumber]?.totalCaseNotes ?: 0,
           negativeBehaviours = negativeCaseNotesInLast3Months[it.prisonerNumber]?.totalCaseNotes ?: 0,
-          acctOpenStatus = it.acctOpen,
+          hasAcctOpen = it.acctOpen,
           nextReviewDate = nextReviewDates[it.bookingId]!!,
         )
       }
       .filter { it.levelCode == levelCode }
-      .sortedBy { it.nextReviewDate }
+      .sortedWith(comparator)
 
     IncentiveReviewResponse(
       locationDescription = locationDescription,
@@ -116,4 +126,29 @@ class IncentiveReviewsService(
 
   private fun calcTypeCount(caseNoteUsage: List<CaseNoteUsage>): Int =
     caseNoteUsage.map { it.numCaseNotes }.fold(0) { acc, next -> acc + next }
+}
+
+@Suppress("unused") // not all enum variants are referred to in code
+enum class IncentiveReviewSort(
+  val field: String,
+  private val selector: (IncentiveReview) -> Comparable<*>,
+  private val defaultOrder: Sort.Direction,
+) {
+  NEXT_REVIEW_DATE("nextReviewDate", IncentiveReview::nextReviewDate, Sort.Direction.ASC),
+  FIRST_NAME("firstName", IncentiveReview::firstName, Sort.Direction.ASC),
+  LAST_NAME("lastName", IncentiveReview::lastName, Sort.Direction.ASC),
+  PRISONER_NUMBER("prisonerNumber", IncentiveReview::prisonerNumber, Sort.Direction.ASC),
+  POSITIVE_BEHAVIOURS("positiveBehaviours", IncentiveReview::positiveBehaviours, Sort.Direction.DESC),
+  NEGATIVE_BEHAVIOURS("negativeBehaviours", IncentiveReview::negativeBehaviours, Sort.Direction.DESC),
+  HAS_ACCT_OPEN("hasAcctOpen", IncentiveReview::hasAcctOpen, Sort.Direction.DESC);
+
+  companion object {
+    fun orDefault(sort: IncentiveReviewSort?) = sort ?: NEXT_REVIEW_DATE
+  }
+
+  infix fun comparingIn(order: Sort.Direction?): Comparator<IncentiveReview> = if ((order ?: defaultOrder).isDescending) {
+    compareBy(selector).reversed()
+  } else {
+    compareBy(selector)
+  }
 }

@@ -1,16 +1,22 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.resource
 
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.runBlocking
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.NextReviewDate
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.NextReviewDateRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
+import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveReviewSort
 import java.time.LocalDateTime
 
 class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
@@ -125,6 +131,23 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
     }
 
     @Test
+    fun `when sorting is incorrect`() {
+      offenderSearchMockServer.stubFindOffenders("MDI")
+      prisonApiMockServer.stubLocation("MDI-1")
+
+      webTestClient.get()
+        .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?sort=PRISON")
+        .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
+        .exchange()
+        .expectStatus().isBadRequest
+        .expectBody()
+        .jsonPath("status").isEqualTo(400)
+        .jsonPath("userMessage").value<String> {
+          assertThat(it).contains("No enum constant")
+        }
+    }
+
+    @Test
     fun `when page is incorrect`() {
       offenderSearchMockServer.stubFindOffenders("MDI")
       prisonApiMockServer.stubLocation("MDI-1")
@@ -197,7 +220,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "levelCode": "STD",
                 "positiveBehaviours": 3,
                 "negativeBehaviours": 3,
-                "acctOpenStatus": true,
+                "hasAcctOpen": true,
                 "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
               },
               {
@@ -208,7 +231,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "levelCode": "STD",
                 "positiveBehaviours": 3,
                 "negativeBehaviours": 3,
-                "acctOpenStatus": false,
+                "hasAcctOpen": false,
                 "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
               },
               {
@@ -219,7 +242,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "levelCode": "STD",
                 "positiveBehaviours": 2,
                 "negativeBehaviours": 2,
-                "acctOpenStatus": false,
+                "hasAcctOpen": false,
                 "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
               },
               {
@@ -230,7 +253,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "levelCode": "STD",
                 "positiveBehaviours": 1,
                 "negativeBehaviours": 1,
-                "acctOpenStatus": false,
+                "hasAcctOpen": false,
                 "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
               },
               {
@@ -241,7 +264,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "levelCode": "STD",
                 "positiveBehaviours": 5,
                 "negativeBehaviours": 5,
-                "acctOpenStatus": false,
+                "hasAcctOpen": false,
                 "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
               }
             ],
@@ -280,7 +303,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "levelCode": "STD",
                 "positiveBehaviours": 3,
                 "negativeBehaviours": 3,
-                "acctOpenStatus": true,
+                "hasAcctOpen": true,
                 "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
               },
               {
@@ -291,7 +314,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "levelCode": "STD",
                 "positiveBehaviours": 3,
                 "negativeBehaviours": 3,
-                "acctOpenStatus": false,
+                "hasAcctOpen": false,
                 "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
               },
               {
@@ -302,7 +325,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "levelCode": "STD",
                 "positiveBehaviours": 2,
                 "negativeBehaviours": 2,
-                "acctOpenStatus": false,
+                "hasAcctOpen": false,
                 "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
               },
               {
@@ -313,7 +336,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "levelCode": "STD",
                 "positiveBehaviours": 1,
                 "negativeBehaviours": 1,
-                "acctOpenStatus": false,
+                "hasAcctOpen": false,
                 "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
               },
               {
@@ -324,7 +347,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "levelCode": "STD",
                 "positiveBehaviours": 5,
                 "negativeBehaviours": 5,
-                "acctOpenStatus": false,
+                "hasAcctOpen": false,
                 "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
               }
             ],
@@ -335,8 +358,46 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
       )
   }
 
+  @ParameterizedTest
+  @EnumSource(IncentiveReviewSort::class)
+  fun `sorts by provided parameters`(sort: IncentiveReviewSort): Unit = runBlocking {
+    offenderSearchMockServer.stubFindOffenders("MDI")
+    prisonApiMockServer.stubLocation("MDI-1")
+    prisonApiMockServer.stubPositiveCaseNoteSummary()
+    prisonApiMockServer.stubNegativeCaseNoteSummary()
+    prisonApiMockServer.stubIepLevels()
+
+    // pre-cache different next review dates as `persistPrisonerIepLevel` defaults lead to all being today + 1 year
+    nextReviewDateRepository.saveAll(
+      listOf(
+        NextReviewDate(bookingId = 1234134, nextReviewDate = iepTime.toLocalDate().plusDays(1)),
+        NextReviewDate(bookingId = 1234135, nextReviewDate = iepTime.toLocalDate().plusDays(2)),
+        NextReviewDate(bookingId = 1234136, nextReviewDate = iepTime.toLocalDate().plusDays(3)),
+        NextReviewDate(bookingId = 1234137, nextReviewDate = iepTime.toLocalDate().plusDays(4)),
+        NextReviewDate(bookingId = 1234138, nextReviewDate = iepTime.toLocalDate().plusDays(5)),
+      )
+    ).collect()
+
+    fun loadReviewsField(sortParam: String, orderParam: String, responseField: String) = webTestClient.get()
+      .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?sort=$sortParam&order=$orderParam")
+      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
+      .exchange()
+      .expectStatus().isOk
+      .expectBody().jsonPath("reviews[*].$responseField")
+
+    loadReviewsField(sort.name, "ASC", sort.field).value<List<Comparable<*>>> {
+      assertThat(it.toSet()).hasSizeGreaterThan(1) // otherwise sorting cannot be tested
+      assertThat(it).isSorted
+    }
+
+    loadReviewsField(sort.name, "DESC", sort.field).value<List<Comparable<*>>> {
+      assertThat(it.toSet()).hasSizeGreaterThan(1) // otherwise sorting cannot be tested
+      assertThat(it.reversed()).isSorted
+    }
+  }
+
   @Test
-  fun `when incentive levels not available in DB`(): Unit = runBlocking {
+  fun `describes error when incentive levels not available in DB`(): Unit = runBlocking {
     offenderSearchMockServer.stubFindOffenders("MDI")
     prisonApiMockServer.stubLocation("MDI-1")
     prisonApiMockServer.stubPositiveCaseNoteSummary()
