@@ -4,6 +4,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.toList
 import org.apache.commons.text.WordUtils
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClientResponseException.NotFound
@@ -15,6 +16,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsage
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.util.flow.toMap
+import uk.gov.justice.digital.hmpps.incentivesapi.util.paginateWith
 import java.time.Clock
 import java.time.LocalDate
 import java.util.Comparator
@@ -99,11 +101,14 @@ class IncentiveReviewsService(
       .filter { it.levelCode == levelCode }
       .sortedWith(comparator)
 
+    val reviewsCount = reviews.size
+    val reviewsPage = reviews paginateWith PageRequest.of(page, size)
+
     IncentiveReviewResponse(
       locationDescription = locationDescription,
       overdueCount = overdueCount,
-      reviewCount = reviews.size,
-      reviews = reviews,
+      reviewCount = reviewsCount,
+      reviews = reviewsPage,
     )
   }
 
