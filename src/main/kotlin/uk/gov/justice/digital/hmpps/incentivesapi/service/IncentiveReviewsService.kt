@@ -67,9 +67,7 @@ class IncentiveReviewsService(
     val deferredNegativeCaseNotesInLast3Months = async { getCaseNoteUsage("NEG", "IEP_WARN", prisonerNumbers) }
 
     val deferredIncentiveLevels = async { getIncentiveLevelsForOffenders(bookingIds) }
-
-    val nextReviewDates = nextReviewDateGetterService.getMany(offenders.content)
-    val overdueCount = nextReviewDates.values.count { it.isBefore(LocalDate.now(clock)) }
+    val deferredNextReviewDates = async { nextReviewDateGetterService.getMany(offenders.content) }
 
     val incentiveLevels = deferredIncentiveLevels.await()
     val bookingIdsMissingIncentiveLevel = bookingIds subtract incentiveLevels.keys
@@ -80,6 +78,8 @@ class IncentiveReviewsService(
     val positiveCaseNotesInLast3Months = deferredPositiveCaseNotesInLast3Months.await()
     val negativeCaseNotesInLast3Months = deferredNegativeCaseNotesInLast3Months.await()
 
+    val nextReviewDates = deferredNextReviewDates.await()
+    val overdueCount = nextReviewDates.values.count { it.isBefore(LocalDate.now(clock)) }
     val locationDescription = deferredLocationDescription.await()
 
     val comparator = IncentiveReviewSort.orDefault(sort) comparingIn order
