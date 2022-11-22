@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.NextReviewDateRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.service.AdditionalInformation
 import uk.gov.justice.digital.hmpps.incentivesapi.service.HMPPSDomainEvent
@@ -28,18 +29,23 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     get() = await.atMost(Duration.ofSeconds(30))
 
   @Autowired
-  private lateinit var repository: PrisonerIepLevelRepository
+  private lateinit var prisonerIepLevelRepository: PrisonerIepLevelRepository
+
+  @Autowired
+  private lateinit var nextReviewDateRepository: NextReviewDateRepository
 
   @BeforeEach
   fun setUp(): Unit = runBlocking {
     prisonApiMockServer.resetRequests()
-    repository.deleteAll()
+    prisonerIepLevelRepository.deleteAll()
+    nextReviewDateRepository.deleteAll()
   }
 
   @AfterEach
   fun tearDown(): Unit = runBlocking {
     prisonApiMockServer.resetRequests()
-    repository.deleteAll()
+    prisonerIepLevelRepository.deleteAll()
+    nextReviewDateRepository.deleteAll()
   }
 
   @ParameterizedTest
@@ -67,7 +73,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     // Then
     awaitAtMost30Secs untilCallTo {
       runBlocking {
-        val booking = repository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId)
+        val booking = prisonerIepLevelRepository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId)
         assertThat(booking?.reviewType).isEqualTo(ReviewType.INITIAL)
       }
     }
@@ -97,7 +103,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     // Then
     awaitAtMost30Secs untilCallTo {
       runBlocking {
-        val booking = repository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId)
+        val booking = prisonerIepLevelRepository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId)
         assertThat(booking?.reviewType).isEqualTo(ReviewType.TRANSFER)
       }
     }
@@ -112,7 +118,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     val removedNomsNumber = "A4432FD"
     val locationId = 77777L
 
-    repository.save(
+    prisonerIepLevelRepository.save(
       PrisonerIepLevel(
         bookingId = bookingId,
         prisonerNumber = removedNomsNumber,
@@ -124,7 +130,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
         reviewTime = LocalDateTime.now().minusDays(2),
       )
     )
-    repository.save(
+    prisonerIepLevelRepository.save(
       PrisonerIepLevel(
         bookingId = oldBookingId,
         prisonerNumber = prisonerNumber,
@@ -136,7 +142,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
         reviewTime = LocalDateTime.now().minusDays(50),
       )
     )
-    repository.save(
+    prisonerIepLevelRepository.save(
       PrisonerIepLevel(
         bookingId = oldBookingId,
         prisonerNumber = prisonerNumber,
@@ -157,53 +163,112 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     awaitAtMost30Secs untilCallTo { prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber") } matches { it == 1 }
   }
 
-  private fun publishPrisonerReceivedMessage(reason: String) =
-    domainEventsTopicSnsClient.publish(
-      PublishRequest(
-        domainEventsTopicArn,
-        jsonString(
-          HMPPSDomainEvent(
-            eventType = "prisoner-offender-search.prisoner.received",
-            additionalInformation = AdditionalInformation(
-              id = 123,
-              nomsNumber = "A1244AB",
-              reason = reason
-            ),
-            occurredAt = Instant.now(),
-            description = "A prisoner has been received into prison"
-          )
-        )
+  @Test
+  fun `process PRISONER UPDATED domain events`(): Unit = runBlocking {
+    // Given
+    val bookingId = 1294134L
+    val prisonerNumber = "A1244AB"
+    val prisonId = "MDI"
+    offenderSearchMockServer.stubGetOffender(prisonId, prisonerNumber, bookingId, withOpenAcct = true)
+    prisonApiMockServer.stubIepLevels()
+    nextReviewDateRepository.deleteAll()
+
+    // Prisoner was not suitable to return to Standard level
+    val lastReviewTime = LocalDateTime.now()
+    // Second review after 7 days, still on Basic
+    prisonerIepLevelRepository.save(
+      PrisonerIepLevel(
+        bookingId = bookingId,
+        prisonerNumber = prisonerNumber,
+        prisonId = prisonId,
+        locationId = "$prisonId-1-1-001",
+        reviewedBy = "TEST_STAFF1",
+        iepCode = "BAS",
+        current = true,
+        reviewTime = lastReviewTime,
+        reviewType = ReviewType.REVIEW,
       )
-        .withMessageAttributes(
-          mapOf(
-            "eventType" to MessageAttributeValue().withDataType("String")
-              .withStringValue("prisoner-offender-search.prisoner.received"),
-          )
-        )
+    )
+    // First review
+    prisonerIepLevelRepository.save(
+      PrisonerIepLevel(
+        bookingId = bookingId,
+        prisonerNumber = prisonerNumber,
+        prisonId = prisonId,
+        locationId = "$prisonId-1-1-001",
+        reviewedBy = "TEST_STAFF1",
+        iepCode = "BAS",
+        current = false,
+        reviewTime = lastReviewTime.minusDays(7),
+        reviewType = ReviewType.REVIEW,
+      )
+    )
+
+    // When
+    publishPrisonerUpdatedMessage(prisonerNumber, categoriesChanged = listOf("ALERTS", "SENTENCE"))
+
+    awaitAtMost30Secs untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
+
+    // Then
+    awaitAtMost30Secs untilCallTo {
+      runBlocking { nextReviewDateRepository.existsById(bookingId) }
+    } matches { it == true }
+
+    assertThat(nextReviewDateRepository.findById(bookingId)?.nextReviewDate)
+      .isEqualTo(lastReviewTime.plusDays(14).toLocalDate())
+  }
+
+  private fun publishPrisonerReceivedMessage(reason: String) =
+    publishDomainEventMessage(
+      eventType = "prisoner-offender-search.prisoner.received",
+      additionalInformation = AdditionalInformation(
+        id = 123,
+        nomsNumber = "A1244AB",
+        reason = reason
+      ),
+      description = "A prisoner has been received into prison",
     )
 
   private fun publishPrisonerMergedMessage(nomsNumber: String, removedNomsNumber: String) =
+    publishDomainEventMessage(
+      eventType = "prison-offender-events.prisoner.merged",
+      additionalInformation = AdditionalInformation(
+        nomsNumber = nomsNumber,
+        removedNomsNumber = removedNomsNumber,
+        reason = "MERGE",
+      ),
+      description = "A prisoner has been merged from $removedNomsNumber to $nomsNumber",
+    )
+
+  private fun publishPrisonerUpdatedMessage(nomsNumber: String, categoriesChanged: List<String>) =
+    publishDomainEventMessage(
+      eventType = "prisoner-offender-search.prisoner.updated",
+      additionalInformation = AdditionalInformation(
+        nomsNumber = nomsNumber,
+        categoriesChanged = categoriesChanged,
+      ),
+      description = "A prisoner record has been updated",
+    )
+
+  private fun publishDomainEventMessage(eventType: String, additionalInformation: AdditionalInformation, description: String) {
     domainEventsTopicSnsClient.publish(
       PublishRequest(
         domainEventsTopicArn,
         jsonString(
           HMPPSDomainEvent(
-            eventType = "prison-offender-events.prisoner.merged",
-            additionalInformation = AdditionalInformation(
-              nomsNumber = nomsNumber,
-              removedNomsNumber = removedNomsNumber,
-              reason = "MERGE",
-            ),
+            eventType = eventType,
+            additionalInformation = additionalInformation,
             occurredAt = Instant.now(),
-            description = "A prisoner has been merged from $removedNomsNumber to $nomsNumber"
+            description = description
           )
         )
       )
         .withMessageAttributes(
           mapOf(
             "eventType" to MessageAttributeValue().withDataType("String")
-              .withStringValue("prison-offender-events.prisoner.merged"),
+              .withStringValue(eventType),
           )
         )
     )
+  }
 }

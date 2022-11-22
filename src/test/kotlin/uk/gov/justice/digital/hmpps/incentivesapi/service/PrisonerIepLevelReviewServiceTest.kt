@@ -154,11 +154,12 @@ class PrisonerIepLevelReviewServiceTest {
 
       if (reviewAddedSyncMechanism == ReviewAddedSyncMechanism.DOMAIN_EVENT) {
         // A domain even is published
-        verify(snsService, times(1)).sendIepReviewEvent(
+        verify(snsService, times(1)).publishDomainEvent(
           42,
           prisonerNumber,
           reviewTime,
           IncentivesDomainEventType.IEP_REVIEW_INSERTED,
+          "An IEP review has been added",
         )
 
         // Prison API request not made
@@ -176,7 +177,7 @@ class PrisonerIepLevelReviewServiceTest {
         )
 
         // Domain event not published
-        verify(snsService, times(0)).sendIepReviewEvent(any(), any(), any(), any())
+        verify(snsService, times(0)).publishDomainEvent(any(), any(), any(), any(), any())
       }
 
       // An audit event is published
@@ -389,11 +390,12 @@ class PrisonerIepLevelReviewServiceTest {
       )
 
       verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
-      verify(snsService, times(1)).sendIepReviewEvent(
+      verify(snsService, times(1)).publishDomainEvent(
         0,
         prisonerAtLocation().offenderNo,
         expectedPrisonerIepLevel.reviewTime,
-        IncentivesDomainEventType.IEP_REVIEW_INSERTED
+        IncentivesDomainEventType.IEP_REVIEW_INSERTED,
+        "An IEP review has been added",
       )
       verify(auditService, times(1))
         .sendMessage(
@@ -456,11 +458,12 @@ class PrisonerIepLevelReviewServiceTest {
       )
 
       verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
-      verify(snsService, times(1)).sendIepReviewEvent(
+      verify(snsService, times(1)).publishDomainEvent(
         0,
         prisonerNumber,
         expectedPrisonerIepLevel.reviewTime,
-        IncentivesDomainEventType.IEP_REVIEW_INSERTED
+        IncentivesDomainEventType.IEP_REVIEW_INSERTED,
+        "An IEP review has been added",
       )
       verify(auditService, times(1))
         .sendMessage(
@@ -524,11 +527,12 @@ class PrisonerIepLevelReviewServiceTest {
       )
 
       verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
-      verify(snsService, times(1)).sendIepReviewEvent(
+      verify(snsService, times(1)).publishDomainEvent(
         0,
         prisonerNumber,
         expectedPrisonerIepLevel.reviewTime,
-        IncentivesDomainEventType.IEP_REVIEW_INSERTED
+        IncentivesDomainEventType.IEP_REVIEW_INSERTED,
+        "An IEP review has been added",
       )
       verify(auditService, times(1))
         .sendMessage(
@@ -586,11 +590,12 @@ class PrisonerIepLevelReviewServiceTest {
       )
 
       verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
-      verify(snsService, times(1)).sendIepReviewEvent(
+      verify(snsService, times(1)).publishDomainEvent(
         0,
         prisonerNumber,
         expectedPrisonerIepLevel.reviewTime,
-        IncentivesDomainEventType.IEP_REVIEW_INSERTED
+        IncentivesDomainEventType.IEP_REVIEW_INSERTED,
+        "An IEP review has been added",
       )
       verify(auditService, times(1))
         .sendMessage(
@@ -599,6 +604,46 @@ class PrisonerIepLevelReviewServiceTest {
           iepDetailFromIepLevel(expectedPrisonerIepLevel, "Standard", "STD"),
           expectedPrisonerIepLevel.reviewedBy,
         )
+    }
+
+    @Test
+    fun `process 'prisoner updated' event when alerts changed`(): Unit = runBlocking {
+      val bookingId = 1234567L
+      val prisonerNumber = "A1244AB"
+
+      // Given
+      val prisonerUpdatedEvent = prisonerUpdatedEvent(
+        prisonerNumber,
+        categoriesChanged = listOf("STATUS", "ALERTS"),
+      )
+      val offender = offenderSearchPrisoner(prisonerNumber, bookingId)
+      whenever(offenderSearchService.getOffender(prisonerNumber)).thenReturn(offender)
+
+      // When
+      prisonerIepLevelReviewService.processPrisonerUpdatedEvent(prisonerUpdatedEvent)
+
+      verify(nextReviewDateUpdaterService, times(1))
+        .updateMany(listOf(offender))
+    }
+
+    @Test
+    fun `process 'prisoner updated' event when alerts didn't change`(): Unit = runBlocking {
+      val bookingId = 1234567L
+      val prisonerNumber = "A1244AB"
+
+      // Given
+      val prisonerUpdatedEvent = prisonerUpdatedEvent(
+        prisonerNumber,
+        categoriesChanged = listOf("STATUS", "PERSONAL_DETAILS"),
+      )
+      val offender = offenderSearchPrisoner(prisonerNumber, bookingId)
+      whenever(offenderSearchService.getOffender(prisonerNumber)).thenReturn(offender)
+
+      // When
+      prisonerIepLevelReviewService.processPrisonerUpdatedEvent(prisonerUpdatedEvent)
+
+      verify(nextReviewDateUpdaterService, times(0))
+        .updateMany(listOf(offender))
     }
 
     @Test
@@ -836,11 +881,12 @@ class PrisonerIepLevelReviewServiceTest {
       prisonerIepLevelReviewService.handleSyncDeleteIepReviewRequest(bookingId, iepReview.id)
 
       // SNS event is sent
-      verify(snsService, times(1)).sendIepReviewEvent(
+      verify(snsService, times(1)).publishDomainEvent(
         id,
         prisonerAtLocation().offenderNo,
         iepReview.reviewTime,
-        IncentivesDomainEventType.IEP_REVIEW_DELETED
+        IncentivesDomainEventType.IEP_REVIEW_DELETED,
+        "An IEP review has been deleted",
       )
 
       // audit message is sent
@@ -995,11 +1041,12 @@ class PrisonerIepLevelReviewServiceTest {
       prisonerIepLevelReviewService.handleSyncPatchIepReviewRequest(bookingId, iepReview.id, syncPatchRequest)
 
       // SNS event is sent
-      verify(snsService, times(1)).sendIepReviewEvent(
+      verify(snsService, times(1)).publishDomainEvent(
         id,
         prisonerAtLocation().offenderNo,
         iepReview.reviewTime,
-        IncentivesDomainEventType.IEP_REVIEW_UPDATED
+        IncentivesDomainEventType.IEP_REVIEW_UPDATED,
+        "An IEP review has been updated",
       )
 
       // audit message is sent
@@ -1116,11 +1163,12 @@ class PrisonerIepLevelReviewServiceTest {
       prisonerIepLevelReviewService.handleSyncPostIepReviewRequest(bookingId, syncPostRequest)
 
       // SNS event is sent
-      verify(snsService, times(1)).sendIepReviewEvent(
+      verify(snsService, times(1)).publishDomainEvent(
         iepReviewId,
         prisonerAtLocation().offenderNo,
         syncPostRequest.iepTime,
-        IncentivesDomainEventType.IEP_REVIEW_INSERTED
+        IncentivesDomainEventType.IEP_REVIEW_INSERTED,
+        "An IEP review has been added",
       )
 
       // audit message is sent
@@ -1229,6 +1277,16 @@ class PrisonerIepLevelReviewServiceTest {
       id = 123,
       nomsNumber = prisonerNumber,
       reason = reason
+    ),
+    occurredAt = Instant.now(),
+    description = "A prisoner has been received into prison"
+  )
+
+  private fun prisonerUpdatedEvent(prisonerNumber: String = "A1244AB", categoriesChanged: List<String> = listOf("ALERTS")) = HMPPSDomainEvent(
+    eventType = "prisoner-offender-search.prisoner.updated",
+    additionalInformation = AdditionalInformation(
+      nomsNumber = prisonerNumber,
+      categoriesChanged = categoriesChanged,
     ),
     occurredAt = Instant.now(),
     description = "A prisoner has been received into prison"
