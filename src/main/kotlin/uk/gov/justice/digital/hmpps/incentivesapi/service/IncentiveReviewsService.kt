@@ -4,6 +4,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.toList
 import org.apache.commons.text.WordUtils
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClientResponseException.NotFound
@@ -15,6 +16,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsage
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.util.flow.toMap
+import uk.gov.justice.digital.hmpps.incentivesapi.util.paginateWith
 import java.time.Clock
 import java.time.LocalDate
 import java.util.Comparator
@@ -33,7 +35,7 @@ class IncentiveReviewsService(
 
   /**
    * Returns incentive review information for a given location within a prison and on a given level
-   * NB: page is 1-based
+   * NB: page is 0-based
    */
   suspend fun reviews(
     prisonId: String,
@@ -41,7 +43,7 @@ class IncentiveReviewsService(
     levelCode: String,
     sort: IncentiveReviewSort? = null,
     order: Sort.Direction? = null,
-    page: Int = 1,
+    page: Int = 0,
     size: Int = DEFAULT_PAGE_SIZE,
   ): IncentiveReviewResponse = coroutineScope {
     val deferredOffenders = async {
@@ -65,9 +67,7 @@ class IncentiveReviewsService(
     val deferredNegativeCaseNotesInLast3Months = async { getCaseNoteUsage("NEG", "IEP_WARN", prisonerNumbers) }
 
     val deferredIncentiveLevels = async { getIncentiveLevelsForOffenders(bookingIds) }
-
-    val nextReviewDates = nextReviewDateGetterService.getMany(offenders.content)
-    val overdueCount = nextReviewDates.values.count { it.isBefore(LocalDate.now(clock)) }
+    val deferredNextReviewDates = async { nextReviewDateGetterService.getMany(offenders.content) }
 
     val incentiveLevels = deferredIncentiveLevels.await()
     val bookingIdsMissingIncentiveLevel = bookingIds subtract incentiveLevels.keys
@@ -78,6 +78,8 @@ class IncentiveReviewsService(
     val positiveCaseNotesInLast3Months = deferredPositiveCaseNotesInLast3Months.await()
     val negativeCaseNotesInLast3Months = deferredNegativeCaseNotesInLast3Months.await()
 
+    val nextReviewDates = deferredNextReviewDates.await()
+    val overdueCount = nextReviewDates.values.count { it.isBefore(LocalDate.now(clock)) }
     val locationDescription = deferredLocationDescription.await()
 
     val comparator = IncentiveReviewSort.orDefault(sort) comparingIn order
@@ -99,11 +101,14 @@ class IncentiveReviewsService(
       .filter { it.levelCode == levelCode }
       .sortedWith(comparator)
 
+    val reviewsCount = reviews.size
+    val reviewsPage = reviews paginateWith PageRequest.of(page, size)
+
     IncentiveReviewResponse(
       locationDescription = locationDescription,
       overdueCount = overdueCount,
-      reviewCount = reviews.size,
-      reviews = reviews,
+      reviewCount = reviewsCount,
+      reviews = reviewsPage,
     )
   }
 

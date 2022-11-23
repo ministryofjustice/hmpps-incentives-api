@@ -40,7 +40,8 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
   }
 
   private val iepTime: LocalDateTime = LocalDateTime.now()
-  suspend fun persistPrisonerIepLevel(
+
+  private suspend fun persistPrisonerIepLevel(
     bookingId: Long,
     prisonerNumber: String,
   ) = prisonerIepLevelRepository.save(
@@ -86,6 +87,13 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
 
   @Nested
   inner class `validates request parameters` {
+    @BeforeEach
+    fun setUp() {
+      prisonApiMockServer.stubPositiveCaseNoteSummary()
+      prisonApiMockServer.stubNegativeCaseNoteSummary()
+      prisonApiMockServer.stubIepLevels()
+    }
+
     @Test
     fun `when prisonId is incorrect`() {
       offenderSearchMockServer.stubFindOffenders("Moorland")
@@ -153,7 +161,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
       prisonApiMockServer.stubLocation("MDI-1")
 
       webTestClient.get()
-        .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?page=0")
+        .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?page=-1")
         .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
         .exchange()
         .expectStatus().isBadRequest
@@ -162,8 +170,8 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
           """
           {
             "status": 400,
-            "userMessage": "Invalid parameters: `page` must be at least 1",
-            "developerMessage": "Invalid parameters: `page` must be at least 1"
+            "userMessage": "Invalid parameters: `page` must be at least 0",
+            "developerMessage": "Invalid parameters: `page` must be at least 0"
           }
           """
         )
@@ -175,7 +183,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
       prisonApiMockServer.stubLocation("MDI-1")
 
       webTestClient.get()
-        .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?page=0&pageSize=0")
+        .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?page=-1&pageSize=0")
         .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
         .exchange()
         .expectStatus().isBadRequest
@@ -184,8 +192,8 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
           """
           {
             "status": 400,
-            "userMessage": "Invalid parameters: `page` must be at least 1, `pageSize` must be at least 1",
-            "developerMessage": "Invalid parameters: `page` must be at least 1, `pageSize` must be at least 1"
+            "userMessage": "Invalid parameters: `page` must be at least 0, `pageSize` must be at least 1",
+            "developerMessage": "Invalid parameters: `page` must be at least 0, `pageSize` must be at least 1"
           }
           """
         )
@@ -393,6 +401,66 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
     loadReviewsField(sort.name, "DESC", sort.field).value<List<Comparable<*>>> {
       assertThat(it.toSet()).hasSizeGreaterThan(1) // otherwise sorting cannot be tested
       assertThat(it.reversed()).isSorted
+    }
+  }
+
+  @Nested
+  inner class `can paginate` {
+    @BeforeEach
+    fun setUp() {
+      offenderSearchMockServer.stubFindOffenders("MDI")
+      prisonApiMockServer.stubLocation("MDI-1")
+      prisonApiMockServer.stubPositiveCaseNoteSummary()
+      prisonApiMockServer.stubNegativeCaseNoteSummary()
+      prisonApiMockServer.stubIepLevels()
+    }
+
+    private fun loadPage(page: Int) = webTestClient.get()
+      .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?sort=PRISONER_NUMBER&order=DESC&page=$page&pageSize=2")
+      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
+      .exchange()
+      .expectStatus().isOk
+      .expectBody().jsonPath("reviews[*].prisonerNumber")
+
+    @Test
+    fun `first page`(): Unit = runBlocking {
+      loadPage(0).value<List<String>> {
+        assertThat(it).isEqualTo(listOf("A1234AE", "A1234AD"))
+      }
+    }
+
+    @Test
+    fun `second page`(): Unit = runBlocking {
+      loadPage(1).value<List<String>> {
+        assertThat(it).isEqualTo(listOf("A1234AC", "A1234AB"))
+      }
+    }
+
+    @Test
+    fun `last page`(): Unit = runBlocking {
+      loadPage(2).value<List<String>> {
+        assertThat(it).isEqualTo(listOf("A1234AA"))
+      }
+    }
+
+    @Test
+    fun `out-of-bounds page`(): Unit = runBlocking {
+      val page = 3
+      webTestClient.get()
+        .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?sort=PRISONER_NUMBER&order=DESC&page=$page&pageSize=2")
+        .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
+        .exchange()
+        .expectStatus().isBadRequest
+        .expectBody().json(
+          // language=json
+          """
+          {
+            "status": 400,
+            "userMessage": "Validation failure: Page number is out of range",
+            "developerMessage": "Page number is out of range"
+          }
+          """
+        )
     }
   }
 
