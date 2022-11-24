@@ -8,13 +8,16 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.NextReviewDate
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.NextReviewDateRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
+import java.time.Clock
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 /**
  * Recalculates and persists next review dates
  */
 @Service
 class NextReviewDateUpdaterService(
+  private val clock: Clock,
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository,
   private val nextReviewDateRepository: NextReviewDateRepository,
   private val prisonApiService: PrisonApiService,
@@ -77,6 +80,7 @@ class NextReviewDateUpdaterService(
         bookingId = bookingId,
         nextReviewDate = nextReviewDate,
         new = !nextReviewDateRepository.existsById(bookingId),
+        whenUpdated = LocalDateTime.now(clock),
       )
     }
 

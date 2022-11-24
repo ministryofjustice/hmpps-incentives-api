@@ -16,14 +16,20 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.NextReviewDate
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.NextReviewDateRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
+import java.time.Clock
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
 
 class NextReviewDateUpdaterServiceTest {
+  private var clock: Clock = Clock.fixed(Instant.parse("2022-08-01T12:45:00.00Z"), ZoneId.systemDefault())
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository = mock()
   private val nextReviewDateRepository: NextReviewDateRepository = mock()
   private val prisonApiService: PrisonApiService = mock()
   private val offenderSearchService: OffenderSearchService = mock()
 
   private val nextReviewDateUpdaterService = NextReviewDateUpdaterService(
+    clock,
     prisonerIepLevelRepository,
     nextReviewDateRepository,
     prisonApiService,
@@ -86,8 +92,8 @@ class NextReviewDateUpdaterServiceTest {
       whenever(nextReviewDateRepository.existsById(offender2.bookingId))
         .thenReturn(false)
       val expectedRecordsFlow = flowOf(
-        NextReviewDate(offender1.bookingId, expectedDate1, new = true),
-        NextReviewDate(offender2.bookingId, expectedDate2, new = true),
+        NextReviewDate(offender1.bookingId, expectedDate1, new = true, whenUpdated = LocalDateTime.now(clock)),
+        NextReviewDate(offender2.bookingId, expectedDate2, new = true, whenUpdated = LocalDateTime.now(clock)),
       )
       val expectedRecordsList = expectedRecordsFlow.toList()
       whenever(nextReviewDateRepository.saveAll(expectedRecordsList))
@@ -139,8 +145,8 @@ class NextReviewDateUpdaterServiceTest {
       ).calculate()
 
       val expectedRecordsFlow = flowOf(
-        NextReviewDate(offender1.bookingId, expectedDate1, new = true),
-        NextReviewDate(offender2.bookingId, expectedDate2, new = false),
+        NextReviewDate(offender1.bookingId, expectedDate1, new = true, whenUpdated = LocalDateTime.now(clock)),
+        NextReviewDate(offender2.bookingId, expectedDate2, new = false, whenUpdated = LocalDateTime.now(clock)),
       )
       val expectedRecordsList = expectedRecordsFlow.toList()
       whenever(nextReviewDateRepository.saveAll(expectedRecordsList))
@@ -189,7 +195,7 @@ class NextReviewDateUpdaterServiceTest {
 
     whenever(nextReviewDateRepository.existsById(bookingId)).thenReturn(true)
     val expectedRecordsFlow = flowOf(
-      NextReviewDate(bookingId, expectedNextReviewDate, new = false),
+      NextReviewDate(bookingId, expectedNextReviewDate, new = false, whenUpdated = LocalDateTime.now(clock)),
     )
     val expectedRecordsList = expectedRecordsFlow.toList()
     whenever(nextReviewDateRepository.saveAll(expectedRecordsList))
