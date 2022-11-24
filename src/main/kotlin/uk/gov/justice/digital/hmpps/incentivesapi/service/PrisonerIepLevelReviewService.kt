@@ -78,7 +78,7 @@ class PrisonerIepLevelReviewService(
     useClientCredentials: Boolean = false,
   ): IepSummary {
     return if (!featureFlagsService.isIncentivesDataSourceOfTruth()) {
-      var iepSummary = prisonApiService.getIEPSummaryForPrisoner(bookingId, withDetails = true, useClientCredentials)
+      val iepSummary = prisonApiService.getIEPSummaryForPrisoner(bookingId, withDetails = true, useClientCredentials)
 
       iepSummary.nextReviewDate = calculateNextReviewDateFromNomisData(iepSummary)
 
@@ -98,7 +98,7 @@ class PrisonerIepLevelReviewService(
 
     return if (!featureFlagsService.isIncentivesDataSourceOfTruth()) {
       val prisonerInfo = prisonApiService.getPrisonerInfo(prisonerNumber)
-      var iepSummary = prisonApiService.getIEPSummaryForPrisoner(prisonerInfo.bookingId, withDetails = true)
+      val iepSummary = prisonApiService.getIEPSummaryForPrisoner(prisonerInfo.bookingId, withDetails = true)
 
       iepSummary.nextReviewDate = calculateNextReviewDateFromNomisData(iepSummary)
 

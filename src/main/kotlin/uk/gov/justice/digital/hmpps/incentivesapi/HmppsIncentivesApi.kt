@@ -9,7 +9,7 @@ import org.springframework.boot.runApplication
  */
 const val SYSTEM_USERNAME = "INCENTIVES_API"
 
-@SpringBootApplication()
+@SpringBootApplication
 class HmppsIncentivesApi
 
 fun main(args: Array<String>) {

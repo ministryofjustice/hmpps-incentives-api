@@ -53,10 +53,10 @@ class NextReviewDateRepositoryTest : TestBase() {
 
       with(result) {
         assertThat(this!!.nextReviewDate).isEqualTo(nextReviewDate)
-        assertThat(this!!.whenCreated).isCloseTo(LocalDateTime.now(), within(5, ChronoUnit.MINUTES))
-        assertThat(this!!.whenUpdated).isCloseTo(LocalDateTime.now(), within(5, ChronoUnit.MINUTES))
-        assertThat(this!!.id).isEqualTo(bookingId)
-        assertThat(this!!.new).isFalse()
+        assertThat(this.whenCreated).isCloseTo(LocalDateTime.now(), within(5, ChronoUnit.MINUTES))
+        assertThat(this.whenUpdated).isCloseTo(LocalDateTime.now(), within(5, ChronoUnit.MINUTES))
+        assertThat(this.id).isEqualTo(bookingId)
+        assertThat(this.new).isFalse()
       }
     }
   }
