@@ -63,10 +63,17 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     prisonApiMockServer.stubGetPrisonerInfoByBooking(bookingId, prisonerNumber, locationId)
     offenderSearchMockServer.stubGetOffender(prisonId, prisonerNumber, bookingId)
 
+    val reviewsCount = prisonerIepLevelRepository.count()
+
     // When
     publishPrisonerReceivedMessage(reason)
 
     awaitAtMost30Secs untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
+    awaitAtMost30Secs untilCallTo {
+      runBlocking {
+        prisonerIepLevelRepository.count() > reviewsCount
+      }
+    } matches { it == true }
     awaitAtMost30Secs untilCallTo { prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber") } matches { it == 1 }
     awaitAtMost30Secs untilCallTo { prisonApiMockServer.getCountFor("/api/locations/$locationId?includeInactive=true") } matches { it == 1 }
 
