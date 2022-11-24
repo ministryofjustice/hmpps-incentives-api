@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.swagger.v3.oas.annotations.media.Schema
+import uk.gov.justice.digital.hmpps.incentivesapi.SYSTEM_USERNAME
 import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 import java.time.Clock
 import java.time.Duration
@@ -74,7 +75,7 @@ data class IepDetail(
   val userId: String?,
   @Schema(description = "Type of IEP Level change", required = true, example = "REVIEW")
   override val reviewType: ReviewType? = null,
-  @Schema(description = "Internal audit field holding which system/screen recorded the review", required = true, example = "INCENTIVES_API")
+  @Schema(description = "Internal audit field holding which system/screen recorded the review", required = true, example = SYSTEM_USERNAME)
   val auditModuleName: String? = null,
 ) : IsRealReview
 

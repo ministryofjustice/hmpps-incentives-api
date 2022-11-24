@@ -8,7 +8,8 @@ import java.net.ServerSocket
 
 object PostgresContainer {
   val instance: PostgreSQLContainer<Nothing>? by lazy { startPostgresqlContainer() }
-  fun startPostgresqlContainer(): PostgreSQLContainer<Nothing>? {
+
+  private fun startPostgresqlContainer(): PostgreSQLContainer<Nothing>? {
     if (isPostgresRunning()) {
       log.warn("Using existing Postgres database")
       return null
