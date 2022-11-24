@@ -294,10 +294,11 @@ class PrisonerIepLevelReviewService(
     prisonOffenderEvent.additionalInformation.nomsNumber?.let {
       val prisonerInfo = prisonApiService.getPrisonerInfo(it, true)
       val iepLevel = getIepLevelForReviewType(prisonerInfo, reviewType)
+      val comment = getReviewCommentForEvent(prisonOffenderEvent)
 
       val iepReview = IepReview(
         iepLevel = iepLevel,
-        comment = prisonOffenderEvent.description,
+        comment = comment,
         reviewType = reviewType
       )
 
@@ -351,6 +352,12 @@ class PrisonerIepLevelReviewService(
 
       else -> throw NotImplementedError("Not implemented for $reviewType")
     }
+  }
+
+  private fun getReviewCommentForEvent(prisonOffenderEvent: HMPPSDomainEvent) = when (prisonOffenderEvent.additionalInformation.reason) {
+    "NEW_ADMISSION", "READMISSION" -> "Default level assigned on arrival"
+    "TRANSFERRED" -> "Level transferred from previous establishment"
+    else -> prisonOffenderEvent.description
   }
 
   private suspend fun buildIepSummary(
@@ -418,7 +425,7 @@ class PrisonerIepLevelReviewService(
     return newIepReview
   }
 
-  suspend fun persistIepLevel(
+  private suspend fun persistIepLevel(
     prisonerInfo: PrisonerAtLocation,
     iepReview: IepReview,
     locationInfo: Location,

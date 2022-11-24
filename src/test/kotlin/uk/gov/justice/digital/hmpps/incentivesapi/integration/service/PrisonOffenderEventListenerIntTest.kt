@@ -233,7 +233,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
         nomsNumber = "A1244AB",
         reason = reason
       ),
-      description = "A prisoner has been received into prison",
+      description = "A prisoner has been received into a prison with reason: admission on new charges",
     )
 
   private fun publishPrisonerMergedMessage(nomsNumber: String, removedNomsNumber: String) =
