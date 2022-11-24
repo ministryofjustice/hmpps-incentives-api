@@ -378,7 +378,7 @@ class PrisonerIepLevelReviewServiceTest {
       // Then
       val expectedPrisonerIepLevel = PrisonerIepLevel(
         iepCode = "ENH",
-        commentText = prisonOffenderEvent.description,
+        commentText = "Default level assigned on arrival",
         bookingId = prisonerAtLocation().bookingId,
         prisonId = location.agencyId,
         locationId = location.description,
@@ -446,7 +446,7 @@ class PrisonerIepLevelReviewServiceTest {
       // Then - the prisoner was on BAS at BXI so they should remain on this level
       val expectedPrisonerIepLevel = PrisonerIepLevel(
         iepCode = "BAS",
-        commentText = prisonOffenderEvent.description,
+        commentText = "Level transferred from previous establishment",
         bookingId = bookingId,
         prisonId = location.agencyId,
         locationId = location.description,
@@ -515,7 +515,7 @@ class PrisonerIepLevelReviewServiceTest {
       // Then - MDI prison does not support ENH2 (which they were on in BXI) so fallback to STD
       val expectedPrisonerIepLevel = PrisonerIepLevel(
         iepCode = "STD",
-        commentText = prisonOffenderEvent.description,
+        commentText = "Level transferred from previous establishment",
         bookingId = bookingId,
         prisonId = location.agencyId,
         locationId = location.description,
@@ -578,7 +578,7 @@ class PrisonerIepLevelReviewServiceTest {
       // Then - MDI prison does not support ENH2 (which they were on in BXI) so fallback to ENH
       val expectedPrisonerIepLevel = PrisonerIepLevel(
         iepCode = "STD",
-        commentText = prisonOffenderEvent.description,
+        commentText = "Level transferred from previous establishment",
         bookingId = bookingId,
         prisonId = location.agencyId,
         locationId = location.description,
@@ -646,10 +646,11 @@ class PrisonerIepLevelReviewServiceTest {
         .updateMany(listOf(offender))
     }
 
-    @Test
-    fun `do not process reason RETURN_FROM_COURT`(): Unit = runBlocking {
+    @ParameterizedTest
+    @ValueSource(strings = ["RETURN_FROM_COURT", "TEMPORARY_ABSENCE_RETURN"])
+    fun `do not process irrelevant reasons`(reason: String): Unit = runBlocking {
       // When
-      prisonerIepLevelReviewService.processOffenderEvent(prisonOffenderEvent("RETURN_FROM_COURT"))
+      prisonerIepLevelReviewService.processOffenderEvent(prisonOffenderEvent(reason))
 
       // Then
       verifyNoInteractions(prisonerIepLevelRepository)
@@ -730,7 +731,7 @@ class PrisonerIepLevelReviewServiceTest {
           reason = "NEW_ADMISSION"
         ),
         occurredAt = Instant.now(),
-        description = "A prisoner has been received into prison"
+        description = "A prisoner has been received into a prison with reason: admission on new charges"
       )
 
       // When
@@ -1279,7 +1280,14 @@ class PrisonerIepLevelReviewServiceTest {
       reason = reason
     ),
     occurredAt = Instant.now(),
-    description = "A prisoner has been received into prison"
+    description = "A prisoner has been received into a prison with reason: " + when (reason) {
+      "NEW_ADMISSION" -> "admission on new charges"
+      "READMISSION" -> "re-admission on an existing booking"
+      "TRANSFERRED" -> "transfer from another prison"
+      "RETURN_FROM_COURT" -> "returned back to prison from court"
+      "TEMPORARY_ABSENCE_RETURN" -> "returned after a temporary absence"
+      else -> throw NotImplementedError("No description set up for $reason event")
+    }
   )
 
   private fun prisonerUpdatedEvent(prisonerNumber: String = "A1244AB", categoriesChanged: List<String> = listOf("ALERTS")) = HMPPSDomainEvent(
@@ -1289,7 +1297,7 @@ class PrisonerIepLevelReviewServiceTest {
       categoriesChanged = categoriesChanged,
     ),
     occurredAt = Instant.now(),
-    description = "A prisoner has been received into prison"
+    description = "A prisoner record has been updated"
   )
 
   private fun prisonMergeEvent() = HMPPSDomainEvent(
