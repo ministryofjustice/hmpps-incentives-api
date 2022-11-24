@@ -465,6 +465,79 @@ class IncentiveReviewsServiceTest {
 
     // Then
     assertThat(reviews.overdueCount).isEqualTo(2)
+    assertThat(reviews.reviews).hasSize(3)
+  }
+
+  @Test
+  fun `overdue count where 3 next review are in the past but on different levels`(): Unit = runBlocking {
+    // Given
+    whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-2-1")
+    val offenders = listOf(
+      offenderSearchPrisoner("A1409AE", 110001),
+      offenderSearchPrisoner("G6123VU", 110002),
+      offenderSearchPrisoner("G6123VX", 110003),
+    )
+    whenever(offenderSearchService.findOffenders(any(), any(), any(), any()))
+      .thenReturnOffenders(offenders)
+    whenever(prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(any()))
+      .thenReturn(
+        flowOf(
+          prisonerIepLevel(110001, iepCode = "STD"),
+          prisonerIepLevel(110002, iepCode = "BAS"),
+          prisonerIepLevel(110003, iepCode = "ENH"),
+        )
+      )
+    val nextReviewDatesMap = mapOf(
+      110001L to LocalDate.now(clock).minusYears(1),
+      // next review will be 1 day before LocalDateTime.now(clock)
+      110002L to LocalDate.now(clock).minusYears(1),
+      // next review will be 10 days before LocalDateTime.now(clock)
+      110003L to LocalDate.now(clock).minusYears(1),
+    )
+    whenever(nextReviewDateGetterService.getMany(offenders)).thenReturn(nextReviewDatesMap)
+
+    // When
+    val reviews = incentiveReviewsService.reviews("MDI", "MDI-2-1", "STD")
+
+    // Then
+    assertThat(reviews.overdueCount).isEqualTo(3)
+    assertThat(reviews.reviews).hasSize(1)
+  }
+
+  @Test
+  fun `overdue count where 3 next review are in the past but not all in page of results`(): Unit = runBlocking {
+    // Given
+    whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-2-1")
+    val offenders = listOf(
+      offenderSearchPrisoner("A1409AE", 110001),
+      offenderSearchPrisoner("G6123VU", 110002),
+      offenderSearchPrisoner("G6123VX", 110003),
+    )
+    whenever(offenderSearchService.findOffenders(any(), any(), any(), any()))
+      .thenReturnOffenders(offenders)
+    whenever(prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(any()))
+      .thenReturn(
+        flowOf(
+          prisonerIepLevel(110001),
+          prisonerIepLevel(110002),
+          prisonerIepLevel(110003),
+        )
+      )
+    val nextReviewDatesMap = mapOf(
+      110001L to LocalDate.now(clock).minusYears(1),
+      // next review will be 1 day before LocalDateTime.now(clock)
+      110002L to LocalDate.now(clock).minusYears(1),
+      // next review will be 10 days before LocalDateTime.now(clock)
+      110003L to LocalDate.now(clock).minusYears(1),
+    )
+    whenever(nextReviewDateGetterService.getMany(offenders)).thenReturn(nextReviewDatesMap)
+
+    // When
+    val reviews = incentiveReviewsService.reviews("MDI", "MDI-2-1", "STD", page = 0, size = 1)
+
+    // Then
+    assertThat(reviews.overdueCount).isEqualTo(3)
+    assertThat(reviews.reviews).hasSize(1)
   }
 
   @Test
@@ -484,6 +557,7 @@ class IncentiveReviewsServiceTest {
 
     // Then
     assertThat(reviews.overdueCount).isEqualTo(0)
+    assertThat(reviews.reviews).hasSize(2)
   }
 
   private fun OngoingStubbing<PrisonLocation>.thenReturnLocation(cellLocationPrefix: String) {
