@@ -28,7 +28,7 @@ spring:
 
       client:
         registration:
-          incentives-api:
+          INCENTIVES_API:
             provider: hmpps-auth
             client-id: ${incentives.api.client.id}
             client-secret: ${incentives.api.client.secret}

@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
+import uk.gov.justice.digital.hmpps.incentivesapi.SYSTEM_USERNAME
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.NextReviewDate
@@ -20,7 +21,7 @@ fun PrisonerIepLevel.toIepDetail(incentiveLevels: Map<String, IepLevel>) =
     userId = reviewedBy,
     locationId = locationId,
     prisonerNumber = prisonerNumber,
-    auditModuleName = "INCENTIVES_API",
+    auditModuleName = SYSTEM_USERNAME,
   )
 
 fun List<PrisonerIepLevel>.toIepDetails(iepLevels: Map<String, IepLevel>): List<IepDetail> {

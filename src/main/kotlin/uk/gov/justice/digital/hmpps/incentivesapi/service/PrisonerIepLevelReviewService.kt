@@ -11,6 +11,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.incentivesapi.SYSTEM_USERNAME
 import uk.gov.justice.digital.hmpps.incentivesapi.config.AuthenticationFacade
 import uk.gov.justice.digital.hmpps.incentivesapi.config.FeatureFlagsService
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataFoundException
@@ -306,7 +307,7 @@ class PrisonerIepLevelReviewService(
         iepReview,
         locationInfo,
         LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
-        "INCENTIVES_API"
+        SYSTEM_USERNAME,
       )
 
       val iepDetail = prisonerIepLevel.toIepDetail(prisonApiService.getIncentiveLevels())
@@ -519,7 +520,7 @@ class PrisonerIepLevelReviewService(
         AuditType.PRISONER_NUMBER_MERGE,
         remainingPrisonerNumber,
         message,
-        "INCENTIVES_API"
+        SYSTEM_USERNAME,
       )
     } else {
       log.info("No incentive records found for $removedPrisonerNumber, no records updated")

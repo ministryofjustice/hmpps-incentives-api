@@ -12,6 +12,7 @@ import org.springframework.security.oauth2.client.registration.ReactiveClientReg
 import org.springframework.security.oauth2.client.web.reactive.function.client.ServerOAuth2AuthorizedClientExchangeFilterFunction
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.netty.http.client.HttpClient
+import uk.gov.justice.digital.hmpps.incentivesapi.SYSTEM_USERNAME
 import java.time.Duration
 
 @Configuration
@@ -41,7 +42,7 @@ class WebClientConfiguration(
   @Bean
   fun prisonWebClientClientCredentials(authorizedClientManager: ReactiveOAuth2AuthorizedClientManager): WebClient {
     val oauth2Client = ServerOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager)
-    oauth2Client.setDefaultClientRegistrationId("incentives-api")
+    oauth2Client.setDefaultClientRegistrationId(SYSTEM_USERNAME)
 
     val httpClient = HttpClient.create().responseTimeout(Duration.ofMinutes(2))
     return WebClient.builder()
@@ -61,7 +62,7 @@ class WebClientConfiguration(
   @Bean
   fun offenderSearchWebClient(authorizedClientManager: ReactiveOAuth2AuthorizedClientManager): WebClient {
     val oauth2Client = ServerOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager)
-    oauth2Client.setDefaultClientRegistrationId("incentives-api")
+    oauth2Client.setDefaultClientRegistrationId(SYSTEM_USERNAME)
 
     val httpClient = HttpClient.create().responseTimeout(Duration.ofMinutes(2))
     return WebClient.builder()
