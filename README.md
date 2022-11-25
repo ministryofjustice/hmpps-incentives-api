@@ -53,15 +53,14 @@ This assumes you have the [AWS CLI](https://aws.amazon.com/cli/) installed
           "eventType": { "DataType": "String", "StringValue": "prisoner-offender-search.prisoner.received" }
         }' \
         --message '{
-          "version":"1.0",
-          "occurredAt":"2020-02-12T15:14:24.125533+00:00",
-          "publishedAt":"2020-02-12T15:15:09.902048716+00:00",
-          "description":"A prisoner has been received into prison",
+          "version": "1.0",
+          "occurredAt": "2020-02-12T15:14:24.125533+00:00",
+          "publishedAt": "2020-02-12T15:15:09.902048716+00:00",
+          "description": "A prisoner has been received into a prison with reason: admission on new charges",
           "additionalInformation": {
-            "nomsNumber":"A0289IR",
-            "prisonId":"MDI",
-            "reason":"NEW_ADMISSION",
-            "details":"ecall referral date 2021-05-12"
+            "nomsNumber": "A0289IR",
+            "prisonId": "MDI",
+            "reason": "NEW_ADMISSION"
           }
         }'
     ```
