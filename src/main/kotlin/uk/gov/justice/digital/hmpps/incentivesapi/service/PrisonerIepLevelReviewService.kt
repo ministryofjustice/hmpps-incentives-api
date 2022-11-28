@@ -153,14 +153,14 @@ class PrisonerIepLevelReviewService(
       )
     )
 
-    nextReviewDateUpdaterService.update(review.bookingId)
-
     return review.toIepDetail(prisonApiService.getIncentiveLevels())
   }
 
   @Transactional
   suspend fun handleSyncPostIepReviewRequest(bookingId: Long, syncPostRequest: SyncPostRequest): IepDetail {
     val iepDetail = persistSyncPostRequest(bookingId, syncPostRequest, true)
+
+    nextReviewDateUpdaterService.update(bookingId)
 
     publishReviewDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
     publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_ADDED)

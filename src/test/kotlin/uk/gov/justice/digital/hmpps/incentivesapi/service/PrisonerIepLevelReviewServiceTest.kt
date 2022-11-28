@@ -773,7 +773,7 @@ class PrisonerIepLevelReviewServiceTest {
       )
 
       // Triggers the update of next review date when a new review is created
-      verify(nextReviewDateUpdaterService, times(1)).update(bookingId)
+      verify(nextReviewDateUpdaterService, times(0)).update(bookingId)
     }
 
     @Test
@@ -1156,6 +1156,16 @@ class PrisonerIepLevelReviewServiceTest {
 
       // Then check it's returned
       assertThat(result).isEqualTo(iepDetail)
+    }
+
+    @Test
+    fun `updates next review date`(): Unit = runBlocking {
+      // When
+      prisonerIepLevelReviewService.handleSyncPostIepReviewRequest(bookingId, syncPostRequest)
+
+      // Then check it's returned
+      verify(nextReviewDateUpdaterService, times(1))
+        .update(bookingId)
     }
 
     @Test
