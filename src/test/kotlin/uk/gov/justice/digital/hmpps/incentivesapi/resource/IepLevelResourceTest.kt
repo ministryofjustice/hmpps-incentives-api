@@ -526,7 +526,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
           """.trimIndent()
         )
         .returnResult()
-        .responseBody
+        .responseBody ?: ByteArray(0)
 
       val prisonerIepLevelId = JSONObject(String(responseBytes)).getLong("id")
 

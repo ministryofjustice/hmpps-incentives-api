@@ -313,8 +313,8 @@ class NextReviewDateServiceTest {
   }
 }
 
-private fun review(iepDate: String, prisonId: String, iepLevel: String, reviewType: ReviewType?): IepDetail {
-  val iepDate = LocalDate.parse(iepDate)
+private fun review(iepDateString: String, prisonId: String, iepLevel: String, reviewType: ReviewType?): IepDetail {
+  val iepDate = LocalDate.parse(iepDateString)
   return IepDetail(
     iepLevel = iepLevel,
     iepTime = iepDate.atTime(10, 0),
