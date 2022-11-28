@@ -3,8 +3,8 @@ plugins {
   id("org.springdoc.openapi-gradle-plugin") version "1.5.0"
   id("jacoco")
   id("org.sonarqube") version "3.5.0.2730"
-  kotlin("plugin.spring") version "1.7.21"
-  kotlin("plugin.jpa") version "1.7.21"
+  kotlin("plugin.spring") version "1.7.22"
+  kotlin("plugin.jpa") version "1.7.22"
 }
 
 dependencyCheck {
