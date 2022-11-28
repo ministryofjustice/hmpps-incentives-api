@@ -71,7 +71,7 @@ spring:
       sslRootCert: /home/appuser/.postgresql/root.crt
 
 api:
-  health-timeout-ms: 1000
+  health-timeout-ms: 3000
 
 server:
   port: 8080
