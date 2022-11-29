@@ -186,7 +186,7 @@ class NextReviewDateUpdaterServiceTest {
       verify(snsService, times(0))
         .publishDomainEvent(
           eventType = IncentivesDomainEventType.PRISONER_NEXT_REVIEW_DATE_CHANGED,
-          description = "A prisoner next review date has changed",
+          description = "A prisoner's next incentive review date has changed",
           occurredAt = LocalDateTime.now(clock),
           additionalInformation = AdditionalInformation(
             id = offender1.bookingId,
@@ -197,7 +197,7 @@ class NextReviewDateUpdaterServiceTest {
       verify(snsService, times(1))
         .publishDomainEvent(
           eventType = IncentivesDomainEventType.PRISONER_NEXT_REVIEW_DATE_CHANGED,
-          description = "A prisoner next review date has changed",
+          description = "A prisoner's next incentive review date has changed",
           occurredAt = LocalDateTime.now(clock),
           additionalInformation = AdditionalInformation(
             id = offender2.bookingId,

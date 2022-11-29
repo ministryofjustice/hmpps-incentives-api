@@ -107,7 +107,7 @@ class NextReviewDateUpdaterService(
       launch {
         snsService.publishDomainEvent(
           eventType = IncentivesDomainEventType.PRISONER_NEXT_REVIEW_DATE_CHANGED,
-          description = "A prisoner next review date has changed",
+          description = "A prisoner's next incentive review date has changed",
           occurredAt = LocalDateTime.now(clock),
           additionalInformation = AdditionalInformation(
             id = bookingId,
