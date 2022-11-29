@@ -468,7 +468,15 @@ class PrisonerIepLevelReviewService(
         }
       }
 
-      snsService.publishDomainEvent(iepDetail.id, iepDetail.prisonerNumber ?: "N/A", iepDetail.iepTime, eventType, description)
+      snsService.publishDomainEvent(
+        eventType,
+        description,
+        occurredAt = iepDetail.iepTime,
+        AdditionalInformation(
+          id = iepDetail.id,
+          nomsNumber = iepDetail.prisonerNumber ?: "N/A",
+        ),
+      )
     } ?: run {
       log.warn("IepDetail has `null` id, domain event not published: $iepDetail")
     }

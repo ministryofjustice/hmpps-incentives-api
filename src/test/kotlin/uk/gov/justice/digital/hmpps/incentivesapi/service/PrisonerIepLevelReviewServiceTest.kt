@@ -155,11 +155,13 @@ class PrisonerIepLevelReviewServiceTest {
       if (reviewAddedSyncMechanism == ReviewAddedSyncMechanism.DOMAIN_EVENT) {
         // A domain even is published
         verify(snsService, times(1)).publishDomainEvent(
-          42,
-          prisonerNumber,
-          reviewTime,
-          IncentivesDomainEventType.IEP_REVIEW_INSERTED,
-          "An IEP review has been added",
+          eventType = IncentivesDomainEventType.IEP_REVIEW_INSERTED,
+          description = "An IEP review has been added",
+          occurredAt = reviewTime,
+          additionalInformation = AdditionalInformation(
+            id = 42,
+            nomsNumber = prisonerNumber,
+          ),
         )
 
         // Prison API request not made
@@ -177,7 +179,7 @@ class PrisonerIepLevelReviewServiceTest {
         )
 
         // Domain event not published
-        verify(snsService, times(0)).publishDomainEvent(any(), any(), any(), any(), any())
+        verify(snsService, times(0)).publishDomainEvent(any(), any(), any(), any())
       }
 
       // An audit event is published
@@ -391,11 +393,13 @@ class PrisonerIepLevelReviewServiceTest {
 
       verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
       verify(snsService, times(1)).publishDomainEvent(
-        0,
-        prisonerAtLocation().offenderNo,
-        expectedPrisonerIepLevel.reviewTime,
-        IncentivesDomainEventType.IEP_REVIEW_INSERTED,
-        "An IEP review has been added",
+        eventType = IncentivesDomainEventType.IEP_REVIEW_INSERTED,
+        description = "An IEP review has been added",
+        occurredAt = expectedPrisonerIepLevel.reviewTime,
+        additionalInformation = AdditionalInformation(
+          id = 0,
+          nomsNumber = prisonerAtLocation().offenderNo,
+        ),
       )
       verify(auditService, times(1))
         .sendMessage(
@@ -459,11 +463,13 @@ class PrisonerIepLevelReviewServiceTest {
 
       verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
       verify(snsService, times(1)).publishDomainEvent(
-        0,
-        prisonerNumber,
-        expectedPrisonerIepLevel.reviewTime,
-        IncentivesDomainEventType.IEP_REVIEW_INSERTED,
-        "An IEP review has been added",
+        eventType = IncentivesDomainEventType.IEP_REVIEW_INSERTED,
+        description = "An IEP review has been added",
+        occurredAt = expectedPrisonerIepLevel.reviewTime,
+        additionalInformation = AdditionalInformation(
+          id = 0,
+          nomsNumber = prisonerNumber,
+        ),
       )
       verify(auditService, times(1))
         .sendMessage(
@@ -528,11 +534,13 @@ class PrisonerIepLevelReviewServiceTest {
 
       verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
       verify(snsService, times(1)).publishDomainEvent(
-        0,
-        prisonerNumber,
-        expectedPrisonerIepLevel.reviewTime,
-        IncentivesDomainEventType.IEP_REVIEW_INSERTED,
-        "An IEP review has been added",
+        eventType = IncentivesDomainEventType.IEP_REVIEW_INSERTED,
+        description = "An IEP review has been added",
+        occurredAt = expectedPrisonerIepLevel.reviewTime,
+        additionalInformation = AdditionalInformation(
+          id = 0,
+          nomsNumber = prisonerNumber,
+        )
       )
       verify(auditService, times(1))
         .sendMessage(
@@ -591,11 +599,13 @@ class PrisonerIepLevelReviewServiceTest {
 
       verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
       verify(snsService, times(1)).publishDomainEvent(
-        0,
-        prisonerNumber,
-        expectedPrisonerIepLevel.reviewTime,
-        IncentivesDomainEventType.IEP_REVIEW_INSERTED,
-        "An IEP review has been added",
+        eventType = IncentivesDomainEventType.IEP_REVIEW_INSERTED,
+        description = "An IEP review has been added",
+        occurredAt = expectedPrisonerIepLevel.reviewTime,
+        additionalInformation = AdditionalInformation(
+          id = 0,
+          nomsNumber = prisonerNumber,
+        ),
       )
       verify(auditService, times(1))
         .sendMessage(
@@ -883,11 +893,13 @@ class PrisonerIepLevelReviewServiceTest {
 
       // SNS event is sent
       verify(snsService, times(1)).publishDomainEvent(
-        id,
-        prisonerAtLocation().offenderNo,
-        iepReview.reviewTime,
-        IncentivesDomainEventType.IEP_REVIEW_DELETED,
-        "An IEP review has been deleted",
+        eventType = IncentivesDomainEventType.IEP_REVIEW_DELETED,
+        description = "An IEP review has been deleted",
+        occurredAt = iepReview.reviewTime,
+        additionalInformation = AdditionalInformation(
+          id = id,
+          nomsNumber = prisonerAtLocation().offenderNo,
+        ),
       )
 
       // audit message is sent
@@ -1043,11 +1055,13 @@ class PrisonerIepLevelReviewServiceTest {
 
       // SNS event is sent
       verify(snsService, times(1)).publishDomainEvent(
-        id,
-        prisonerAtLocation().offenderNo,
-        iepReview.reviewTime,
-        IncentivesDomainEventType.IEP_REVIEW_UPDATED,
-        "An IEP review has been updated",
+        eventType = IncentivesDomainEventType.IEP_REVIEW_UPDATED,
+        description = "An IEP review has been updated",
+        occurredAt = iepReview.reviewTime,
+        additionalInformation = AdditionalInformation(
+          id = id,
+          nomsNumber = prisonerAtLocation().offenderNo,
+        ),
       )
 
       // audit message is sent
@@ -1175,11 +1189,13 @@ class PrisonerIepLevelReviewServiceTest {
 
       // SNS event is sent
       verify(snsService, times(1)).publishDomainEvent(
-        iepReviewId,
-        prisonerAtLocation().offenderNo,
-        syncPostRequest.iepTime,
-        IncentivesDomainEventType.IEP_REVIEW_INSERTED,
-        "An IEP review has been added",
+        eventType = IncentivesDomainEventType.IEP_REVIEW_INSERTED,
+        description = "An IEP review has been added",
+        occurredAt = syncPostRequest.iepTime,
+        additionalInformation = AdditionalInformation(
+          id = iepReviewId,
+          nomsNumber = prisonerAtLocation().offenderNo,
+        )
       )
 
       // audit message is sent

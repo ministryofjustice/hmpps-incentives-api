@@ -118,7 +118,7 @@ class NextReviewDateUpdaterServiceTest {
 
       // Doesn't publish 'next-review-date-changed' event for new records
       verify(snsService, times(0))
-        .publishDomainEvent(any(), any(), any(), any(), any())
+        .publishDomainEvent(any(), any(), any(), any())
     }
 
     @Test
@@ -185,20 +185,25 @@ class NextReviewDateUpdaterServiceTest {
       // Doesn't publish 'next-review-date-changed' event as this is a new record
       verify(snsService, times(0))
         .publishDomainEvent(
-          id = offender1.bookingId,
-          nomsNumber = offender1.prisonerNumber,
-          occurredAt = LocalDateTime.now(clock),
           eventType = IncentivesDomainEventType.PRISONER_NEXT_REVIEW_DATE_CHANGED,
           description = "A prisoner next review date has changed",
+          occurredAt = LocalDateTime.now(clock),
+          additionalInformation = AdditionalInformation(
+            id = offender1.bookingId,
+            nomsNumber = offender1.prisonerNumber,
+          ),
         )
       // Next review date changed for offender2, check 'next-review-date-changed' event was published
       verify(snsService, times(1))
         .publishDomainEvent(
-          id = offender2.bookingId,
-          nomsNumber = offender2.prisonerNumber,
-          occurredAt = LocalDateTime.now(clock),
           eventType = IncentivesDomainEventType.PRISONER_NEXT_REVIEW_DATE_CHANGED,
           description = "A prisoner next review date has changed",
+          occurredAt = LocalDateTime.now(clock),
+          additionalInformation = AdditionalInformation(
+            id = offender2.bookingId,
+            nomsNumber = offender2.prisonerNumber,
+            nextReviewDate = expectedDate2,
+          ),
         )
     }
   }
@@ -249,6 +254,6 @@ class NextReviewDateUpdaterServiceTest {
 
     // Doesn't publish 'next-review-date-changed' event for new records
     verify(snsService, times(0))
-      .publishDomainEvent(any(), any(), any(), any(), any())
+      .publishDomainEvent(any(), any(), any(), any())
   }
 }

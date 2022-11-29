@@ -97,23 +97,25 @@ class NextReviewDateUpdaterService(
         nextReviewDatesAfterUpdate[bookingId] != nextReviewDatesBeforeUpdate[bookingId]
     }
 
-    publishDomainEvents(bookingIdsChanged, offendersMap)
+    publishDomainEvents(bookingIdsChanged, offendersMap, nextReviewDatesAfterUpdate)
 
     return nextReviewDatesAfterUpdate
   }
 
-  private suspend fun publishDomainEvents(bookingIdsChanged: List<Long>, offendersMap: Map<Long, OffenderSearchPrisoner>) = runBlocking {
+  private suspend fun publishDomainEvents(bookingIdsChanged: List<Long>, offendersMap: Map<Long, OffenderSearchPrisoner>, nextReviewDatesMap: Map<Long, LocalDate>) = runBlocking {
     bookingIdsChanged.forEach { bookingId ->
       launch {
         snsService.publishDomainEvent(
-          id = bookingId,
-          nomsNumber = offendersMap[bookingId]!!.prisonerNumber,
-          occurredAt = LocalDateTime.now(clock),
           eventType = IncentivesDomainEventType.PRISONER_NEXT_REVIEW_DATE_CHANGED,
           description = "A prisoner next review date has changed",
+          occurredAt = LocalDateTime.now(clock),
+          additionalInformation = AdditionalInformation(
+            id = bookingId,
+            nomsNumber = offendersMap[bookingId]!!.prisonerNumber,
+            nextReviewDate = nextReviewDatesMap[bookingId],
+          ),
         )
       }
     }
   }
-
 }
