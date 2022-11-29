@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
@@ -95,17 +97,23 @@ class NextReviewDateUpdaterService(
         nextReviewDatesAfterUpdate[bookingId] != nextReviewDatesBeforeUpdate[bookingId]
     }
 
-    // TODO: It should be possible to publish all these domain events concurrently rather than sequentially
-    bookingIdsChanged.forEach { bookingId ->
-      snsService.publishDomainEvent(
-        id = bookingId,
-        nomsNumber = offendersMap[bookingId]!!.prisonerNumber,
-        occurredAt = LocalDateTime.now(clock),
-        eventType = IncentivesDomainEventType.PRISONER_NEXT_REVIEW_DATE_CHANGED,
-        description = "A prisoner next review date has changed",
-      )
-    }
+    publishDomainEvents(bookingIdsChanged, offendersMap)
 
     return nextReviewDatesAfterUpdate
   }
+
+  private suspend fun publishDomainEvents(bookingIdsChanged: List<Long>, offendersMap: Map<Long, OffenderSearchPrisoner>) = runBlocking {
+    bookingIdsChanged.forEach { bookingId ->
+      launch {
+        snsService.publishDomainEvent(
+          id = bookingId,
+          nomsNumber = offendersMap[bookingId]!!.prisonerNumber,
+          occurredAt = LocalDateTime.now(clock),
+          eventType = IncentivesDomainEventType.PRISONER_NEXT_REVIEW_DATE_CHANGED,
+          description = "A prisoner next review date has changed",
+        )
+      }
+    }
+  }
+
 }
