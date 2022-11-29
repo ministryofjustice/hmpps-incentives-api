@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
@@ -22,6 +24,7 @@ class NextReviewDateUpdaterService(
   private val nextReviewDateRepository: NextReviewDateRepository,
   private val prisonApiService: PrisonApiService,
   private val offenderSearchService: OffenderSearchService,
+  private val snsService: SnsService,
 ) {
 
   /**
@@ -54,6 +57,8 @@ class NextReviewDateUpdaterService(
     val offendersMap = offenders.associateBy(OffenderSearchPrisoner::bookingId)
     val bookingIds = offendersMap.keys.toList()
 
+    val nextReviewDatesBeforeUpdate: Map<Long, LocalDate> = nextReviewDateRepository.findAllById(bookingIds).toList().toMapByBookingId()
+
     val iepLevels: Map<String, IepLevel> = prisonApiService.getIncentiveLevels()
 
     // NOTE: This is to account for bookingIds potentially without any review record
@@ -84,6 +89,33 @@ class NextReviewDateUpdaterService(
       )
     }
 
-    return nextReviewDateRepository.saveAll(nextReviewDateRecords).toList().toMapByBookingId()
+    val nextReviewDatesAfterUpdate: Map<Long, LocalDate> = nextReviewDateRepository.saveAll(nextReviewDateRecords).toList().toMapByBookingId()
+
+    // Determine which next review dates records actually changed
+    val bookingIdsChanged = bookingIds.filter { bookingId ->
+      nextReviewDatesBeforeUpdate[bookingId] != null && // only publish domain events when next review date changed
+        nextReviewDatesAfterUpdate[bookingId] != nextReviewDatesBeforeUpdate[bookingId]
+    }
+
+    publishDomainEvents(bookingIdsChanged, offendersMap, nextReviewDatesAfterUpdate)
+
+    return nextReviewDatesAfterUpdate
+  }
+
+  private suspend fun publishDomainEvents(bookingIdsChanged: List<Long>, offendersMap: Map<Long, OffenderSearchPrisoner>, nextReviewDatesMap: Map<Long, LocalDate>) = runBlocking {
+    bookingIdsChanged.forEach { bookingId ->
+      launch {
+        snsService.publishDomainEvent(
+          eventType = IncentivesDomainEventType.PRISONER_NEXT_REVIEW_DATE_CHANGED,
+          description = "A prisoner's next incentive review date has changed",
+          occurredAt = LocalDateTime.now(clock),
+          additionalInformation = AdditionalInformation(
+            id = bookingId,
+            nomsNumber = offendersMap[bookingId]!!.prisonerNumber,
+            nextReviewDate = nextReviewDatesMap[bookingId],
+          ),
+        )
+      }
+    }
   }
 }
