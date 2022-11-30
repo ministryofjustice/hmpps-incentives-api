@@ -14,7 +14,7 @@ data class OffenderSearchPrisoner(
   val prisonId: String,
   val alerts: List<PrisonerAlert> = emptyList(),
 ) : PrisonerInfoForNextReviewDate {
-  override val hasAcctOpen = alerts.any { it.alertCode == "HA" && it.active && !it.expired }
+  override val hasAcctOpen = alerts.any(PrisonerAlert::isOpenAcct)
 }
 
 data class OffenderSearchPrisonerList(
