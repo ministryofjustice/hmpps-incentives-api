@@ -6,8 +6,8 @@ import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisonerList
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
 import java.time.LocalDate
 
 class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
@@ -40,7 +40,7 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
         receptionDate = LocalDate.parse("2020-07-01"),
         prisonId = prisonId,
         alerts = listOf(
-          OffenderSearchPrisonerAlert(
+          PrisonerAlert(
             alertType = "H",
             alertCode = "HA",
             active = true,
@@ -127,7 +127,7 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
 
   fun stubGetOffender(prisonId: String, prisonerNumber: String, bookingId: Long, withOpenAcct: Boolean = true) {
     val alerts = if (withOpenAcct) listOf(
-      OffenderSearchPrisonerAlert(
+      PrisonerAlert(
         alertType = "H",
         alertCode = "HA",
         active = true,

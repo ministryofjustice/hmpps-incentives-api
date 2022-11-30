@@ -79,7 +79,7 @@ class NextReviewDateUpdaterServiceTest {
         NextReviewDateInput(
           dateOfBirth = offender1.dateOfBirth,
           receptionDate = offender1.receptionDate,
-          hasAcctOpen = offender1.acctOpen,
+          hasAcctOpen = offender1.hasAcctOpen,
           iepDetails = emptyList(),
         )
       ).calculate()
@@ -87,7 +87,7 @@ class NextReviewDateUpdaterServiceTest {
         NextReviewDateInput(
           dateOfBirth = offender2.dateOfBirth,
           receptionDate = offender2.receptionDate,
-          hasAcctOpen = offender2.acctOpen,
+          hasAcctOpen = offender2.hasAcctOpen,
           iepDetails = emptyList(),
         )
       ).calculate()
@@ -149,7 +149,7 @@ class NextReviewDateUpdaterServiceTest {
         NextReviewDateInput(
           dateOfBirth = offender1.dateOfBirth,
           receptionDate = offender1.receptionDate,
-          hasAcctOpen = offender1.acctOpen,
+          hasAcctOpen = offender1.hasAcctOpen,
           iepDetails = emptyList(),
         )
       ).calculate()
@@ -157,7 +157,7 @@ class NextReviewDateUpdaterServiceTest {
         NextReviewDateInput(
           dateOfBirth = offender2.dateOfBirth,
           receptionDate = offender2.receptionDate,
-          hasAcctOpen = offender2.acctOpen,
+          hasAcctOpen = offender2.hasAcctOpen,
           iepDetails = offender2Reviews.toList().toIepDetails(iepLevels),
         )
       ).calculate()

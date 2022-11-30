@@ -94,7 +94,7 @@ class IncentiveReviewsService(
           levelCode = incentiveLevels[it.bookingId]!!.iepCode,
           positiveBehaviours = positiveCaseNotesInLast3Months[it.prisonerNumber]?.totalCaseNotes ?: 0,
           negativeBehaviours = negativeCaseNotesInLast3Months[it.prisonerNumber]?.totalCaseNotes ?: 0,
-          hasAcctOpen = it.acctOpen,
+          hasAcctOpen = it.hasAcctOpen,
           nextReviewDate = nextReviewDates[it.bookingId]!!,
         )
       }
