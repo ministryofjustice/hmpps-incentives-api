@@ -95,8 +95,6 @@ class NextReviewDateUpdaterService(
 
     publishDomainEvents(bookingIdsChanged, offendersMap, nextReviewDatesAfterUpdate)
 
-    println("nextReviewDatesAfterUpdate = $nextReviewDatesAfterUpdate")
-
     return nextReviewDatesAfterUpdate
   }
 
