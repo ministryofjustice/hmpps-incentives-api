@@ -576,6 +576,27 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
     )
   }
 
+  fun stubGetPrisonerExtraInfo(bookingId: Long, prisonerNumber: String) {
+    stubFor(
+      get("/api/bookings/$bookingId?extraInfo=true").willReturn(
+        aResponse()
+          .withHeader("Content-Type", "application/json")
+          .withBody(
+            // language=json
+            """
+              {
+                "bookingId": $bookingId,
+                "offenderNo": "$prisonerNumber",
+                "dateOfBirth": "1971-07-01",
+                "receptionDate": "2020-07-01",
+                "alerts":  []
+              }
+            """
+          )
+      )
+    )
+  }
+
   fun stubGetLocationById(locationId: Long, locationDesc: String) {
     stubFor(
       get("/api/locations/$locationId?includeInactive=true").willReturn(
