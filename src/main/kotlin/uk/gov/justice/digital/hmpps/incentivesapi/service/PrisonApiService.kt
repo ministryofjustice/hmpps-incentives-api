@@ -18,6 +18,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Location
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonLocation
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocation
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerExtraInfo
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.ProvenAdjudication
 
 @Service
@@ -114,6 +115,14 @@ class PrisonApiService(
     return getClient(useClientCredentials)
       .get()
       .uri("/api/bookings/$bookingId?basicInfo=true")
+      .retrieve()
+      .awaitBody()
+  }
+
+  suspend fun getPrisonerExtraInfo(bookingId: Long, useClientCredentials: Boolean = false): PrisonerExtraInfo {
+    return getClient(useClientCredentials)
+      .get()
+      .uri("/api/bookings/$bookingId?extraInfo=true")
       .retrieve()
       .awaitBody()
   }
