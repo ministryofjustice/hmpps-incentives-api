@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.NextReviewDateRepository
 import java.time.LocalDate
 
@@ -13,17 +12,14 @@ import java.time.LocalDate
 class NextReviewDateGetterService(
   private val nextReviewDateRepository: NextReviewDateRepository,
   private val prisonApiService: PrisonApiService,
-  private val offenderSearchService: OffenderSearchService,
   private val nextReviewDateUpdaterService: NextReviewDateUpdaterService,
 ) {
 
   suspend fun get(bookingId: Long): LocalDate {
     return nextReviewDateRepository.findById(bookingId)?.nextReviewDate ?: run {
-      val locationInfo = prisonApiService.getPrisonerInfo(bookingId, useClientCredentials = true)
-      val prisonerNumber = locationInfo.offenderNo
-      val offender = offenderSearchService.getOffender(prisonerNumber)
+      val prisonerInfo = prisonApiService.getPrisonerExtraInfo(bookingId, useClientCredentials = true)
 
-      return getMany(listOf(offender))[offender.bookingId]!!
+      return getMany(listOf(prisonerInfo))[prisonerInfo.bookingId]!!
     }
   }
 

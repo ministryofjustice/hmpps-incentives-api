@@ -4,7 +4,6 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.NextReviewDate
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
@@ -23,7 +22,6 @@ class NextReviewDateUpdaterService(
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository,
   private val nextReviewDateRepository: NextReviewDateRepository,
   private val prisonApiService: PrisonApiService,
-  private val offenderSearchService: OffenderSearchService,
   private val snsService: SnsService,
 ) {
 
@@ -35,11 +33,9 @@ class NextReviewDateUpdaterService(
    * @return the nextReviewDate for the given bookingId
    * */
   suspend fun update(bookingId: Long): LocalDate {
-    val locationInfo = prisonApiService.getPrisonerInfo(bookingId, useClientCredentials = true)
-    val prisonerNumber = locationInfo.offenderNo
-    val offender = offenderSearchService.getOffender(prisonerNumber)
+    val prisonerInfo = prisonApiService.getPrisonerExtraInfo(bookingId, useClientCredentials = true)
 
-    return updateMany(listOf(offender))[offender.bookingId]!!
+    return updateMany(listOf(prisonerInfo))[prisonerInfo.bookingId]!!
   }
 
   /**
