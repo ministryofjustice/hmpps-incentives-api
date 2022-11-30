@@ -1401,14 +1401,9 @@ class PrisonerIepLevelReviewServiceTest {
     firstName = "JAMES",
     middleNames = "",
     lastName = "HALLS",
-    status = "ACTIVE IN",
-    inOutStatus = "IN",
     dateOfBirth = LocalDate.parse("1971-07-01"),
     receptionDate = LocalDate.parse("2020-07-01"),
     prisonId = "MDI",
-    prisonName = "Moorland",
-    cellLocation = "2-1-002",
-    locationDescription = "Cell 2",
     alerts = emptyList(),
   )
 }
