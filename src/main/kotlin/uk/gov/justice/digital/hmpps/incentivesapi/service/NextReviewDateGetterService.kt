@@ -37,8 +37,8 @@ class NextReviewDateGetterService(
    *
    * @return a Map with bookingIds as keys and next review dates as values
    */
-  suspend fun getMany(offenders: List<OffenderSearchPrisoner>): Map<Long, LocalDate> {
-    val bookingIds = offenders.map(OffenderSearchPrisoner::bookingId)
+  suspend fun getMany(offenders: List<PrisonerInfoForNextReviewDate>): Map<Long, LocalDate> {
+    val bookingIds = offenders.map(PrisonerInfoForNextReviewDate::bookingId)
     val existingNextReviewDates = nextReviewDateRepository.findAllById(bookingIds).toList().toMapByBookingId()
 
     val bookingIdsWithDate = existingNextReviewDates.keys

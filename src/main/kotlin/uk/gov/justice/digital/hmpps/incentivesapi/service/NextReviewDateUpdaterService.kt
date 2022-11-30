@@ -49,12 +49,12 @@ class NextReviewDateUpdaterService(
    *
    * @return a map with bookingIds as keys and nextReviewDate as value
    * */
-  suspend fun updateMany(offenders: List<OffenderSearchPrisoner>): Map<Long, LocalDate> {
+  suspend fun updateMany(offenders: List<PrisonerInfoForNextReviewDate>): Map<Long, LocalDate> {
     if (offenders.isEmpty()) {
       return emptyMap()
     }
 
-    val offendersMap = offenders.associateBy(OffenderSearchPrisoner::bookingId)
+    val offendersMap = offenders.associateBy(PrisonerInfoForNextReviewDate::bookingId)
     val bookingIds = offendersMap.keys.toList()
 
     val nextReviewDatesBeforeUpdate: Map<Long, LocalDate> = nextReviewDateRepository.findAllById(bookingIds).toList().toMapByBookingId()
@@ -76,7 +76,7 @@ class NextReviewDateUpdaterService(
         NextReviewDateInput(
           dateOfBirth = offender.dateOfBirth,
           receptionDate = offender.receptionDate,
-          hasAcctOpen = offender.acctOpen,
+          hasAcctOpen = offender.hasAcctOpen,
           iepDetails = iepDetails,
         )
       ).calculate()
@@ -99,10 +99,16 @@ class NextReviewDateUpdaterService(
 
     publishDomainEvents(bookingIdsChanged, offendersMap, nextReviewDatesAfterUpdate)
 
+    println("nextReviewDatesAfterUpdate = $nextReviewDatesAfterUpdate")
+
     return nextReviewDatesAfterUpdate
   }
 
-  private suspend fun publishDomainEvents(bookingIdsChanged: List<Long>, offendersMap: Map<Long, OffenderSearchPrisoner>, nextReviewDatesMap: Map<Long, LocalDate>) = runBlocking {
+  private suspend fun publishDomainEvents(
+    bookingIdsChanged: List<Long>,
+    offendersMap: Map<Long, PrisonerInfoForNextReviewDate>,
+    nextReviewDatesMap: Map<Long, LocalDate>,
+  ) = runBlocking {
     bookingIdsChanged.forEach { bookingId ->
       launch {
         snsService.publishDomainEvent(
@@ -118,4 +124,12 @@ class NextReviewDateUpdaterService(
       }
     }
   }
+}
+
+interface PrisonerInfoForNextReviewDate {
+  val bookingId: Long
+  val prisonerNumber: String
+  val dateOfBirth: LocalDate
+  val receptionDate: LocalDate
+  val hasAcctOpen: Boolean
 }
