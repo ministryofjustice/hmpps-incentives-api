@@ -162,7 +162,9 @@ class PrisonerIepLevelReviewService(
 
     nextReviewDateUpdaterService.update(bookingId)
 
-    publishReviewDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
+    // NOTE: This reason is to allow service that syncs back to NOMIS to ignore these domain events (as these reviews
+    // are already coming from NOMIS, they don't need to be synced again)
+    publishReviewDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_INSERTED, IepReviewReason.USER_CREATED_NOMIS)
     publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_ADDED)
 
     return iepDetail
@@ -457,6 +459,7 @@ class PrisonerIepLevelReviewService(
   private suspend fun publishReviewDomainEvent(
     iepDetail: IepDetail,
     eventType: IncentivesDomainEventType,
+    reason: IepReviewReason? = null,
   ) {
     iepDetail.id?.let {
       val description: String = when (eventType) {
@@ -475,6 +478,7 @@ class PrisonerIepLevelReviewService(
         AdditionalInformation(
           id = iepDetail.id,
           nomsNumber = iepDetail.prisonerNumber ?: "N/A",
+          reason = reason?.toString(),
         ),
       )
     } ?: run {
