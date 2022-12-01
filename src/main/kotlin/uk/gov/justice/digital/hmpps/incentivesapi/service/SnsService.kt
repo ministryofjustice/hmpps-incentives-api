@@ -84,5 +84,9 @@ enum class IncentivesDomainEventType(val value: String) {
   PRISONER_NEXT_REVIEW_DATE_CHANGED("incentives.prisoner.next-review-date-changed"),
 }
 
+enum class IepReviewReason {
+  USER_CREATED_NOMIS, // NOTE: Used by Syscon sync service to discriminate reviews already synced
+}
+
 fun Instant.toOffsetDateFormat(): String =
   atZone(ZoneId.of("Europe/London")).toOffsetDateTime().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)

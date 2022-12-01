@@ -1195,6 +1195,7 @@ class PrisonerIepLevelReviewServiceTest {
         additionalInformation = AdditionalInformation(
           id = iepReviewId,
           nomsNumber = prisonerAtLocation().offenderNo,
+          reason = "USER_CREATED_NOMIS",
         )
       )
 
