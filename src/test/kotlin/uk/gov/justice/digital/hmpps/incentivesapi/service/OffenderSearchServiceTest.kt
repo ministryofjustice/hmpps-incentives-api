@@ -3,7 +3,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisonerAlert
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
 import java.time.LocalDate
 
 class OffenderSearchServiceTest {
@@ -15,16 +15,11 @@ class OffenderSearchServiceTest {
       firstName = "JAMES",
       middleNames = "",
       lastName = "HALLS",
-      status = "ACTIVE IN",
-      inOutStatus = "IN",
       dateOfBirth = LocalDate.parse("1971-07-01"),
       receptionDate = LocalDate.parse("2020-07-01"),
       prisonId = "MDI",
-      prisonName = "Moorland (HMP & YOI)",
-      cellLocation = "2-1-002",
-      locationDescription = "Moorland (HMP & YOI)",
       alerts = listOf(
-        OffenderSearchPrisonerAlert(
+        PrisonerAlert(
           alertType = "H",
           alertCode = "HA",
           active = true,
@@ -32,7 +27,7 @@ class OffenderSearchServiceTest {
         ),
       ),
     )
-    assertThat(offenderWithHaAlert.acctOpen).isTrue
+    assertThat(offenderWithHaAlert.hasAcctOpen).isTrue
 
     val offenderWithoutHaAlert = OffenderSearchPrisoner(
       prisonerNumber = "A1409AE",
@@ -40,16 +35,11 @@ class OffenderSearchServiceTest {
       firstName = "JAMES",
       middleNames = "",
       lastName = "HALLS",
-      status = "ACTIVE IN",
-      inOutStatus = "IN",
       dateOfBirth = LocalDate.parse("1971-07-01"),
       receptionDate = LocalDate.parse("2020-07-01"),
       prisonId = "MDI",
-      prisonName = "Moorland (HMP & YOI)",
-      cellLocation = "2-1-002",
-      locationDescription = "Moorland (HMP & YOI)",
       alerts = listOf(
-        OffenderSearchPrisonerAlert(
+        PrisonerAlert(
           alertType = "X",
           alertCode = "XA",
           active = true,
@@ -57,7 +47,7 @@ class OffenderSearchServiceTest {
         ),
       ),
     )
-    assertThat(offenderWithoutHaAlert.acctOpen).isFalse
+    assertThat(offenderWithoutHaAlert.hasAcctOpen).isFalse
 
     val offenderWithoutAlerts = OffenderSearchPrisoner(
       prisonerNumber = "A1409AE",
@@ -65,16 +55,11 @@ class OffenderSearchServiceTest {
       firstName = "JAMES",
       middleNames = "",
       lastName = "HALLS",
-      status = "ACTIVE IN",
-      inOutStatus = "IN",
       dateOfBirth = LocalDate.parse("1971-07-01"),
       receptionDate = LocalDate.parse("2020-07-01"),
       prisonId = "MDI",
-      prisonName = "Moorland (HMP & YOI)",
-      cellLocation = "2-1-002",
-      locationDescription = "Moorland (HMP & YOI)",
       alerts = emptyList(),
     )
-    assertThat(offenderWithoutAlerts.acctOpen).isFalse
+    assertThat(offenderWithoutAlerts.hasAcctOpen).isFalse
   }
 }

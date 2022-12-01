@@ -4,7 +4,6 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.NextReviewDate
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
@@ -23,7 +22,6 @@ class NextReviewDateUpdaterService(
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository,
   private val nextReviewDateRepository: NextReviewDateRepository,
   private val prisonApiService: PrisonApiService,
-  private val offenderSearchService: OffenderSearchService,
   private val snsService: SnsService,
 ) {
 
@@ -35,11 +33,9 @@ class NextReviewDateUpdaterService(
    * @return the nextReviewDate for the given bookingId
    * */
   suspend fun update(bookingId: Long): LocalDate {
-    val locationInfo = prisonApiService.getPrisonerInfo(bookingId, useClientCredentials = true)
-    val prisonerNumber = locationInfo.offenderNo
-    val offender = offenderSearchService.getOffender(prisonerNumber)
+    val prisonerInfo = prisonApiService.getPrisonerExtraInfo(bookingId, useClientCredentials = true)
 
-    return updateMany(listOf(offender))[offender.bookingId]!!
+    return updateMany(listOf(prisonerInfo))[prisonerInfo.bookingId]!!
   }
 
   /**
@@ -49,12 +45,12 @@ class NextReviewDateUpdaterService(
    *
    * @return a map with bookingIds as keys and nextReviewDate as value
    * */
-  suspend fun updateMany(offenders: List<OffenderSearchPrisoner>): Map<Long, LocalDate> {
+  suspend fun updateMany(offenders: List<PrisonerInfoForNextReviewDate>): Map<Long, LocalDate> {
     if (offenders.isEmpty()) {
       return emptyMap()
     }
 
-    val offendersMap = offenders.associateBy(OffenderSearchPrisoner::bookingId)
+    val offendersMap = offenders.associateBy(PrisonerInfoForNextReviewDate::bookingId)
     val bookingIds = offendersMap.keys.toList()
 
     val nextReviewDatesBeforeUpdate: Map<Long, LocalDate> = nextReviewDateRepository.findAllById(bookingIds).toList().toMapByBookingId()
@@ -76,7 +72,7 @@ class NextReviewDateUpdaterService(
         NextReviewDateInput(
           dateOfBirth = offender.dateOfBirth,
           receptionDate = offender.receptionDate,
-          hasAcctOpen = offender.acctOpen,
+          hasAcctOpen = offender.hasAcctOpen,
           iepDetails = iepDetails,
         )
       ).calculate()
@@ -102,7 +98,11 @@ class NextReviewDateUpdaterService(
     return nextReviewDatesAfterUpdate
   }
 
-  private suspend fun publishDomainEvents(bookingIdsChanged: List<Long>, offendersMap: Map<Long, OffenderSearchPrisoner>, nextReviewDatesMap: Map<Long, LocalDate>) = runBlocking {
+  private suspend fun publishDomainEvents(
+    bookingIdsChanged: List<Long>,
+    offendersMap: Map<Long, PrisonerInfoForNextReviewDate>,
+    nextReviewDatesMap: Map<Long, LocalDate>,
+  ) = runBlocking {
     bookingIdsChanged.forEach { bookingId ->
       launch {
         snsService.publishDomainEvent(
@@ -118,4 +118,12 @@ class NextReviewDateUpdaterService(
       }
     }
   }
+}
+
+interface PrisonerInfoForNextReviewDate {
+  val bookingId: Long
+  val prisonerNumber: String
+  val dateOfBirth: LocalDate
+  val receptionDate: LocalDate
+  val hasAcctOpen: Boolean
 }

@@ -36,8 +36,7 @@ class IepLevelResourceForNomisDataTest : SqsIntegrationTestBase() {
     val prisonId = "MDI"
 
     prisonApiMockServer.stubIEPSummaryForBooking()
-    prisonApiMockServer.stubGetPrisonerInfoByBooking(bookingId, prisonerNumber, locationId = 77778L)
-    offenderSearchMockServer.stubGetOffender(prisonId, prisonerNumber, bookingId, withOpenAcct = false)
+    prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
 
     val lastReviewDate = LocalDate.of(2021, 12, 2)
     val daysSinceReview = Duration.between(lastReviewDate.atStartOfDay(), now().atStartOfDay()).toDays().toInt()

@@ -28,7 +28,6 @@ class NextReviewDateUpdaterServiceTest {
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository = mock()
   private val nextReviewDateRepository: NextReviewDateRepository = mock()
   private val prisonApiService: PrisonApiService = mock()
-  private val offenderSearchService: OffenderSearchService = mock()
   private val snsService: SnsService = mock()
 
   private val nextReviewDateUpdaterService = NextReviewDateUpdaterService(
@@ -36,7 +35,6 @@ class NextReviewDateUpdaterServiceTest {
     prisonerIepLevelRepository,
     nextReviewDateRepository,
     prisonApiService,
-    offenderSearchService,
     snsService,
   )
 
@@ -79,7 +77,7 @@ class NextReviewDateUpdaterServiceTest {
         NextReviewDateInput(
           dateOfBirth = offender1.dateOfBirth,
           receptionDate = offender1.receptionDate,
-          hasAcctOpen = offender1.acctOpen,
+          hasAcctOpen = offender1.hasAcctOpen,
           iepDetails = emptyList(),
         )
       ).calculate()
@@ -87,7 +85,7 @@ class NextReviewDateUpdaterServiceTest {
         NextReviewDateInput(
           dateOfBirth = offender2.dateOfBirth,
           receptionDate = offender2.receptionDate,
-          hasAcctOpen = offender2.acctOpen,
+          hasAcctOpen = offender2.hasAcctOpen,
           iepDetails = emptyList(),
         )
       ).calculate()
@@ -149,7 +147,7 @@ class NextReviewDateUpdaterServiceTest {
         NextReviewDateInput(
           dateOfBirth = offender1.dateOfBirth,
           receptionDate = offender1.receptionDate,
-          hasAcctOpen = offender1.acctOpen,
+          hasAcctOpen = offender1.hasAcctOpen,
           iepDetails = emptyList(),
         )
       ).calculate()
@@ -157,7 +155,7 @@ class NextReviewDateUpdaterServiceTest {
         NextReviewDateInput(
           dateOfBirth = offender2.dateOfBirth,
           receptionDate = offender2.receptionDate,
-          hasAcctOpen = offender2.acctOpen,
+          hasAcctOpen = offender2.hasAcctOpen,
           iepDetails = offender2Reviews.toList().toIepDetails(iepLevels),
         )
       ).calculate()
@@ -213,12 +211,10 @@ class NextReviewDateUpdaterServiceTest {
     val bookingId = 1234L
     val prisonerNumber = "A1244AB"
 
-    val locationInfo = prisonerAtLocation(bookingId, prisonerNumber)
-    whenever(prisonApiService.getPrisonerInfo(bookingId, useClientCredentials = true))
-      .thenReturn(locationInfo)
-    val offender = offenderSearchPrisoner(prisonerNumber, bookingId)
-    whenever(offenderSearchService.getOffender(locationInfo.offenderNo))
-      .thenReturn(offender)
+    val prisonerExtraInfo = prisonerExtraInfo(prisonerNumber, bookingId)
+    whenever(prisonApiService.getPrisonerExtraInfo(bookingId, useClientCredentials = true))
+      .thenReturn(prisonerExtraInfo)
+
     val reviews = flowOf(
       prisonerIepLevel(bookingId),
       prisonerIepLevel(bookingId),
@@ -230,9 +226,9 @@ class NextReviewDateUpdaterServiceTest {
 
     val expectedNextReviewDate = NextReviewDateService(
       NextReviewDateInput(
-        dateOfBirth = offender.dateOfBirth,
-        receptionDate = offender.receptionDate,
-        hasAcctOpen = offender.acctOpen,
+        dateOfBirth = prisonerExtraInfo.dateOfBirth,
+        receptionDate = prisonerExtraInfo.receptionDate,
+        hasAcctOpen = prisonerExtraInfo.hasAcctOpen,
         iepDetails = reviews.toList().toIepDetails(iepLevels),
       )
     ).calculate()

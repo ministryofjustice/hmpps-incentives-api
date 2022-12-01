@@ -55,17 +55,12 @@ class PrisonerIepLevelReviewService(
   }
 
   private suspend fun calculateNextReviewDateFromNomisData(iepSummary: IepSummary): LocalDate {
-    // NOTE: `iepSummary.prisonerNumber` is `null` for data coming from NOMIS
-    val locationInfo = prisonApiService.getPrisonerInfo(iepSummary.bookingId, useClientCredentials = true)
-    val prisonerNumber = locationInfo.offenderNo
-
-    // Get Prisoner/ACCT info from Offender Search API
-    val offender = offenderSearchService.getOffender(prisonerNumber)
+    val offender = prisonApiService.getPrisonerExtraInfo(iepSummary.bookingId, useClientCredentials = true)
 
     return NextReviewDateService(
       NextReviewDateInput(
         iepDetails = iepSummary.iepDetails,
-        hasAcctOpen = offender.acctOpen,
+        hasAcctOpen = offender.hasAcctOpen,
         dateOfBirth = offender.dateOfBirth,
         receptionDate = offender.receptionDate,
       )

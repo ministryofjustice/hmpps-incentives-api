@@ -235,14 +235,9 @@ class PrisonerIepLevelReviewServiceTest {
         ).thenReturn(iepSummaryWithDetail(bookingId))
         // Mock requests to get ACCT status
         whenever(
-          prisonApiService.getPrisonerInfo(bookingId, true)
+          prisonApiService.getPrisonerExtraInfo(bookingId, useClientCredentials = true)
         ).thenReturn(
-          prisonerAtLocation(bookingId, offenderNo)
-        )
-        whenever(
-          offenderSearchService.getOffender(offenderNo)
-        ).thenReturn(
-          offenderSearchPrisoner(offenderNo, bookingId)
+          prisonerExtraInfo(offenderNo, bookingId)
         )
 
         // When
@@ -269,14 +264,9 @@ class PrisonerIepLevelReviewServiceTest {
           )
           // Mock requests to get ACCT status
           whenever(
-            prisonApiService.getPrisonerInfo(bookingId, true)
+            prisonApiService.getPrisonerExtraInfo(bookingId, useClientCredentials = true)
           ).thenReturn(
-            prisonerAtLocation(bookingId, prisonerNumber)
-          )
-          whenever(
-            offenderSearchService.getOffender(prisonerNumber)
-          ).thenReturn(
-            offenderSearchPrisoner(prisonerNumber, bookingId)
+            prisonerExtraInfo(prisonerNumber, bookingId)
           )
 
           // When
@@ -436,12 +426,9 @@ class PrisonerIepLevelReviewServiceTest {
       ).thenReturn(iepSummary)
       // Mock request to get ACCT status
       whenever(
-        prisonApiService.getPrisonerInfo(bookingId, true)
-      ).thenReturn(prisonerAtLocation)
-      whenever(
-        offenderSearchService.getOffender(prisonerNumber)
+        prisonApiService.getPrisonerExtraInfo(bookingId, true)
       ).thenReturn(
-        offenderSearchPrisoner(prisonerNumber, bookingId)
+        prisonerExtraInfo(prisonerNumber, bookingId)
       )
 
       // When
@@ -494,12 +481,9 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonApiService.getIepLevels()).thenReturn(globalIncentiveLevels.asFlow())
       // Mock request to get ACCT status
       whenever(
-        prisonApiService.getPrisonerInfo(bookingId, true)
-      ).thenReturn(prisonerAtLocation)
-      whenever(
-        offenderSearchService.getOffender(prisonerNumber)
+        prisonApiService.getPrisonerExtraInfo(bookingId, true)
       ).thenReturn(
-        offenderSearchPrisoner(prisonerNumber)
+        prisonerExtraInfo(prisonerNumber, bookingId)
       )
       val iepDetails = listOf(
         iepDetail(prisonerAtLocation.agencyId, "Standard", "STD", LocalDateTime.now()),
@@ -572,12 +556,9 @@ class PrisonerIepLevelReviewServiceTest {
       ).thenReturn(iepSummaryWithDetail(bookingId))
       // Mock requests to get ACCT status
       whenever(
-        prisonApiService.getPrisonerInfo(bookingId, true)
-      ).thenReturn(prisonerAtLocation)
-      whenever(
-        offenderSearchService.getOffender(prisonerNumber)
+        prisonApiService.getPrisonerExtraInfo(bookingId, true)
       ).thenReturn(
-        offenderSearchPrisoner(prisonerNumber, bookingId),
+        prisonerExtraInfo(prisonerNumber, bookingId),
       )
 
       // When
@@ -1402,14 +1383,9 @@ class PrisonerIepLevelReviewServiceTest {
     firstName = "JAMES",
     middleNames = "",
     lastName = "HALLS",
-    status = "ACTIVE IN",
-    inOutStatus = "IN",
     dateOfBirth = LocalDate.parse("1971-07-01"),
     receptionDate = LocalDate.parse("2020-07-01"),
     prisonId = "MDI",
-    prisonName = "Moorland",
-    cellLocation = "2-1-002",
-    locationDescription = "Cell 2",
     alerts = emptyList(),
   )
 }

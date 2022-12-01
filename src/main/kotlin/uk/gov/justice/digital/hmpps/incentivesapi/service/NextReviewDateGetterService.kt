@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.NextReviewDateRepository
 import java.time.LocalDate
 
@@ -13,17 +12,14 @@ import java.time.LocalDate
 class NextReviewDateGetterService(
   private val nextReviewDateRepository: NextReviewDateRepository,
   private val prisonApiService: PrisonApiService,
-  private val offenderSearchService: OffenderSearchService,
   private val nextReviewDateUpdaterService: NextReviewDateUpdaterService,
 ) {
 
   suspend fun get(bookingId: Long): LocalDate {
     return nextReviewDateRepository.findById(bookingId)?.nextReviewDate ?: run {
-      val locationInfo = prisonApiService.getPrisonerInfo(bookingId, useClientCredentials = true)
-      val prisonerNumber = locationInfo.offenderNo
-      val offender = offenderSearchService.getOffender(prisonerNumber)
+      val prisonerInfo = prisonApiService.getPrisonerExtraInfo(bookingId, useClientCredentials = true)
 
-      return getMany(listOf(offender))[offender.bookingId]!!
+      return getMany(listOf(prisonerInfo))[prisonerInfo.bookingId]!!
     }
   }
 
@@ -37,8 +33,8 @@ class NextReviewDateGetterService(
    *
    * @return a Map with bookingIds as keys and next review dates as values
    */
-  suspend fun getMany(offenders: List<OffenderSearchPrisoner>): Map<Long, LocalDate> {
-    val bookingIds = offenders.map(OffenderSearchPrisoner::bookingId)
+  suspend fun getMany(offenders: List<PrisonerInfoForNextReviewDate>): Map<Long, LocalDate> {
+    val bookingIds = offenders.map(PrisonerInfoForNextReviewDate::bookingId)
     val existingNextReviewDates = nextReviewDateRepository.findAllById(bookingIds).toList().toMapByBookingId()
 
     val bookingIdsWithDate = existingNextReviewDates.keys

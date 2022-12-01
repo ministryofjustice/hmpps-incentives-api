@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocation
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerExtraInfo
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -15,14 +16,20 @@ fun offenderSearchPrisoner(
   firstName = "JAMES",
   middleNames = "",
   lastName = "HALLS",
-  status = "ACTIVE IN",
-  inOutStatus = "IN",
   dateOfBirth = LocalDate.parse("1971-07-01"),
   receptionDate = LocalDate.parse("2020-07-01"),
   prisonId = "MDI",
-  prisonName = "Moorland",
-  cellLocation = "2-1-002",
-  locationDescription = "Cell 2",
+  alerts = emptyList(),
+)
+
+fun prisonerExtraInfo(
+  prisonerNumber: String = "A1244AB",
+  bookingId: Long = 1234567L,
+) = PrisonerExtraInfo(
+  bookingId = bookingId,
+  offenderNo = prisonerNumber,
+  dateOfBirth = LocalDate.parse("1971-07-01"),
+  receptionDate = LocalDate.parse("2020-07-01"),
   alerts = emptyList(),
 )
 
