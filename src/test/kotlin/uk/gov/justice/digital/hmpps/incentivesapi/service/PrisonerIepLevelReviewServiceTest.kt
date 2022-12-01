@@ -14,6 +14,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
@@ -657,47 +658,61 @@ class PrisonerIepLevelReviewServiceTest {
       )
       whenever(prisonApiService.getPrisonerInfo("A1244AB", true))
         .thenReturn(prisonerAtLocation)
+
+      val newReview = PrisonerIepLevel(
+        id = 1L,
+        prisonerNumber = "A8765SS",
+        bookingId = 1234567L,
+        prisonId = "LEI",
+        locationId = "LEI-1-1-001",
+        reviewedBy = "TEST_STAFF1",
+        iepCode = "BAS",
+        current = true,
+        reviewTime = LocalDateTime.now().minusDays(2)
+      )
+      val oldReview1 = PrisonerIepLevel(
+        id = 3L,
+        prisonerNumber = "A1244AB",
+        bookingId = 555555L,
+        prisonId = "LEI",
+        locationId = "LEI-1-1-001",
+        reviewedBy = "TEST_STAFF1",
+        iepCode = "STD",
+        current = true,
+        reviewTime = LocalDateTime.now().minusDays(100)
+      )
+
+      val oldReview2 = PrisonerIepLevel(
+        id = 2L,
+        prisonerNumber = "A1244AB",
+        bookingId = 555555L,
+        prisonId = "LEI",
+        locationId = "LEI-1-1-001",
+        reviewedBy = "TEST_STAFF1",
+        iepCode = "BAS",
+        current = false,
+        reviewTime = LocalDateTime.now().minusDays(200),
+      )
+
       whenever(prisonerIepLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDesc("A8765SS"))
         .thenReturn(
           flowOf(
-            PrisonerIepLevel(
-              prisonerNumber = "A8765SS",
-              bookingId = 1234567L,
-              prisonId = "LEI",
-              locationId = "LEI-1-1-001",
-              reviewedBy = "TEST_STAFF1",
-              iepCode = "BAS",
-              current = true,
-              reviewTime = LocalDateTime.now().minusDays(2)
-            )
+            newReview
           )
         )
+
       whenever(prisonerIepLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDesc("A1244AB"))
         .thenReturn(
           flowOf(
-            PrisonerIepLevel(
-              prisonerNumber = "A1244AB",
-              bookingId = 555555L,
-              prisonId = "LEI",
-              locationId = "LEI-1-1-001",
-              reviewedBy = "TEST_STAFF1",
-              iepCode = "BAS",
-              current = false,
-              reviewTime = LocalDateTime.now().minusDays(200),
-            ),
-            PrisonerIepLevel(
-              prisonerNumber = "A1244AB",
-              bookingId = 555555L,
-              prisonId = "LEI",
-              locationId = "LEI-1-1-001",
-              reviewedBy = "TEST_STAFF1",
-              iepCode = "STD",
-              current = true,
-              reviewTime = LocalDateTime.now().minusDays(100)
-            )
+            oldReview2,
+            oldReview1
           )
         )
       prisonerIepLevelReviewService.mergedPrisonerDetails(prisonMergeEvent)
+
+      verify(prisonerIepLevelRepository).save(eq(newReview.copy(prisonerNumber = "A1244AB")))
+      verify(prisonerIepLevelRepository).save(eq(oldReview2.copy(bookingId = 1234567L, id = 0L, current = false)))
+      verify(prisonerIepLevelRepository).save(eq(oldReview1.copy(bookingId = 1234567L, id = 0L, current = false)))
 
       // check next review date is updated for new bookingId
       verify(nextReviewDateUpdaterService, times(1))

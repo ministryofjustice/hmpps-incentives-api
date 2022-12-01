@@ -122,6 +122,8 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     val removedNomsNumber = "A4432FD"
     val locationId = 77777L
 
+    prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
+
     prisonerIepLevelRepository.save(
       PrisonerIepLevel(
         bookingId = bookingId,
