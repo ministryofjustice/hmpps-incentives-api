@@ -517,7 +517,7 @@ class PrisonerIepLevelReviewService(
     val remainingBookingId = prisonApiService.getPrisonerInfo(remainingPrisonerNumber, true).bookingId
     val reviewsFromOldBooking =
       prisonerIepLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(remainingPrisonerNumber)
-        .map { review -> review.copy(bookingId = remainingBookingId, current = false, id = 0) }
+        .map { review -> review.copy(bookingId = remainingBookingId, current = false, new = true, id = 0) }
 
     val reviewsToUpdate = merge(activeReviews, reviewsFromOldBooking)
     reviewsToUpdate.collect {
