@@ -11,7 +11,7 @@ generic-service:
     API_BASE_URL_OAUTH: https://sign-in-preprod.hmpps.service.justice.gov.uk/auth
     API_BASE_URL_PRISON: https://api-preprod.prison.service.justice.gov.uk
     API_BASE_URL_OFFENDER_SEARCH: https://prisoner-offender-search-preprod.prison.service.justice.gov.uk
-    FEATURE_REVIEWADDEDSYNCMECHANISM: "DOMAIN_EVENT"
+    FEATURE_REVIEW_ADDED_SYNC_MECHANISM: "DOMAIN_EVENT"
     FEATURE_INCENTIVES_DATA_SOURCE_OF_TRUTH: true
 
 # CloudPlatform AlertManager receiver to route Prometheus alerts to slack
