@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -21,11 +22,11 @@ class SnsService(hmppsQueueService: HmppsQueueService, private val objectMapper:
   private val domaineventsTopic by lazy { hmppsQueueService.findByTopicId("domainevents") ?: throw RuntimeException("Topic with name domainevents doesn't exist") }
   private val domaineventsTopicClient by lazy { domaineventsTopic.snsClient }
 
-  fun publishDomainEvent(id: Long, nomsNumber: String, occurredAt: LocalDateTime, eventType: IncentivesDomainEventType, description: String) {
+  fun publishDomainEvent(eventType: IncentivesDomainEventType, description: String, occurredAt: LocalDateTime, additionalInformation: AdditionalInformation) {
     publishToDomainEventsTopic(
       HMPPSDomainEvent(
         eventType.value,
-        AdditionalInformation(id, nomsNumber, eventType.value),
+        additionalInformation,
         occurredAt.atZone(ZoneId.systemDefault()).toInstant(),
         description,
       )
@@ -52,6 +53,7 @@ data class AdditionalInformation(
   val reason: String? = null,
   val removedNomsNumber: String? = null,
   val categoriesChanged: List<String>? = null,
+  val nextReviewDate: LocalDate? = null,
 )
 
 data class HMPPSDomainEvent(
@@ -79,6 +81,11 @@ enum class IncentivesDomainEventType(val value: String) {
   IEP_REVIEW_INSERTED("incentives.iep-review.inserted"),
   IEP_REVIEW_UPDATED("incentives.iep-review.updated"),
   IEP_REVIEW_DELETED("incentives.iep-review.deleted"),
+  PRISONER_NEXT_REVIEW_DATE_CHANGED("incentives.prisoner.next-review-date-changed"),
+}
+
+enum class IepReviewReason {
+  USER_CREATED_NOMIS, // NOTE: Used by Syscon sync service to discriminate reviews already synced
 }
 
 fun Instant.toOffsetDateFormat(): String =

@@ -1,32 +1,21 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.dto
-
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
+import uk.gov.justice.digital.hmpps.incentivesapi.service.PrisonerInfoForNextReviewDate
 import java.time.LocalDate
 
 data class OffenderSearchPrisoner(
-  val prisonerNumber: String,
-  val bookingId: Long,
+  override val bookingId: Long,
+  override val prisonerNumber: String,
+  override val dateOfBirth: LocalDate,
+  override val receptionDate: LocalDate,
   val firstName: String,
   val middleNames: String? = null,
   val lastName: String,
-  val status: String,
-  val inOutStatus: String,
-  val dateOfBirth: LocalDate,
-  val receptionDate: LocalDate,
   val prisonId: String,
-  val prisonName: String,
-  val cellLocation: String? = null,
-  val locationDescription: String,
-  val alerts: List<OffenderSearchPrisonerAlert> = emptyList(),
-) {
-  val acctOpen = alerts.any { it.alertCode == "HA" && it.active && !it.expired }
+  val alerts: List<PrisonerAlert> = emptyList(),
+) : PrisonerInfoForNextReviewDate {
+  override val hasAcctOpen = alerts.any(PrisonerAlert::isOpenAcct)
 }
-
-data class OffenderSearchPrisonerAlert(
-  val alertType: String,
-  val alertCode: String,
-  val active: Boolean,
-  val expired: Boolean,
-)
 
 data class OffenderSearchPrisonerList(
   val totalElements: Int,

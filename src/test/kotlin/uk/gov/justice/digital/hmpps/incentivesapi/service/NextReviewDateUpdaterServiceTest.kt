@@ -2,12 +2,14 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
@@ -26,14 +28,14 @@ class NextReviewDateUpdaterServiceTest {
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository = mock()
   private val nextReviewDateRepository: NextReviewDateRepository = mock()
   private val prisonApiService: PrisonApiService = mock()
-  private val offenderSearchService: OffenderSearchService = mock()
+  private val snsService: SnsService = mock()
 
   private val nextReviewDateUpdaterService = NextReviewDateUpdaterService(
     clock,
     prisonerIepLevelRepository,
     nextReviewDateRepository,
     prisonApiService,
-    offenderSearchService,
+    snsService,
   )
 
   private val iepLevels = mapOf(
@@ -64,17 +66,18 @@ class NextReviewDateUpdaterServiceTest {
 
     @Test
     fun `updateMany() when no reviews in database`(): Unit = runBlocking {
+      val bookingIds = listOf(offender1.bookingId, offender2.bookingId)
       whenever(
-        prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(
-          listOf(offender1.bookingId, offender2.bookingId)
-        )
+        prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds)
       ).thenReturn(emptyFlow())
+      whenever(nextReviewDateRepository.findAllById(bookingIds))
+        .thenReturn(emptyFlow())
 
       val expectedDate1 = NextReviewDateService(
         NextReviewDateInput(
           dateOfBirth = offender1.dateOfBirth,
           receptionDate = offender1.receptionDate,
-          hasAcctOpen = offender1.acctOpen,
+          hasAcctOpen = offender1.hasAcctOpen,
           iepDetails = emptyList(),
         )
       ).calculate()
@@ -82,7 +85,7 @@ class NextReviewDateUpdaterServiceTest {
         NextReviewDateInput(
           dateOfBirth = offender2.dateOfBirth,
           receptionDate = offender2.receptionDate,
-          hasAcctOpen = offender2.acctOpen,
+          hasAcctOpen = offender2.hasAcctOpen,
           iepDetails = emptyList(),
         )
       ).calculate()
@@ -110,28 +113,41 @@ class NextReviewDateUpdaterServiceTest {
 
       verify(nextReviewDateRepository, times(1))
         .saveAll(expectedRecordsList)
+
+      // Doesn't publish 'next-review-date-changed' event for new records
+      verify(snsService, times(0))
+        .publishDomainEvent(any(), any(), any(), any())
     }
 
     @Test
     fun `updateMany() when some reviews in database`(): Unit = runBlocking {
       val offender2Reviews = flowOf(
-        prisonerIepLevel(offender2.bookingId),
-        prisonerIepLevel(offender2.bookingId),
+        prisonerIepLevel(offender2.bookingId, reviewTime = LocalDateTime.now(clock)),
+        prisonerIepLevel(offender2.bookingId, reviewTime = LocalDateTime.now(clock).minusMonths(11)),
       )
+      val bookingIds = listOf(offender1.bookingId, offender2.bookingId)
       whenever(
-        prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(
-          listOf(offender1.bookingId, offender2.bookingId)
-        )
+        prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds)
       ).thenReturn(offender2Reviews)
 
       whenever(nextReviewDateRepository.existsById(offender1.bookingId)).thenReturn(false)
       whenever(nextReviewDateRepository.existsById(offender2.bookingId)).thenReturn(true)
+      whenever(nextReviewDateRepository.findAllById(bookingIds))
+        .thenReturn(
+          flowOf(
+            NextReviewDate(
+              bookingId = offender2.bookingId,
+              // NOTE: next review date is out-of-date and will change
+              nextReviewDate = offender2Reviews.last().reviewTime.plusYears(1).toLocalDate(),
+            )
+          )
+        )
 
       val expectedDate1 = NextReviewDateService(
         NextReviewDateInput(
           dateOfBirth = offender1.dateOfBirth,
           receptionDate = offender1.receptionDate,
-          hasAcctOpen = offender1.acctOpen,
+          hasAcctOpen = offender1.hasAcctOpen,
           iepDetails = emptyList(),
         )
       ).calculate()
@@ -139,7 +155,7 @@ class NextReviewDateUpdaterServiceTest {
         NextReviewDateInput(
           dateOfBirth = offender2.dateOfBirth,
           receptionDate = offender2.receptionDate,
-          hasAcctOpen = offender2.acctOpen,
+          hasAcctOpen = offender2.hasAcctOpen,
           iepDetails = offender2Reviews.toList().toIepDetails(iepLevels),
         )
       ).calculate()
@@ -163,6 +179,30 @@ class NextReviewDateUpdaterServiceTest {
 
       verify(nextReviewDateRepository, times(1))
         .saveAll(expectedRecordsList)
+
+      // Doesn't publish 'next-review-date-changed' event as this is a new record
+      verify(snsService, times(0))
+        .publishDomainEvent(
+          eventType = IncentivesDomainEventType.PRISONER_NEXT_REVIEW_DATE_CHANGED,
+          description = "A prisoner's next incentive review date has changed",
+          occurredAt = LocalDateTime.now(clock),
+          additionalInformation = AdditionalInformation(
+            id = offender1.bookingId,
+            nomsNumber = offender1.prisonerNumber,
+          ),
+        )
+      // Next review date changed for offender2, check 'next-review-date-changed' event was published
+      verify(snsService, times(1))
+        .publishDomainEvent(
+          eventType = IncentivesDomainEventType.PRISONER_NEXT_REVIEW_DATE_CHANGED,
+          description = "A prisoner's next incentive review date has changed",
+          occurredAt = LocalDateTime.now(clock),
+          additionalInformation = AdditionalInformation(
+            id = offender2.bookingId,
+            nomsNumber = offender2.prisonerNumber,
+            nextReviewDate = expectedDate2,
+          ),
+        )
     }
   }
 
@@ -171,24 +211,24 @@ class NextReviewDateUpdaterServiceTest {
     val bookingId = 1234L
     val prisonerNumber = "A1244AB"
 
-    val locationInfo = prisonerAtLocation(bookingId, prisonerNumber)
-    whenever(prisonApiService.getPrisonerInfo(bookingId, useClientCredentials = true))
-      .thenReturn(locationInfo)
-    val offender = offenderSearchPrisoner(prisonerNumber, bookingId)
-    whenever(offenderSearchService.getOffender(locationInfo.offenderNo))
-      .thenReturn(offender)
+    val prisonerExtraInfo = prisonerExtraInfo(prisonerNumber, bookingId)
+    whenever(prisonApiService.getPrisonerExtraInfo(bookingId, useClientCredentials = true))
+      .thenReturn(prisonerExtraInfo)
+
     val reviews = flowOf(
       prisonerIepLevel(bookingId),
       prisonerIepLevel(bookingId),
     )
+    whenever(nextReviewDateRepository.findAllById(listOf(bookingId)))
+      .thenReturn(emptyFlow())
     whenever(prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(listOf(bookingId)))
       .thenReturn(reviews)
 
     val expectedNextReviewDate = NextReviewDateService(
       NextReviewDateInput(
-        dateOfBirth = offender.dateOfBirth,
-        receptionDate = offender.receptionDate,
-        hasAcctOpen = offender.acctOpen,
+        dateOfBirth = prisonerExtraInfo.dateOfBirth,
+        receptionDate = prisonerExtraInfo.receptionDate,
+        hasAcctOpen = prisonerExtraInfo.hasAcctOpen,
         iepDetails = reviews.toList().toIepDetails(iepLevels),
       )
     ).calculate()
@@ -207,5 +247,9 @@ class NextReviewDateUpdaterServiceTest {
 
     verify(nextReviewDateRepository, times(1))
       .saveAll(expectedRecordsList)
+
+    // Doesn't publish 'next-review-date-changed' event for new records
+    verify(snsService, times(0))
+      .publishDomainEvent(any(), any(), any(), any())
   }
 }

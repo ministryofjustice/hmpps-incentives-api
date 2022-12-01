@@ -19,7 +19,7 @@ jobs:
     executor:
       name: hmpps/java_localstack_postgres
       jdk_tag: "19.0"
-      localstack_tag: "0.14.0"
+      localstack_tag: "1.2"
       services: "sns,sqs"
       postgres_tag: "14"
       postgres_username: "incentives"
@@ -35,7 +35,7 @@ jobs:
           name: Run check & send results to sonarcloud
           command: |
             export GRADLE_OPTS="--add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED"
-            ./gradlew check sonarqube
+            ./gradlew check sonar --info
       - save_cache:
           paths:
             - ~/.gradle
@@ -51,7 +51,7 @@ jobs:
     executor:
       name: hmpps/java_localstack_postgres
       jdk_tag: "19.0"
-      localstack_tag: "0.14.0"
+      localstack_tag: "1.2"
       services: "sns,sqs"
       postgres_tag: "14"
       postgres_username: "incentives"

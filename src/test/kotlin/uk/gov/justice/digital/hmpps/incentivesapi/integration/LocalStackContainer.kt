@@ -13,25 +13,23 @@ object LocalStackContainer {
   private val log = LoggerFactory.getLogger(this::class.java)
   val instance by lazy { startLocalstackIfNotRunning() }
 
-  fun setLocalStackProperties(localStackContainer: LocalStackContainer, registry: DynamicPropertyRegistry) =
-    localStackContainer.getEndpointConfiguration(LocalStackContainer.Service.SNS)
-      .let { it.serviceEndpoint to it.signingRegion }
-      .also {
-        registry.add("hmpps.sqs.localstackUrl") { it.first }
-        registry.add("hmpps.sqs.region") { it.second }
-      }
+  fun setLocalStackProperties(localStackContainer: LocalStackContainer, registry: DynamicPropertyRegistry) {
+    val localstackUrl = localStackContainer.getEndpointOverride(LocalStackContainer.Service.SNS).toString()
+    val region = localStackContainer.region
+    registry.add("hmpps.sqs.localstackUrl") { localstackUrl }
+    registry.add("hmpps.sqs.region") { region }
+  }
 
   private fun startLocalstackIfNotRunning(): LocalStackContainer? {
     if (localstackIsRunning()) return null
     val logConsumer = Slf4jLogConsumer(log).withPrefix("localstack")
     return LocalStackContainer(
-      DockerImageName.parse("localstack/localstack").withTag("0.14.0")
+      DockerImageName.parse("localstack/localstack").withTag("1.2")
     ).apply {
       withServices(LocalStackContainer.Service.SQS, LocalStackContainer.Service.SNS)
-      withEnv("HOSTNAME_EXTERNAL", "localhost")
       withEnv("DEFAULT_REGION", "eu-west-2")
       waitingFor(
-        Wait.forLogMessage(".*Ready.*", 1)
+        Wait.forLogMessage(".*Running on.*", 1)
       )
       start()
       followOutput(logConsumer)

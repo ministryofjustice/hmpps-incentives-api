@@ -16,12 +16,10 @@ import java.time.LocalDate
 class NextReviewDateGetterServiceTest {
   private val nextReviewDateRepository: NextReviewDateRepository = mock()
   private val prisonApiService: PrisonApiService = mock()
-  private val offenderSearchService: OffenderSearchService = mock()
   private val nextReviewDateUpdaterService: NextReviewDateUpdaterService = mock()
   private val nextReviewDateGetterService = NextReviewDateGetterService(
     nextReviewDateRepository,
     prisonApiService,
-    offenderSearchService,
     nextReviewDateUpdaterService,
   )
 
@@ -55,24 +53,21 @@ class NextReviewDateGetterServiceTest {
     val prisonerNumber = "A1244AB"
     val expectedNextReviewDate = LocalDate.parse("2022-07-30")
 
-    val locationInfo = prisonerAtLocation(bookingId, prisonerNumber)
-    whenever(prisonApiService.getPrisonerInfo(bookingId, useClientCredentials = true))
-      .thenReturn(locationInfo)
-    val offender = offenderSearchPrisoner(prisonerNumber, bookingId)
-    whenever(offenderSearchService.getOffender(locationInfo.offenderNo))
-      .thenReturn(offender)
+    val prisonerExtraInfo = prisonerExtraInfo(prisonerNumber, bookingId)
+    whenever(prisonApiService.getPrisonerExtraInfo(bookingId, useClientCredentials = true))
+      .thenReturn(prisonerExtraInfo)
 
     // no record found in the database
     whenever(nextReviewDateRepository.findAllById(listOf(bookingId)))
       .thenReturn(emptyFlow())
-    whenever(nextReviewDateUpdaterService.updateMany(listOf(offender)))
-      .thenReturn(mapOf(offender.bookingId to expectedNextReviewDate))
+    whenever(nextReviewDateUpdaterService.updateMany(listOf(prisonerExtraInfo)))
+      .thenReturn(mapOf(prisonerExtraInfo.bookingId to expectedNextReviewDate))
 
     val result = nextReviewDateGetterService.get(bookingId)
 
     // check next review date was updated for prisoner
     verify(nextReviewDateUpdaterService, times(1))
-      .updateMany(listOf(offender))
+      .updateMany(listOf(prisonerExtraInfo))
 
     assertThat(result).isEqualTo(expectedNextReviewDate)
   }

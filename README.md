@@ -48,20 +48,19 @@ This assumes you have the [AWS CLI](https://aws.amazon.com/cli/) installed
 2. Find the ARN of the Domain Events topic created in your localstack instance and update the `topic-arn` parameter in the command below
     ```shell
     aws --endpoint-url=http://localhost:4566 sns publish \
-        --topic-arn arn:aws:sns:eu-west-2:000000000000:[find this in the Incentives API log for HmppsTopicFactory] \
+        --topic-arn arn:aws:sns:eu-west-2:000000000000:11111111-2222-3333-4444-555555555555 \
         --message-attributes '{
           "eventType": { "DataType": "String", "StringValue": "prisoner-offender-search.prisoner.received" }
         }' \
         --message '{
-          "version":"1.0",
-          "occurredAt":"2020-02-12T15:14:24.125533+00:00",
-          "publishedAt":"2020-02-12T15:15:09.902048716+00:00",
-          "description":"A prisoner has been received into prison",
+          "version": "1.0",
+          "occurredAt": "2020-02-12T15:14:24.125533+00:00",
+          "publishedAt": "2020-02-12T15:15:09.902048716+00:00",
+          "description": "A prisoner has been received into a prison with reason: admission on new charges",
           "additionalInformation": {
-            "nomsNumber":"A0289IR",
-            "prisonId":"MDI",
-            "reason":"NEW_ADMISSION",
-            "details":"ecall referral date 2021-05-12"
+            "nomsNumber": "A0289IR",
+            "prisonId": "MDI",
+            "reason": "NEW_ADMISSION"
           }
         }'
     ```

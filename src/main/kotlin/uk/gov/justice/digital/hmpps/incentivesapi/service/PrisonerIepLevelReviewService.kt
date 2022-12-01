@@ -55,17 +55,12 @@ class PrisonerIepLevelReviewService(
   }
 
   private suspend fun calculateNextReviewDateFromNomisData(iepSummary: IepSummary): LocalDate {
-    // NOTE: `iepSummary.prisonerNumber` is `null` for data coming from NOMIS
-    val locationInfo = prisonApiService.getPrisonerInfo(iepSummary.bookingId, useClientCredentials = true)
-    val prisonerNumber = locationInfo.offenderNo
-
-    // Get Prisoner/ACCT info from Offender Search API
-    val offender = offenderSearchService.getOffender(prisonerNumber)
+    val offender = prisonApiService.getPrisonerExtraInfo(iepSummary.bookingId, useClientCredentials = true)
 
     return NextReviewDateService(
       NextReviewDateInput(
         iepDetails = iepSummary.iepDetails,
-        hasAcctOpen = offender.acctOpen,
+        hasAcctOpen = offender.hasAcctOpen,
         dateOfBirth = offender.dateOfBirth,
         receptionDate = offender.receptionDate,
       )
@@ -153,8 +148,6 @@ class PrisonerIepLevelReviewService(
       )
     )
 
-    nextReviewDateUpdaterService.update(review.bookingId)
-
     return review.toIepDetail(prisonApiService.getIncentiveLevels())
   }
 
@@ -162,7 +155,11 @@ class PrisonerIepLevelReviewService(
   suspend fun handleSyncPostIepReviewRequest(bookingId: Long, syncPostRequest: SyncPostRequest): IepDetail {
     val iepDetail = persistSyncPostRequest(bookingId, syncPostRequest, true)
 
-    publishReviewDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
+    nextReviewDateUpdaterService.update(bookingId)
+
+    // NOTE: This reason is to allow service that syncs back to NOMIS to ignore these domain events (as these reviews
+    // are already coming from NOMIS, they don't need to be synced again)
+    publishReviewDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_INSERTED, IepReviewReason.USER_CREATED_NOMIS)
     publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_ADDED)
 
     return iepDetail
@@ -457,6 +454,7 @@ class PrisonerIepLevelReviewService(
   private suspend fun publishReviewDomainEvent(
     iepDetail: IepDetail,
     eventType: IncentivesDomainEventType,
+    reason: IepReviewReason? = null,
   ) {
     iepDetail.id?.let {
       val description: String = when (eventType) {
@@ -468,7 +466,16 @@ class PrisonerIepLevelReviewService(
         }
       }
 
-      snsService.publishDomainEvent(iepDetail.id, iepDetail.prisonerNumber ?: "N/A", iepDetail.iepTime, eventType, description)
+      snsService.publishDomainEvent(
+        eventType,
+        description,
+        occurredAt = iepDetail.iepTime,
+        AdditionalInformation(
+          id = iepDetail.id,
+          nomsNumber = iepDetail.prisonerNumber ?: "N/A",
+          reason = reason?.toString(),
+        ),
+      )
     } ?: run {
       log.warn("IepDetail has `null` id, domain event not published: $iepDetail")
     }

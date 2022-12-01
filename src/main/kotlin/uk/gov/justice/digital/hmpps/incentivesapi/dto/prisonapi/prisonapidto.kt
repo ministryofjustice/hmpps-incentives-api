@@ -3,6 +3,8 @@ package uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi
 import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.swagger.v3.oas.annotations.media.Schema
+import uk.gov.justice.digital.hmpps.incentivesapi.service.PrisonerInfoForNextReviewDate
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 data class PrisonerAtLocation(
@@ -14,6 +16,26 @@ data class PrisonerAtLocation(
   val agencyId: String,
   val assignedLivingUnitId: Long,
 )
+
+data class PrisonerAlert(
+  val alertType: String,
+  val alertCode: String,
+  val active: Boolean,
+  val expired: Boolean,
+) {
+  val isOpenAcct = alertCode == "HA" && active && !expired
+}
+
+data class PrisonerExtraInfo(
+  override val bookingId: Long,
+  override val dateOfBirth: LocalDate,
+  override val receptionDate: LocalDate,
+  val offenderNo: String,
+  val alerts: List<PrisonerAlert> = emptyList(),
+) : PrisonerInfoForNextReviewDate {
+  override val hasAcctOpen = alerts.any(PrisonerAlert::isOpenAcct)
+  override val prisonerNumber = offenderNo
+}
 
 data class Location(
   val agencyId: String,

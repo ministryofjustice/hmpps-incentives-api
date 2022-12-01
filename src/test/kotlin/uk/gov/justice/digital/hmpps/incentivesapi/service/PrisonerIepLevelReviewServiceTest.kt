@@ -156,11 +156,13 @@ class PrisonerIepLevelReviewServiceTest {
       if (reviewAddedSyncMechanism == ReviewAddedSyncMechanism.DOMAIN_EVENT) {
         // A domain even is published
         verify(snsService, times(1)).publishDomainEvent(
-          42,
-          prisonerNumber,
-          reviewTime,
-          IncentivesDomainEventType.IEP_REVIEW_INSERTED,
-          "An IEP review has been added",
+          eventType = IncentivesDomainEventType.IEP_REVIEW_INSERTED,
+          description = "An IEP review has been added",
+          occurredAt = reviewTime,
+          additionalInformation = AdditionalInformation(
+            id = 42,
+            nomsNumber = prisonerNumber,
+          ),
         )
 
         // Prison API request not made
@@ -178,7 +180,7 @@ class PrisonerIepLevelReviewServiceTest {
         )
 
         // Domain event not published
-        verify(snsService, times(0)).publishDomainEvent(any(), any(), any(), any(), any())
+        verify(snsService, times(0)).publishDomainEvent(any(), any(), any(), any())
       }
 
       // An audit event is published
@@ -234,14 +236,9 @@ class PrisonerIepLevelReviewServiceTest {
         ).thenReturn(iepSummaryWithDetail(bookingId))
         // Mock requests to get ACCT status
         whenever(
-          prisonApiService.getPrisonerInfo(bookingId, true)
+          prisonApiService.getPrisonerExtraInfo(bookingId, useClientCredentials = true)
         ).thenReturn(
-          prisonerAtLocation(bookingId, offenderNo)
-        )
-        whenever(
-          offenderSearchService.getOffender(offenderNo)
-        ).thenReturn(
-          offenderSearchPrisoner(offenderNo, bookingId)
+          prisonerExtraInfo(offenderNo, bookingId)
         )
 
         // When
@@ -268,14 +265,9 @@ class PrisonerIepLevelReviewServiceTest {
           )
           // Mock requests to get ACCT status
           whenever(
-            prisonApiService.getPrisonerInfo(bookingId, true)
+            prisonApiService.getPrisonerExtraInfo(bookingId, useClientCredentials = true)
           ).thenReturn(
-            prisonerAtLocation(bookingId, prisonerNumber)
-          )
-          whenever(
-            offenderSearchService.getOffender(prisonerNumber)
-          ).thenReturn(
-            offenderSearchPrisoner(prisonerNumber, bookingId)
+            prisonerExtraInfo(prisonerNumber, bookingId)
           )
 
           // When
@@ -392,11 +384,13 @@ class PrisonerIepLevelReviewServiceTest {
 
       verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
       verify(snsService, times(1)).publishDomainEvent(
-        0,
-        prisonerAtLocation().offenderNo,
-        expectedPrisonerIepLevel.reviewTime,
-        IncentivesDomainEventType.IEP_REVIEW_INSERTED,
-        "An IEP review has been added",
+        eventType = IncentivesDomainEventType.IEP_REVIEW_INSERTED,
+        description = "An IEP review has been added",
+        occurredAt = expectedPrisonerIepLevel.reviewTime,
+        additionalInformation = AdditionalInformation(
+          id = 0,
+          nomsNumber = prisonerAtLocation().offenderNo,
+        ),
       )
       verify(auditService, times(1))
         .sendMessage(
@@ -433,12 +427,9 @@ class PrisonerIepLevelReviewServiceTest {
       ).thenReturn(iepSummary)
       // Mock request to get ACCT status
       whenever(
-        prisonApiService.getPrisonerInfo(bookingId, true)
-      ).thenReturn(prisonerAtLocation)
-      whenever(
-        offenderSearchService.getOffender(prisonerNumber)
+        prisonApiService.getPrisonerExtraInfo(bookingId, true)
       ).thenReturn(
-        offenderSearchPrisoner(prisonerNumber, bookingId)
+        prisonerExtraInfo(prisonerNumber, bookingId)
       )
 
       // When
@@ -460,11 +451,13 @@ class PrisonerIepLevelReviewServiceTest {
 
       verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
       verify(snsService, times(1)).publishDomainEvent(
-        0,
-        prisonerNumber,
-        expectedPrisonerIepLevel.reviewTime,
-        IncentivesDomainEventType.IEP_REVIEW_INSERTED,
-        "An IEP review has been added",
+        eventType = IncentivesDomainEventType.IEP_REVIEW_INSERTED,
+        description = "An IEP review has been added",
+        occurredAt = expectedPrisonerIepLevel.reviewTime,
+        additionalInformation = AdditionalInformation(
+          id = 0,
+          nomsNumber = prisonerNumber,
+        ),
       )
       verify(auditService, times(1))
         .sendMessage(
@@ -489,12 +482,9 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonApiService.getIepLevels()).thenReturn(globalIncentiveLevels.asFlow())
       // Mock request to get ACCT status
       whenever(
-        prisonApiService.getPrisonerInfo(bookingId, true)
-      ).thenReturn(prisonerAtLocation)
-      whenever(
-        offenderSearchService.getOffender(prisonerNumber)
+        prisonApiService.getPrisonerExtraInfo(bookingId, true)
       ).thenReturn(
-        offenderSearchPrisoner(prisonerNumber)
+        prisonerExtraInfo(prisonerNumber, bookingId)
       )
       val iepDetails = listOf(
         iepDetail(prisonerAtLocation.agencyId, "Standard", "STD", LocalDateTime.now()),
@@ -529,11 +519,13 @@ class PrisonerIepLevelReviewServiceTest {
 
       verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
       verify(snsService, times(1)).publishDomainEvent(
-        0,
-        prisonerNumber,
-        expectedPrisonerIepLevel.reviewTime,
-        IncentivesDomainEventType.IEP_REVIEW_INSERTED,
-        "An IEP review has been added",
+        eventType = IncentivesDomainEventType.IEP_REVIEW_INSERTED,
+        description = "An IEP review has been added",
+        occurredAt = expectedPrisonerIepLevel.reviewTime,
+        additionalInformation = AdditionalInformation(
+          id = 0,
+          nomsNumber = prisonerNumber,
+        )
       )
       verify(auditService, times(1))
         .sendMessage(
@@ -565,12 +557,9 @@ class PrisonerIepLevelReviewServiceTest {
       ).thenReturn(iepSummaryWithDetail(bookingId))
       // Mock requests to get ACCT status
       whenever(
-        prisonApiService.getPrisonerInfo(bookingId, true)
-      ).thenReturn(prisonerAtLocation)
-      whenever(
-        offenderSearchService.getOffender(prisonerNumber)
+        prisonApiService.getPrisonerExtraInfo(bookingId, true)
       ).thenReturn(
-        offenderSearchPrisoner(prisonerNumber, bookingId),
+        prisonerExtraInfo(prisonerNumber, bookingId),
       )
 
       // When
@@ -592,11 +581,13 @@ class PrisonerIepLevelReviewServiceTest {
 
       verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
       verify(snsService, times(1)).publishDomainEvent(
-        0,
-        prisonerNumber,
-        expectedPrisonerIepLevel.reviewTime,
-        IncentivesDomainEventType.IEP_REVIEW_INSERTED,
-        "An IEP review has been added",
+        eventType = IncentivesDomainEventType.IEP_REVIEW_INSERTED,
+        description = "An IEP review has been added",
+        occurredAt = expectedPrisonerIepLevel.reviewTime,
+        additionalInformation = AdditionalInformation(
+          id = 0,
+          nomsNumber = prisonerNumber,
+        ),
       )
       verify(auditService, times(1))
         .sendMessage(
@@ -788,7 +779,7 @@ class PrisonerIepLevelReviewServiceTest {
       )
 
       // Triggers the update of next review date when a new review is created
-      verify(nextReviewDateUpdaterService, times(1)).update(bookingId)
+      verify(nextReviewDateUpdaterService, times(0)).update(bookingId)
     }
 
     @Test
@@ -898,11 +889,13 @@ class PrisonerIepLevelReviewServiceTest {
 
       // SNS event is sent
       verify(snsService, times(1)).publishDomainEvent(
-        id,
-        prisonerAtLocation().offenderNo,
-        iepReview.reviewTime,
-        IncentivesDomainEventType.IEP_REVIEW_DELETED,
-        "An IEP review has been deleted",
+        eventType = IncentivesDomainEventType.IEP_REVIEW_DELETED,
+        description = "An IEP review has been deleted",
+        occurredAt = iepReview.reviewTime,
+        additionalInformation = AdditionalInformation(
+          id = id,
+          nomsNumber = prisonerAtLocation().offenderNo,
+        ),
       )
 
       // audit message is sent
@@ -1058,11 +1051,13 @@ class PrisonerIepLevelReviewServiceTest {
 
       // SNS event is sent
       verify(snsService, times(1)).publishDomainEvent(
-        id,
-        prisonerAtLocation().offenderNo,
-        iepReview.reviewTime,
-        IncentivesDomainEventType.IEP_REVIEW_UPDATED,
-        "An IEP review has been updated",
+        eventType = IncentivesDomainEventType.IEP_REVIEW_UPDATED,
+        description = "An IEP review has been updated",
+        occurredAt = iepReview.reviewTime,
+        additionalInformation = AdditionalInformation(
+          id = id,
+          nomsNumber = prisonerAtLocation().offenderNo,
+        ),
       )
 
       // audit message is sent
@@ -1174,17 +1169,30 @@ class PrisonerIepLevelReviewServiceTest {
     }
 
     @Test
+    fun `updates next review date`(): Unit = runBlocking {
+      // When
+      prisonerIepLevelReviewService.handleSyncPostIepReviewRequest(bookingId, syncPostRequest)
+
+      // Then check it's returned
+      verify(nextReviewDateUpdaterService, times(1))
+        .update(bookingId)
+    }
+
+    @Test
     fun `sends IepReview event and audit message`(): Unit = runBlocking {
       // When sync POST request is handled
       prisonerIepLevelReviewService.handleSyncPostIepReviewRequest(bookingId, syncPostRequest)
 
       // SNS event is sent
       verify(snsService, times(1)).publishDomainEvent(
-        iepReviewId,
-        prisonerAtLocation().offenderNo,
-        syncPostRequest.iepTime,
-        IncentivesDomainEventType.IEP_REVIEW_INSERTED,
-        "An IEP review has been added",
+        eventType = IncentivesDomainEventType.IEP_REVIEW_INSERTED,
+        description = "An IEP review has been added",
+        occurredAt = syncPostRequest.iepTime,
+        additionalInformation = AdditionalInformation(
+          id = iepReviewId,
+          nomsNumber = prisonerAtLocation().offenderNo,
+          reason = "USER_CREATED_NOMIS",
+        )
       )
 
       // audit message is sent
@@ -1390,14 +1398,9 @@ class PrisonerIepLevelReviewServiceTest {
     firstName = "JAMES",
     middleNames = "",
     lastName = "HALLS",
-    status = "ACTIVE IN",
-    inOutStatus = "IN",
     dateOfBirth = LocalDate.parse("1971-07-01"),
     receptionDate = LocalDate.parse("2020-07-01"),
     prisonId = "MDI",
-    prisonName = "Moorland",
-    cellLocation = "2-1-002",
-    locationDescription = "Cell 2",
     alerts = emptyList(),
   )
 }
