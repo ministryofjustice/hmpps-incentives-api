@@ -344,10 +344,17 @@ class PrisonerIepLevelReviewServiceTest {
     @ParameterizedTest
     @ValueSource(strings = ["NEW_ADMISSION", "READMISSION"])
     fun `process admissions`(reason: String): Unit = runBlocking {
+      val expectedReviewType = when (reason) {
+        "NEW_ADMISSION" -> ReviewType.INITIAL
+        "READMISSION" -> ReviewType.READMISSION
+        else -> throw IllegalArgumentException("Unexpected reason for this test: $reason")
+      }
+
       // Given - default for that prison is Enhanced
       val prisonOffenderEvent = prisonOffenderEvent(reason)
-      whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(prisonerAtLocation())
-      whenever(prisonApiService.getLocationById(prisonerAtLocation().assignedLivingUnitId, true)).thenReturn(location)
+      val prisonerAtLocation = prisonerAtLocation()
+      whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(prisonerAtLocation)
+      whenever(prisonApiService.getLocationById(prisonerAtLocation.assignedLivingUnitId, true)).thenReturn(location)
       // Enhanced is the default for this prison so use that
       whenever(prisonApiService.getIepLevelsForPrison("MDI", true)).thenReturn(
         flowOf(
@@ -378,11 +385,13 @@ class PrisonerIepLevelReviewServiceTest {
         current = true,
         reviewedBy = "INCENTIVES_API",
         reviewTime = LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
-        reviewType = ReviewType.INITIAL,
+        reviewType = expectedReviewType,
         prisonerNumber = prisonerAtLocation().offenderNo
       )
 
       verify(prisonerIepLevelRepository, times(1)).save(expectedPrisonerIepLevel)
+      verify(nextReviewDateUpdaterService, times(1)).update(prisonerAtLocation.bookingId)
+
       verify(snsService, times(1)).publishDomainEvent(
         eventType = IncentivesDomainEventType.IEP_REVIEW_INSERTED,
         description = "An IEP review has been added",
