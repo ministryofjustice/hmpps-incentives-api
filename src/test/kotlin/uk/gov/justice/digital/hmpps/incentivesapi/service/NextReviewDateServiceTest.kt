@@ -311,6 +311,52 @@ class NextReviewDateServiceTest {
       assertThat(nextReviewDate).isEqualTo(expectedNextReviewDate)
     }
   }
+
+  @Nested
+  inner class ReadmissionsRulesTest {
+
+    @Test
+    fun `when prisoner is readmitted (age 18+), returns +3 months`() {
+      val input = NextReviewDateInput(
+        iepDetails = listOf(
+          // When readmitted, was 18th birthday, not a "young person" anymore
+          review("2018-07-01", "ACI", "Standard", ReviewType.READMISSION),
+          review("2016-08-01", "MDI", "Standard", ReviewType.REVIEW),
+          review("2016-07-01", "MDI", "Standard", ReviewType.INITIAL),
+        ),
+        hasAcctOpen = true,
+        dateOfBirth = LocalDate.parse("2000-07-01"),
+        receptionDate = LocalDate.parse("2016-07-01"),
+      )
+      val readmissionDate = input.iepDetails.first().iepDate
+      val expectedNextReviewDate = readmissionDate.plusMonths(3)
+
+      val nextReviewDate = NextReviewDateService(input).calculate()
+
+      assertThat(nextReviewDate).isEqualTo(expectedNextReviewDate)
+    }
+
+    @Test
+    fun `when prisoner is readmitted and "young person" (under age of 18), returns +1 months`() {
+      val input = NextReviewDateInput(
+        iepDetails = listOf(
+          // When readmitted, was almost 18yo, so still a "young person"
+          review("2018-06-30", "ACI", "Standard", ReviewType.READMISSION),
+          review("2016-08-01", "MDI", "Standard", ReviewType.REVIEW),
+          review("2016-07-01", "MDI", "Standard", ReviewType.INITIAL),
+        ),
+        hasAcctOpen = true,
+        dateOfBirth = LocalDate.parse("2000-07-01"),
+        receptionDate = LocalDate.parse("2016-07-01"),
+      )
+      val readmissionDate = input.iepDetails.first().iepDate
+      val expectedNextReviewDate = readmissionDate.plusMonths(1)
+
+      val nextReviewDate = NextReviewDateService(input).calculate()
+
+      assertThat(nextReviewDate).isEqualTo(expectedNextReviewDate)
+    }
+  }
 }
 
 private fun review(iepDateString: String, prisonId: String, iepLevel: String, reviewType: ReviewType?): IepDetail {
