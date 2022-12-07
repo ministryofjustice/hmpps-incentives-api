@@ -33,6 +33,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepReviewInNomis
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Location
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import java.time.Clock
@@ -599,43 +600,63 @@ class PrisonerIepLevelReviewServiceTest {
     }
 
     @Test
-    fun `process 'prisoner updated' event when alerts changed`(): Unit = runBlocking {
+    fun `process 'prisoner alerts updated' event when ACCT alert added`(): Unit = runBlocking {
       val bookingId = 1234567L
       val prisonerNumber = "A1244AB"
 
       // Given
-      val prisonerUpdatedEvent = prisonerUpdatedEvent(
+      val prisonerAlertsUpdatedEvent = prisonerAlertsUpdatedEvent(
         prisonerNumber,
-        categoriesChanged = listOf("STATUS", "ALERTS"),
+        bookingId,
+        alertsAdded = listOf(PrisonerAlert.ACCT_ALERT_CODE),
+        alertsRemoved = emptyList(),
       )
-      val offender = offenderSearchPrisoner(prisonerNumber, bookingId)
-      whenever(offenderSearchService.getOffender(prisonerNumber)).thenReturn(offender)
 
       // When
-      prisonerIepLevelReviewService.processPrisonerUpdatedEvent(prisonerUpdatedEvent)
+      prisonerIepLevelReviewService.processPrisonerAlertsUpdatedEvent(prisonerAlertsUpdatedEvent)
 
       verify(nextReviewDateUpdaterService, times(1))
-        .updateMany(listOf(offender))
+        .update(bookingId)
     }
 
     @Test
-    fun `process 'prisoner updated' event when alerts didn't change`(): Unit = runBlocking {
+    fun `process 'prisoner alerts updated' event when ACCT alert removed`(): Unit = runBlocking {
       val bookingId = 1234567L
       val prisonerNumber = "A1244AB"
 
       // Given
-      val prisonerUpdatedEvent = prisonerUpdatedEvent(
+      val prisonerAlertsUpdatedEvent = prisonerAlertsUpdatedEvent(
         prisonerNumber,
-        categoriesChanged = listOf("STATUS", "PERSONAL_DETAILS"),
+        bookingId,
+        alertsAdded = emptyList(),
+        alertsRemoved = listOf(PrisonerAlert.ACCT_ALERT_CODE),
       )
-      val offender = offenderSearchPrisoner(prisonerNumber, bookingId)
-      whenever(offenderSearchService.getOffender(prisonerNumber)).thenReturn(offender)
 
       // When
-      prisonerIepLevelReviewService.processPrisonerUpdatedEvent(prisonerUpdatedEvent)
+      prisonerIepLevelReviewService.processPrisonerAlertsUpdatedEvent(prisonerAlertsUpdatedEvent)
+
+      verify(nextReviewDateUpdaterService, times(1))
+        .update(bookingId)
+    }
+
+    @Test
+    fun `process 'prisoner alerts updated' event when alerts didn't change`(): Unit = runBlocking {
+      val bookingId = 1234567L
+      val prisonerNumber = "A1244AB"
+
+      // Given
+      val prisonerUpdatedEvent = prisonerAlertsUpdatedEvent(
+        prisonerNumber,
+        bookingId,
+        alertsAdded = listOf("ABC"),
+        alertsRemoved = listOf("XYZ"),
+      )
+
+      // When
+      prisonerIepLevelReviewService.processPrisonerAlertsUpdatedEvent(prisonerUpdatedEvent)
 
       verify(nextReviewDateUpdaterService, times(0))
-        .updateMany(listOf(offender))
+        .update(bookingId)
     }
 
     @ParameterizedTest
@@ -1313,11 +1334,18 @@ class PrisonerIepLevelReviewServiceTest {
     }
   )
 
-  private fun prisonerUpdatedEvent(prisonerNumber: String = "A1244AB", categoriesChanged: List<String> = listOf("ALERTS")) = HMPPSDomainEvent(
-    eventType = "prisoner-offender-search.prisoner.updated",
+  private fun prisonerAlertsUpdatedEvent(
+    prisonerNumber: String = "A1244AB",
+    bookingId: Long,
+    alertsAdded: List<String> = listOf(PrisonerAlert.ACCT_ALERT_CODE),
+    alertsRemoved: List<String> = emptyList()
+  ) = HMPPSDomainEvent(
+    eventType = "prisoner-offender-search.prisoner.alerts-updated",
     additionalInformation = AdditionalInformation(
       nomsNumber = prisonerNumber,
-      categoriesChanged = categoriesChanged,
+      bookingId = bookingId,
+      alertsAdded = alertsAdded,
+      alertsRemoved = alertsRemoved,
     ),
     occurredAt = Instant.now(),
     description = "A prisoner record has been updated"
