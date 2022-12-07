@@ -26,6 +26,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepReviewInNomis
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Location
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocation
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
@@ -268,22 +269,22 @@ class PrisonerIepLevelReviewService(
     }
 
   @Transactional
-  suspend fun processPrisonerUpdatedEvent(prisonOffenderEvent: HMPPSDomainEvent) {
-    val alertsChanged: Boolean = prisonOffenderEvent.additionalInformation.categoriesChanged?.contains("ALERTS") ?: false
+  suspend fun processPrisonerAlertsUpdatedEvent(prisonOffenderEvent: HMPPSDomainEvent) {
+    val acctAdded: Boolean = prisonOffenderEvent.additionalInformation.alertsAdded?.contains(PrisonerAlert.ACCT_ALERT_CODE) == true
+    val acctRemoved: Boolean = prisonOffenderEvent.additionalInformation.alertsRemoved?.contains(PrisonerAlert.ACCT_ALERT_CODE) == true
 
-    if (alertsChanged) {
+    if (acctAdded || acctRemoved) {
       updateNextReviewDate(prisonOffenderEvent)
     } else {
-      log.debug("Ignoring 'prisoner-offender-search.prisoner.updated' event, alerts didn't change: prisonerNumber = ${prisonOffenderEvent.additionalInformation.nomsNumber}, categoriesChanged = ${prisonOffenderEvent.additionalInformation.categoriesChanged}")
+      log.debug("Ignoring 'prisoner-offender-search.prisoner.alerts-updated' event, No ACCT alerts added/removed: prisonerNumber = ${prisonOffenderEvent.additionalInformation.nomsNumber}, alertsAdded = ${prisonOffenderEvent.additionalInformation.alertsAdded}, alertsRemoved = ${prisonOffenderEvent.additionalInformation.alertsRemoved}")
     }
   }
 
   private suspend fun updateNextReviewDate(prisonOffenderEvent: HMPPSDomainEvent) {
-    prisonOffenderEvent.additionalInformation.nomsNumber?.let { prisonerNumber ->
-      val offender = offenderSearchService.getOffender(prisonerNumber)
-      nextReviewDateUpdaterService.updateMany(listOf(offender))
+    prisonOffenderEvent.additionalInformation.bookingId?.let { bookingId ->
+      nextReviewDateUpdaterService.update(bookingId)
     } ?: run {
-      log.warn("Could not update next review date: prisonerNumber null for prisonOffenderEvent: $prisonOffenderEvent ")
+      log.error("Could not update next review date: bookingId null for prisonOffenderEvent: $prisonOffenderEvent")
     }
   }
 
