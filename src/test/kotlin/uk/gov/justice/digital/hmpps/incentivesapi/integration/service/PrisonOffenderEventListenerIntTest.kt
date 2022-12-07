@@ -14,6 +14,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.NextReviewDateRepository
@@ -170,12 +171,12 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
   }
 
   @Test
-  fun `process PRISONER UPDATED domain events`(): Unit = runBlocking {
+  fun `process PRISONER ALERTS UPDATED domain events`(): Unit = runBlocking {
     // Given
     val bookingId = 1294134L
     val prisonerNumber = "A1244AB"
     val prisonId = "MDI"
-    offenderSearchMockServer.stubGetOffender(prisonId, prisonerNumber, bookingId, withOpenAcct = true)
+    prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
     prisonApiMockServer.stubIepLevels()
     nextReviewDateRepository.deleteAll()
 
@@ -211,7 +212,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     )
 
     // When
-    publishPrisonerUpdatedMessage(prisonerNumber, categoriesChanged = listOf("ALERTS", "SENTENCE"))
+    publishPrisonerAlertsUpdatedMessage(prisonerNumber, bookingId, alertsAdded = emptyList(), alertsRemoved = listOf(PrisonerAlert.ACCT_ALERT_CODE))
 
     awaitAtMost30Secs untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
 
@@ -221,7 +222,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     } matches { it == true }
 
     assertThat(nextReviewDateRepository.findById(bookingId)?.nextReviewDate)
-      .isEqualTo(lastReviewTime.plusDays(14).toLocalDate())
+      .isEqualTo(lastReviewTime.plusDays(28).toLocalDate())
   }
 
   private fun publishPrisonerReceivedMessage(reason: String) =
@@ -246,12 +247,19 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
       description = "A prisoner has been merged from $removedNomsNumber to $nomsNumber",
     )
 
-  private fun publishPrisonerUpdatedMessage(nomsNumber: String, categoriesChanged: List<String>) =
+  private fun publishPrisonerAlertsUpdatedMessage(
+    nomsNumber: String,
+    bookingId: Long,
+    alertsAdded: List<String> = listOf(PrisonerAlert.ACCT_ALERT_CODE),
+    alertsRemoved: List<String> = emptyList(),
+  ) =
     publishDomainEventMessage(
-      eventType = "prisoner-offender-search.prisoner.updated",
+      eventType = "prisoner-offender-search.prisoner.alerts-updated",
       additionalInformation = AdditionalInformation(
         nomsNumber = nomsNumber,
-        categoriesChanged = categoriesChanged,
+        bookingId = bookingId,
+        alertsAdded = alertsAdded,
+        alertsRemoved = alertsRemoved,
       ),
       description = "A prisoner record has been updated",
     )

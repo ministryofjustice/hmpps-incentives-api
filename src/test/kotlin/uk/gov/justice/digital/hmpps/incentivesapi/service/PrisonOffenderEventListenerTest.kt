@@ -69,13 +69,13 @@ class PrisonOffenderEventListenerTest {
   }
 
   @Test
-  fun `process prisoner updated message`(): Unit = runBlocking {
+  fun `process prisoner alerts updated message`(): Unit = runBlocking {
     coroutineScope {
       // When
-      listener.onPrisonOffenderEvent("/messages/prisonerUpdated.json".readResourceAsText())
+      listener.onPrisonOffenderEvent("/messages/prisonerAlertsUpdated.json".readResourceAsText())
 
       // Then
-      verify(prisonerIepLevelReviewService, times(1)).processPrisonerUpdatedEvent(any())
+      verify(prisonerIepLevelReviewService, times(1)).processPrisonerAlertsUpdatedEvent(any())
     }
   }
 

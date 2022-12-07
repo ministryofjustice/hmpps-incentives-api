@@ -23,7 +23,11 @@ data class PrisonerAlert(
   val active: Boolean,
   val expired: Boolean,
 ) {
-  val isOpenAcct = alertCode == "HA" && active && !expired
+  companion object {
+    const val ACCT_ALERT_CODE = "HA"
+  }
+
+  val isOpenAcct = alertCode == ACCT_ALERT_CODE && active && !expired
 }
 
 data class PrisonerExtraInfo(
