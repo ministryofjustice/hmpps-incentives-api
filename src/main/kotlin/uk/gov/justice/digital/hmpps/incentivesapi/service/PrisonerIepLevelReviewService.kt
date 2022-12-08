@@ -260,7 +260,9 @@ class PrisonerIepLevelReviewService(
   @Transactional
   suspend fun processOffenderEvent(prisonOffenderEvent: HMPPSDomainEvent) =
     when (prisonOffenderEvent.additionalInformation.reason) {
-      "NEW_ADMISSION", "READMISSION" -> createIepForReceivedPrisoner(prisonOffenderEvent, ReviewType.INITIAL)
+      "NEW_ADMISSION" -> createIepForReceivedPrisoner(prisonOffenderEvent, ReviewType.INITIAL)
+      // NOTE: This may NOT be a recall. Someone could be readmitted back to prison for a number of other reasons (e.g. remands)
+      "READMISSION" -> createIepForReceivedPrisoner(prisonOffenderEvent, ReviewType.READMISSION)
       "TRANSFERRED" -> createIepForReceivedPrisoner(prisonOffenderEvent, ReviewType.TRANSFER)
       "MERGE" -> mergedPrisonerDetails(prisonOffenderEvent)
       else -> {
@@ -328,7 +330,7 @@ class PrisonerIepLevelReviewService(
     val defaultLevelCode = iepLevelService.chooseDefaultLevel(prisonerInfo.agencyId, iepLevelsForPrison)
 
     return when (reviewType) {
-      ReviewType.INITIAL -> {
+      ReviewType.INITIAL, ReviewType.READMISSION -> {
         defaultLevelCode // admission should always be the default
       }
       ReviewType.TRANSFER -> {
