@@ -412,6 +412,28 @@ class PrisonerIepLevelReviewServiceTest {
     }
 
     @Test
+    fun `process TRANSFERRED when offender is outside (agencyId = 'OUT') message is ignored`(): Unit = runBlocking {
+      val bookingId = 1234567L
+      val prisonerNumber = "A1244AB"
+
+      // Given
+      val prisonOffenderEvent = prisonOffenderEvent("TRANSFERRED", prisonerNumber)
+      val prisonerAtLocation = prisonerAtLocation(bookingId, prisonerNumber, agencyId = "OUT")
+      whenever(prisonApiService.getPrisonerInfo(prisonerNumber, true)).thenReturn(prisonerAtLocation)
+      whenever(prisonApiService.getLocationById(prisonerAtLocation.assignedLivingUnitId, true)).thenReturn(location)
+      whenever(prisonApiService.getIepLevelsForPrison(prisonerAtLocation.agencyId, true)).thenReturn(emptyFlow())
+
+      // When
+      prisonerIepLevelReviewService.processOffenderEvent(prisonOffenderEvent)
+
+      // No "review" is saved
+      verify(prisonerIepLevelRepository, times(0)).save(any())
+      // Domain events not published
+      verify(snsService, times(0)).publishDomainEvent(any(), any(), any(), any())
+      verify(auditService, times(0)).sendMessage(any(), any(), any(), any())
+    }
+
+    @Test
     fun `process TRANSFERRED when offender stays on same incentive level as previous prison`(): Unit = runBlocking {
       val bookingId = 1234567L
       val prisonerNumber = "A1244AB"

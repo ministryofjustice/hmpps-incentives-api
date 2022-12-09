@@ -7,6 +7,8 @@ import uk.gov.justice.digital.hmpps.incentivesapi.service.PrisonerInfoForNextRev
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+const val AGENCY_ID_OUTSIDE = "OUT"
+
 data class PrisonerAtLocation(
   val bookingId: Long,
   val facialImageId: Long,

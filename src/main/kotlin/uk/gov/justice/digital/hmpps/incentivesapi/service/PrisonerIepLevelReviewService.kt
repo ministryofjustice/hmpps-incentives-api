@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPatchRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.AGENCY_ID_OUTSIDE
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepReviewInNomis
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Location
@@ -291,8 +292,13 @@ class PrisonerIepLevelReviewService(
   }
 
   private suspend fun createIepForReceivedPrisoner(prisonOffenderEvent: HMPPSDomainEvent, reviewType: ReviewType) {
-    prisonOffenderEvent.additionalInformation.nomsNumber?.let {
-      val prisonerInfo = prisonApiService.getPrisonerInfo(it, true)
+    prisonOffenderEvent.additionalInformation.nomsNumber?.let { prisonerNumber ->
+      val prisonerInfo = prisonApiService.getPrisonerInfo(prisonerNumber, true)
+      if (prisonerInfo.agencyId == AGENCY_ID_OUTSIDE) {
+        log.warn("Prisoner $prisonerNumber has current agengyId '$AGENCY_ID_OUTSIDE' (Outside) - Cannot create review of type $reviewType")
+        return
+      }
+
       val iepLevel = getIepLevelForReviewType(prisonerInfo, reviewType)
       val comment = getReviewCommentForEvent(prisonOffenderEvent)
 
