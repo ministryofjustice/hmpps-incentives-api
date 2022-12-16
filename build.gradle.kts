@@ -1,6 +1,6 @@
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.7.4"
-  id("org.springdoc.openapi-gradle-plugin") version "1.5.0"
+  id("org.springdoc.openapi-gradle-plugin") version "1.6.0"
   id("jacoco")
   id("org.sonarqube") version "3.5.0.2730"
   kotlin("plugin.spring") version "1.7.22"
@@ -36,8 +36,8 @@ dependencies {
   runtimeOnly("org.springframework.boot:spring-boot-starter-jdbc")
   runtimeOnly("org.postgresql:postgresql:42.5.1")
 
-  implementation("org.springdoc:springdoc-openapi-webflux-ui:1.6.13")
-  implementation("org.springdoc:springdoc-openapi-kotlin:1.6.13")
+  implementation("org.springdoc:springdoc-openapi-webflux-ui:1.6.14")
+  implementation("org.springdoc:springdoc-openapi-kotlin:1.6.14")
 
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
