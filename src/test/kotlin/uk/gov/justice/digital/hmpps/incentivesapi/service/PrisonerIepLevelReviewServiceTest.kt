@@ -10,7 +10,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
@@ -20,8 +19,6 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.incentivesapi.config.AuthenticationFacade
-import uk.gov.justice.digital.hmpps.incentivesapi.config.FeatureFlagsService
-import uk.gov.justice.digital.hmpps.incentivesapi.config.ReviewAddedSyncMechanism
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
@@ -30,7 +27,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPatchRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepReviewInNomis
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Location
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
@@ -51,10 +47,8 @@ class PrisonerIepLevelReviewServiceTest {
   private var clock: Clock = Clock.fixed(Instant.ofEpochMilli(0), ZoneId.systemDefault())
   private val snsService: SnsService = mock()
   private val auditService: AuditService = mock()
-  private val featureFlagsService: FeatureFlagsService = mock()
   private val nextReviewDateGetterService: NextReviewDateGetterService = mock()
   private val nextReviewDateUpdaterService: NextReviewDateUpdaterService = mock()
-  private val offenderSearchService: OffenderSearchService = mock()
 
   private val prisonerIepLevelReviewService = PrisonerIepLevelReviewService(
     prisonApiService,
@@ -64,10 +58,8 @@ class PrisonerIepLevelReviewServiceTest {
     auditService,
     authenticationFacade,
     clock,
-    featureFlagsService,
     nextReviewDateGetterService,
-    nextReviewDateUpdaterService,
-    offenderSearchService,
+    nextReviewDateUpdaterService
   )
 
   @BeforeEach
@@ -117,27 +109,20 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
     }
 
-    @ParameterizedTest
-    @EnumSource(ReviewAddedSyncMechanism::class)
-    fun `addIepReview() by prisonerNumber`(reviewAddedSyncMechanism: ReviewAddedSyncMechanism): Unit = runBlocking {
+    fun `addIepReview() by prisonerNumber`(): Unit = runBlocking {
       coroutineScope {
-        whenever(featureFlagsService.reviewAddedSyncMechanism()).thenReturn(reviewAddedSyncMechanism)
-
         // Given
         whenever(prisonApiService.getPrisonerInfo(prisonerNumber)).thenReturn(prisonerInfo)
 
         // When
         prisonerIepLevelReviewService.addIepReview(prisonerNumber, iepReview)
 
-        testAddIepReviewCommonFunctionality(reviewAddedSyncMechanism)
+        testAddIepReviewCommonFunctionality()
       }
     }
 
-    @ParameterizedTest
-    @EnumSource(ReviewAddedSyncMechanism::class)
-    fun `addIepReview() by bookingId`(reviewAddedSyncMechanism: ReviewAddedSyncMechanism): Unit = runBlocking {
+    fun `addIepReview() by bookingId`(): Unit = runBlocking {
       coroutineScope {
-        whenever(featureFlagsService.reviewAddedSyncMechanism()).thenReturn(reviewAddedSyncMechanism)
 
         // Given
         whenever(prisonApiService.getPrisonerInfo(bookingId)).thenReturn(prisonerInfo)
@@ -145,43 +130,24 @@ class PrisonerIepLevelReviewServiceTest {
         // When
         prisonerIepLevelReviewService.addIepReview(bookingId, iepReview)
 
-        testAddIepReviewCommonFunctionality(reviewAddedSyncMechanism)
+        testAddIepReviewCommonFunctionality()
       }
     }
 
-    private suspend fun testAddIepReviewCommonFunctionality(reviewAddedSyncMechanism: ReviewAddedSyncMechanism) {
+    private suspend fun testAddIepReviewCommonFunctionality() {
       // IEP review is saved
       verify(prisonerIepLevelRepository, times(1)).save(prisonerIepLevel)
 
-      if (reviewAddedSyncMechanism == ReviewAddedSyncMechanism.DOMAIN_EVENT) {
-        // A domain even is published
-        verify(snsService, times(1)).publishDomainEvent(
-          eventType = IncentivesDomainEventType.IEP_REVIEW_INSERTED,
-          description = "An IEP review has been added",
-          occurredAt = reviewTime,
-          additionalInformation = AdditionalInformation(
-            id = 42,
-            nomsNumber = prisonerNumber,
-          ),
-        )
-
-        // Prison API request not made
-        verify(prisonApiService, times(0)).addIepReview(any(), any())
-      } else {
-        // NOMIS is updated my making a request to Prison API
-        verify(prisonApiService, times(1)).addIepReview(
-          bookingId,
-          IepReviewInNomis(
-            iepLevel = iepReview.iepLevel,
-            comment = iepReview.comment,
-            reviewTime = reviewTime,
-            reviewerUserName = reviewerUserName,
-          ),
-        )
-
-        // Domain event not published
-        verify(snsService, times(0)).publishDomainEvent(any(), any(), any(), any())
-      }
+      // A domain even is published
+      verify(snsService, times(1)).publishDomainEvent(
+        eventType = IncentivesDomainEventType.IEP_REVIEW_INSERTED,
+        description = "An IEP review has been added",
+        occurredAt = reviewTime,
+        additionalInformation = AdditionalInformation(
+          id = 42,
+          nomsNumber = prisonerNumber,
+        ),
+      )
 
       // An audit event is published
       verify(auditService, times(1)).sendMessage(
@@ -221,88 +187,6 @@ class PrisonerIepLevelReviewServiceTest {
 
   @Nested
   inner class GetPrisonerIepLevelHistory {
-    @Test
-    fun `will call prison api if useNomisData is true`(): Unit = runBlocking {
-      coroutineScope {
-        val bookingId = 1234567L
-        val offenderNo = "A1234AB"
-
-        // Given
-        whenever(
-          prisonApiService.getIEPSummaryForPrisoner(
-            bookingId,
-            withDetails = true
-          )
-        ).thenReturn(iepSummaryWithDetail(bookingId))
-        // Mock requests to get ACCT status
-        whenever(
-          prisonApiService.getPrisonerExtraInfo(bookingId, useClientCredentials = true)
-        ).thenReturn(
-          prisonerExtraInfo(offenderNo, bookingId)
-        )
-
-        // When
-        prisonerIepLevelReviewService.getPrisonerIepLevelHistory(bookingId)
-
-        // Then
-        verify(prisonApiService, times(1)).getIEPSummaryForPrisoner(bookingId, true)
-        verifyNoInteractions(prisonerIepLevelRepository)
-      }
-    }
-
-    @Test
-    fun `will call prison api if useNomisData is true and will not return iep details if withDetails is false`(): Unit =
-      runBlocking {
-        coroutineScope {
-          val bookingId = 1234567L
-          val prisonerNumber = "A1234AA"
-
-          // Given
-          whenever(
-            prisonApiService.getIEPSummaryForPrisoner(bookingId, withDetails = true)
-          ).thenReturn(
-            iepSummaryWithDetail(bookingId)
-          )
-          // Mock requests to get ACCT status
-          whenever(
-            prisonApiService.getPrisonerExtraInfo(bookingId, useClientCredentials = true)
-          ).thenReturn(
-            prisonerExtraInfo(prisonerNumber, bookingId)
-          )
-
-          // When
-          prisonerIepLevelReviewService.getPrisonerIepLevelHistory(bookingId, withDetails = false)
-
-          // Then
-          verify(prisonApiService, times(1)).getIEPSummaryForPrisoner(bookingId, true)
-          verifyNoInteractions(prisonerIepLevelRepository)
-        }
-      }
-
-    @Test
-    fun `will query incentives db if useNomisData is false`(): Unit = runBlocking {
-      coroutineScope {
-        val bookingId = currentLevel.bookingId
-        val expectedNextReviewDate = currentLevel.reviewTime.plusYears(1).toLocalDate()
-
-        whenever(featureFlagsService.isIncentivesDataSourceOfTruth()).thenReturn(true)
-        whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
-        whenever(nextReviewDateGetterService.get(bookingId)).thenReturn(expectedNextReviewDate)
-
-        // Given
-        whenever(prisonerIepLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(bookingId)).thenReturn(
-          currentAndPreviousLevels
-        )
-
-        // When
-        val result = prisonerIepLevelReviewService.getPrisonerIepLevelHistory(bookingId)
-
-        // Then
-        verify(prisonerIepLevelRepository, times(1)).findAllByBookingIdOrderByReviewTimeDesc(bookingId)
-        assertThat(result.iepDetails.size).isEqualTo(2)
-        assertThat(result.nextReviewDate).isEqualTo(expectedNextReviewDate)
-      }
-    }
 
     @Test
     fun `will query incentives db if useNomisData is false and will not return iep details if withDetails is false`(): Unit =
@@ -311,7 +195,6 @@ class PrisonerIepLevelReviewServiceTest {
           val bookingId = currentLevel.bookingId
           val expectedNextReviewDate = currentAndPreviousLevels.first().reviewTime.plusYears(1).toLocalDate()
 
-          whenever(featureFlagsService.isIncentivesDataSourceOfTruth()).thenReturn(true)
           whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
           whenever(nextReviewDateGetterService.get(bookingId)).thenReturn(expectedNextReviewDate)
 
