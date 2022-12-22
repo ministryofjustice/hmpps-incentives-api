@@ -153,6 +153,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
              "daysSinceReview":0,
              "iepDate":"$today",
              "iepLevel":"Standard",
+             "iepCode": "STD",
              "nextReviewDate": "$nextReviewDate",
              "iepDetails":[
                 {
@@ -210,6 +211,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
              "daysSinceReview":0,
              "iepDate":"$today",
              "iepLevel":"Enhanced",
+             "iepCode": "ENH",
              "nextReviewDate":"$nextReviewDate",
              "iepDetails":[
                 {
