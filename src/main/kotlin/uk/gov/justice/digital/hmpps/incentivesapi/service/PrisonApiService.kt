@@ -3,17 +3,13 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
-import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.awaitBodilessEntity
 import org.springframework.web.reactive.function.client.awaitBody
 import org.springframework.web.reactive.function.client.bodyToFlow
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsage
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsageRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepReviewInNomis
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Location
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonLocation
@@ -57,25 +53,6 @@ class PrisonApiService(
       }
   }
 
-  fun getIEPSummaryPerPrisoner(bookingIds: List<Long>): Flow<IepSummary> =
-    prisonWebClient.post()
-      .uri("/api/bookings/iepSummary")
-      .bodyValue(bookingIds)
-      .retrieve()
-      .bodyToFlow()
-
-  suspend fun getIEPSummaryForPrisoner(
-    bookingId: Long,
-    withDetails: Boolean,
-    useClientCredentials: Boolean = false
-  ): IepSummary {
-    return getClient(useClientCredentials)
-      .get()
-      .uri("/api/bookings/$bookingId/iepSummary?withDetails=$withDetails")
-      .retrieve()
-      .awaitBody()
-  }
-
   suspend fun retrieveCaseNoteCounts(type: String, offenderNos: List<String>): Flow<CaseNoteUsage> =
     prisonWebClient.post()
       .uri("/api/case-notes/usage")
@@ -95,13 +72,6 @@ class PrisonApiService(
       .uri("/api/locations/code/$locationId")
       .retrieve()
       .awaitBody()
-
-  suspend fun addIepReview(bookingId: Long, iepReview: IepReviewInNomis): ResponseEntity<Void> =
-    prisonWebClient.post()
-      .uri("/api/bookings/$bookingId/iepLevels")
-      .bodyValue(iepReview)
-      .retrieve()
-      .awaitBodilessEntity()
 
   suspend fun getPrisonerInfo(prisonerNumber: String, useClientCredentials: Boolean = false): PrisonerAtLocation {
     return getClient(useClientCredentials)

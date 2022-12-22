@@ -2,12 +2,10 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import org.apache.commons.text.WordUtils
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.incentivesapi.config.FeatureFlagsService
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.BehaviourSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevelSummary
@@ -27,7 +25,6 @@ class IncentiveSummaryService(
   private val prisonApiService: PrisonApiService,
   private val offenderSearchService: OffenderSearchService,
   private val iepLevelService: IepLevelService,
-  private val featureFlagsService: FeatureFlagsService,
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository,
   private val clock: Clock,
 ) {
@@ -131,23 +128,8 @@ class IncentiveSummaryService(
       .toList().associateBy(ProvenAdjudication::bookingId)
 
   private suspend fun getIEPDetails(bookingIds: List<Long>): Map<Long, IepResult> {
-    return if (featureFlagsService.isIncentivesDataSourceOfTruth()) {
-      getCurrentAndHistoricalReviews(bookingIds)
-    } else {
-      getCurrentAndHistoricalReviewsFromNOMIS(bookingIds)
-    }.associateBy(IepResult::bookingId)
+    return getCurrentAndHistoricalReviews(bookingIds).associateBy(IepResult::bookingId)
   }
-
-  private suspend fun getCurrentAndHistoricalReviewsFromNOMIS(bookingIds: List<Long>) =
-    prisonApiService.getIEPSummaryPerPrisoner(bookingIds)
-      .map {
-        IepResult(
-          bookingId = it.bookingId,
-          iepLevel = it.iepLevel,
-          daysSinceReview = it.daysSinceReviewCalc(clock),
-          daysOnLevel = daysOnLevel(clock, it.iepDetails)
-        )
-      }.toList()
 
   private suspend fun getCurrentAndHistoricalReviews(bookingIds: List<Long>): List<IepResult> {
     val incentiveLevels = prisonApiService.getIncentiveLevels()

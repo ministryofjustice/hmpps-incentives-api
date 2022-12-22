@@ -13,9 +13,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.incentivesapi.SYSTEM_USERNAME
 import uk.gov.justice.digital.hmpps.incentivesapi.config.AuthenticationFacade
-import uk.gov.justice.digital.hmpps.incentivesapi.config.FeatureFlagsService
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataFoundException
-import uk.gov.justice.digital.hmpps.incentivesapi.config.ReviewAddedSyncMechanism
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.CurrentIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
@@ -24,14 +22,12 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPatchRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepReviewInNomis
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Location
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocation
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import java.time.Clock
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.function.Supplier
@@ -46,26 +42,11 @@ class PrisonerIepLevelReviewService(
   private val auditService: AuditService,
   private val authenticationFacade: AuthenticationFacade,
   private val clock: Clock,
-  private val featureFlagsService: FeatureFlagsService,
   private val nextReviewDateGetterService: NextReviewDateGetterService,
   private val nextReviewDateUpdaterService: NextReviewDateUpdaterService,
-  private val offenderSearchService: OffenderSearchService,
 ) {
   companion object {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
-  }
-
-  private suspend fun calculateNextReviewDateFromNomisData(iepSummary: IepSummary): LocalDate {
-    val offender = prisonApiService.getPrisonerExtraInfo(iepSummary.bookingId, useClientCredentials = true)
-
-    return NextReviewDateService(
-      NextReviewDateInput(
-        iepDetails = iepSummary.iepDetails,
-        hasAcctOpen = offender.hasAcctOpen,
-        dateOfBirth = offender.dateOfBirth,
-        receptionDate = offender.receptionDate,
-      )
-    ).calculate()
   }
 
   suspend fun getPrisonerIepLevelHistory(
@@ -73,37 +54,16 @@ class PrisonerIepLevelReviewService(
     withDetails: Boolean = true,
     useClientCredentials: Boolean = false,
   ): IepSummary {
-    return if (!featureFlagsService.isIncentivesDataSourceOfTruth()) {
-      val iepSummary = prisonApiService.getIEPSummaryForPrisoner(bookingId, withDetails = true, useClientCredentials)
-
-      iepSummary.nextReviewDate = calculateNextReviewDateFromNomisData(iepSummary)
-
-      if (!withDetails) {
-        iepSummary.iepDetails = emptyList()
-      }
-
-      return iepSummary
-    } else {
-      val reviews = prisonerIepLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(bookingId)
-      if (reviews.count() == 0) throw IncentiveReviewNotFoundException("No Incentive Reviews for booking ID $bookingId")
-      buildIepSummary(reviews, prisonApiService.getIncentiveLevels(), withDetails)
-    }
+    val reviews = prisonerIepLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(bookingId)
+    if (reviews.count() == 0) throw IncentiveReviewNotFoundException("No Incentive Reviews for booking ID $bookingId")
+    return buildIepSummary(reviews, prisonApiService.getIncentiveLevels(), withDetails)
   }
 
   suspend fun getPrisonerIepLevelHistory(prisonerNumber: String): IepSummary {
 
-    return if (!featureFlagsService.isIncentivesDataSourceOfTruth()) {
-      val prisonerInfo = prisonApiService.getPrisonerInfo(prisonerNumber)
-      val iepSummary = prisonApiService.getIEPSummaryForPrisoner(prisonerInfo.bookingId, withDetails = true)
-
-      iepSummary.nextReviewDate = calculateNextReviewDateFromNomisData(iepSummary)
-
-      return iepSummary
-    } else {
-      val reviews = prisonerIepLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(prisonerNumber)
-      if (reviews.count() == 0) throw IncentiveReviewNotFoundException("No Incentive Reviews for prisoner number $prisonerNumber")
-      buildIepSummary(reviews, prisonApiService.getIncentiveLevels())
-    }
+    val reviews = prisonerIepLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(prisonerNumber)
+    if (reviews.count() == 0) throw IncentiveReviewNotFoundException("No Incentive Reviews for prisoner number $prisonerNumber")
+    return buildIepSummary(reviews, prisonApiService.getIncentiveLevels())
   }
 
   @Transactional
@@ -237,21 +197,14 @@ class PrisonerIepLevelReviewService(
   }
 
   suspend fun getCurrentIEPLevelForPrisoners(bookingIds: List<Long>): Flow<CurrentIepLevel> {
-    return if (!featureFlagsService.isIncentivesDataSourceOfTruth()) {
-      prisonApiService.getIEPSummaryPerPrisoner(bookingIds)
-        .map {
-          CurrentIepLevel(iepLevel = it.iepLevel, bookingId = it.bookingId)
-        }
-    } else {
-      val incentiveLevels = prisonApiService.getIncentiveLevels()
-      prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(bookingIds)
-        .map {
-          CurrentIepLevel(
-            iepLevel = incentiveLevels[it.iepCode]?.iepDescription ?: "Unmapped",
-            bookingId = it.bookingId
-          )
-        }
-    }
+    val incentiveLevels = prisonApiService.getIncentiveLevels()
+    return prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(bookingIds)
+      .map {
+        CurrentIepLevel(
+          iepLevel = incentiveLevels[it.iepCode]?.iepDescription ?: "Unmapped",
+          bookingId = it.bookingId
+        )
+      }
   }
 
   suspend fun getReviewById(id: Long): IepDetail =
@@ -407,19 +360,7 @@ class PrisonerIepLevelReviewService(
     ).toIepDetail(prisonApiService.getIncentiveLevels())
 
     // Propagate new IEP review to other services
-    if (featureFlagsService.reviewAddedSyncMechanism() == ReviewAddedSyncMechanism.DOMAIN_EVENT) {
-      publishReviewDomainEvent(newIepReview, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
-    } else {
-      prisonApiService.addIepReview(
-        prisonerInfo.bookingId,
-        IepReviewInNomis(
-          iepLevel = iepReview.iepLevel,
-          comment = iepReview.comment,
-          reviewTime = reviewTime,
-          reviewerUserName = reviewerUserName
-        )
-      )
-    }
+    publishReviewDomainEvent(newIepReview, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
 
     publishAuditEvent(newIepReview, AuditType.IEP_REVIEW_ADDED)
 
