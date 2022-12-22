@@ -2,16 +2,6 @@ info.app:
   name: Hmpps Incentives API
   version: 1.0
 
-feature:
-  # Determine how the creation of an IEP review is propagated to other systems.
-  # Can be:
-  # - 'PRISON_API', an HTTP request to Prison API's `POST /api/bookings/{bookingId}/iepLevels` is made
-  # - 'DOMAIN_EVENT', a domain event is published (long term, this will be the preferred/only method)
-  #
-  # NOTE: Environment variable is `FEATURE_REVIEWADDEDSYNCMECHANISM`
-  review-added-sync-mechanism: PRISON_API
-  incentives-data-source-of-truth: false
-
 spring:
   application:
     name: hmpps-incentives-api
