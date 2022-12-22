@@ -23,6 +23,7 @@ class IepSummaryDateTest {
         bookingId = 1L,
         iepDate = LocalDate.of(2022, 6, 2),
         iepLevel = "Enhanced",
+        iepCode = "ENH",
         iepTime = LocalDateTime.of(2022, 6, 2, 12, 45, 0),
         iepDetails = listOf(
           IepDetail(
@@ -58,6 +59,7 @@ class IepSummaryDateTest {
         bookingId = 1L,
         iepDate = LocalDate.of(2022, 7, 29),
         iepLevel = "Basic",
+        iepCode = "BAS",
         iepTime = LocalDateTime.of(2022, 7, 29, 12, 45, 0),
         iepDetails = listOf(
           IepDetail(
@@ -84,6 +86,7 @@ class IepSummaryDateTest {
         bookingId = 1L,
         iepDate = LocalDate.of(2022, 8, 1),
         iepLevel = "Standard",
+        iepCode = "STD",
         iepTime = LocalDateTime.of(2022, 8, 1, 8, 30, 0),
         iepDetails = listOf(
           IepDetail(
@@ -121,6 +124,7 @@ class IepSummaryDateTest {
         bookingId = 1L,
         iepDate = LocalDate.of(2022, 7, 31),
         iepLevel = "Basic",
+        iepCode = "BAS",
         iepTime = LocalDateTime.of(2022, 7, 31, 19, 0, 0),
         iepDetails = listOf(
           IepDetail(
@@ -169,6 +173,7 @@ class IepSummaryDateTest {
         bookingId = 1L,
         iepDate = LocalDate.of(2022, 8, 1),
         iepLevel = "Enhanced",
+        iepCode = "ENH",
         iepTime = LocalDateTime.of(2022, 8, 1, 8, 30, 0),
         iepDetails = listOf(
           IepDetail(
@@ -204,6 +209,7 @@ class IepSummaryDateTest {
         bookingId = 1L,
         iepDate = LocalDate.of(2022, 7, 2),
         iepLevel = "Enhanced",
+        iepCode = "ENH",
         iepTime = LocalDateTime.of(2022, 7, 2, 12, 30, 0),
         iepDetails = listOf(
           IepDetail(
@@ -249,6 +255,7 @@ class IepSummaryDateTest {
         bookingId = 1L,
         iepDate = LocalDate.of(2022, 7, 29),
         iepLevel = "Basic",
+        iepCode = "BAS",
         iepTime = LocalDateTime.of(2022, 7, 29, 12, 45, 0),
         iepDetails = emptyList(),
       )

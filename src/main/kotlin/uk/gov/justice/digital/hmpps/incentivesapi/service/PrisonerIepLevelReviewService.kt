@@ -373,6 +373,7 @@ class PrisonerIepLevelReviewService(
       bookingId = currentIep.bookingId,
       iepDate = currentIep.iepDate,
       iepTime = currentIep.iepTime,
+      iepCode = currentIep.iepCode,
       iepLevel = currentIep.iepLevel,
       id = currentIep.id,
       prisonerNumber = currentIep.prisonerNumber,

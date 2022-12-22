@@ -33,7 +33,7 @@ class IncentiveSummaryResourceTest : SqsIntegrationTestBase() {
     val locationId = "$prisonId-$wingId"
     prisonApiMockServer.stubIepLevels()
     prisonApiMockServer.stubAgenciesIepLevels(prisonId)
-    offenderSearchMockServer.stubFindOffenders(prisonId, wingId, includeInvalid = true)
+    offenderSearchMockServer.stubFindOffenders(prisonId, includeInvalid = true)
     prisonApiMockServer.stubIEPSummary()
     prisonApiMockServer.stubPositiveCaseNoteSummary()
     prisonApiMockServer.stubNegativeCaseNoteSummary()

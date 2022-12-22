@@ -427,7 +427,7 @@ class PrisonerIepLevelReviewServiceTest {
         iepDetail(prisonerAtLocation.agencyId, "Standard", "STD", LocalDateTime.now()),
         iepDetail("BXI", "Basic", "BAS", LocalDateTime.now().minusDays(1)),
       )
-      val iepSummary = iepSummary("Basic", bookingId, iepDetails)
+      val iepSummary = iepSummary(iepCode = "BAS", iepLevel = "Basic", bookingId = bookingId, iepDetails = iepDetails)
       whenever(
         prisonApiService.getIEPSummaryForPrisoner(
           bookingId,
@@ -501,7 +501,7 @@ class PrisonerIepLevelReviewServiceTest {
         iepDetail("BXI", "Enhanced 2", "ENH2", LocalDateTime.now().minusDays(1)),
         iepDetail("LEI", "Basic", "BAS", LocalDateTime.now().minusDays(2)),
       )
-      val iepSummary = iepSummary("Standard", bookingId, iepDetails = iepDetails)
+      val iepSummary = iepSummary(iepCode = "STD", iepLevel = "Standard", bookingId = bookingId, iepDetails = iepDetails)
       whenever(
         prisonApiService.getIEPSummaryForPrisoner(
           bookingId,
@@ -1255,9 +1255,15 @@ class PrisonerIepLevelReviewServiceTest {
 
   private val iepTime: LocalDateTime = LocalDateTime.now().minusDays(10)
 
-  private fun iepSummary(iepLevel: String = "Enhanced", bookingId: Long = 1L, iepDetails: List<IepDetail> = emptyList()) = IepSummary(
+  private fun iepSummary(
+    iepCode: String = "ENH",
+    iepLevel: String = "Enhanced",
+    bookingId: Long = 1L,
+    iepDetails: List<IepDetail> = emptyList()
+  ) = IepSummary(
     bookingId = bookingId,
     iepDate = iepTime.toLocalDate(),
+    iepCode = iepCode,
     iepLevel = iepLevel,
     iepTime = iepTime,
     iepDetails = iepDetails,
@@ -1265,7 +1271,7 @@ class PrisonerIepLevelReviewServiceTest {
 
   private fun iepSummaryWithDetail(bookingId: Long = 1L) = iepSummary(
     iepLevel = "Enhanced",
-    bookingId,
+    bookingId = bookingId,
     iepDetails = listOf(
       IepDetail(
         bookingId = bookingId,
