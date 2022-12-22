@@ -13,10 +13,10 @@ class NextReviewDateServiceTest {
   fun `when IEP level is not Basic, returns +1 year`() {
     val input = NextReviewDateInput(
       iepDetails = listOf(
-        review("2015-08-01", "ACI", "Standard", ReviewType.MIGRATED),
-        review("2015-07-01", "ACI", "Basic", ReviewType.MIGRATED),
-        review("2010-07-01", "MDI", "Enhanced", ReviewType.MIGRATED),
-        review("2000-07-01", "MDI", "Standard", ReviewType.MIGRATED),
+        review("2015-08-01", "ACI", iepCode = "STD", iepLevel = "Standard", reviewType = ReviewType.MIGRATED),
+        review("2015-07-01", "ACI", iepCode = "BAS", iepLevel = "Basic", reviewType = ReviewType.MIGRATED),
+        review("2010-07-01", "MDI", iepCode = "ENH", iepLevel = "Enhanced", reviewType = ReviewType.MIGRATED),
+        review("2000-07-01", "MDI", iepCode = "STD", iepLevel = "Standard", reviewType = ReviewType.MIGRATED),
       ),
       hasAcctOpen = false,
       dateOfBirth = LocalDate.parse("1971-07-01"),
@@ -33,10 +33,10 @@ class NextReviewDateServiceTest {
   fun `when IEP level is not Basic, returns +1 year (data from NOMIS)`() {
     val input = NextReviewDateInput(
       iepDetails = listOf(
-        review("2015-08-01", "ACI", "Standard", reviewType = null),
-        review("2015-07-01", "ACI", "Basic", reviewType = null),
-        review("2010-07-01", "MDI", "Enhanced", reviewType = null),
-        review("2000-07-01", "MDI", "Standard", reviewType = null),
+        review("2015-08-01", "ACI", iepCode = "STD", iepLevel = "Standard", reviewType = null),
+        review("2015-07-01", "ACI", iepCode = "BAS", iepLevel = "Basic", reviewType = null),
+        review("2010-07-01", "MDI", iepCode = "ENH", iepLevel = "Enhanced", reviewType = null),
+        review("2000-07-01", "MDI", iepCode = "STD", iepLevel = "Standard", reviewType = null),
       ),
       hasAcctOpen = false,
       dateOfBirth = LocalDate.parse("1971-07-01"),
@@ -56,7 +56,7 @@ class NextReviewDateServiceTest {
     fun `when IEP level is Basic and there is no previous review, returns +7 days`() {
       val input = NextReviewDateInput(
         iepDetails = listOf(
-          review("2000-07-01", "MDI", "Basic", ReviewType.MIGRATED),
+          review("2000-07-01", "MDI", iepCode = "BAS", iepLevel = "Basic", reviewType = ReviewType.MIGRATED),
         ),
         hasAcctOpen = false,
         dateOfBirth = LocalDate.parse("1971-07-01"),
@@ -73,7 +73,7 @@ class NextReviewDateServiceTest {
     fun `when IEP level is Basic and there is no previous review, returns +7 days (data from NOMIS)`() {
       val input = NextReviewDateInput(
         iepDetails = listOf(
-          review("2000-07-01", "MDI", "Basic", reviewType = null),
+          review("2000-07-01", "MDI", iepCode = "BAS", iepLevel = "Basic", reviewType = null),
         ),
         hasAcctOpen = false,
         dateOfBirth = LocalDate.parse("1971-07-01"),
@@ -90,9 +90,9 @@ class NextReviewDateServiceTest {
     fun `when IEP level is Basic and there is no previous "real" review, returns +7 days`() {
       val input = NextReviewDateInput(
         iepDetails = listOf(
-          review("2023-01-29", "ACI", "Basic", ReviewType.REVIEW),
-          review("2022-12-01", "ACI", "Standard", ReviewType.TRANSFER),
-          review("2022-11-29", "MDI", "Standard", ReviewType.INITIAL),
+          review("2023-01-29", "ACI", iepCode = "BAS", iepLevel = "Basic", reviewType = ReviewType.REVIEW),
+          review("2022-12-01", "ACI", iepCode = "STD", iepLevel = "Standard", reviewType = ReviewType.TRANSFER),
+          review("2022-11-29", "MDI", iepCode = "STD", iepLevel = "Standard", reviewType = ReviewType.INITIAL),
         ),
         hasAcctOpen = false,
         dateOfBirth = LocalDate.parse("1971-07-01"),
@@ -109,8 +109,8 @@ class NextReviewDateServiceTest {
     fun `when IEP level is Basic but previous review is at different level, returns +7 days`() {
       val input = NextReviewDateInput(
         iepDetails = listOf(
-          review("2010-07-01", "MDI", "Basic", ReviewType.MIGRATED),
-          review("2000-07-01", "MDI", "Standard", ReviewType.MIGRATED),
+          review("2010-07-01", "MDI", iepCode = "BAS", iepLevel = "Basic", reviewType = ReviewType.MIGRATED),
+          review("2000-07-01", "MDI", iepCode = "STD", iepLevel = "Standard", reviewType = ReviewType.MIGRATED),
         ),
         hasAcctOpen = false,
         dateOfBirth = LocalDate.parse("1971-07-01"),
@@ -127,8 +127,8 @@ class NextReviewDateServiceTest {
     fun `when IEP level is Basic and previous IEP level was also Basic, returns +28 days`() {
       val input = NextReviewDateInput(
         iepDetails = listOf(
-          review("2010-07-01", "MDI", "Basic", ReviewType.MIGRATED),
-          review("2000-07-01", "MDI", "Basic", ReviewType.MIGRATED),
+          review("2010-07-01", "MDI", iepCode = "BAS", iepLevel = "Basic", reviewType = ReviewType.MIGRATED),
+          review("2000-07-01", "MDI", iepCode = "BAS", iepLevel = "Basic", reviewType = ReviewType.MIGRATED),
         ),
         hasAcctOpen = false,
         dateOfBirth = LocalDate.parse("1971-07-01"),
@@ -149,7 +149,7 @@ class NextReviewDateServiceTest {
     fun `when prisoner has open ACCT but they're not on Basic, returns +1 year`() {
       val input = NextReviewDateInput(
         iepDetails = listOf(
-          review("2000-07-01", "MDI", "Standard", ReviewType.MIGRATED),
+          review("2000-07-01", "MDI", iepLevel = "Standard", reviewType = ReviewType.MIGRATED),
         ),
         hasAcctOpen = true,
         dateOfBirth = LocalDate.parse("1971-07-01"),
@@ -166,8 +166,8 @@ class NextReviewDateServiceTest {
     fun `when last two IEP levels were Basic but prisoner has open ACCT, returns +14 days`() {
       val input = NextReviewDateInput(
         iepDetails = listOf(
-          review("2010-07-01", "MDI", "Basic", ReviewType.MIGRATED),
-          review("2000-07-01", "MDI", "Basic", ReviewType.MIGRATED),
+          review("2010-07-01", "MDI", iepCode = "BAS", iepLevel = "Basic", reviewType = ReviewType.MIGRATED),
+          review("2000-07-01", "MDI", iepCode = "BAS", iepLevel = "Basic", reviewType = ReviewType.MIGRATED),
         ),
         hasAcctOpen = true,
         dateOfBirth = LocalDate.parse("1971-07-01"),
@@ -185,8 +185,8 @@ class NextReviewDateServiceTest {
       val input = NextReviewDateInput(
         iepDetails = listOf(
           // 16yo on last review date
-          review("2016-07-01", "MDI", "Basic", ReviewType.MIGRATED),
-          review("2016-05-01", "MDI", "Basic", ReviewType.MIGRATED),
+          review("2016-07-01", "MDI", iepCode = "BAS", iepLevel = "Basic", reviewType = ReviewType.MIGRATED),
+          review("2016-05-01", "MDI", iepCode = "BAS", iepLevel = "Basic", reviewType = ReviewType.MIGRATED),
         ),
         hasAcctOpen = false,
         dateOfBirth = LocalDate.parse("2000-07-01"),
@@ -203,9 +203,9 @@ class NextReviewDateServiceTest {
     fun `when IEP level is Basic, previous review is at different level but has open ACCT, returns +7 days`() {
       val input = NextReviewDateInput(
         iepDetails = listOf(
-          review("2023-01-07", "MDI", "Basic", ReviewType.REVIEW),
-          review("2022-12-01", "MDI", "Standard", ReviewType.REVIEW),
-          review("2000-07-01", "MDI", "Standard", ReviewType.MIGRATED),
+          review("2023-01-07", "MDI", iepCode = "BAS", iepLevel = "Basic", reviewType = ReviewType.REVIEW),
+          review("2022-12-01", "MDI", iepCode = "STD", iepLevel = "Standard", reviewType = ReviewType.REVIEW),
+          review("2000-07-01", "MDI", iepCode = "STD", iepLevel = "Standard", reviewType = ReviewType.MIGRATED),
         ),
         hasAcctOpen = true,
         dateOfBirth = LocalDate.parse("1971-07-01"),
@@ -222,8 +222,8 @@ class NextReviewDateServiceTest {
     fun `when IEP level is Basic, previous review is at different level but has open ACCT, returns +7 days (data from NOMIS)`() {
       val input = NextReviewDateInput(
         iepDetails = listOf(
-          review("2023-01-07", "MDI", "Basic", reviewType = null),
-          review("2000-07-01", "MDI", "Standard", reviewType = null),
+          review("2023-01-07", "MDI", iepCode = "BAS", iepLevel = "Basic", reviewType = null),
+          review("2000-07-01", "MDI", iepCode = "STD", iepLevel = "Standard", reviewType = null),
         ),
         hasAcctOpen = true,
         dateOfBirth = LocalDate.parse("1971-07-01"),
@@ -261,8 +261,8 @@ class NextReviewDateServiceTest {
     fun `has no real reviews yet (age 18+), returns +3 months`() {
       val input = NextReviewDateInput(
         iepDetails = listOf(
-          review("2018-08-15", "ACI", "Standard", ReviewType.TRANSFER),
-          review("2018-07-01", "MDI", "Standard", ReviewType.INITIAL),
+          review("2018-08-15", "ACI", iepCode = "STD", iepLevel = "Standard", reviewType = ReviewType.TRANSFER),
+          review("2018-07-01", "MDI", iepCode = "STD", iepLevel = "Standard", reviewType = ReviewType.INITIAL),
         ),
         hasAcctOpen = true,
         dateOfBirth = LocalDate.parse("2000-07-01"),
@@ -296,8 +296,8 @@ class NextReviewDateServiceTest {
     fun `has no real reviews yet and is "young person" (under age of 18), returns +1 months`() {
       val input = NextReviewDateInput(
         iepDetails = listOf(
-          review("2018-08-15", "ACI", "Standard", ReviewType.TRANSFER),
-          review("2018-06-30", "MDI", "Standard", ReviewType.INITIAL),
+          review("2018-08-15", "ACI", iepCode = "STD", iepLevel = "Standard", reviewType = ReviewType.TRANSFER),
+          review("2018-06-30", "MDI", iepCode = "STD", iepLevel = "Standard", reviewType = ReviewType.INITIAL),
         ),
         hasAcctOpen = true,
         dateOfBirth = LocalDate.parse("2000-07-01"),
@@ -320,9 +320,9 @@ class NextReviewDateServiceTest {
       val input = NextReviewDateInput(
         iepDetails = listOf(
           // When readmitted, was 18th birthday, not a "young person" anymore
-          review("2018-07-01", "ACI", "Standard", ReviewType.READMISSION),
-          review("2016-08-01", "MDI", "Standard", ReviewType.REVIEW),
-          review("2016-07-01", "MDI", "Standard", ReviewType.INITIAL),
+          review("2018-07-01", "ACI", iepCode = "STD", iepLevel = "Standard", reviewType = ReviewType.READMISSION),
+          review("2016-08-01", "MDI", iepCode = "STD", iepLevel = "Standard", reviewType = ReviewType.REVIEW),
+          review("2016-07-01", "MDI", iepCode = "STD", iepLevel = "Standard", reviewType = ReviewType.INITIAL),
         ),
         hasAcctOpen = true,
         dateOfBirth = LocalDate.parse("2000-07-01"),
@@ -341,9 +341,9 @@ class NextReviewDateServiceTest {
       val input = NextReviewDateInput(
         iepDetails = listOf(
           // When readmitted, was almost 18yo, so still a "young person"
-          review("2018-06-30", "ACI", "Standard", ReviewType.READMISSION),
-          review("2016-08-01", "MDI", "Standard", ReviewType.REVIEW),
-          review("2016-07-01", "MDI", "Standard", ReviewType.INITIAL),
+          review("2018-06-30", "ACI", iepCode = "STD", iepLevel = "Standard", reviewType = ReviewType.READMISSION),
+          review("2016-08-01", "MDI", iepCode = "STD", iepLevel = "Standard", reviewType = ReviewType.REVIEW),
+          review("2016-07-01", "MDI", iepCode = "STD", iepLevel = "Standard", reviewType = ReviewType.INITIAL),
         ),
         hasAcctOpen = true,
         dateOfBirth = LocalDate.parse("2000-07-01"),
@@ -359,10 +359,17 @@ class NextReviewDateServiceTest {
   }
 }
 
-private fun review(iepDateString: String, prisonId: String, iepLevel: String, reviewType: ReviewType?): IepDetail {
+private fun review(
+  iepDateString: String,
+  prisonId: String,
+  iepCode: String = "STD",
+  iepLevel: String = "Standard",
+  reviewType: ReviewType?
+): IepDetail {
   val iepDate = LocalDate.parse(iepDateString)
   return IepDetail(
     iepLevel = iepLevel,
+    iepCode = iepCode,
     iepTime = iepDate.atTime(10, 0),
     iepDate = iepDate,
     reviewType = reviewType,

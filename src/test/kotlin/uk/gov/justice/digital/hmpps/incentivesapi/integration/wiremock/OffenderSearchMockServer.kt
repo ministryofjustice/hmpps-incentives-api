@@ -28,7 +28,7 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
     )
   }
 
-  fun stubFindOffenders(prisonId: String = "MDI", wing: String = "1", includeInvalid: Boolean = false) {
+  fun stubFindOffenders(prisonId: String = "MDI", includeInvalid: Boolean = false) {
     // <editor-fold desc="mocked offenders">
     val offenders = mutableListOf(
       OffenderSearchPrisoner(

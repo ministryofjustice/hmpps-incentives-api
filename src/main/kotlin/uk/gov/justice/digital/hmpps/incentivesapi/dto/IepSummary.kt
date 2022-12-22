@@ -16,6 +16,8 @@ import java.time.LocalDateTime
 data class IepSummary(
   @Schema(description = "Unique ID for this review (new Incentives data model only)", required = false, example = "12345")
   val id: Long? = null,
+  @Schema(description = "IEP Code", example = "STD", required = true)
+  val iepCode: String,
   @Schema(description = "IEP Level", example = "Standard", required = true)
   val iepLevel: String,
   @Schema(description = "Prisoner number (NOMS)", required = false, example = "A1234BC")
@@ -56,7 +58,7 @@ data class IepDetail(
   @Schema(description = "IEP Level", required = true, example = "Standard")
   val iepLevel: String,
   @Schema(description = "IEP Code", required = false, example = "STD")
-  val iepCode: String? = null,
+  val iepCode: String,
   @Schema(description = "Review comments", required = false, example = "A review took place")
   val comments: String? = null,
   @Schema(description = "Prisoner number (NOMS)", required = false, example = "A1234BC")

@@ -164,7 +164,7 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
 
     prisonApiMockServer.stubIepLevels()
     prisonApiMockServer.stubAgenciesIepLevels("MDI")
-    offenderSearchMockServer.stubFindOffenders("MDI", "1", includeInvalid = true)
+    offenderSearchMockServer.stubFindOffenders("MDI", includeInvalid = true)
     prisonApiMockServer.stubPositiveCaseNoteSummary()
     prisonApiMockServer.stubNegativeCaseNoteSummary()
     prisonApiMockServer.stubProvenAdj()
