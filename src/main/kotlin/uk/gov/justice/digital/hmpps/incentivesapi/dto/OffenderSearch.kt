@@ -18,6 +18,7 @@ data class OffenderSearchPrisoner(
 }
 
 data class OffenderSearchPrisonerList(
-  val totalElements: Int,
   val content: List<OffenderSearchPrisoner>,
+  val totalElements: Int,
+  val last: Boolean,
 )

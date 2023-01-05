@@ -48,7 +48,7 @@ class IncentiveReviewsService(
   ): IncentiveReviewResponse = coroutineScope {
     val deferredOffenders = async {
       // all offenders at location are required to determine total number with overdue reviews
-      offenderSearchService.findOffenders(prisonId, cellLocationPrefix, 0, 1000)
+      offenderSearchService.findOffenders(prisonId, cellLocationPrefix)
     }
     val deferredLocationDescription = async {
       try {
@@ -60,14 +60,14 @@ class IncentiveReviewsService(
 
     val offenders = deferredOffenders.await()
 
-    val bookingIds = offenders.content.map(OffenderSearchPrisoner::bookingId)
-    val prisonerNumbers = offenders.content.map(OffenderSearchPrisoner::prisonerNumber)
+    val bookingIds = offenders.map(OffenderSearchPrisoner::bookingId)
+    val prisonerNumbers = offenders.map(OffenderSearchPrisoner::prisonerNumber)
 
     val deferredPositiveCaseNotesInLast3Months = async { getCaseNoteUsage("POS", "IEP_ENC", prisonerNumbers) }
     val deferredNegativeCaseNotesInLast3Months = async { getCaseNoteUsage("NEG", "IEP_WARN", prisonerNumbers) }
 
     val deferredIncentiveLevels = async { getIncentiveLevelsForOffenders(bookingIds) }
-    val deferredNextReviewDates = async { nextReviewDateGetterService.getMany(offenders.content) }
+    val deferredNextReviewDates = async { nextReviewDateGetterService.getMany(offenders) }
 
     val incentiveLevels = deferredIncentiveLevels.await()
     val bookingIdsMissingIncentiveLevel = bookingIds subtract incentiveLevels.keys
@@ -84,7 +84,7 @@ class IncentiveReviewsService(
 
     val comparator = IncentiveReviewSort.orDefault(sort) comparingIn order
 
-    val reviews = offenders.content
+    val reviews = offenders
       .map {
         IncentiveReview(
           prisonerNumber = it.prisonerNumber,

@@ -6,7 +6,6 @@ import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisonerList
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
 import java.time.LocalDate
 
@@ -118,7 +117,11 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
           .withHeader("Content-Type", "application/json")
           .withBody(
             mapper.writeValueAsBytes(
-              OffenderSearchPrisonerList(totalElements = offenders.size, content = offenders)
+              mapOf(
+                "content" to offenders,
+                "totalElements" to offenders.size,
+                "last" to true,
+              )
             )
           )
       )
