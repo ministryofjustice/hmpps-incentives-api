@@ -80,7 +80,7 @@ services:
       - hmpps
     container_name: localstack-incentives-api
     ports:
-      - "4566-4597:4566-4597"
+      - "4566:4566"
       - "8999:8080"
     environment:
       - DEBUG=${DEBUG- }

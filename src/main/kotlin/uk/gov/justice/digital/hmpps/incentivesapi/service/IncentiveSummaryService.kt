@@ -142,8 +142,8 @@ class IncentiveSummaryService(
         val latestReview = review.firstOrNull(PrisonerIepLevel::isRealReview)
         IepResult(
           bookingId = it.key,
-          iepLevel = latestReview?.let { incentiveLevels[latestReview.iepCode]?.iepDescription ?: "Unmapped" }
-            ?: "Not Entered",
+          iepLevel = latestReview?.let { incentiveLevels[latestReview.iepCode]?.iepDescription ?: invalidLevel().iepLevel }
+            ?: missingLevel().iepLevel,
           daysSinceReview = latestReview?.let {
             Duration.between(
               latestReview.reviewTime.toLocalDate().atStartOfDay(),
@@ -156,7 +156,7 @@ class IncentiveSummaryService(
               .map { iep ->
                 IepDetail(
                   iepCode = iep.iepCode,
-                  iepLevel = incentiveLevels[iep.iepCode]?.iepDescription ?: "Unmapped",
+                  iepLevel = incentiveLevels[iep.iepCode]?.iepDescription ?: invalidLevel().iepDescription,
                   reviewType = iep.reviewType,
                   bookingId = iep.bookingId,
                   agencyId = iep.prisonId,
@@ -190,7 +190,7 @@ class IncentiveSummaryService(
 }
 
 fun invalidLevel() = IepLevel(iepLevel = "INV", iepDescription = "Invalid", sequence = 98)
-fun missingLevel() = IepLevel(iepLevel = "MIS", iepDescription = "Missing", sequence = 99)
+fun missingLevel() = IepLevel(iepLevel = "MIS", iepDescription = "No Review", sequence = 99)
 
 class NoPrisonersAtLocationException(prisonId: String, locationId: String) :
   Exception("No prisoners found at prison $prisonId, location $locationId")
