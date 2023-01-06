@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
-import kotlinx.coroutines.flow.Flow
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
@@ -166,7 +165,7 @@ class IepLevelResource(
   suspend fun getCurrentIEPLevelForPrisoner(
     @ArraySchema(schema = Schema(description = "List of booking Ids", required = true, type = "array"), arraySchema = Schema(type = "integer", format = "int64", pattern = "^[0-9]{1,20}$", additionalProperties = Schema.AdditionalPropertiesValue.FALSE))
     @RequestBody bookingIds: List<Long>
-  ): Flow<CurrentIepLevel> {
+  ): List<CurrentIepLevel> {
     ensure {
       ("bookingIds" to bookingIds).isNotEmpty()
     }

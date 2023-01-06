@@ -191,7 +191,7 @@ class PrisonerIepLevelReviewService(
     publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_DELETED)
   }
 
-  suspend fun getCurrentIEPLevelForPrisoners(bookingIds: List<Long>): Flow<CurrentIepLevel> {
+  suspend fun getCurrentIEPLevelForPrisoners(bookingIds: List<Long>): List<CurrentIepLevel> {
     val incentiveLevels = prisonApiService.getIncentiveLevels()
     return prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(bookingIds)
       .map {
@@ -199,7 +199,7 @@ class PrisonerIepLevelReviewService(
           iepLevel = incentiveLevels[it.iepCode]?.iepDescription ?: "Unmapped",
           bookingId = it.bookingId
         )
-      }
+      }.toList()
   }
 
   suspend fun getReviewById(id: Long): IepDetail =

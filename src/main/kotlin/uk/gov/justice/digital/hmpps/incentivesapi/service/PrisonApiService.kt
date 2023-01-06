@@ -27,7 +27,7 @@ class PrisonApiService(
     return if (useClientCredentials) prisonWebClientClientCredentials else prisonWebClient
   }
 
-  suspend fun getIepLevelsForPrison(prisonId: String, useClientCredentials: Boolean = false): Flow<IepLevel> {
+  fun getIepLevelsForPrison(prisonId: String, useClientCredentials: Boolean = false): Flow<IepLevel> {
     return getClient(useClientCredentials)
       .get()
       .uri("/api/agencies/$prisonId/iepLevels")
@@ -38,7 +38,7 @@ class PrisonApiService(
     return getIepLevels().toList().associateBy { iep -> iep.iepLevel }
   }
 
-  suspend fun getIepLevels(): Flow<IepLevel> {
+  fun getIepLevels(): Flow<IepLevel> {
     return getClient(true)
       .get()
       .uri("/api/reference-domains/domains/IEP_LEVEL/codes")
@@ -53,14 +53,14 @@ class PrisonApiService(
       }
   }
 
-  suspend fun retrieveCaseNoteCounts(type: String, offenderNos: List<String>): Flow<CaseNoteUsage> =
+  fun retrieveCaseNoteCounts(type: String, offenderNos: List<String>): Flow<CaseNoteUsage> =
     prisonWebClient.post()
       .uri("/api/case-notes/usage")
       .bodyValue(CaseNoteUsageRequest(numMonths = 3, offenderNos = offenderNos, type = type, subType = null))
       .retrieve()
       .bodyToFlow()
 
-  suspend fun retrieveProvenAdjudications(bookingIds: List<Long>): Flow<ProvenAdjudication> =
+  fun retrieveProvenAdjudications(bookingIds: List<Long>): Flow<ProvenAdjudication> =
     prisonWebClient.post()
       .uri("/api/bookings/proven-adjudications")
       .bodyValue(bookingIds)
