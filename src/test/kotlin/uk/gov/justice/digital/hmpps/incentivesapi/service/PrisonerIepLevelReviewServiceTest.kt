@@ -22,7 +22,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.config.AuthenticationFacade
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPatchRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
@@ -33,7 +32,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import java.time.Clock
 import java.time.Instant
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -109,6 +107,7 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
     }
 
+    @Test
     fun `addIepReview() by prisonerNumber`(): Unit = runBlocking {
       coroutineScope {
         // Given
@@ -121,6 +120,7 @@ class PrisonerIepLevelReviewServiceTest {
       }
     }
 
+    @Test
     fun `addIepReview() by bookingId`(): Unit = runBlocking {
       coroutineScope {
 
@@ -168,19 +168,14 @@ class PrisonerIepLevelReviewServiceTest {
       coroutineScope {
         // Given
         whenever(prisonApiService.getPrisonerInfo(bookingId)).thenReturn(prisonerInfo)
-        val anotherIepLevelCurrentIsTrue = currentLevel.copy(id = 2L)
-        whenever(prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(listOf(bookingId)))
-          .thenReturn(flowOf(currentLevel, anotherIepLevelCurrentIsTrue))
 
         // When
         prisonerIepLevelReviewService.addIepReview(bookingId, iepReview)
 
         // Then
-        verify(prisonerIepLevelRepository, times(1))
-          .save(currentLevel.copy(current = false))
+        verify(prisonerIepLevelRepository).updateIncentivesToNotCurrentForBooking(bookingId)
 
-        verify(prisonerIepLevelRepository, times(1))
-          .save(anotherIepLevelCurrentIsTrue.copy(current = false))
+        verify(prisonerIepLevelRepository).save(any())
       }
     }
   }
@@ -189,7 +184,7 @@ class PrisonerIepLevelReviewServiceTest {
   inner class GetPrisonerIepLevelHistory {
 
     @Test
-    fun `will query incentives db if useNomisData is false and will not return iep details if withDetails is false`(): Unit =
+    fun `will not return iep details if withDetails is false`(): Unit =
       runBlocking {
         coroutineScope {
           val bookingId = currentLevel.bookingId
@@ -296,12 +291,9 @@ class PrisonerIepLevelReviewServiceTest {
     @Test
     fun `process 'prisoner alerts updated' event when ACCT alert added`(): Unit = runBlocking {
       val bookingId = 1234567L
-      val prisonerNumber = "A1244AB"
 
       // Given
       val prisonerAlertsUpdatedEvent = prisonerAlertsUpdatedEvent(
-        prisonerNumber,
-        bookingId,
         alertsAdded = listOf(PrisonerAlert.ACCT_ALERT_CODE),
         alertsRemoved = emptyList(),
       )
@@ -316,12 +308,9 @@ class PrisonerIepLevelReviewServiceTest {
     @Test
     fun `process 'prisoner alerts updated' event when ACCT alert removed`(): Unit = runBlocking {
       val bookingId = 1234567L
-      val prisonerNumber = "A1244AB"
 
       // Given
       val prisonerAlertsUpdatedEvent = prisonerAlertsUpdatedEvent(
-        prisonerNumber,
-        bookingId,
         alertsAdded = emptyList(),
         alertsRemoved = listOf(PrisonerAlert.ACCT_ALERT_CODE),
       )
@@ -336,12 +325,9 @@ class PrisonerIepLevelReviewServiceTest {
     @Test
     fun `process 'prisoner alerts updated' event when alerts didn't change`(): Unit = runBlocking {
       val bookingId = 1234567L
-      val prisonerNumber = "A1244AB"
 
       // Given
       val prisonerUpdatedEvent = prisonerAlertsUpdatedEvent(
-        prisonerNumber,
-        bookingId,
         alertsAdded = listOf("ABC"),
         alertsRemoved = listOf("XYZ"),
       )
@@ -633,7 +619,7 @@ class PrisonerIepLevelReviewServiceTest {
         // Mock find query
         whenever(prisonerIepLevelRepository.findById(id)).thenReturn(currentIepReview)
 
-        // Mock find of latest IEP review
+        // Mock find of the latest IEP review
         whenever(prisonerIepLevelRepository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId))
           .thenReturn(olderIepReview)
 
@@ -659,7 +645,7 @@ class PrisonerIepLevelReviewServiceTest {
         // Mock find query
         whenever(prisonerIepLevelRepository.findById(id)).thenReturn(currentIepReview)
 
-        // Mock find of latest IEP review
+        // Mock find of the latest IEP review
         whenever(prisonerIepLevelRepository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId))
           .thenReturn(olderIepReview)
 
@@ -792,8 +778,7 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonerIepLevelRepository.save(iepReviewUpdatedWithSyncPatch))
         .thenReturn(iepReviewUpdatedWithSyncPatch)
 
-      whenever(prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(listOf(bookingId)))
-        .thenReturn(flowOf(currentLevel))
+      whenever(prisonerIepLevelRepository.updateIncentivesToNotCurrentForBookingAndIncentive(bookingId, iepReview.id)).thenReturn(1)
 
       // When
       prisonerIepLevelReviewService.handleSyncPatchIepReviewRequest(
@@ -804,10 +789,6 @@ class PrisonerIepLevelReviewServiceTest {
           current = true,
         )
       )
-
-      // Then currentLevel record is updated, along with iepReviewUpdatedWithSyncPatch
-      verify(prisonerIepLevelRepository, times(1))
-        .save(currentLevel.copy(current = false))
 
       verify(prisonerIepLevelRepository, times(1))
         .save(iepReviewUpdatedWithSyncPatch)
@@ -922,16 +903,9 @@ class PrisonerIepLevelReviewServiceTest {
 
     @Test
     fun `If request has current true we update the previous IEP Level with current of true`(): Unit = runBlocking {
-      // Given
-      whenever(prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(listOf(bookingId)))
-        .thenReturn(flowOf(currentLevel))
 
       // When
       prisonerIepLevelReviewService.handleSyncPostIepReviewRequest(bookingId, syncPostRequest.copy(current = true))
-
-      // Then currentLevel record is updated, along with iepReview
-      verify(prisonerIepLevelRepository, times(1))
-        .save(currentLevel.copy(current = false))
 
       verify(prisonerIepLevelRepository, times(1))
         .save(iepReview)
@@ -954,44 +928,6 @@ class PrisonerIepLevelReviewServiceTest {
     iepDetails = iepDetails,
   )
 
-  private fun iepSummaryWithDetail(bookingId: Long = 1L) = iepSummary(
-    iepLevel = "Enhanced",
-    bookingId = bookingId,
-    iepDetails = listOf(
-      IepDetail(
-        bookingId = bookingId,
-        agencyId = "MDI",
-        iepLevel = "Enhanced",
-        iepCode = "ENH",
-        iepDate = iepTime.toLocalDate(),
-        iepTime = iepTime,
-        userId = "TEST_USER",
-        auditModuleName = "PRISON_API",
-      ),
-      IepDetail(
-        bookingId = bookingId,
-        agencyId = "LEI",
-        iepLevel = "Standard",
-        iepCode = "STD",
-        iepDate = iepTime.minusDays(100).toLocalDate(),
-        iepTime = iepTime.minusDays(100),
-        userId = "TEST_USER",
-        auditModuleName = "PRISON_API",
-      ),
-    )
-  )
-
-  private fun iepDetail(agencyId: String, iepLevel: String, iepCode: String, iepTime: LocalDateTime) = IepDetail(
-    bookingId = 1L,
-    agencyId = agencyId,
-    iepLevel = iepLevel,
-    iepCode = iepCode,
-    iepDate = iepTime.toLocalDate(),
-    iepTime = iepTime,
-    userId = "TEST_USER",
-    auditModuleName = "PRISON_API",
-  )
-
   private val previousLevel = PrisonerIepLevel(
     iepCode = "BAS",
     prisonId = "LEI",
@@ -1004,6 +940,7 @@ class PrisonerIepLevelReviewServiceTest {
   )
 
   private val currentLevel = PrisonerIepLevel(
+    id = 1,
     iepCode = "STD",
     prisonId = "MDI",
     locationId = "MDI-1-1-004",
@@ -1035,15 +972,13 @@ class PrisonerIepLevelReviewServiceTest {
   )
 
   private fun prisonerAlertsUpdatedEvent(
-    prisonerNumber: String = "A1244AB",
-    bookingId: Long,
     alertsAdded: List<String> = listOf(PrisonerAlert.ACCT_ALERT_CODE),
     alertsRemoved: List<String> = emptyList()
   ) = HMPPSDomainEvent(
     eventType = "prisoner-offender-search.prisoner.alerts-updated",
     additionalInformation = AdditionalInformation(
-      nomsNumber = prisonerNumber,
-      bookingId = bookingId,
+      nomsNumber = "A1244AB",
+      bookingId = 1234567,
       alertsAdded = alertsAdded,
       alertsRemoved = alertsRemoved,
     ),
@@ -1064,25 +999,6 @@ class PrisonerIepLevelReviewServiceTest {
 
   private val location = Location(
     agencyId = "MDI", locationId = 77777L, description = "Houseblock 1"
-  )
-
-  private val basicStandardEnhanced = flowOf(
-    IepLevel(
-      iepLevel = "BAS",
-      iepDescription = "Basic",
-      sequence = 1,
-    ),
-    IepLevel(
-      iepLevel = "STD",
-      iepDescription = "Standard",
-      sequence = 2,
-      default = true,
-    ),
-    IepLevel(
-      iepLevel = "ENH",
-      iepDescription = "Enhanced",
-      sequence = 3,
-    ),
   )
 
   private fun syncPostRequest(iepLevelCode: String = "STD", reviewType: ReviewType) = SyncPostRequest(
@@ -1116,21 +1032,6 @@ class PrisonerIepLevelReviewServiceTest {
       prisonerNumber = prisonerIepLevel.prisonerNumber,
       auditModuleName = "INCENTIVES_API",
     )
-
-  private fun offenderSearchPrisoner(
-    prisonerNumber: String = "A1244AB",
-    bookingId: Long = 1234567L,
-  ) = OffenderSearchPrisoner(
-    prisonerNumber = prisonerNumber,
-    bookingId = bookingId,
-    firstName = "JAMES",
-    middleNames = "",
-    lastName = "HALLS",
-    dateOfBirth = LocalDate.parse("1971-07-01"),
-    receptionDate = LocalDate.parse("2020-07-01"),
-    prisonId = "MDI",
-    alerts = emptyList(),
-  )
 }
 
 val globalIncentiveLevels = listOf(

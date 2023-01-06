@@ -66,13 +66,11 @@ class PrisonerIepLevelReviewService(
     return buildIepSummary(reviews, prisonApiService.getIncentiveLevels())
   }
 
-  @Transactional
   suspend fun addIepReview(prisonerNumber: String, iepReview: IepReview): IepDetail {
     val prisonerInfo = prisonApiService.getPrisonerInfo(prisonerNumber)
     return addIepReviewForPrisonerAtLocation(prisonerInfo, iepReview)
   }
 
-  @Transactional
   suspend fun addIepReview(bookingId: Long, iepReview: IepReview): IepDetail {
     val prisonerInfo = prisonApiService.getPrisonerInfo(bookingId)
     return addIepReviewForPrisonerAtLocation(prisonerInfo, iepReview)
@@ -91,7 +89,7 @@ class PrisonerIepLevelReviewService(
     }
 
     if (syncPostRequest.current) {
-      updateIepLevelsWithCurrentFlagToFalse(bookingId)
+      prisonerIepLevelRepository.updateIncentivesToNotCurrentForBooking(bookingId)
     }
 
     val review = prisonerIepLevelRepository.save(
@@ -136,11 +134,8 @@ class PrisonerIepLevelReviewService(
       throw ValidationException("Please provide fields to update")
     }
 
-    var prisonerIepLevel: PrisonerIepLevel? = prisonerIepLevelRepository.findById(id)
-    if (prisonerIepLevel == null) {
-      log.debug("PrisonerIepLevel with ID $id not found")
-      throw NoDataFoundException(id)
-    }
+    var prisonerIepLevel = prisonerIepLevelRepository.findById(id) ?: throw NoDataFoundException(id)
+
     // Check bookingId on found record matches the bookingId provided
     if (prisonerIepLevel.bookingId != bookingId) {
       log.warn("Patch of PrisonerIepLevel with ID $id failed because provided bookingID ($bookingId) didn't match bookingId on DB record (${prisonerIepLevel.bookingId})")
@@ -148,7 +143,7 @@ class PrisonerIepLevelReviewService(
     }
 
     syncPatchRequest.current?.let {
-      updateIepLevelsWithCurrentFlagToFalse(bookingId)
+      prisonerIepLevelRepository.updateIncentivesToNotCurrentForBookingAndIncentive(bookingId, prisonerIepLevel.id)
     }
 
     prisonerIepLevel = prisonerIepLevel.copy(
@@ -342,7 +337,7 @@ class PrisonerIepLevelReviewService(
     return iepSummary
   }
 
-  private suspend fun addIepReviewForPrisonerAtLocation(
+  suspend fun addIepReviewForPrisonerAtLocation(
     prisonerInfo: PrisonerAtLocation,
     iepReview: IepReview,
   ): IepDetail {
@@ -367,14 +362,15 @@ class PrisonerIepLevelReviewService(
     return newIepReview
   }
 
-  private suspend fun persistIepLevel(
+  @Transactional
+  suspend fun persistIepLevel(
     prisonerInfo: PrisonerAtLocation,
     iepReview: IepReview,
     locationInfo: Location,
     reviewTime: LocalDateTime,
     reviewerUserName: String,
   ): PrisonerIepLevel {
-    updateIepLevelsWithCurrentFlagToFalse(prisonerInfo.bookingId)
+    prisonerIepLevelRepository.updateIncentivesToNotCurrentForBooking(prisonerInfo.bookingId)
 
     val review = prisonerIepLevelRepository.save(
       PrisonerIepLevel(
@@ -440,13 +436,6 @@ class PrisonerIepLevelReviewService(
     } ?: run {
       log.warn("IepDetail has `null` id, audit event not published: $iepDetail")
     }
-  }
-
-  private suspend fun updateIepLevelsWithCurrentFlagToFalse(bookingId: Long) {
-    prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(listOf(bookingId))
-      .collect {
-        prisonerIepLevelRepository.save(it.copy(current = false))
-      }
   }
 
   @Transactional
