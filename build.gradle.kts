@@ -1,10 +1,10 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.7.4"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.8.0"
   id("org.springdoc.openapi-gradle-plugin") version "1.6.0"
   id("jacoco")
   id("org.sonarqube") version "3.5.0.2730"
-  kotlin("plugin.spring") version "1.7.22"
-  kotlin("plugin.jpa") version "1.7.22"
+  kotlin("plugin.spring") version "1.8.0"
+  kotlin("plugin.jpa") version "1.8.0"
 }
 
 dependencyCheck {
