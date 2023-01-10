@@ -11,22 +11,29 @@ class OffenderSearchService(private val offenderSearchWebClient: WebClient) {
   /**
    * Searches for offenders using a cell location prefix, e.g. MDI-1
    * Requires role ROLE_PRISONER_IN_PRISON_SEARCH or ROLE_PRISONER_SEARCH
-   * NB: page is 0-based
    */
-  suspend fun findOffenders(prisonId: String, cellLocationPrefix: String, page: Int = 0, size: Int = 20) =
-    offenderSearchWebClient.get()
-      .uri(
-        "/prison/{prisonId}/prisoners?cellLocationPrefix={cellLocationPrefix}&size={size}&page={page}&sort={sort}",
-        mapOf(
-          "prisonId" to prisonId,
-          "cellLocationPrefix" to cellLocationPrefix,
-          "size" to size,
-          "page" to page,
-          "sort" to "prisonerNumber,ASC",
-        ),
-      )
-      .retrieve()
-      .awaitBody<OffenderSearchPrisonerList>()
+  suspend fun findOffenders(prisonId: String, cellLocationPrefix: String): List<OffenderSearchPrisoner> {
+    val offenders = mutableListOf<OffenderSearchPrisoner>()
+    var page = 0
+    do {
+      val pageOfData = offenderSearchWebClient.get()
+        .uri(
+          "/prison/{prisonId}/prisoners?cellLocationPrefix={cellLocationPrefix}&size={size}&page={page}&sort={sort}",
+          mapOf(
+            "prisonId" to prisonId,
+            "cellLocationPrefix" to cellLocationPrefix,
+            "size" to 200, // NB: this is the max allowed page size
+            "page" to page,
+            "sort" to "prisonerNumber,ASC",
+          ),
+        )
+        .retrieve()
+        .awaitBody<OffenderSearchPrisonerList>()
+      offenders.addAll(pageOfData.content)
+      page += 1
+    } while (!pageOfData.last)
+    return offenders
+  }
 
   /**
    * Gets one offender record

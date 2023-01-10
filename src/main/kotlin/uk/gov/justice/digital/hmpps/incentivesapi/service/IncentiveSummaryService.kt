@@ -35,7 +35,7 @@ class IncentiveSummaryService(
     sortBy: SortColumn = SortColumn.NAME,
     sortDirection: Sort.Direction = Sort.Direction.ASC
   ): BehaviourSummary = coroutineScope {
-    val prisoners = offenderSearchService.findOffenders(prisonId, locationId, 0, 1000).content.toList()
+    val prisoners = offenderSearchService.findOffenders(prisonId, locationId)
 
     if (prisoners.isEmpty()) throw NoPrisonersAtLocationException(prisonId, locationId)
 
