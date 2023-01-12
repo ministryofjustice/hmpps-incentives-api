@@ -77,7 +77,7 @@ class IepLevelServiceTest {
     @BeforeEach
     fun setup(): Unit = runBlocking {
       whenever(prisonApiService.getIepLevels()).thenReturn(
-        flowOf(
+        listOf(
           IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1),
           IepLevel(iepLevel = "ENT", iepDescription = "Entry", sequence = 2, active = false),
           IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 3, default = true),

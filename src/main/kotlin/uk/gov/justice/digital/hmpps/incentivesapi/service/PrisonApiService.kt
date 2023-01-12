@@ -35,10 +35,10 @@ class PrisonApiService(
   }
 
   suspend fun getIncentiveLevels(): Map<String, IepLevel> {
-    return getIepLevels().toList().associateBy { iep -> iep.iepLevel }
+    return getIepLevels().associateBy { iep -> iep.iepLevel }
   }
 
-  fun getIepLevels(): Flow<IepLevel> {
+  suspend fun getIepLevels(): List<IepLevel> {
     return getClient(true)
       .get()
       .uri("/api/reference-domains/domains/IEP_LEVEL/codes")
@@ -51,6 +51,7 @@ class PrisonApiService(
           active = it.activeFlag == "Y"
         )
       }
+      .toList()
   }
 
   fun retrieveCaseNoteCounts(type: String, offenderNos: List<String>): Flow<CaseNoteUsage> =
