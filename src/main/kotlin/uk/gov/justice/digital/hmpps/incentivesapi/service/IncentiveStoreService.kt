@@ -14,8 +14,7 @@ class IncentiveStoreService(
 ) {
 
   suspend fun saveIncentiveReview(
-    incentiveLevel: PrisonerIepLevel,
-    updateReviewDate: Boolean = true
+    incentiveLevel: PrisonerIepLevel
   ): PrisonerIepLevel {
 
     if (incentiveLevel.current) {
@@ -36,9 +35,7 @@ class IncentiveStoreService(
         reviewType = incentiveLevel.reviewType,
       )
     )
-    if (updateReviewDate) {
-      nextReviewDateUpdaterService.update(incentiveLevel.bookingId)
-    }
+    nextReviewDateUpdaterService.update(incentiveLevel.bookingId)
     return review
   }
 

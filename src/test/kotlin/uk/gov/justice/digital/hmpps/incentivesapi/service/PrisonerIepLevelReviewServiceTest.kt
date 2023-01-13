@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.kotlin.any
-import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
@@ -104,7 +103,7 @@ class PrisonerIepLevelReviewServiceTest {
     fun setUp(): Unit = runBlocking {
       whenever(prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId)).thenReturn(location)
       whenever(authenticationFacade.getUsername()).thenReturn(reviewerUserName)
-      whenever(incentiveStoreService.saveIncentiveReview(any(), eq(true))).thenReturn(prisonerIepLevel.copy(id = 42))
+      whenever(incentiveStoreService.saveIncentiveReview(any())).thenReturn(prisonerIepLevel.copy(id = 42))
       whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
     }
 
@@ -137,7 +136,7 @@ class PrisonerIepLevelReviewServiceTest {
 
     private suspend fun testAddIepReviewCommonFunctionality() {
       // IEP review is saved
-      verify(incentiveStoreService, times(1)).saveIncentiveReview(prisonerIepLevel, true)
+      verify(incentiveStoreService, times(1)).saveIncentiveReview(prisonerIepLevel)
 
       // A domain even is published
       verify(snsService, times(1)).publishDomainEvent(
@@ -173,7 +172,7 @@ class PrisonerIepLevelReviewServiceTest {
         // When
         prisonerIepLevelReviewService.addIepReview(bookingId, iepReview)
 
-        verify(incentiveStoreService).saveIncentiveReview(any(), eq(true))
+        verify(incentiveStoreService).saveIncentiveReview(any())
       }
     }
   }
@@ -213,7 +212,7 @@ class PrisonerIepLevelReviewServiceTest {
     @BeforeEach
     fun setUp(): Unit = runBlocking {
       // This ensures save works and an id is set on the PrisonerIepLevel
-      whenever(incentiveStoreService.saveIncentiveReview(any(), eq(true))).thenAnswer { i -> i.arguments[0] }
+      whenever(incentiveStoreService.saveIncentiveReview(any())).thenAnswer { i -> i.arguments[0] }
       whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
     }
 
@@ -265,7 +264,7 @@ class PrisonerIepLevelReviewServiceTest {
         prisonerNumber = prisonerAtLocation().offenderNo
       )
 
-      verify(incentiveStoreService, times(1)).saveIncentiveReview(expectedPrisonerIepLevel, true)
+      verify(incentiveStoreService, times(1)).saveIncentiveReview(expectedPrisonerIepLevel)
 
       verify(snsService, times(1)).publishDomainEvent(
         eventType = IncentivesDomainEventType.IEP_REVIEW_INSERTED,
@@ -457,7 +456,7 @@ class PrisonerIepLevelReviewServiceTest {
       // Given
       val bookingId = 1234567L
       whenever(prisonApiService.getPrisonerInfo(bookingId, true)).thenReturn(prisonerAtLocation())
-      whenever(incentiveStoreService.saveIncentiveReview(any(), eq(false))).thenAnswer { i -> i.arguments[0] }
+      whenever(incentiveStoreService.saveIncentiveReview(any())).thenAnswer { i -> i.arguments[0] }
 
       // When
       prisonerIepLevelReviewService.persistSyncPostRequest(bookingId, migrationRequest, false)
@@ -474,8 +473,7 @@ class PrisonerIepLevelReviewServiceTest {
           reviewTime = migrationRequest.iepTime,
           reviewType = migrationRequest.reviewType,
           prisonerNumber = prisonerAtLocation().offenderNo
-        ),
-        false
+        )
       )
     }
 
@@ -485,7 +483,7 @@ class PrisonerIepLevelReviewServiceTest {
       val migrationRequestWithNullUserId = migrationRequest.copy(userId = null)
       val bookingId = 1234567L
       whenever(prisonApiService.getPrisonerInfo(bookingId, true)).thenReturn(prisonerAtLocation())
-      whenever(incentiveStoreService.saveIncentiveReview(any(), eq(false))).thenAnswer { i -> i.arguments[0] }
+      whenever(incentiveStoreService.saveIncentiveReview(any())).thenAnswer { i -> i.arguments[0] }
 
       // When
       prisonerIepLevelReviewService.persistSyncPostRequest(bookingId, migrationRequestWithNullUserId, false)
@@ -502,8 +500,7 @@ class PrisonerIepLevelReviewServiceTest {
           reviewTime = migrationRequestWithNullUserId.iepTime,
           reviewType = migrationRequestWithNullUserId.reviewType,
           prisonerNumber = prisonerAtLocation().offenderNo
-        ),
-        false
+        )
       )
     }
   }
@@ -821,7 +818,7 @@ class PrisonerIepLevelReviewServiceTest {
         .thenReturn(location)
 
       // Mock save() of PrisonerIepLevel record
-      whenever(incentiveStoreService.saveIncentiveReview(iepReview, false))
+      whenever(incentiveStoreService.saveIncentiveReview(iepReview))
         .thenReturn(iepReview.copy(id = iepReviewId))
 
       whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
@@ -834,7 +831,7 @@ class PrisonerIepLevelReviewServiceTest {
 
       // Then check it's saved
       verify(incentiveStoreService, times(1))
-        .saveIncentiveReview(iepReview, false)
+        .saveIncentiveReview(iepReview)
 
       // Then check it's returned
       assertThat(result).isEqualTo(iepDetail)
@@ -880,7 +877,7 @@ class PrisonerIepLevelReviewServiceTest {
       prisonerIepLevelReviewService.handleSyncPostIepReviewRequest(bookingId, syncPostRequest.copy(current = true))
 
       verify(incentiveStoreService, times(1))
-        .saveIncentiveReview(iepReview, false)
+        .saveIncentiveReview(iepReview)
     }
   }
 

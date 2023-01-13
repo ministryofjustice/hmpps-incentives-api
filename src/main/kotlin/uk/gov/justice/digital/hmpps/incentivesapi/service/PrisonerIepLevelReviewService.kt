@@ -100,8 +100,7 @@ class PrisonerIepLevelReviewService(
         reviewedBy = syncPostRequest.userId,
         reviewTime = syncPostRequest.iepTime,
         reviewType = syncPostRequest.reviewType,
-      ),
-      false
+      )
     )
 
     return review.toIepDetail(prisonApiService.getIncentiveLevels())
