@@ -230,9 +230,22 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
                        "negativeBehaviours":5,
                        "incentiveWarnings":0,
                        "provenAdjudications":0
+                    },
+                    {
+                       "prisonerNumber":"A1234AB",
+                       "bookingId":1234135,
+                       "firstName":"David",
+                       "lastName":"White",
+                       "daysOnLevel":5,
+                       "daysSinceLastReview":5,
+                       "positiveBehaviours":3,
+                       "incentiveEncouragements":0,
+                       "negativeBehaviours":3,
+                       "incentiveWarnings":0,
+                       "provenAdjudications":1
                     }
                  ],
-                 "numberAtThisLevel":1
+                 "numberAtThisLevel":2
               },
               {
                  "level":"ENH",
@@ -278,19 +291,6 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
                  "level":"MIS",
                  "levelDescription":"No Review",
                  "prisonerBehaviours":[
-                     {
-                       "prisonerNumber":"A1234AB",
-                       "bookingId":1234135,
-                       "firstName":"David",
-                       "lastName":"White",
-                       "daysOnLevel":5,
-                       "daysSinceLastReview":0,
-                       "positiveBehaviours":3,
-                       "incentiveEncouragements":0,
-                       "negativeBehaviours":3,
-                       "incentiveWarnings":0,
-                       "provenAdjudications":1
-                    },
                     {
                        "prisonerNumber":"A1834AA",
                        "bookingId":2234134,
@@ -305,7 +305,7 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
                        "provenAdjudications":0
                     }
                  ],
-                 "numberAtThisLevel":2
+                 "numberAtThisLevel":1
               }
            ],
            "averageDaysSinceLastReview":30,
