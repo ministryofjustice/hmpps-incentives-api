@@ -87,7 +87,7 @@ class NextReviewDateServiceTest {
     }
 
     @Test
-    fun `when IEP level is Basic and there is no previous "real" review, returns +7 days`() {
+    fun `when IEP level is Basic and there is no previous 'real' review, returns +7 days`() {
       val input = NextReviewDateInput(
         iepDetails = listOf(
           review("2023-01-29", "ACI", iepCode = "BAS", iepLevel = "Basic", reviewType = ReviewType.REVIEW),
@@ -181,7 +181,7 @@ class NextReviewDateServiceTest {
     }
 
     @Test
-    fun `when last two IEP levels were Basic but is "young person", returns +14 days`() {
+    fun `when last two IEP levels were Basic but is 'young person', returns +14 days`() {
       val input = NextReviewDateInput(
         iepDetails = listOf(
           // 16yo on last review date
@@ -277,7 +277,7 @@ class NextReviewDateServiceTest {
     }
 
     @Test
-    fun `when prisoner is new and "young person" (under age of 18), returns +1 months`() {
+    fun `when prisoner is new and 'young person' (under age of 18), returns +1 months`() {
       val input = NextReviewDateInput(
         iepDetails = emptyList(),
         hasAcctOpen = true,
@@ -293,7 +293,7 @@ class NextReviewDateServiceTest {
     }
 
     @Test
-    fun `has no real reviews yet and is "young person" (under age of 18), returns +1 months`() {
+    fun `has no real reviews yet and is 'young person' (under age of 18), returns +1 months`() {
       val input = NextReviewDateInput(
         iepDetails = listOf(
           review("2018-08-15", "ACI", iepCode = "STD", iepLevel = "Standard", reviewType = ReviewType.TRANSFER),
@@ -337,7 +337,7 @@ class NextReviewDateServiceTest {
     }
 
     @Test
-    fun `when prisoner is readmitted and "young person" (under age of 18), returns +1 months`() {
+    fun `when prisoner is readmitted and 'young person' (under age of 18), returns +1 months`() {
       val input = NextReviewDateInput(
         iepDetails = listOf(
           // When readmitted, was almost 18yo, so still a "young person"

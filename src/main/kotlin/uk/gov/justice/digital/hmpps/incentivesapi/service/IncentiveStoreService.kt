@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
-import kotlinx.coroutines.flow.Flow
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPatchRequest
@@ -14,8 +13,9 @@ class IncentiveStoreService(
   private val nextReviewDateUpdaterService: NextReviewDateUpdaterService
 ) {
 
-  suspend fun updateIncentiveReview(
-    incentiveLevel: PrisonerIepLevel
+  suspend fun saveIncentiveReview(
+    incentiveLevel: PrisonerIepLevel,
+    updateReviewDate: Boolean = true
   ): PrisonerIepLevel {
 
     if (incentiveLevel.current) {
@@ -36,17 +36,17 @@ class IncentiveStoreService(
         reviewType = incentiveLevel.reviewType,
       )
     )
-    nextReviewDateUpdaterService.update(incentiveLevel.bookingId)
+    if (updateReviewDate) {
+      nextReviewDateUpdaterService.update(incentiveLevel.bookingId)
+    }
     return review
   }
 
   suspend fun updateMergedReviews(
-    reviewsToUpdate: Flow<PrisonerIepLevel>,
+    reviewsToUpdate: List<PrisonerIepLevel>,
     remainingBookingId: Long
   ) {
-    reviewsToUpdate.collect {
-      prisonerIepLevelRepository.save(it)
-    }
+    prisonerIepLevelRepository.saveAll(reviewsToUpdate)
     nextReviewDateUpdaterService.update(remainingBookingId)
   }
 
@@ -76,10 +76,14 @@ class IncentiveStoreService(
       prisonerIepLevelRepository.updateIncentivesToNotCurrentForBookingAndIncentive(bookingId, prisonerIepLevel.id)
     }
 
-    return updateIncentiveReview(prisonerIepLevel.copy(
-      reviewTime = syncPatchRequest.iepTime ?: prisonerIepLevel.reviewTime,
-      commentText = syncPatchRequest.comment ?: prisonerIepLevel.commentText,
-      current = syncPatchRequest.current ?: prisonerIepLevel.current,
-    ))
+    val review = prisonerIepLevelRepository.save(
+      prisonerIepLevel.copy(
+        reviewTime = syncPatchRequest.iepTime ?: prisonerIepLevel.reviewTime,
+        commentText = syncPatchRequest.comment ?: prisonerIepLevel.commentText,
+        current = syncPatchRequest.current ?: prisonerIepLevel.current,
+      )
+    )
+    nextReviewDateUpdaterService.update(review.bookingId)
+    return review
   }
 }

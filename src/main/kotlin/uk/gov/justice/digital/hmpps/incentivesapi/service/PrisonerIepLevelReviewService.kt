@@ -77,7 +77,6 @@ class PrisonerIepLevelReviewService(
     return addIepReviewForPrisonerAtLocation(prisonerInfo, iepReview)
   }
 
-
   suspend fun persistSyncPostRequest(
     bookingId: Long,
     syncPostRequest: SyncPostRequest,
@@ -89,18 +88,21 @@ class PrisonerIepLevelReviewService(
       locationInfo = prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId, true)
     }
 
-    val review = incentiveStoreService.updateIncentiveReview( PrisonerIepLevel(
-      bookingId = prisonerInfo.bookingId,
-      prisonerNumber = prisonerInfo.offenderNo,
-      locationId = locationInfo?.description,
-      iepCode = syncPostRequest.iepLevel,
-      commentText = syncPostRequest.comment,
-      prisonId = syncPostRequest.prisonId,
-      current = syncPostRequest.current,
-      reviewedBy = syncPostRequest.userId,
-      reviewTime = syncPostRequest.iepTime,
-      reviewType = syncPostRequest.reviewType,
-    ))
+    val review = incentiveStoreService.saveIncentiveReview(
+      PrisonerIepLevel(
+        bookingId = prisonerInfo.bookingId,
+        prisonerNumber = prisonerInfo.offenderNo,
+        locationId = locationInfo?.description,
+        iepCode = syncPostRequest.iepLevel,
+        commentText = syncPostRequest.comment,
+        prisonId = syncPostRequest.prisonId,
+        current = syncPostRequest.current,
+        reviewedBy = syncPostRequest.userId,
+        reviewTime = syncPostRequest.iepTime,
+        reviewType = syncPostRequest.reviewType,
+      ),
+      false
+    )
 
     return review.toIepDetail(prisonApiService.getIncentiveLevels())
   }
@@ -142,7 +144,6 @@ class PrisonerIepLevelReviewService(
     return iepDetail
   }
 
-
   suspend fun handleSyncDeleteIepReviewRequest(bookingId: Long, id: Long) {
     val prisonerIepLevel: PrisonerIepLevel? = prisonerIepLevelRepository.findById(id)
     if (prisonerIepLevel == null) {
@@ -162,7 +163,6 @@ class PrisonerIepLevelReviewService(
     publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_DELETED)
   }
 
-
   suspend fun getCurrentIEPLevelForPrisoners(bookingIds: List<Long>): List<CurrentIepLevel> {
     val incentiveLevels = prisonApiService.getIncentiveLevels()
     return prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(bookingIds)
@@ -176,7 +176,6 @@ class PrisonerIepLevelReviewService(
 
   suspend fun getReviewById(id: Long): IepDetail =
     prisonerIepLevelRepository.findById(id)?.toIepDetail(prisonApiService.getIncentiveLevels()) ?: throw NoDataFoundException(id)
-
 
   suspend fun processOffenderEvent(prisonOffenderEvent: HMPPSDomainEvent) =
     when (prisonOffenderEvent.additionalInformation.reason) {
@@ -224,7 +223,7 @@ class PrisonerIepLevelReviewService(
 
       val locationInfo = prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId, true)
 
-      val prisonerIepLevel = incentiveStoreService.updateIncentiveReview(
+      val prisonerIepLevel = incentiveStoreService.saveIncentiveReview(
 
         PrisonerIepLevel(
           iepCode = iepReview.iepLevel,
@@ -327,7 +326,7 @@ class PrisonerIepLevelReviewService(
     val reviewTime = LocalDateTime.now(clock)
     val reviewerUserName = authenticationFacade.getUsername()
 
-    val newIepReview = incentiveStoreService.updateIncentiveReview(
+    val newIepReview = incentiveStoreService.saveIncentiveReview(
       PrisonerIepLevel(
         iepCode = iepReview.iepLevel,
         commentText = iepReview.comment,
@@ -349,7 +348,6 @@ class PrisonerIepLevelReviewService(
 
     return newIepReview
   }
-
 
   private suspend fun publishReviewDomainEvent(
     iepDetail: IepDetail,
@@ -412,7 +410,7 @@ class PrisonerIepLevelReviewService(
       prisonerIepLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(remainingPrisonerNumber)
         .map { review -> review.copy(bookingId = remainingBookingId, current = false, new = true, id = 0) }
 
-    val reviewsToUpdate = merge(activeReviews, reviewsFromOldBooking)
+    val reviewsToUpdate = merge(activeReviews, reviewsFromOldBooking).toList()
     incentiveStoreService.updateMergedReviews(reviewsToUpdate, remainingBookingId)
 
     val numberUpdated = reviewsToUpdate.count()
