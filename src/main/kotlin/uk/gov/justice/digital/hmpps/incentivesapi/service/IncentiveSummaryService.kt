@@ -139,7 +139,7 @@ class IncentiveSummaryService(
       .groupBy { it.bookingId }
       .map {
         val review = it.value
-        val latestReview = review.firstOrNull(PrisonerIepLevel::isRealReview)
+        val latestReview = review.firstOrNull(PrisonerIepLevel::isRealReview) ?: review.firstOrNull()
         IepResult(
           bookingId = it.key,
           iepLevel = latestReview?.let { incentiveLevels[latestReview.iepCode]?.iepDescription ?: invalidLevel().iepLevel }
