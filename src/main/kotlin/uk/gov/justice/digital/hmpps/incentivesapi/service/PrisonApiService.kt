@@ -48,31 +48,26 @@ class PrisonApiService(
     return getIepLevels().associateBy { iep -> iep.iepLevel }
   }
 
-  suspend fun getIepLevels(): List<IepLevel> {
-    val cachedValue = allIncentiveLevelsCache.get()
-    return if (cachedValue != null) {
-      cachedValue
-    } else {
-      log.debug("Getting all incentive levels using GET /api/reference-domains/domains/IEP_LEVEL/codes...")
-      val newValue = getClient(true)
-        .get()
-        .uri("/api/reference-domains/domains/IEP_LEVEL/codes")
-        .retrieve()
-        .bodyToFlow<IncentiveLevel>()
-        .map {
-          IepLevel(
-            iepLevel = it.code,
-            iepDescription = it.description,
-            sequence = it.listSeq,
-            active = it.activeFlag == "Y"
-          )
-        }
-        .toList()
+  suspend fun getIepLevels(): List<IepLevel> = allIncentiveLevelsCache.get() ?: run {
+    log.debug("Getting all incentive levels using GET /api/reference-domains/domains/IEP_LEVEL/codes...")
+    val newValue = getClient(true)
+      .get()
+      .uri("/api/reference-domains/domains/IEP_LEVEL/codes")
+      .retrieve()
+      .bodyToFlow<IncentiveLevel>()
+      .map {
+        IepLevel(
+          iepLevel = it.code,
+          iepDescription = it.description,
+          sequence = it.listSeq,
+          active = it.activeFlag == "Y"
+        )
+      }
+      .toList()
 
-      allIncentiveLevelsCache.update(newValue)
+    allIncentiveLevelsCache.update(newValue)
 
-      return newValue
-    }
+    return newValue
   }
 
   fun retrieveCaseNoteCounts(type: String, offenderNos: List<String>): Flow<CaseNoteUsage> =
