@@ -693,6 +693,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
       val prisonerNumber = "A1234AC"
       val migrationRequest = syncPostRequest()
       prisonApiMockServer.stubGetPrisonerInfoByBooking(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = 77778L)
+      prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId = bookingId, prisonerNumber = prisonerNumber)
       prisonApiMockServer.stubIepLevels()
 
       // When
