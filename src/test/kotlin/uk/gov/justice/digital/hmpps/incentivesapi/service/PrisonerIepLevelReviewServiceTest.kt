@@ -564,7 +564,7 @@ class PrisonerIepLevelReviewServiceTest {
 
       // Then check it's saved
       verify(incentiveStoreService, times(1))
-        .syncIncentiveRecords(iepReview, bookingId)
+        .deleteIncentiveReview(iepReview, bookingId)
     }
 
     @Test
@@ -618,7 +618,7 @@ class PrisonerIepLevelReviewServiceTest {
 
         // Then desired IEP review is deletes as usual
         verify(incentiveStoreService, times(1))
-          .syncIncentiveRecords(currentIepReview, bookingId)
+          .deleteIncentiveReview(currentIepReview, bookingId)
       }
 
     @Test
@@ -640,7 +640,7 @@ class PrisonerIepLevelReviewServiceTest {
 
         // Then desired IEP review is deletes as usual
         verify(incentiveStoreService, times(1))
-          .syncIncentiveRecords(currentIepReview, bookingId)
+          .deleteIncentiveReview(currentIepReview, bookingId)
       }
   }
 
@@ -697,7 +697,7 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonerIepLevelRepository.findById(id)).thenReturn(iepReview)
 
       // Mock PrisonerIepLevel being updated
-      whenever(incentiveStoreService.syncIncentiveReview(syncPatchRequest, bookingId, iepReview))
+      whenever(incentiveStoreService.patchIncentiveReview(syncPatchRequest, bookingId, iepReview))
         .thenReturn(expectedIepReview)
 
       whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
@@ -755,7 +755,7 @@ class PrisonerIepLevelReviewServiceTest {
         current = true,
       )
 
-      whenever(incentiveStoreService.syncIncentiveReview(syncPatchRequestNew, bookingId, iepReview))
+      whenever(incentiveStoreService.patchIncentiveReview(syncPatchRequestNew, bookingId, iepReview))
         .thenReturn(iepReviewUpdatedWithSyncPatch)
 
       // When
@@ -764,7 +764,7 @@ class PrisonerIepLevelReviewServiceTest {
       )
 
       verify(incentiveStoreService, times(1))
-        .syncIncentiveReview(syncPatchRequestNew, bookingId, iepReview)
+        .patchIncentiveReview(syncPatchRequestNew, bookingId, iepReview)
     }
   }
 

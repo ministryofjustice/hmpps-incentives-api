@@ -47,7 +47,7 @@ class IncentiveStoreService(
     nextReviewDateUpdaterService.update(remainingBookingId)
   }
 
-  suspend fun syncIncentiveRecords(
+  suspend fun deleteIncentiveReview(
     prisonerIepLevel: PrisonerIepLevel,
     bookingId: Long
   ) {
@@ -63,7 +63,7 @@ class IncentiveStoreService(
     }
   }
 
-  suspend fun syncIncentiveReview(
+  suspend fun patchIncentiveReview(
     syncPatchRequest: SyncPatchRequest,
     bookingId: Long,
     prisonerIepLevel: PrisonerIepLevel
