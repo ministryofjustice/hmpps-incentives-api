@@ -37,7 +37,7 @@ class IepLevelService(
     val levelCodesAvailableInPrison = prisonLevels.filter(IepLevel::active).map(IepLevel::iepLevel).toSet()
 
     data class KnownLevel(val code: String, val available: Boolean)
-    val allKnownLevels = prisonApiService.getIepLevels().toList()
+    val allKnownLevels = prisonApiService.getIepLevels()
       .sortedBy { it.sequence }
       .map {
         KnownLevel(
