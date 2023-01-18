@@ -1,38 +1,13 @@
 {
-  "extends": [
-    "config:base",
-    ":disableDependencyDashboard",
-    ":preserveSemverRanges"
-  ],
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["github>ministryofjustice/hmpps-renovate-config:jvm"],
   "assigneesFromCodeOwners": true,
-  "timezone": "Europe/London",
-  "schedule": [
-    "after 9am every weekday",
-    "before 5pm every weekday"
-  ],
-  "enabledManagers": ["gradle", "gradle-wrapper", "dockerfile", "docker-compose", "helmv3", "helm-values", "circleci"],
   "packageRules": [
     {
-      "matchDatasources": ["docker"],
-      "allowedVersions": "19-jre-jammy"
-    },
-    {
-      "groupName": "spring doc",
-      "matchPackagePrefixes": [
-        "org.springdoc"
-      ]
-    },
-    {
-      "groupName": "test containers",
-      "matchPackagePrefixes": [
-        "org.testcontainers"
-      ]
-    },
-    {
-      "groupName": "kotlin plugins",
-      "matchPackagePrefixes": [
-        "org.jetbrains.kotlin.plugin"
-      ]
+      "matchManagers": ["gradle"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "all non major Gradle dependencies",
+      "groupSlug": "all-npm-minor-patch"
     }
   ]
 }
