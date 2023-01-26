@@ -18,3 +18,6 @@ generic-prometheus-alerts:
   alertSeverity: digital-prison-service-dev
   rdsAlertsDatabases:
     cloud-platform-6b3b723b359a69e2: "incentives api"
+  sqsAlertsQueueNames:
+    - "Digital-Prison-Services-preprod-hmpps_incentives_queue"
+    - "Digital-Prison-Services-preprod-hmpps_incentives_dlq"
