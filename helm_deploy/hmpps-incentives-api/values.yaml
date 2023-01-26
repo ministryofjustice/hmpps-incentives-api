@@ -31,7 +31,6 @@ generic-service:
     SPRING_PROFILES_ACTIVE: "logstash"
     APPLICATIONINSIGHTS_CONNECTION_STRING: "InstrumentationKey=$(APPINSIGHTS_INSTRUMENTATIONKEY)"
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.json
-    FEATURE_REVIEW_ADDED_SYNC_MECHANISM: "PRISON_API"
 
   # Pre-existing kubernetes secrets to load as environment variables in the deployment.
   # namespace_secrets:
@@ -79,3 +78,5 @@ generic-service:
 
 generic-prometheus-alerts:
   targetApplication: hmpps-incentives-api
+  sqsAlertsOldestThreshold: 10
+  sqsAlertsTotalMessagesThreshold: 1

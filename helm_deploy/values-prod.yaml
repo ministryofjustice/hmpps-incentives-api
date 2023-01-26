@@ -11,9 +11,27 @@ generic-service:
     API_BASE_URL_PRISON: https://api.prison.service.justice.gov.uk
     API_BASE_URL_OFFENDER_SEARCH: https://prisoner-offender-search.prison.service.justice.gov.uk
 
+  postgresDatabaseRestore:
+    enabled: true
+    namespace_secrets:
+      rp-rds-instance-output:
+        DB_NAME: "database_name"
+        DB_USER: "database_username"
+        DB_PASS: "database_password"
+        DB_HOST: "rds_instance_address"
+      rp-rds-instance-output-preprod:
+        DB_NAME_PREPROD: "database_name"
+        DB_USER_PREPROD: "database_username"
+        DB_PASS_PREPROD: "database_password"
+        DB_HOST_PREPROD: "rds_instance_address"
+
 # CloudPlatform AlertManager receiver to route Prometheus alerts to slack
 # See https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts
 generic-prometheus-alerts:
   alertSeverity: digital-prison-service
   rdsAlertsDatabases:
     cloud-platform-4da80b91054a19d6: "incentives api"
+  sqsAlertsQueueNames:
+    - "Digital-Prison-Services-prod-hmpps_incentives_queue"
+    - "Digital-Prison-Services-prod-hmpps_incentives_dlq"
+
