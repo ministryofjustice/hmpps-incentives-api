@@ -7,27 +7,27 @@ import io.swagger.v3.oas.models.info.Info
 import io.swagger.v3.oas.models.media.DateTimeSchema
 import io.swagger.v3.oas.models.media.Schema
 import io.swagger.v3.oas.models.media.StringSchema
-import io.swagger.v3.oas.models.security.SecurityRequirement
-import io.swagger.v3.oas.models.security.SecurityScheme
+import io.swagger.v3.oas.models.security.*
 import io.swagger.v3.oas.models.servers.Server
 import org.springdoc.core.customizers.OpenApiCustomiser
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.info.BuildProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-class OpenApiConfiguration(buildProperties: BuildProperties) {
+class OpenApiConfiguration(
+  buildProperties: BuildProperties,
+  @Value("\${api.base.url.oauth}") val oauthUrl: String
+) {
   private val version: String = buildProperties.version
 
   @Bean
   fun customOpenAPI(): OpenAPI = OpenAPI()
     .servers(
       listOf(
-        Server().url("https://incentives-api-dev.hmpps.service.justice.gov.uk").description("Development"),
-        Server().url("https://incentives-api-preprod.hmpps.service.justice.gov.uk").description("PreProd"),
-        Server().url("https://incentives-api.hmpps.service.justice.gov.uk").description("Prod"),
-        Server().url("http://localhost:8080").description("Local"),
-      )
+        Server().url("/").description("Current url"),
+      ),
     )
     .info(
       Info().title("HMPPS Incentives API")
@@ -43,10 +43,30 @@ class OpenApiConfiguration(buildProperties: BuildProperties) {
           .scheme("bearer")
           .bearerFormat("JWT")
           .`in`(SecurityScheme.In.HEADER)
-          .name("Authorization")
+          .name("Authorization"),
       )
+        .addSecuritySchemes(
+          "hmpps-auth",
+          SecurityScheme()
+            .flows(getFlows())
+            .type(SecurityScheme.Type.OAUTH2)
+            .openIdConnectUrl("$oauthUrl/.well-known/openid-configuration"),
+        ),
     )
     .addSecurityItem(SecurityRequirement().addList("bearer-jwt", listOf("read", "write")))
+    .addSecurityItem(SecurityRequirement().addList("hmpps-auth"))
+
+
+  fun getFlows() : OAuthFlows {
+    val flows = OAuthFlows()
+    val clientCredflow = OAuthFlow()
+    clientCredflow.tokenUrl = "$oauthUrl/oauth/token"
+    clientCredflow.scopes = Scopes()
+    val authflow = OAuthFlow()
+    authflow.authorizationUrl = "$oauthUrl/oauth/authorize"
+    authflow.tokenUrl = "$oauthUrl/oauth/token"
+    return flows.clientCredentials(clientCredflow).authorizationCode(authflow)
+  }
 
   @Bean
   fun openAPICustomiser(): OpenApiCustomiser = OpenApiCustomiser {
