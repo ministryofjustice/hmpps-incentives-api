@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.data.domain.Sort
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
@@ -21,11 +22,14 @@ import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 @RestController
 @RequestMapping("/incentives-summary", produces = [MediaType.APPLICATION_JSON_VALUE])
 @PreAuthorize("hasRole('ROLE_INCENTIVES')")
+@Tag(name = "Incentive Review Summary", description = "List of incentive review information for a given location within a prison and on a given level")
+@Deprecated("Use `/incentives-reviews`")
 class IncentiveSummaryResource(private val incentiveSummaryService: IncentiveSummaryService) {
   @GetMapping("/prison/{prisonId}/location/{locationId}")
+  @Deprecated("Deprecated endpoint for incentive review summary")
   @Operation(
-    summary = "Summaries IEP Incentive information at a specific location within a prison",
-    description = "location should be a Wing, Landing or Cell",
+    summary = "[Deprecated] Summaries IEP Incentive information at a specific location within a prison",
+    description = "Location should be a Wing, Landing or Cell",
     responses = [
       ApiResponse(
         responseCode = "200",

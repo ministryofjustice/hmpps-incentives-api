@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
@@ -32,6 +33,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 
 @RestController
 @RequestMapping("/iep", produces = [MediaType.APPLICATION_JSON_VALUE])
+@Tag(name = "Incentive Reviews", description = "Manage Incentive Data and Reviews")
 class IepLevelResource(
   private val iepLevelService: IepLevelService,
   private val prisonerIepLevelReviewService: PrisonerIepLevelReviewService,

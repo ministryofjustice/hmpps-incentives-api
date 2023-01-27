@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.data.domain.Sort
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
@@ -22,11 +23,12 @@ import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 @RestController
 @RequestMapping("/incentives-reviews", produces = [MediaType.APPLICATION_JSON_VALUE])
 @PreAuthorize("hasRole('ROLE_INCENTIVES')")
+@Tag(name = "Incentive Review Summary", description = "List of incentive review information for a given location within a prison and on a given level")
 class IncentiveReviewsResource(private val incentiveReviewsService: IncentiveReviewsService) {
   @GetMapping("/prison/{prisonId}/location/{cellLocationPrefix}/level/{levelCode}")
   @Operation(
     summary = "List of incentive review information for a given location within a prison and on a given level",
-    description = "location should be a cell ID prefix like `MDI-1`",
+    description = "Location should be a cell ID prefix like `MDI-1`",
     responses = [
       ApiResponse(responseCode = "200", description = "Reviews information returned"),
       ApiResponse(
