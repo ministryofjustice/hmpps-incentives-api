@@ -7,7 +7,11 @@ import io.swagger.v3.oas.models.info.Info
 import io.swagger.v3.oas.models.media.DateTimeSchema
 import io.swagger.v3.oas.models.media.Schema
 import io.swagger.v3.oas.models.media.StringSchema
-import io.swagger.v3.oas.models.security.*
+import io.swagger.v3.oas.models.security.OAuthFlow
+import io.swagger.v3.oas.models.security.OAuthFlows
+import io.swagger.v3.oas.models.security.Scopes
+import io.swagger.v3.oas.models.security.SecurityRequirement
+import io.swagger.v3.oas.models.security.SecurityScheme
 import io.swagger.v3.oas.models.servers.Server
 import org.springdoc.core.customizers.OpenApiCustomiser
 import org.springframework.beans.factory.annotation.Value
@@ -56,8 +60,7 @@ class OpenApiConfiguration(
     .addSecurityItem(SecurityRequirement().addList("bearer-jwt", listOf("read", "write")))
     .addSecurityItem(SecurityRequirement().addList("hmpps-auth"))
 
-
-  fun getFlows() : OAuthFlows {
+  fun getFlows(): OAuthFlows {
     val flows = OAuthFlows()
     val clientCredflow = OAuthFlow()
     clientCredflow.tokenUrl = "$oauthUrl/oauth/token"
