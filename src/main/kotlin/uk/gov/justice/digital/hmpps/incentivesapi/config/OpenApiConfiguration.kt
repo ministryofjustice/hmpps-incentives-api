@@ -64,10 +64,14 @@ class OpenApiConfiguration(
     val flows = OAuthFlows()
     val clientCredflow = OAuthFlow()
     clientCredflow.tokenUrl = "$oauthUrl/oauth/token"
-    clientCredflow.scopes = Scopes()
+    val scopes = Scopes()
+      .addString("read", "Allows read of data")
+      .addString("write", "Allows write of data")
+    clientCredflow.scopes = scopes
     val authflow = OAuthFlow()
     authflow.authorizationUrl = "$oauthUrl/oauth/authorize"
     authflow.tokenUrl = "$oauthUrl/oauth/token"
+    authflow.scopes = scopes
     return flows.clientCredentials(clientCredflow).authorizationCode(authflow)
   }
 
