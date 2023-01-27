@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.data.domain.Sort
 import org.springframework.http.MediaType
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -21,6 +22,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 
 @RestController
 @RequestMapping("/incentives-reviews", produces = [MediaType.APPLICATION_JSON_VALUE])
+@PreAuthorize("hasRole('ROLE_INCENTIVES')")
 @Tag(name = "Incentive Review Summary", description = "List of incentive review information for a given location within a prison and on a given level")
 class IncentiveReviewsResource(private val incentiveReviewsService: IncentiveReviewsService) {
   @GetMapping("/prison/{prisonId}/location/{cellLocationPrefix}/level/{levelCode}")
