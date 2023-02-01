@@ -41,6 +41,12 @@ data class IncentiveReviewResponse(
   @Schema(description = "Total number of overdue prisoner reviews at given location", example = "102")
   val overdueCount: Int,
 
+  @Schema(description = "Total number of prisoners by incentive level", example = "{\"BAS\": 10, \"STD\": 72, \"ENH\": 20}")
+  val prisonersCounts: Map<String, Int>,
+
+  @Schema(description = "Total number of overdue prisoner reviews by incentive level", example = "{\"BAS\": 1, \"STD\": 10, \"ENH\": 0}")
+  val overdueCounts: Map<String, Int>,
+
   @Schema(description = "Description of given location", example = "Houseblock 1")
   val locationDescription: String,
 )
