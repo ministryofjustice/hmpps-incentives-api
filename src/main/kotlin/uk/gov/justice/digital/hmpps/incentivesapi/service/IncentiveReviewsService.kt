@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClientResponseException.NotFound
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ListOfDataNotFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReview
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsage
@@ -25,6 +26,7 @@ import java.util.Comparator
 class IncentiveReviewsService(
   private val offenderSearchService: OffenderSearchService,
   private val prisonApiService: PrisonApiService,
+  private val iepLevelService: IepLevelService,
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository,
   private val nextReviewDateGetterService: NextReviewDateGetterService,
   private val clock: Clock,
@@ -118,6 +120,16 @@ class IncentiveReviewsService(
       }
     }
 
+    val prisonLevels = iepLevelService.getIepLevelsForPrison(prisonId, useClientCredentials = true)
+    val levels: List<IncentiveReviewLevel> = prisonLevels.map { iepLevel ->
+      IncentiveReviewLevel(
+        levelCode = iepLevel.iepLevel,
+        levelName = iepLevel.iepDescription,
+        reviewCount = prisonersCounts[iepLevel.iepLevel] ?: 0,
+        overdueCount = overdueCounts[iepLevel.iepLevel] ?: 0,
+      )
+    }
+
     // Existing count fields
     val reviewsCount = reviewsAtLevel.size
     val overdueCount = overdueCounts.values.sum()
@@ -126,11 +138,10 @@ class IncentiveReviewsService(
     val locationDescription = deferredLocationDescription.await()
     IncentiveReviewResponse(
       locationDescription = locationDescription,
+      levels = levels,
       overdueCount = overdueCount,
       reviewCount = reviewsCount,
       reviews = reviewsPage,
-      prisonersCounts = prisonersCounts,
-      overdueCounts = overdueCounts,
     )
   }
 

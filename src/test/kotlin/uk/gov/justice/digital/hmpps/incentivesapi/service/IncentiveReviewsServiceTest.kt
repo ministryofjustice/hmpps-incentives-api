@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.config.ListOfDataNotFoundExcep
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsage
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonLocation
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
@@ -31,11 +32,12 @@ import java.time.ZoneId
 
 class IncentiveReviewsServiceTest {
   private val prisonApiService: PrisonApiService = mock()
+  private val iepLevelService: IepLevelService = mock()
   private val offenderSearchService: OffenderSearchService = mock()
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository = mock()
   private val nextReviewDateGetterService: NextReviewDateGetterService = mock()
   private var clock: Clock = Clock.fixed(Instant.parse("2022-08-01T12:45:00.00Z"), ZoneId.systemDefault())
-  private val incentiveReviewsService = IncentiveReviewsService(offenderSearchService, prisonApiService, prisonerIepLevelRepository, nextReviewDateGetterService, clock)
+  private val incentiveReviewsService = IncentiveReviewsService(offenderSearchService, prisonApiService, iepLevelService, prisonerIepLevelRepository, nextReviewDateGetterService, clock)
 
   @BeforeEach
   fun setUp(): Unit = runBlocking {
@@ -52,6 +54,27 @@ class IncentiveReviewsServiceTest {
         110002L to LocalDate.parse("2022-12-12"),
       )
     )
+
+    whenever(iepLevelService.getIepLevelsForPrison("MDI", useClientCredentials = true))
+      .thenReturn(
+        listOf(
+          IepLevel(
+            iepLevel = "BAS",
+            iepDescription = "Basic",
+            sequence = 1,
+          ),
+          IepLevel(
+            iepLevel = "STD",
+            iepDescription = "Standard",
+            sequence = 2,
+          ),
+          IepLevel(
+            iepLevel = "ENH",
+            iepDescription = "Enhanced",
+            sequence = 3,
+          ),
+        )
+      )
   }
 
   @Test

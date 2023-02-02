@@ -211,6 +211,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
     prisonApiMockServer.stubPositiveCaseNoteSummary()
     prisonApiMockServer.stubNegativeCaseNoteSummary()
     prisonApiMockServer.stubIepLevels()
+    prisonApiMockServer.stubAgenciesIepLevels("MDI")
 
     webTestClient.get()
       .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD")
@@ -223,16 +224,26 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
           {
             "reviewCount": 3,
             "overdueCount": 1,
-            "prisonersCounts": {
-              "BAS": 1,
-              "STD": 3,
-              "ENH": 1
-            },
-            "overdueCounts": {
-              "BAS": 0,
-              "STD": 0,
-              "ENH": 1
-            },
+            "levels": [
+              {
+                "levelCode": "BAS",
+                "levelName": "Basic",
+                "reviewCount": 1,
+                "overdueCount": 0
+              },
+              {
+                "levelCode": "STD",
+                "levelName": "Standard",
+                "reviewCount": 3,
+                "overdueCount": 0
+              },
+              {
+                "levelCode": "ENH",
+                "levelName": "Enhanced",
+                "reviewCount": 1,
+                "overdueCount": 1
+              }
+            ],
             "reviews": [
               {
                 "prisonerNumber": "A1234AA",
@@ -282,6 +293,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
     prisonApiMockServer.stubPositiveCaseNoteSummary()
     prisonApiMockServer.stubNegativeCaseNoteSummary()
     prisonApiMockServer.stubIepLevels()
+    prisonApiMockServer.stubAgenciesIepLevels("MDI")
 
     webTestClient.get()
       .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD")
@@ -294,16 +306,26 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
           {
             "reviewCount": 3,
             "overdueCount": 1,
-            "prisonersCounts": {
-              "BAS": 1,
-              "STD": 3,
-              "ENH": 1
-            },
-            "overdueCounts": {
-              "BAS": 0,
-              "STD": 0,
-              "ENH": 1
-            },
+            "levels": [
+              {
+                "levelCode": "BAS",
+                "levelName": "Basic",
+                "reviewCount": 1,
+                "overdueCount": 0
+              },
+              {
+                "levelCode": "STD",
+                "levelName": "Standard",
+                "reviewCount": 3,
+                "overdueCount": 0
+              },
+              {
+                "levelCode": "ENH",
+                "levelName": "Enhanced",
+                "reviewCount": 1,
+                "overdueCount": 1
+              }
+            ],
             "reviews": [
               {
                 "prisonerNumber": "A1234AA",
@@ -354,6 +376,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
     prisonApiMockServer.stubPositiveCaseNoteSummary()
     prisonApiMockServer.stubNegativeCaseNoteSummary()
     prisonApiMockServer.stubIepLevels()
+    prisonApiMockServer.stubAgenciesIepLevels("MDI")
 
     // pre-cache different next review dates as `persistPrisonerIepLevel` defaults lead to all being today + 1 year
     nextReviewDateRepository.saveAll(
@@ -393,6 +416,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
       prisonApiMockServer.stubPositiveCaseNoteSummary()
       prisonApiMockServer.stubNegativeCaseNoteSummary()
       prisonApiMockServer.stubIepLevels()
+      prisonApiMockServer.stubAgenciesIepLevels("MDI")
     }
 
     private fun loadPage(page: Int) = webTestClient.get()
