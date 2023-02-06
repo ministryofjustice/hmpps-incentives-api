@@ -32,11 +32,13 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
 
     prisonerIepLevelRepository.deleteAll()
     nextReviewDateRepository.deleteAll()
-    persistPrisonerIepLevel(bookingId = 1234134, prisonerNumber = "A1234AA")
-    persistPrisonerIepLevel(bookingId = 1234135, prisonerNumber = "A1234AB")
-    persistPrisonerIepLevel(bookingId = 1234136, prisonerNumber = "A1234AC")
-    persistPrisonerIepLevel(bookingId = 1234137, prisonerNumber = "A1234AD")
-    persistPrisonerIepLevel(bookingId = 1234138, prisonerNumber = "A1234AE")
+    persistPrisonerIepLevel(bookingId = 1234134, prisonerNumber = "A1234AA", iepTime = iepTime)
+    persistPrisonerIepLevel(bookingId = 1234135, prisonerNumber = "A1234AB", iepTime = iepTime)
+    persistPrisonerIepLevel(bookingId = 1234136, prisonerNumber = "A1234AC", iepTime = iepTime)
+    // A prisoner on Basic
+    persistPrisonerIepLevel(bookingId = 1234137, prisonerNumber = "A1234AD", iepCode = "BAS")
+    // A prisoner on Enhanced and overdue
+    persistPrisonerIepLevel(bookingId = 1234138, prisonerNumber = "A1234AE", iepCode = "ENH", iepTime = LocalDateTime.now().minusYears(2))
   }
 
   private val iepTime: LocalDateTime = LocalDateTime.now()
@@ -44,13 +46,15 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
   private suspend fun persistPrisonerIepLevel(
     bookingId: Long,
     prisonerNumber: String,
+    iepCode: String = "STD",
+    iepTime: LocalDateTime = LocalDateTime.now(),
   ) = prisonerIepLevelRepository.save(
     PrisonerIepLevel(
       bookingId = bookingId,
       prisonerNumber = prisonerNumber,
       reviewTime = iepTime,
       prisonId = "MDI",
-      iepCode = "STD",
+      iepCode = iepCode,
       reviewType = ReviewType.REVIEW,
       current = true,
       locationId = "1-1-002",
@@ -207,6 +211,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
     prisonApiMockServer.stubPositiveCaseNoteSummary()
     prisonApiMockServer.stubNegativeCaseNoteSummary()
     prisonApiMockServer.stubIepLevels()
+    prisonApiMockServer.stubAgenciesIepLevels("MDI")
 
     webTestClient.get()
       .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD")
@@ -217,8 +222,28 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
         // language=json
         """
           {
-            "reviewCount": 5,
-            "overdueCount": 0,
+            "reviewCount": 3,
+            "overdueCount": 1,
+            "levels": [
+              {
+                "levelCode": "BAS",
+                "levelName": "Basic",
+                "reviewCount": 1,
+                "overdueCount": 0
+              },
+              {
+                "levelCode": "STD",
+                "levelName": "Standard",
+                "reviewCount": 3,
+                "overdueCount": 0
+              },
+              {
+                "levelCode": "ENH",
+                "levelName": "Enhanced",
+                "reviewCount": 1,
+                "overdueCount": 1
+              }
+            ],
             "reviews": [
               {
                 "prisonerNumber": "A1234AA",
@@ -250,28 +275,6 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "levelCode": "STD",
                 "positiveBehaviours": 2,
                 "negativeBehaviours": 2,
-                "hasAcctOpen": false,
-                "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
-              },
-              {
-                "prisonerNumber": "A1234AD",
-                "bookingId": 1234137,
-                "firstName": "Anthony",
-                "lastName": "Davies",
-                "levelCode": "STD",
-                "positiveBehaviours": 1,
-                "negativeBehaviours": 1,
-                "hasAcctOpen": false,
-                "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
-              },
-              {
-                "prisonerNumber": "A1234AE",
-                "bookingId": 1234138,
-                "firstName": "Paul",
-                "lastName": "Rudd",
-                "levelCode": "STD",
-                "positiveBehaviours": 5,
-                "negativeBehaviours": 5,
                 "hasAcctOpen": false,
                 "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
               }
@@ -290,6 +293,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
     prisonApiMockServer.stubPositiveCaseNoteSummary()
     prisonApiMockServer.stubNegativeCaseNoteSummary()
     prisonApiMockServer.stubIepLevels()
+    prisonApiMockServer.stubAgenciesIepLevels("MDI")
 
     webTestClient.get()
       .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD")
@@ -300,8 +304,28 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
         // language=json
         """
           {
-            "reviewCount": 5,
-            "overdueCount": 0,
+            "reviewCount": 3,
+            "overdueCount": 1,
+            "levels": [
+              {
+                "levelCode": "BAS",
+                "levelName": "Basic",
+                "reviewCount": 1,
+                "overdueCount": 0
+              },
+              {
+                "levelCode": "STD",
+                "levelName": "Standard",
+                "reviewCount": 3,
+                "overdueCount": 0
+              },
+              {
+                "levelCode": "ENH",
+                "levelName": "Enhanced",
+                "reviewCount": 1,
+                "overdueCount": 1
+              }
+            ],
             "reviews": [
               {
                 "prisonerNumber": "A1234AA",
@@ -333,28 +357,6 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "levelCode": "STD",
                 "positiveBehaviours": 2,
                 "negativeBehaviours": 2,
-                "hasAcctOpen": false,
-                "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
-              },
-              {
-                "prisonerNumber": "A1234AD",
-                "bookingId": 1234137,
-                "firstName": "Anthony",
-                "lastName": "Davies",
-                "levelCode": "STD",
-                "positiveBehaviours": 1,
-                "negativeBehaviours": 1,
-                "hasAcctOpen": false,
-                "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
-              },
-              {
-                "prisonerNumber": "A1234AE",
-                "bookingId": 1234138,
-                "firstName": "Paul",
-                "lastName": "Rudd",
-                "levelCode": "STD",
-                "positiveBehaviours": 5,
-                "negativeBehaviours": 5,
                 "hasAcctOpen": false,
                 "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
               }
@@ -374,6 +376,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
     prisonApiMockServer.stubPositiveCaseNoteSummary()
     prisonApiMockServer.stubNegativeCaseNoteSummary()
     prisonApiMockServer.stubIepLevels()
+    prisonApiMockServer.stubAgenciesIepLevels("MDI")
 
     // pre-cache different next review dates as `persistPrisonerIepLevel` defaults lead to all being today + 1 year
     nextReviewDateRepository.saveAll(
@@ -413,10 +416,11 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
       prisonApiMockServer.stubPositiveCaseNoteSummary()
       prisonApiMockServer.stubNegativeCaseNoteSummary()
       prisonApiMockServer.stubIepLevels()
+      prisonApiMockServer.stubAgenciesIepLevels("MDI")
     }
 
     private fun loadPage(page: Int) = webTestClient.get()
-      .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?sort=PRISONER_NUMBER&order=DESC&page=$page&pageSize=2")
+      .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?sort=PRISONER_NUMBER&order=DESC&page=$page&pageSize=1")
       .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
       .exchange()
       .expectStatus().isOk
@@ -425,14 +429,14 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
     @Test
     fun `first page`(): Unit = runBlocking {
       loadPage(0).value<List<String>> {
-        assertThat(it).isEqualTo(listOf("A1234AE", "A1234AD"))
+        assertThat(it).isEqualTo(listOf("A1234AC"))
       }
     }
 
     @Test
     fun `second page`(): Unit = runBlocking {
       loadPage(1).value<List<String>> {
-        assertThat(it).isEqualTo(listOf("A1234AC", "A1234AB"))
+        assertThat(it).isEqualTo(listOf("A1234AB"))
       }
     }
 

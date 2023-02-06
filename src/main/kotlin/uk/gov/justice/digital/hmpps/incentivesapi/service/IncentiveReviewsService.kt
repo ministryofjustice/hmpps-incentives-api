@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClientResponseException.NotFound
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ListOfDataNotFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReview
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsage
@@ -25,6 +26,7 @@ import java.util.Comparator
 class IncentiveReviewsService(
   private val offenderSearchService: OffenderSearchService,
   private val prisonApiService: PrisonApiService,
+  private val iepLevelService: IepLevelService,
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository,
   private val nextReviewDateGetterService: NextReviewDateGetterService,
   private val clock: Clock,
@@ -79,12 +81,7 @@ class IncentiveReviewsService(
     val negativeCaseNotesInLast3Months = deferredNegativeCaseNotesInLast3Months.await()
 
     val nextReviewDates = deferredNextReviewDates.await()
-    val overdueCount = nextReviewDates.values.count { it.isBefore(LocalDate.now(clock)) }
-    val locationDescription = deferredLocationDescription.await()
-
-    val comparator = IncentiveReviewSort.orDefault(sort) comparingIn order
-
-    val reviews = offenders
+    val allReviews = offenders
       .map {
         IncentiveReview(
           prisonerNumber = it.prisonerNumber,
@@ -98,14 +95,50 @@ class IncentiveReviewsService(
           nextReviewDate = nextReviewDates[it.bookingId]!!,
         )
       }
+
+    val comparator = IncentiveReviewSort.orDefault(sort) comparingIn order
+    val reviewsAtLevel = allReviews
       .filter { it.levelCode == levelCode }
       .sortedWith(comparator)
 
-    val reviewsCount = reviews.size
-    val reviewsPage = reviews paginateWith PageRequest.of(page, size)
+    // Count overdue reviews and total reviews by Incentive levels
+    val prisonersCounts: MutableMap<String, Int> = mutableMapOf()
+    val overdueCounts: MutableMap<String, Int> = mutableMapOf()
+    allReviews.forEach() { review ->
+      val levelCode = review.levelCode
 
+      if (!prisonersCounts.containsKey(levelCode)) {
+        prisonersCounts[levelCode] = 0
+      }
+      if (!overdueCounts.containsKey(levelCode)) {
+        overdueCounts[levelCode] = 0
+      }
+
+      prisonersCounts[levelCode] = prisonersCounts[levelCode]!! + 1
+      if (nextReviewDates[review.bookingId]!!.isBefore(LocalDate.now(clock))) {
+        overdueCounts[levelCode] = overdueCounts[levelCode]!! + 1
+      }
+    }
+
+    val prisonLevels = iepLevelService.getIepLevelsForPrison(prisonId, useClientCredentials = true)
+    val levels: List<IncentiveReviewLevel> = prisonLevels.map { iepLevel ->
+      IncentiveReviewLevel(
+        levelCode = iepLevel.iepLevel,
+        levelName = iepLevel.iepDescription,
+        reviewCount = prisonersCounts[iepLevel.iepLevel] ?: 0,
+        overdueCount = overdueCounts[iepLevel.iepLevel] ?: 0,
+      )
+    }
+
+    // Existing count fields
+    val reviewsCount = reviewsAtLevel.size
+    val overdueCount = overdueCounts.values.sum()
+
+    val reviewsPage = reviewsAtLevel paginateWith PageRequest.of(page, size)
+    val locationDescription = deferredLocationDescription.await()
     IncentiveReviewResponse(
       locationDescription = locationDescription,
+      levels = levels,
       overdueCount = overdueCount,
       reviewCount = reviewsCount,
       reviews = reviewsPage,
