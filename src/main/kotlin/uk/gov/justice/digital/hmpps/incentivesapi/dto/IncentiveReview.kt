@@ -53,14 +53,6 @@ data class IncentiveReviewResponse(
   @Schema(description = "Prisoner incentive reviews")
   val reviews: List<IncentiveReview>,
 
-  // TODO: Remove once UI stops using it
-  @Schema(description = "Total number of reviews at given location", example = "102", deprecated = true)
-  val reviewCount: Int,
-
-  // TODO: Remove once UI stops using it
-  @Schema(description = "Total number of overdue prisoner reviews at given location", example = "102", deprecated = true)
-  val overdueCount: Int,
-
   @Schema(description = "Description of given location", example = "Houseblock 1")
   val locationDescription: String,
 )

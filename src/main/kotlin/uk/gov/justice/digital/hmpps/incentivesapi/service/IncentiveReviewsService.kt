@@ -130,17 +130,11 @@ class IncentiveReviewsService(
       )
     }
 
-    // Existing count fields
-    val reviewsCount = reviewsAtLevel.size
-    val overdueCount = overdueCounts.values.sum()
-
     val reviewsPage = reviewsAtLevel paginateWith PageRequest.of(page, size)
     val locationDescription = deferredLocationDescription.await()
     IncentiveReviewResponse(
       locationDescription = locationDescription,
       levels = levels,
-      overdueCount = overdueCount,
-      reviewCount = reviewsCount,
       reviews = reviewsPage,
     )
   }

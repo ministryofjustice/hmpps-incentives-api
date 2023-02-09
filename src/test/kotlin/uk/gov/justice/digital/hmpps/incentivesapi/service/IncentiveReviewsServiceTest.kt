@@ -121,7 +121,8 @@ class IncentiveReviewsServiceTest {
 
     verify(offenderSearchService, times(1)).findOffenders(any(), eq("MDI-2-1"))
     assertThat(reviews.locationDescription).isEqualTo("A houseblock")
-    assertThat(reviews.reviewCount).isEqualTo(2)
+    val reviewCount = reviews.levels.find { level -> level.levelCode == "STD" }?.reviewCount
+    assertThat(reviewCount).isEqualTo(2)
     assertThat(reviews.reviews).isEqualTo(
       listOf(
         IncentiveReview(
@@ -271,7 +272,8 @@ class IncentiveReviewsServiceTest {
 
     val reviews = incentiveReviewsService.reviews("MDI", "MDI-2-1", "STD")
 
-    assertThat(reviews.reviewCount).isEqualTo(2)
+    val reviewCount = reviews.levels.find { level -> level.levelCode == "STD" }?.reviewCount
+    assertThat(reviewCount).isEqualTo(2)
     assertThat(reviews.reviews).isEqualTo(
       listOf(
         IncentiveReview(
@@ -467,7 +469,8 @@ class IncentiveReviewsServiceTest {
     val reviews = incentiveReviewsService.reviews("MDI", "MDI-2-1", "STD")
 
     // Then
-    assertThat(reviews.overdueCount).isEqualTo(2)
+    val overdueCount = reviews.levels.sumOf { level -> level.overdueCount }
+    assertThat(overdueCount).isEqualTo(2)
     assertThat(reviews.reviews).hasSize(3)
   }
 
@@ -502,7 +505,8 @@ class IncentiveReviewsServiceTest {
     val reviews = incentiveReviewsService.reviews("MDI", "MDI-2-1", "STD")
 
     // Then
-    assertThat(reviews.overdueCount).isEqualTo(3)
+    val overdueCount = reviews.levels.sumOf { level -> level.overdueCount }
+    assertThat(overdueCount).isEqualTo(3)
     assertThat(reviews.reviews).hasSize(1)
   }
 
@@ -537,7 +541,8 @@ class IncentiveReviewsServiceTest {
     val reviews = incentiveReviewsService.reviews("MDI", "MDI-2-1", "STD", page = 0, size = 1)
 
     // Then
-    assertThat(reviews.overdueCount).isEqualTo(3)
+    val overdueCount = reviews.levels.sumOf { level -> level.overdueCount }
+    assertThat(overdueCount).isEqualTo(3)
     assertThat(reviews.reviews).hasSize(1)
   }
 
@@ -556,7 +561,8 @@ class IncentiveReviewsServiceTest {
     val reviews = incentiveReviewsService.reviews("MDI", "MDI-2-1", "STD")
 
     // Then
-    assertThat(reviews.overdueCount).isEqualTo(0)
+    val overdueCount = reviews.levels.sumOf { level -> level.overdueCount }
+    assertThat(overdueCount).isEqualTo(0)
     assertThat(reviews.reviews).hasSize(2)
   }
 
