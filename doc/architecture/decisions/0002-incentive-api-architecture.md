@@ -1,6 +1,6 @@
 # 2. Service to model incentive related data for prisoners
 
-[Next >>](9999-end.md)
+[Next >>](0003-2-way-synchronisation.md)
 
 
 Date: 2022-02-02
@@ -41,4 +41,4 @@ This approach follows the agreed pattern of architecture for "Getting Off NOMIS"
 - Analytical Platform may have to start extracting data from this new data source (or be fed that data)
 - Synchronisation process will need maintain data in NOMIS until operation reporting and downstream dependencies are resolved.
 
-[Next >>](9999-end.md)
+[Next >>](0003-2-way-synchronisation.md)
