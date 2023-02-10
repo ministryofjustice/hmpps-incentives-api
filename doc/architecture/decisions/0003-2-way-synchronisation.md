@@ -68,10 +68,12 @@ sequenceDiagram
     NOMIS DB -->> Oracle Queue: Trigger adds IEP change to queue
     deactivate NOMIS  
     
-    Oracle Queue -->> Offender Events: IEP event received 
-    Offender Events -->> Offender Events Topic (SNS): IEP_UPSERTED published
-    Offender Events Topic (SNS) -->> HMPPS Prisoner from NOMIS migration: Receives IEP_UPSERTED event from subscribed Queue
+    Oracle Queue --) Offender Events: IEP event received 
+    Offender Events --) Offender Events Topic (SNS): IEP_UPSERTED published
+    Offender Events Topic (SNS) --) HMPPS Prisoner from NOMIS migration: Receives IEP_UPSERTED event from subscribed Queue
+    alt is entered by IEP screen (OIDOIEPS)
     HMPPS Prisoner from NOMIS migration ->> Incentives API: Insert/Update/Delete API called
+    end
 ```
 
 ## Key components and their flow for Incentive management
