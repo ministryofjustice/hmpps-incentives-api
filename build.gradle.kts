@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.8.1"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "4.8.3"
   id("org.springdoc.openapi-gradle-plugin") version "1.6.0"
   id("jacoco")
   id("org.sonarqube") version "3.5.0.2730"
@@ -41,7 +41,7 @@ dependencies {
 
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
-  implementation("io.opentelemetry:opentelemetry-api:1.22.0")
+  implementation("io.opentelemetry:opentelemetry-api:1.23.0")
 
   implementation("org.apache.commons:commons-lang3")
   implementation("org.apache.commons:commons-text:1.10.0")

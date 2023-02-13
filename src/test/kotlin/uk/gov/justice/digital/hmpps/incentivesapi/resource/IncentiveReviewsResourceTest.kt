@@ -222,8 +222,6 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
         // language=json
         """
           {
-            "reviewCount": 3,
-            "overdueCount": 1,
             "levels": [
               {
                 "levelCode": "BAS",
@@ -304,8 +302,6 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
         // language=json
         """
           {
-            "reviewCount": 3,
-            "overdueCount": 1,
             "levels": [
               {
                 "levelCode": "BAS",
