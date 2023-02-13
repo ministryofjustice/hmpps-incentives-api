@@ -356,6 +356,50 @@ class NextReviewDateServiceTest {
 
       assertThat(nextReviewDate).isEqualTo(expectedNextReviewDate)
     }
+
+    @Test
+    fun `when prisoner is readmitted (age 18+) then transferred, it still returns +3 months`() {
+      val input = NextReviewDateInput(
+        iepDetails = listOf(
+          review("2018-07-02", "MDI", iepCode = "STD", iepLevel = "Standard", reviewType = ReviewType.TRANSFER),
+          // When readmitted, was 18th birthday, not a "young person" anymore
+          review("2018-07-01", "ACI", iepCode = "STD", iepLevel = "Standard", reviewType = ReviewType.READMISSION),
+          review("2016-08-01", "MDI", iepCode = "STD", iepLevel = "Standard", reviewType = ReviewType.REVIEW),
+          review("2016-07-01", "MDI", iepCode = "STD", iepLevel = "Standard", reviewType = ReviewType.INITIAL),
+        ),
+        hasAcctOpen = true,
+        dateOfBirth = LocalDate.parse("2000-07-01"),
+        receptionDate = LocalDate.parse("2016-07-01"),
+      )
+      val readmissionDate = LocalDate.parse("2018-07-01")
+      val expectedNextReviewDate = readmissionDate.plusMonths(3)
+
+      val nextReviewDate = NextReviewDateService(input).calculate()
+
+      assertThat(nextReviewDate).isEqualTo(expectedNextReviewDate)
+    }
+
+    @Test
+    fun `when prisoner is readmitted and 'young person' (under age of 18), then transferred it still returns +1 months`() {
+      val input = NextReviewDateInput(
+        iepDetails = listOf(
+          review("2018-07-02", "MDI", iepCode = "STD", iepLevel = "Standard", reviewType = ReviewType.TRANSFER),
+          // When readmitted, was almost 18yo, so still a "young person"
+          review("2018-06-30", "ACI", iepCode = "STD", iepLevel = "Standard", reviewType = ReviewType.READMISSION),
+          review("2016-08-01", "MDI", iepCode = "STD", iepLevel = "Standard", reviewType = ReviewType.REVIEW),
+          review("2016-07-01", "MDI", iepCode = "STD", iepLevel = "Standard", reviewType = ReviewType.INITIAL),
+        ),
+        hasAcctOpen = true,
+        dateOfBirth = LocalDate.parse("2000-07-01"),
+        receptionDate = LocalDate.parse("2016-07-01"),
+      )
+      val readmissionDate = LocalDate.parse("2018-06-30")
+      val expectedNextReviewDate = readmissionDate.plusMonths(1)
+
+      val nextReviewDate = NextReviewDateService(input).calculate()
+
+      assertThat(nextReviewDate).isEqualTo(expectedNextReviewDate)
+    }
   }
 }
 
