@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitBody
 import org.springframework.web.reactive.function.client.bodyToFlow
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.BookingFromDatePair
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsageTypesRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsage
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsageRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
@@ -19,6 +21,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerExtraInf
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.ProvenAdjudication
 import uk.gov.justice.digital.hmpps.incentivesapi.util.CachedValue
 import java.time.Clock
+import java.time.LocalDateTime
 
 @Service
 class PrisonApiService(
@@ -70,10 +73,18 @@ class PrisonApiService(
     return newValue
   }
 
+  @Deprecated("Will be removed once old screen turned off")
   fun retrieveCaseNoteCounts(type: String, offenderNos: List<String>): Flow<CaseNoteUsage> =
     prisonWebClient.post()
       .uri("/api/case-notes/usage")
       .bodyValue(CaseNoteUsageRequest(numMonths = 3, offenderNos = offenderNos, type = type, subType = null))
+      .retrieve()
+      .bodyToFlow()
+
+  fun retrieveCaseNoteCountsByFromDate(types: List<String>, prisonerByLastReviewDate: Map<Long, LocalDateTime>): Flow<PrisonerCaseNoteByTypeSubType> =
+    prisonWebClient.post()
+      .uri("/api/case-notes/usage-by-types")
+      .bodyValue(CaseNoteUsageTypesRequest(types = types, bookingFromDateSelection = prisonerByLastReviewDate.map { BookingFromDatePair(it.key, it.value) }))
       .retrieve()
       .bodyToFlow()
 

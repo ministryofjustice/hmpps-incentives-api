@@ -62,6 +62,16 @@ data class CaseNoteUsageRequest(
   val subType: String?
 )
 
+data class CaseNoteUsageTypesRequest(
+  val types: List<String>,
+  val bookingFromDateSelection: List<BookingFromDatePair>
+)
+
+data class BookingFromDatePair(
+  val bookingId: Long,
+  val fromDate: LocalDateTime,
+)
+
 data class ProvenAdjudication(
   val bookingId: Long,
   val provenAdjudicationCount: Int

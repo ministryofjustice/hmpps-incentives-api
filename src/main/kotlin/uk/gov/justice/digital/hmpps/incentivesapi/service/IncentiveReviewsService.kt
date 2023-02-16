@@ -13,13 +13,13 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsage
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.util.flow.toMap
 import uk.gov.justice.digital.hmpps.incentivesapi.util.paginateWith
 import java.time.Clock
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.Comparator
 
 @Service
@@ -63,10 +63,10 @@ class IncentiveReviewsService(
     val offenders = deferredOffenders.await()
 
     val bookingIds = offenders.map(OffenderSearchPrisoner::bookingId)
-    val prisonerNumbers = offenders.map(OffenderSearchPrisoner::prisonerNumber)
 
-    val deferredPositiveCaseNotesInLast3Months = async { getCaseNoteUsage("POS", "IEP_ENC", prisonerNumbers) }
-    val deferredNegativeCaseNotesInLast3Months = async { getCaseNoteUsage("NEG", "IEP_WARN", prisonerNumbers) }
+    val deferredBehaviourCaseNotesSinceLastReview = async {
+      getCaseNoteUsageByLastReviewDate(listOf("POS", "NEG"), getLastRealReviewForOffenders(bookingIds))
+    }
 
     val deferredIncentiveLevels = async { getIncentiveLevelsForOffenders(bookingIds) }
     val deferredNextReviewDates = async { nextReviewDateGetterService.getMany(offenders) }
@@ -77,10 +77,9 @@ class IncentiveReviewsService(
       throw ListOfDataNotFoundException("incentive levels", bookingIdsMissingIncentiveLevel)
     }
 
-    val positiveCaseNotesInLast3Months = deferredPositiveCaseNotesInLast3Months.await()
-    val negativeCaseNotesInLast3Months = deferredNegativeCaseNotesInLast3Months.await()
-
     val nextReviewDates = deferredNextReviewDates.await()
+    val behaviourCaseNotesSinceLastReview = deferredBehaviourCaseNotesSinceLastReview.await()
+
     val allReviews = offenders
       .map {
         IncentiveReview(
@@ -89,8 +88,8 @@ class IncentiveReviewsService(
           firstName = WordUtils.capitalizeFully(it.firstName),
           lastName = WordUtils.capitalizeFully(it.lastName),
           levelCode = incentiveLevels[it.bookingId]!!.iepCode,
-          positiveBehaviours = positiveCaseNotesInLast3Months[it.prisonerNumber]?.totalCaseNotes ?: 0,
-          negativeBehaviours = negativeCaseNotesInLast3Months[it.prisonerNumber]?.totalCaseNotes ?: 0,
+          positiveBehaviours = behaviourCaseNotesSinceLastReview[BookingTypeKey(it.bookingId, "POS")]?.totalCaseNotes ?: 0,
+          negativeBehaviours = behaviourCaseNotesSinceLastReview[BookingTypeKey(it.bookingId, "NEG")]?.totalCaseNotes ?: 0,
           hasAcctOpen = it.hasAcctOpen,
           nextReviewDate = nextReviewDates[it.bookingId]!!,
         )
@@ -104,19 +103,19 @@ class IncentiveReviewsService(
     // Count overdue reviews and total reviews by Incentive levels
     val prisonersCounts: MutableMap<String, Int> = mutableMapOf()
     val overdueCounts: MutableMap<String, Int> = mutableMapOf()
-    allReviews.forEach() { review ->
-      val levelCode = review.levelCode
+    allReviews.forEach { review ->
+      val currentReviewLevel = review.levelCode
 
-      if (!prisonersCounts.containsKey(levelCode)) {
-        prisonersCounts[levelCode] = 0
+      if (!prisonersCounts.containsKey(currentReviewLevel)) {
+        prisonersCounts[currentReviewLevel] = 0
       }
-      if (!overdueCounts.containsKey(levelCode)) {
-        overdueCounts[levelCode] = 0
+      if (!overdueCounts.containsKey(currentReviewLevel)) {
+        overdueCounts[currentReviewLevel] = 0
       }
 
-      prisonersCounts[levelCode] = prisonersCounts[levelCode]!! + 1
+      prisonersCounts[currentReviewLevel] = prisonersCounts[currentReviewLevel]!! + 1
       if (nextReviewDates[review.bookingId]!!.isBefore(LocalDate.now(clock))) {
-        overdueCounts[levelCode] = overdueCounts[levelCode]!! + 1
+        overdueCounts[currentReviewLevel] = overdueCounts[currentReviewLevel]!! + 1
       }
     }
 
@@ -139,24 +138,32 @@ class IncentiveReviewsService(
     )
   }
 
+  private suspend fun getLastRealReviewForOffenders(bookingIds: List<Long>): Map<Long, LocalDateTime> =
+    prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds)
+      .toList()
+      .groupBy { it.bookingId }
+      .map { review ->
+        val latestReview = review.value.firstOrNull(PrisonerIepLevel::isRealReview) ?: review.value.first()
+        review.key to latestReview
+      }.associate {
+        it.first to it.second.reviewTime
+      }
+
   private suspend fun getIncentiveLevelsForOffenders(bookingIds: List<Long>): Map<Long, PrisonerIepLevel> =
     prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(bookingIds)
       .toMap(keySelector = PrisonerIepLevel::bookingId)
 
-  // Lifted from IncentiveSummaryService, which will eventually be dropped entirely, hence didn't move this to a shared service to encapsulate the logic
-  private suspend fun getCaseNoteUsage(type: String, subType: String, prisonerNumbers: List<String>): Map<String, CaseNoteSummary> =
-    prisonApiService.retrieveCaseNoteCounts(type, prisonerNumbers)
+  private suspend fun getCaseNoteUsageByLastReviewDate(caseNoteTypes: List<String>, prisonerLastReviews: Map<Long, LocalDateTime>) =
+    prisonApiService.retrieveCaseNoteCountsByFromDate(caseNoteTypes, prisonerLastReviews)
       .toList()
-      .groupBy(CaseNoteUsage::offenderNo)
+      .groupBy(PrisonerCaseNoteByTypeSubType::toKey)
       .map { cn ->
-        CaseNoteSummary(
-          offenderNo = cn.key,
+        PrisonerCaseNoteSummary(
+          key = cn.key,
           totalCaseNotes = calcTypeCount(cn.value),
-          numSubTypeCount = calcTypeCount(cn.value.filter { cnc -> cnc.caseNoteSubType == subType })
         )
-      }.associateBy(CaseNoteSummary::offenderNo)
-
-  private fun calcTypeCount(caseNoteUsage: List<CaseNoteUsage>): Int =
+      }.associateBy { it.key }
+  private fun calcTypeCount(caseNoteUsage: List<PrisonerCaseNoteByTypeSubType>): Int =
     caseNoteUsage.map { it.numCaseNotes }.fold(0) { acc, next -> acc + next }
 }
 
@@ -184,3 +191,22 @@ enum class IncentiveReviewSort(
     compareBy(selector)
   }
 }
+
+data class PrisonerCaseNoteByTypeSubType(
+  val bookingId: Long,
+  val caseNoteType: String,
+  val caseNoteSubType: String,
+  val numCaseNotes: Int,
+)
+
+fun PrisonerCaseNoteByTypeSubType.toKey() = BookingTypeKey(bookingId, caseNoteType)
+
+data class PrisonerCaseNoteSummary(
+  val key: BookingTypeKey,
+  val totalCaseNotes: Int,
+)
+
+data class BookingTypeKey(
+  val bookingId: Long,
+  val caseNoteType: String,
+)
