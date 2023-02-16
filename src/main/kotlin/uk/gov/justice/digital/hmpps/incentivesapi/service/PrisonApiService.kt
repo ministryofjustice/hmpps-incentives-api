@@ -8,7 +8,16 @@ import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitBody
 import org.springframework.web.reactive.function.client.bodyToFlow
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.*
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.BookingFromDatePair
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsageTypesRequest
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IncentiveLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Location
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonLocation
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocation
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerCaseNoteByTypeSubType
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerExtraInfo
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.ProvenAdjudication
 import uk.gov.justice.digital.hmpps.incentivesapi.util.CachedValue
 import java.time.Clock
 import java.time.LocalDateTime
