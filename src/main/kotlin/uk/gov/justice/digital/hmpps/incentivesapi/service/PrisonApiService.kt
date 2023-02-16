@@ -9,9 +9,9 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitBody
 import org.springframework.web.reactive.function.client.bodyToFlow
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.BookingFromDatePair
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsageTypesRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsage
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsageRequest
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsageTypesRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Location
