@@ -19,7 +19,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.util.flow.toMap
 import uk.gov.justice.digital.hmpps.incentivesapi.util.paginateWith
 import java.time.Clock
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.util.Comparator
 
 @Service
@@ -29,6 +28,7 @@ class IncentiveReviewsService(
   private val iepLevelService: IepLevelService,
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository,
   private val nextReviewDateGetterService: NextReviewDateGetterService,
+  private val behaviourService: BehaviourService,
   private val clock: Clock,
 ) {
   companion object {
@@ -64,10 +64,7 @@ class IncentiveReviewsService(
 
     val bookingIds = offenders.map(OffenderSearchPrisoner::bookingId)
 
-    val deferredBehaviourCaseNotesSinceLastReview = async {
-      getCaseNoteUsageByLastReviewDate(listOf("POS", "NEG"), getLastRealReviewForOffenders(bookingIds))
-    }
-
+    val deferredBehaviourCaseNotesSinceLastReview = async { behaviourService.getBehaviours(prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds = bookingIds).toList()) }
     val deferredIncentiveLevels = async { getIncentiveLevelsForOffenders(bookingIds) }
     val deferredNextReviewDates = async { nextReviewDateGetterService.getMany(offenders) }
 
@@ -138,33 +135,9 @@ class IncentiveReviewsService(
     )
   }
 
-  private suspend fun getLastRealReviewForOffenders(bookingIds: List<Long>): Map<Long, LocalDateTime> =
-    prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds)
-      .toList()
-      .groupBy { it.bookingId }
-      .map { review ->
-        val latestReview = review.value.firstOrNull(PrisonerIepLevel::isRealReview) ?: review.value.first()
-        review.key to latestReview
-      }.associate {
-        it.first to it.second.reviewTime
-      }
-
   private suspend fun getIncentiveLevelsForOffenders(bookingIds: List<Long>): Map<Long, PrisonerIepLevel> =
     prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(bookingIds)
       .toMap(keySelector = PrisonerIepLevel::bookingId)
-
-  private suspend fun getCaseNoteUsageByLastReviewDate(caseNoteTypes: List<String>, prisonerLastReviews: Map<Long, LocalDateTime>) =
-    prisonApiService.retrieveCaseNoteCountsByFromDate(caseNoteTypes, prisonerLastReviews)
-      .toList()
-      .groupBy(PrisonerCaseNoteByTypeSubType::toKey)
-      .map { cn ->
-        PrisonerCaseNoteSummary(
-          key = cn.key,
-          totalCaseNotes = calcTypeCount(cn.value),
-        )
-      }.associateBy { it.key }
-  private fun calcTypeCount(caseNoteUsage: List<PrisonerCaseNoteByTypeSubType>): Int =
-    caseNoteUsage.map { it.numCaseNotes }.fold(0) { acc, next -> acc + next }
 }
 
 @Suppress("unused") // not all enum variants are referred to in code
@@ -185,28 +158,10 @@ enum class IncentiveReviewSort(
     fun orDefault(sort: IncentiveReviewSort?) = sort ?: NEXT_REVIEW_DATE
   }
 
-  infix fun comparingIn(order: Sort.Direction?): Comparator<IncentiveReview> = if ((order ?: defaultOrder).isDescending) {
-    compareBy(selector).reversed()
-  } else {
-    compareBy(selector)
-  }
+  infix fun comparingIn(order: Sort.Direction?): Comparator<IncentiveReview> =
+    if ((order ?: defaultOrder).isDescending) {
+      compareBy(selector).reversed()
+    } else {
+      compareBy(selector)
+    }
 }
-
-data class PrisonerCaseNoteByTypeSubType(
-  val bookingId: Long,
-  val caseNoteType: String,
-  val caseNoteSubType: String,
-  val numCaseNotes: Int,
-)
-
-fun PrisonerCaseNoteByTypeSubType.toKey() = BookingTypeKey(bookingId, caseNoteType)
-
-data class PrisonerCaseNoteSummary(
-  val key: BookingTypeKey,
-  val totalCaseNotes: Int,
-)
-
-data class BookingTypeKey(
-  val bookingId: Long,
-  val caseNoteType: String,
-)

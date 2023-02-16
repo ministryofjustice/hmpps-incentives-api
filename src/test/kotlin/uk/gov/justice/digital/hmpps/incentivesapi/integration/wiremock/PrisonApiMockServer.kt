@@ -159,11 +159,11 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
     )
   }
 
-  fun stubPositiveCaseNoteSummary() {
+  fun stubCaseNoteSummary() {
     stubFor(
-      post("/api/case-notes/usage")
+      post("/api/case-notes/usage-by-types")
         .withRequestBody(
-          WireMock.equalToJson("""{"numMonths": 3, "type": "POS"}""", true, true)
+          WireMock.equalToJson("""{ "types": ["POS", "NEG"] }""", true, true)
         )
         .willReturn(
           aResponse()
@@ -173,121 +173,102 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
               """
               [
                 {
-                  "caseNoteSubType": "POS",
-                  "caseNoteType": "POS_GEN",
+                  "caseNoteSubType": "POS_GEN",
+                  "caseNoteType": "POS",
                   "latestCaseNote": "2022-01-21T09:28:25.673Z",
                   "numCaseNotes": 2,
-                  "offenderNo": "A1234AA"
+                  "bookingId": 1234134
                 },
                 {
-                  "caseNoteSubType": "POS",
-                  "caseNoteType": "IEP_ENC",
+                  "caseNoteSubType": "IEP_ENC",
+                  "caseNoteType": "POS",
                   "latestCaseNote": "2022-01-21T09:28:25.673Z",
                   "numCaseNotes": 1,
-                  "offenderNo": "A1234AA"
+                  "bookingId": 1234134
                 },
                 {
-                  "caseNoteSubType": "POS",
-                  "caseNoteType": "QUAL_ATT",
+                  "caseNoteSubType": "QUAL_ATT",
+                  "caseNoteType": "POS",
                   "latestCaseNote": "2022-01-21T09:28:25.673Z",
                   "numCaseNotes": 3,
-                  "offenderNo": "A1234AB"
+                  "bookingId": 1234135
                 },
                 {
-                  "caseNoteSubType": "POS",
-                  "caseNoteType": "POS_GEN",
+                  "caseNoteSubType": "POS_GEN",
+                  "caseNoteType": "POS",
                   "latestCaseNote": "2022-01-21T09:28:25.673Z",
                   "numCaseNotes": 2,
-                  "offenderNo": "A1234AC"
+                  "bookingId": 1234136
                 },
                 {
-                  "caseNoteSubType": "POS",
-                  "caseNoteType": "IEP_ENC",
+                  "caseNoteSubType": "IEP_ENC",
+                  "caseNoteType": "POS",
                   "latestCaseNote": "2022-01-21T09:28:25.673Z",
                   "numCaseNotes": 1,
-                  "offenderNo": "A1234AD"
+                  "bookingId": 1234137
                 },
                 {
-                  "caseNoteSubType": "POS",
-                  "caseNoteType": "POS_GEN",
+                  "caseNoteSubType": "POS_GEN",
+                  "caseNoteType": "POS",
                   "latestCaseNote": "2022-01-21T09:28:25.673Z",
                   "numCaseNotes": 5,
-                  "offenderNo": "A1234AE"
+                  "bookingId": 1234138
                 },
                 {
-                  "caseNoteSubType": "POS",
-                  "caseNoteType": "IEP_ENC",
+                  "caseNoteSubType": "IEP_ENC",
+                  "caseNoteType": "POS",
                   "latestCaseNote": "2022-01-21T09:28:25.673Z",
                   "numCaseNotes": 3,
-                  "offenderNo": "A1409AE"
-                }
-              ]
-              """
-            )
-        )
-    )
-  }
-  fun stubNegativeCaseNoteSummary() {
-    stubFor(
-      post("/api/case-notes/usage")
-        .withRequestBody(
-          WireMock.equalToJson("""{"numMonths": 3, "type": "NEG"}""", true, true)
-        )
-        .willReturn(
-          aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withBody(
-              // language=json
-              """
-              [
+                  "bookingId": 1234138
+                },
                 {
-                  "caseNoteSubType": "NEG",
-                  "caseNoteType": "BEHAVEWARN",
+                  "caseNoteSubType": "BEHAVEWARN",
+                  "caseNoteType": "NEG",
                   "latestCaseNote": "2022-01-21T09:28:25.673Z",
                   "numCaseNotes": 2,
-                  "offenderNo": "A1234AA"
+                  "bookingId": 1234134
                 },
                 {
-                  "caseNoteSubType": "NEG",
-                  "caseNoteType": "IEP_WARN",
+                  "caseNoteSubType": "IEP_WARN",
+                  "caseNoteType": "NEG",
                   "latestCaseNote": "2022-01-21T09:28:25.673Z",
                   "numCaseNotes": 1,
-                  "offenderNo": "A1234AA"
+                  "bookingId": 1234134
                 },
                 {
-                  "caseNoteSubType": "NEG",
-                  "caseNoteType": "WORKWARN",
+                  "caseNoteSubType": "WORKWARN",
+                  "caseNoteType": "NEG",
                   "latestCaseNote": "2022-01-21T09:28:25.673Z",
                   "numCaseNotes": 3,
-                  "offenderNo": "A1234AB"
+                  "bookingId": 1234135
                 },
                 {
-                  "caseNoteSubType": "NEG",
-                  "caseNoteType": "NEG_GEN",
+                  "caseNoteSubType": "NEG_GEN",
+                  "caseNoteType": "NEG",
                   "latestCaseNote": "2022-01-21T09:28:25.673Z",
                   "numCaseNotes": 2,
-                  "offenderNo": "A1234AC"
+                  "bookingId": 1234136
                 },
                 {
-                  "caseNoteSubType": "NEG",
-                  "caseNoteType": "NEG_GEN",
+                  "caseNoteSubType": "NEG_GEN",
+                  "caseNoteType": "NEG",
                   "latestCaseNote": "2022-01-21T09:28:25.673Z",
                   "numCaseNotes": 1,
-                  "offenderNo": "A1234AD"
+                  "bookingId": 1234137
                 },
                 {
-                  "caseNoteSubType": "NEG",
-                  "caseNoteType": "NEG_GEN",
+                  "caseNoteSubType": "NEG_GEN",
+                  "caseNoteType": "NEG",
                   "latestCaseNote": "2022-01-21T09:28:25.673Z",
                   "numCaseNotes": 5,
-                  "offenderNo": "A1234AE"
+                  "bookingId": 1234138
                 },
                 {
-                  "caseNoteSubType": "NEG",
-                  "caseNoteType": "IEP_WARN",
+                  "caseNoteSubType": "IEP_WARN",
+                  "caseNoteType": "NEG",
                   "latestCaseNote": "2022-01-21T09:28:25.673Z",
                   "numCaseNotes": 4,
-                  "offenderNo": "A1409AE"
+                  "bookingId": 1234138
                 }
               ]
               """
