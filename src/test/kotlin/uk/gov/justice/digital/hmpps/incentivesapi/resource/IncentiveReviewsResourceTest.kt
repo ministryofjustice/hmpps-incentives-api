@@ -93,8 +93,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
   inner class `validates request parameters` {
     @BeforeEach
     fun setUp() {
-      prisonApiMockServer.stubPositiveCaseNoteSummary()
-      prisonApiMockServer.stubNegativeCaseNoteSummary()
+      prisonApiMockServer.stubCaseNoteSummary()
       prisonApiMockServer.stubIepLevels()
     }
 
@@ -208,8 +207,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
   fun `loads prisoner details from offender search and prison api`() {
     offenderSearchMockServer.stubFindOffenders("MDI")
     prisonApiMockServer.stubLocation("MDI-1")
-    prisonApiMockServer.stubPositiveCaseNoteSummary()
-    prisonApiMockServer.stubNegativeCaseNoteSummary()
+    prisonApiMockServer.stubCaseNoteSummary()
     prisonApiMockServer.stubIepLevels()
     prisonApiMockServer.stubAgenciesIepLevels("MDI")
 
@@ -222,8 +220,6 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
         // language=json
         """
           {
-            "reviewCount": 3,
-            "overdueCount": 1,
             "levels": [
               {
                 "levelCode": "BAS",
@@ -290,8 +286,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
   fun `loads prisoner details even when location description not found`() {
     offenderSearchMockServer.stubFindOffenders("MDI")
     prisonApiMockServer.stubApi404for("/api/locations/code/MDI-1")
-    prisonApiMockServer.stubPositiveCaseNoteSummary()
-    prisonApiMockServer.stubNegativeCaseNoteSummary()
+    prisonApiMockServer.stubCaseNoteSummary()
     prisonApiMockServer.stubIepLevels()
     prisonApiMockServer.stubAgenciesIepLevels("MDI")
 
@@ -304,8 +299,6 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
         // language=json
         """
           {
-            "reviewCount": 3,
-            "overdueCount": 1,
             "levels": [
               {
                 "levelCode": "BAS",
@@ -373,8 +366,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
   fun `sorts by provided parameters`(sort: IncentiveReviewSort): Unit = runBlocking {
     offenderSearchMockServer.stubFindOffenders("MDI")
     prisonApiMockServer.stubLocation("MDI-1")
-    prisonApiMockServer.stubPositiveCaseNoteSummary()
-    prisonApiMockServer.stubNegativeCaseNoteSummary()
+    prisonApiMockServer.stubCaseNoteSummary()
     prisonApiMockServer.stubIepLevels()
     prisonApiMockServer.stubAgenciesIepLevels("MDI")
 
@@ -413,8 +405,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
     fun setUp() {
       offenderSearchMockServer.stubFindOffenders("MDI")
       prisonApiMockServer.stubLocation("MDI-1")
-      prisonApiMockServer.stubPositiveCaseNoteSummary()
-      prisonApiMockServer.stubNegativeCaseNoteSummary()
+      prisonApiMockServer.stubCaseNoteSummary()
       prisonApiMockServer.stubIepLevels()
       prisonApiMockServer.stubAgenciesIepLevels("MDI")
     }
@@ -472,8 +463,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
   fun `describes error when incentive levels not available in DB`(): Unit = runBlocking {
     offenderSearchMockServer.stubFindOffenders("MDI")
     prisonApiMockServer.stubLocation("MDI-1")
-    prisonApiMockServer.stubPositiveCaseNoteSummary()
-    prisonApiMockServer.stubNegativeCaseNoteSummary()
+    prisonApiMockServer.stubCaseNoteSummary()
     prisonApiMockServer.stubIepLevels()
 
     prisonerIepLevelRepository.deleteAll()

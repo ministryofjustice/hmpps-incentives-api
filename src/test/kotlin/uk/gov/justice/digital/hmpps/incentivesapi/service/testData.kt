@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocation
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerExtraInfo
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
@@ -38,14 +39,21 @@ fun prisonerAtLocation(bookingId: Long = 1234567, offenderNo: String = "A1234AA"
     bookingId, 1, "John", "Smith", offenderNo, agencyId, 1
   )
 
-fun prisonerIepLevel(bookingId: Long, iepCode: String = "STD", reviewTime: LocalDateTime = LocalDateTime.now()) =
+fun prisonerIepLevel(
+  bookingId: Long,
+  iepCode: String = "STD",
+  reviewTime: LocalDateTime = LocalDateTime.now(),
+  current: Boolean = true,
+  reviewType: ReviewType = ReviewType.REVIEW
+) =
   PrisonerIepLevel(
     iepCode = iepCode,
     prisonId = "MDI",
     locationId = "MDI-1-1-004",
     bookingId = bookingId,
-    current = true,
+    current = current,
     reviewedBy = "TEST_STAFF1",
     reviewTime = reviewTime,
-    prisonerNumber = "A1234AB"
+    prisonerNumber = "A1234AB",
+    reviewType = reviewType
   )

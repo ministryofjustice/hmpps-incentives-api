@@ -18,7 +18,7 @@ class NextReviewDateService(private val input: NextReviewDateInput) {
 
   fun calculate(): LocalDate {
     if (isReadmission()) {
-      val readmissionDate = input.iepDetails.first().iepDate
+      val readmissionDate = reviews(includeReadmissions = true).first().iepDate
       return ruleForNewPrisoners(readmissionDate)
     }
 
@@ -94,11 +94,14 @@ class NextReviewDateService(private val input: NextReviewDateInput) {
   }
 
   private fun isReadmission(): Boolean {
-    // NOTE: Readmission/recalls "reviews" are not real incentive reviews, that's why the "raw" iepDetails list is checked here
-    return input.iepDetails.firstOrNull()?.reviewType == ReviewType.READMISSION
+    // NOTE: Readmission/recalls "reviews" are not real incentive reviews, that's why they need to be explicitly included here
+    return reviews(includeReadmissions = true).firstOrNull()?.reviewType == ReviewType.READMISSION
   }
 
-  private fun reviews(): List<IepDetail> {
-    return input.iepDetails.filter(IepDetail::isRealReview)
+  private fun reviews(includeReadmissions: Boolean = false): List<IepDetail> {
+    return input.iepDetails.filter { iepDetail ->
+      iepDetail.isRealReview() ||
+        (includeReadmissions && iepDetail.reviewType == ReviewType.READMISSION)
+    }
   }
 }

@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi
 import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.swagger.v3.oas.annotations.media.Schema
+import org.springframework.format.annotation.DateTimeFormat
 import uk.gov.justice.digital.hmpps.incentivesapi.service.PrisonerInfoForNextReviewDate
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -47,19 +48,22 @@ data class Location(
   val description: String,
 )
 
-data class CaseNoteUsage(
-  val offenderNo: String,
+data class PrisonerCaseNoteByTypeSubType(
+  val bookingId: Long,
   val caseNoteType: String,
   val caseNoteSubType: String,
   val numCaseNotes: Int,
-  val latestCaseNote: LocalDateTime?
 )
 
-data class CaseNoteUsageRequest(
-  val numMonths: Int = 1,
-  val offenderNos: List<String>,
-  val type: String,
-  val subType: String?
+data class CaseNoteUsageTypesRequest(
+  val types: List<String>,
+  val bookingFromDateSelection: List<BookingFromDatePair>
+)
+
+data class BookingFromDatePair(
+  val bookingId: Long,
+  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+  val fromDate: LocalDateTime,
 )
 
 data class ProvenAdjudication(
@@ -90,15 +94,6 @@ data class PrisonLocation(
   val locationType: String,
   val userDescription: String?
 
-) {
-  fun getLocationDescription() = userDescription ?: description
-}
-
-data class IepReviewInNomis(
-  val iepLevel: String,
-  val comment: String,
-  val reviewTime: LocalDateTime,
-  val reviewerUserName: String,
 )
 
 data class IncentiveLevel(
