@@ -8,6 +8,8 @@ import java.time.Clock
 import java.time.LocalDateTime
 import java.time.Period
 
+const val DEFAULT_MONTHS = 3L
+
 @Service
 class BehaviourService(
   private val prisonApiService: PrisonApiService,
@@ -42,16 +44,20 @@ class BehaviourService(
     reviews
       .groupBy { it.bookingId }
       .map { review ->
-        val latestReview = review.value.firstOrNull(PrisonerIepLevel::isRealReview) ?: review.value.first()
-        review.key to latestReview
+        val latestReview = review.value.firstOrNull(PrisonerIepLevel::isRealReview)
+        review.key to truncateReviewDate(latestReview?.reviewTime)
       }.associate {
-        it.first to truncateReviewDate(it.second.reviewTime)
+        it.first to it.second
       }
 
-  private fun truncateReviewDate(lastReviewTime: LocalDateTime): LocalDateTime {
+  private fun defaultReviewPeriod() = LocalDateTime.now(clock).minusMonths(DEFAULT_MONTHS)
+
+  private fun truncateReviewDate(lastReviewTime: LocalDateTime?): LocalDateTime {
+    if (lastReviewTime == null) return defaultReviewPeriod()
+
     val today = LocalDateTime.now(clock)
-    return if (Period.between(lastReviewTime.toLocalDate(), today.toLocalDate()).months < 3) { lastReviewTime } else {
-      today.minusMonths(3)
+    return if (Period.between(lastReviewTime.toLocalDate(), today.toLocalDate()).months < DEFAULT_MONTHS) { lastReviewTime } else {
+      defaultReviewPeriod()
     }
   }
 }
