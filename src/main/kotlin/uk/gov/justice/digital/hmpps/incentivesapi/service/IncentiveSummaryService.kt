@@ -11,7 +11,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevelSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonerIncentiveSummary
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsage
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.ProvenAdjudication
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
@@ -26,6 +25,7 @@ class IncentiveSummaryService(
   private val offenderSearchService: OffenderSearchService,
   private val iepLevelService: IepLevelService,
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository,
+  private val behaviourService: BehaviourService,
   private val clock: Clock,
 ) {
 
@@ -41,20 +41,19 @@ class IncentiveSummaryService(
 
     val iepLevelsDeferred = async { iepLevelService.getIepLevelsForPrison(prisonId) }
 
-    val offenderNos = prisoners.map(OffenderSearchPrisoner::prisonerNumber)
-    val positiveCaseNotes = async { getCaseNoteUsage("POS", "IEP_ENC", offenderNos) }
-    val negativeCaseNotes = async { getCaseNoteUsage("NEG", "IEP_WARN", offenderNos) }
-
     val bookingIds = prisoners.map(OffenderSearchPrisoner::bookingId)
     val provenAdjudications = async { getProvenAdjudications(bookingIds) }
-    val iepDetails = getIEPDetails(bookingIds)
 
-    val positiveCount = positiveCaseNotes.await()
-    val negativeCount = negativeCaseNotes.await()
+    val reviews = prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds = bookingIds).toList()
+    val iepDetails = getCurrentAndHistoricalReviews(reviews).associateBy(IepResult::bookingId)
+
+    val deferredBehaviourCaseNotesSinceLastReview = async { behaviourService.getBehaviours(reviews) }
 
     val iepLevels = iepLevelsDeferred.await()
     val iepLevelsByCode = iepLevels.associateBy(IepLevel::iepLevel)
     val iepLevelsByDescription = iepLevels.associateBy(IepLevel::iepDescription)
+
+    val behaviourCaseNotesSinceLastReview = deferredBehaviourCaseNotesSinceLastReview.await()
 
     val prisonersByLevel = getPrisonersByLevel(prisoners, iepDetails)
       .map { prisonerIepLevelMap ->
@@ -71,10 +70,10 @@ class IncentiveSummaryService(
               bookingId = p.bookingId,
               daysOnLevel = iepDetails[p.bookingId]?.daysOnLevel ?: 0,
               daysSinceLastReview = iepDetails[p.bookingId]?.daysSinceReview ?: 0,
-              positiveBehaviours = positiveCount[p.prisonerNumber]?.totalCaseNotes ?: 0,
-              incentiveEncouragements = positiveCount[p.prisonerNumber]?.numSubTypeCount ?: 0,
-              negativeBehaviours = negativeCount[p.prisonerNumber]?.totalCaseNotes ?: 0,
-              incentiveWarnings = negativeCount[p.prisonerNumber]?.numSubTypeCount ?: 0,
+              positiveBehaviours = behaviourCaseNotesSinceLastReview[BookingTypeKey(p.bookingId, "POS")]?.totalCaseNotes ?: 0,
+              incentiveEncouragements = behaviourCaseNotesSinceLastReview[BookingTypeKey(p.bookingId, "POS")]?.numSubTypeCount ?: 0,
+              negativeBehaviours = behaviourCaseNotesSinceLastReview[BookingTypeKey(p.bookingId, "NEG")]?.totalCaseNotes ?: 0,
+              incentiveWarnings = behaviourCaseNotesSinceLastReview[BookingTypeKey(p.bookingId, "NEG")]?.numSubTypeCount ?: 0,
               provenAdjudications = provenAdjudications.await()[p.bookingId]?.provenAdjudicationCount ?: 0,
             )
           }.sortedWith(sortBy.applySorting(sortDirection))
@@ -127,14 +126,9 @@ class IncentiveSummaryService(
     prisonApiService.retrieveProvenAdjudications(bookingIds)
       .toList().associateBy(ProvenAdjudication::bookingId)
 
-  private suspend fun getIEPDetails(bookingIds: List<Long>): Map<Long, IepResult> {
-    return getCurrentAndHistoricalReviews(bookingIds).associateBy(IepResult::bookingId)
-  }
-
-  private suspend fun getCurrentAndHistoricalReviews(bookingIds: List<Long>): List<IepResult> {
+  private suspend fun getCurrentAndHistoricalReviews(reviews: List<PrisonerIepLevel>): List<IepResult> {
     val incentiveLevels = prisonApiService.getIncentiveLevels()
-    return prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds = bookingIds)
-      .toList()
+    return reviews
       .sortedByDescending { it.reviewTime }
       .groupBy { it.bookingId }
       .map {
@@ -170,21 +164,6 @@ class IncentiveSummaryService(
       }
   }
 
-  private suspend fun getCaseNoteUsage(type: String, subType: String, offenderNos: List<String>): Map<String, CaseNoteSummary> =
-    prisonApiService.retrieveCaseNoteCounts(type, offenderNos)
-      .toList()
-      .groupBy(CaseNoteUsage::offenderNo)
-      .map { cn ->
-        CaseNoteSummary(
-          offenderNo = cn.key,
-          totalCaseNotes = calcTypeCount(cn.value.toList()),
-          numSubTypeCount = calcTypeCount(cn.value.filter { cnc -> cnc.caseNoteSubType == subType })
-        )
-      }.associateBy(CaseNoteSummary::offenderNo)
-
-  private fun calcTypeCount(caseNoteUsage: List<CaseNoteUsage>): Int =
-    caseNoteUsage.map { it.numCaseNotes }.fold(0) { acc, next -> acc + next }
-
   private suspend fun getLocation(locationId: String): String =
     prisonApiService.getLocation(locationId).description
 }
@@ -215,12 +194,6 @@ fun daysOnLevel(clock: Clock, iepDetails: List<IepDetail>): Int {
 
   return Duration.between(earliestMatchingIepDetail.iepDate.atStartOfDay(), today).toDays().toInt()
 }
-
-data class CaseNoteSummary(
-  val offenderNo: String,
-  val totalCaseNotes: Int,
-  val numSubTypeCount: Int
-)
 
 enum class SortColumn {
   NUMBER,

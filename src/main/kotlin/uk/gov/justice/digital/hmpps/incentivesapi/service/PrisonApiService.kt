@@ -8,17 +8,19 @@ import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitBody
 import org.springframework.web.reactive.function.client.bodyToFlow
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsage
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsageRequest
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.BookingFromDatePair
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsageTypesRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Location
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonLocation
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocation
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerCaseNoteByTypeSubType
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerExtraInfo
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.ProvenAdjudication
 import uk.gov.justice.digital.hmpps.incentivesapi.util.CachedValue
 import java.time.Clock
+import java.time.LocalDateTime
 
 @Service
 class PrisonApiService(
@@ -70,10 +72,10 @@ class PrisonApiService(
     return newValue
   }
 
-  fun retrieveCaseNoteCounts(type: String, offenderNos: List<String>): Flow<CaseNoteUsage> =
+  fun retrieveCaseNoteCountsByFromDate(types: List<String>, prisonerByLastReviewDate: Map<Long, LocalDateTime>): Flow<PrisonerCaseNoteByTypeSubType> =
     prisonWebClient.post()
-      .uri("/api/case-notes/usage")
-      .bodyValue(CaseNoteUsageRequest(numMonths = 3, offenderNos = offenderNos, type = type, subType = null))
+      .uri("/api/case-notes/usage-by-types")
+      .bodyValue(CaseNoteUsageTypesRequest(types = types, bookingFromDateSelection = prisonerByLastReviewDate.map { BookingFromDatePair(it.key, it.value) }))
       .retrieve()
       .bodyToFlow()
 
