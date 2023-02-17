@@ -177,16 +177,16 @@ class IncentiveReviewsServiceTest {
         mapOf(
           BookingTypeKey(bookingId = 110002L, caseNoteType = "POS")
             to CaseNoteSummary(
-            key = BookingTypeKey(bookingId = 110002L, caseNoteType = "POS"),
-            totalCaseNotes = 5,
-            numSubTypeCount = 5
-          ),
+              key = BookingTypeKey(bookingId = 110002L, caseNoteType = "POS"),
+              totalCaseNotes = 5,
+              numSubTypeCount = 5
+            ),
           BookingTypeKey(bookingId = 110002L, caseNoteType = "NEG")
             to CaseNoteSummary(
-            key = BookingTypeKey(bookingId = 110002L, caseNoteType = "NEG"),
-            totalCaseNotes = 7,
-            numSubTypeCount = 7
-          )
+              key = BookingTypeKey(bookingId = 110002L, caseNoteType = "NEG"),
+              totalCaseNotes = 7,
+              numSubTypeCount = 7
+            )
         )
       )
 
