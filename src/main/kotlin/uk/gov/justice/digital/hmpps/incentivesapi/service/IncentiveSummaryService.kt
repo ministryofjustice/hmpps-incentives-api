@@ -47,9 +47,7 @@ class IncentiveSummaryService(
     val reviews = prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds = bookingIds).toList()
     val iepDetails = getCurrentAndHistoricalReviews(reviews).associateBy(IepResult::bookingId)
 
-    val deferredBehaviourCaseNotesSinceLastReview = async {
-      behaviourService.getBehaviours(prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds = bookingIds).toList())
-    }
+    val deferredBehaviourCaseNotesSinceLastReview = async { behaviourService.getBehaviours(reviews) }
 
     val iepLevels = iepLevelsDeferred.await()
     val iepLevelsByCode = iepLevels.associateBy(IepLevel::iepLevel)
