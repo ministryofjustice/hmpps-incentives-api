@@ -41,7 +41,7 @@ class BehaviourServiceTest {
         prisonerIepLevel(bookingId = 110002, iepCode = "STD", current = false, reviewType = ReviewType.REVIEW, reviewTime = timeNow.minusMonths(3)),
         prisonerIepLevel(bookingId = 110002, iepCode = "STD", current = false, reviewType = ReviewType.INITIAL, reviewTime = timeNow.minusMonths(4)),
 
-        prisonerIepLevel(bookingId = 110003, iepCode = "STD", current = true, reviewType = ReviewType.MIGRATED, reviewTime = timeNow.minusMonths(10)),
+        prisonerIepLevel(bookingId = 110003, iepCode = "STD", current = true, reviewType = ReviewType.MIGRATED, reviewTime = timeNow.minusMonths(14)),
 
         prisonerIepLevel(bookingId = 110004, iepCode = "STD", current = true, reviewType = ReviewType.INITIAL, reviewTime = timeNow.minusMonths(1)),
 
