@@ -6,7 +6,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerCaseNote
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import java.time.Clock
 import java.time.LocalDateTime
-import java.time.Period
 
 const val DEFAULT_MONTHS = 3L
 
@@ -56,8 +55,8 @@ class BehaviourService(
     if (lastReviewTime == null) return defaultReviewPeriod()
 
     val today = LocalDateTime.now(clock)
-    return if (Period.between(lastReviewTime.toLocalDate(), today.toLocalDate()).months < DEFAULT_MONTHS) { lastReviewTime } else {
-      defaultReviewPeriod()
+    return if (lastReviewTime.isBefore(today.minusMonths(DEFAULT_MONTHS))) { defaultReviewPeriod() } else {
+      lastReviewTime
     }
   }
 }
