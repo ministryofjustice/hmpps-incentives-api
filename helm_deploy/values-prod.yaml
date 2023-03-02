@@ -11,6 +11,40 @@ generic-service:
     API_BASE_URL_PRISON: https://api.prison.service.justice.gov.uk
     API_BASE_URL_OFFENDER_SEARCH: https://prisoner-offender-search.prison.service.justice.gov.uk
 
+  # Pre-existing kubernetes secrets to load as environment variables in the deployment.
+  # namespace_secrets:
+  #   [name of kubernetes secret]:
+  #     [name of environment variable as seen by app]: [key of kubernetes secret to load]
+
+  namespace_secrets:
+    hmpps-incentives-api:
+      APPINSIGHTS_INSTRUMENTATIONKEY: "APPINSIGHTS_INSTRUMENTATIONKEY"
+      INCENTIVES_API_CLIENT_ID: "INCENTIVES_API_CLIENT_ID"
+      INCENTIVES_API_CLIENT_SECRET: "INCENTIVES_API_CLIENT_SECRET"
+    dps-rds-instance-output:
+      SPRING_FLYWAY_USER: "database_username"
+      SPRING_FLYWAY_PASSWORD: "database_password"
+      SPRING_R2DBC_USERNAME: "database_username"
+      SPRING_R2DBC_PASSWORD: "database_password"
+      DATABASE_NAME: "database_name"
+      DATABASE_ENDPOINT: "rds_instance_endpoint"
+    hmpps-domain-events-topic:
+      HMPPS_SQS_TOPICS_DOMAINEVENTS_ACCESS_KEY_ID: "access_key_id"
+      HMPPS_SQS_TOPICS_DOMAINEVENTS_SECRET_ACCESS_KEY: "secret_access_key"
+      HMPPS_SQS_TOPICS_DOMAINEVENTS_ARN: "topic_arn"
+    sqs-hmpps-audit-secret:
+      HMPPS_SQS_QUEUES_AUDIT_QUEUE_ACCESS_KEY_ID: "access_key_id"
+      HMPPS_SQS_QUEUES_AUDIT_QUEUE_SECRET_ACCESS_KEY: "secret_access_key"
+      HMPPS_SQS_QUEUES_AUDIT_QUEUE_NAME: "sqs_queue_name"
+    sqs-incentives-secret:
+      HMPPS_SQS_QUEUES_INCENTIVES_QUEUE_ACCESS_KEY_ID: "access_key_id"
+      HMPPS_SQS_QUEUES_INCENTIVES_QUEUE_SECRET_ACCESS_KEY: "secret_access_key"
+      HMPPS_SQS_QUEUES_INCENTIVES_QUEUE_NAME: "sqs_queue_name"
+    sqs-incentives-dlq-secret:
+      HMPPS_SQS_QUEUES_INCENTIVES_DLQ_ACCESS_KEY_ID: "access_key_id"
+      HMPPS_SQS_QUEUES_INCENTIVES_DLQ_SECRET_ACCESS_KEY: "secret_access_key"
+      HMPPS_SQS_QUEUES_INCENTIVES_DLQ_NAME: "sqs_queue_name"
+
   postgresDatabaseRestore:
     enabled: true
     namespace_secrets:
