@@ -25,9 +25,20 @@ Reference data for incentives includes:-
 - Visit Allowances (VO and PVO)
 - Other privileges
 
-Tables Affected in NOMIS:
+A logical schema of this data could be:-
+```mermaid
+erDiagram
+    Prisoner ||--o{ Incentive_Review : is_reviewed_in
+    Prison_Incentive_Level ||--o{ Incentive_Review : has_entries
+    Prison_Incentive_Level ||--o{ VisitAllowance: has_visit_attributes
+    Prison_Incentive_Level ||--o{ Privileges: has_priv_attributes
+    Incentive_Level ||--o{ Prison_Incentive_Level: define_allowed_levels
+   
+```
 
-- REFERENCE_CODES for where `DOMAIN` = IEP_LEVEL
+Tables Affected in **NOMIS**:
+
+- REFERENCE_CODES for where `DOMAIN = 'IEP_LEVEL' OR DOMAIN = 'IEP_OTH_PRIV'`
 ```oracle
  CREATE TABLE "REFERENCE_CODES"
  (
@@ -44,7 +55,7 @@ Levels are set with the DOMAIN of `IEP_LEVELS` as a central admin user on the Re
 The `IEP_OTH_PRIV` domain allows extra privileges to be added ![](other_privs_ref.png)
 
 
-The OIMOIEPS NOMIS screen allows config of levels, visits and other privilages.
+The **OIMOIEPS** NOMIS screen allows config of levels, visits and other privilages.
 
 - IEP_LEVELS 
 ```oracle
@@ -102,17 +113,25 @@ CREATE TABLE "OTHER_PRIVILEGES_LEVELS"
 
 This screen represents the Other Privileges ![](other_privs.png)
 
+### Events to be raised on changes (Insert, update, delete)
+- REFERENCE_DATA_CHANGE (REFERENCE_CODE supplied)
+- INCENTIVE_PRISON_LEVEL_CHANGE (Prison and Level supplied)
+- VISIT_ALLOWANCE_LEVEL_CHANGE (Prison and Level supplied)
+- OTHER_PRIVILEGES_LEVEL_CHANGE (Code, prison and level supplied)
 
-A logical schema of this data could be:-
-```mermaid
-erDiagram
-    Prisoner ||--o{ Incentive_Review : is_reviewed_in
-    Prison_Incentive_Level ||--o{ Incentive_Review : has_entries
-    Prison_Incentive_Level ||--o{ VisitAllowance: has_visit_attributes
-    Prison_Incentive_Level ||--o{ Privileges: has_priv_attributes
-    Incentive_Level ||--o{ Prison_Incentive_Level: define_allowed_levels
-   
-```
+## Migration steps
+
+1. Build API endpoints to read and write reference data
+2. Syscon to build one way sync service to react to incentive reference data changes
+3. Build API endpoints to one time migrate data
+4. Build screens to support reference data
+5. Setup roles for access to screens
+6. Provide links to reference screens based on roles
+7. Turn off **OIMOIEPS** screen (with config tool)
+8. Disable editing of `IEP_LEVELS` and `IEP_OTH_PRIV` domain types in reference code screen **OUMIRCODE**
+9. Migrate data
+
+
 
 ## Decision
 
