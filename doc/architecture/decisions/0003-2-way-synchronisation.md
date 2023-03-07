@@ -1,6 +1,6 @@
 # 3. Two-way synchronisation between NOMIS and incentives service
 
-[Next >>](9999-end.md)
+[Next >>](0004-reference-data-sync.md)
 
 
 Date: 2023-02-09
@@ -12,7 +12,7 @@ Accepted
 ## Context
 
 In [ADR-0002](0002-incentive-api-architecture.md) the future scope was to synchronise data back into NOMIS. These sequence diagrams
-detail the two way sync that is performed between systems
+detail the two-way sync that is performed between systems
 
 
 ## Incentive creation in DPS
@@ -104,4 +104,4 @@ graph TB
 ```
 
 
-[Next >>](9999-end.md)
+[Next >>](0004-reference-data-sync.md)
