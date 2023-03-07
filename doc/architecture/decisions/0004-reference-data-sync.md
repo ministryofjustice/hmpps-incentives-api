@@ -125,34 +125,31 @@ This screen represents the Other Privileges ![](other_privs.png)
 
 In production there are only 12 records across all prisons for 1 privilege (Play Station PS2) for privilages and most records were added over 8 years ago.
 
-| Code | Prison Id | Min Incentive Level | Active |
-| ---- | --------- | ------------------- | ------ |
-| SP2 | PKI | ENH | Y |
-| SP2|	HDI	| ENH|	Y |
-| SP2|	WDI	| ENH|	Y |
-| SP2|	LEI	| ENH|	N |
-| SP2|	LWI	| ENH|	Y |
-| SP2|	FMI	| ENH|	Y |
-| SP2|	CLI	| ENH|	Y |
-| SP2|	IWI	| ENH|	Y |
-| SP2|	SKI	| ENH|	Y |
-| SP2|	WWI	| ENH|	Y |
-| SP2|	HCI	| ENH|	Y |
-| SP2|	SHI	| ENH|	Y |
+| Code  | Prison Id | Min Incentive Level | Active |
+|-------|-----------|---------------------|--------|
+| SP2   | PKI       | ENH                 | Y      |
+| SP2   | 	HDI	     | ENH                 | Y      |
+| SP2   | 	WDI	     | ENH                 | 	Y     |
+| SP2   | 	LEI	     | ENH                 | 	N     |
+| SP2   | 	LWI	     | ENH                 | 	Y     |
+| SP2   | 	FMI	     | ENH                 | 	Y     |
+| SP2   | 	CLI	     | ENH                 | 	Y     |
+| SP2   | 	IWI	     | ENH                 | 	Y     |
+| SP2   | 	SKI	     | ENH                 | 	Y     |
+| SP2   | 	WWI	     | ENH                 | 	Y     |
+| SP2   | 	HCI	     | ENH                 | 	Y     |
+| SP2   | 	SHI	     | ENH                 | 	Y     |
+
 
 ## Domain Events
 
 ### Reference Data Changes
-When a change is made to reference data, one of two events can be fired.  In this instance the reference data will be one of type 
-- IEP_LEVEL
-- IEP_OTH_PRIV
+When a change is made to reference data, one of four events can be fired. 
 
 #### Event Types:
 In both instances the domain event will contain the code of the reference data.
 - INCENTIVE_LEVEL_REFERENCE_DATA_INSERTED 
 - INCENTIVE_LEVEL_REFERENCE_DATA_UPDATED
-- PRIVILEGE_REFERENCE_DATA_INSERTED
-- PRIVILEGE_REFERENCE_DATA_UPDATED
 
 Note these should be the standard way of notifying about reference data changes for all NOMIS related reference data.
 **Example:**
@@ -164,18 +161,6 @@ Note these should be the standard way of notifying about reference data changes 
   "description": "Reference data Incentive Level added : EN4",
   "additionalInformation": {
     "code": "EN4"
-  }
-}
-```
-or
-```json
-{
-  "eventType": "PRIVILEGE_REFERENCE_DATA_UPDATED",
-  "occurredAt": "2023-03-07T16:45:00",
-  "version": "1.0",
-  "description": "Reference data Privilege added : PS5",
-  "additionalInformation": {
-    "code": "PS5"
   }
 }
 ```
@@ -195,28 +180,6 @@ These events are raised when changes are made to add or update incentive levels 
   "version": "1.0",
   "description": "Added EN4 to prison MDI",
   "additionalInformation": {
-    "prisonId": "MDI",
-    "incentiveLevel": "EN4"
-  }
-}
-```
-
-### Other privilege changes
-Raised when new privileges are added or updated for a specified prison and incentive level.  *To be agreed that this event is needed.*
-
-#### Event Types:
-- OTHER_PRIVILEGES_LEVEL_INSERTED 
-- OTHER_PRIVILEGES_LEVEL_UPDATED
-
-**Example:**
-```json
-{
-  "eventType": "OTHER_PRIVILEGES_LEVEL_INSERTED",
-  "occurredAt": "2023-03-07T15:55:00",
-  "version": "1.0",
-  "description": "Added IPOD Prev to prison MDI for Level EN4",
-  "additionalInformation": {
-    "privilegeCode": "IPOD",
     "prisonId": "MDI",
     "incentiveLevel": "EN4"
   }
@@ -248,26 +211,6 @@ Raised when new privileges are added or updated for a specified prison and incen
 ]
 ```
 
-#### Get a list of all incentive levels globally of all prisons
-`GET /privileges` -
-```json
-[
-  {
-    "code": "PS5",
-    "description": "Privilege to use a PlayStation 5",
-    "sequence": 1,
-    "active": true,
-    "expiredOn": null
-  },
-  {
-    "code": "IPOD",
-    "description": "Can use an iPod",
-    "sequence": 2,
-    "active": true,
-    "expiredOn": null
-  }
-]
-```
 
 #### Get the details of an incentive level for a specified prison
 This contains spend limits and visit allowances
@@ -289,104 +232,89 @@ This contains spend limits and visit allowances
 }
 ```
 
-#### Get the privileges for prison
-This lists all privileges for a specified prison
-
-`GET /privileges/{prisonId}` -
-```json
-[
-  {
-    "prisonId": "MDI",
-    "privilegeCode": "IPOD",
-    "minimumIncentiveLevel": "EN2",
-    "active": true,
-    "expiredOn": null
-  },
-  {
-    "prisonId": "MDI",
-    "privilegeCode": "PS5",
-    "minimumIncentiveLevel": "EN4",
-    "active": true,
-    "expiredOn": null
-  },
-  {
-    "prisonId": "MDI",
-    "privilegeCode": "INET",
-    "minimumIncentiveLevel": "STD",
-    "active": false,
-    "expiredOn": "2022-01-20"
-  }
-]
-```
-
-
-#### Get the privileges for prison
-Gets an individual privilege for a prison, privilege and min incentive level
-
-`GET /privileges/{prisonId}/{privCode}/{minLevel}` -
-```json
-{
-  "prisonId": "MDI",
-  "privilegeCode": "IPOD",
-  "minimumIncentiveLevel": "EN2",
-  "active": true,
-  "expiredOn": null
-}
-```
 
 ### Write endpoints for reference data
 
 #### Add / Update a incentive level
-
-#### Add / Update a privilege
-Upsert an individual privilege for a prison, privilege and min incentive level
-
-`POST /privileges` -
+`POST /incentive/levels` -
 ```json
+
 {
-  "prisonId": "MDI",
-  "privilegeCode": "IPOD",
-  "minimumIncentiveLevel": "EN2",
-  "active": true,
-  "expiredOn": null
+  "code": "EH4",
+  "description": "Enhanced 4",
+  "sequence": 4,
+  "active": true
 }
 ```
-##### Update
-`PUT /privileges` -
+
+`PUT /incentive/levels/{level}` -
 ```json
+
 {
-  "prisonId": "MDI",
-  "privilegeCode": "IPOD",
-  "minimumIncentiveLevel": "EN2",
-  "active": true,
-  "expiredOn": null
+  "description": "Enhanced Level 4",
+  "sequence": 5,
+  "active": false
 }
 ```
 
 #### Add / Update an incentive level config data in a prison
+Insert incentive reference config for a prison level
+`POST /incentive/levels/prison` -
+```json
+{
+  "prisonId": "MDI",
+  "incentiveLevel": "EN4",
+  "active": true,
+  "default": false,
+  "remandTransferLimit": 10.50,
+  "remandSpendLimit": 20.90,
+  "convictedTransferLimit": 15.99,
+  "convictedSpendLimit": 25.99,
+  "visitOrders": 2,
+  "privilegeVisitOrders": 3
+}
+```
 
-#### Add / Update a privilege in a prison
+Update incentive reference config for a prison and level
+`PUT /incentive/levels/prison/{prisonId}/{level}` -
+```json
+{
+  "active": true,
+  "default": true,
+  "remandTransferLimit": 10.50,
+  "remandSpendLimit": 20.90,
+  "convictedTransferLimit": 15.99,
+  "convictedSpendLimit": 25.99,
+  "visitOrders": 2,
+  "privilegeVisitOrders": 3
+}
+```
 
 
 
 ## Migration steps
 
 1. Build API endpoints to read and write reference data
-2. Syscon to build one way sync service to react to incentive reference data changes
+2. SYSCON to build one way sync service to react to incentive reference data changes
 3. Build screens to support reference data
 4. Setup roles for access to screens
 5. Provide links to reference screens based on roles
-6. Turn off **OIMOIEPS** screen (with config tool)
-7. Disable editing of `IEP_LEVELS` and `IEP_OTH_PRIV` domain types in reference code screen **OUMIRCODE**
-8. Migrate data manually
+6. Migrate data manually
+7. Turn off **OIMOIEPS** screen (with config tool)
+8. Disable editing of `IEP_LEVELS` domain types in reference code screen **OUMIRCODE** (optional)
+
 
 
 
 ## Decision
+- Other privileges data will NOT be moved off NOMIS as it is not used
+- SYSCON will not migrate data - a one off SQL script will set-up the data in the incentive DB
+- One way sync only will be performed
+- NOMIS screens can be turned off / made read only - but timescale is not urgent as this data changes very infrequently
 
-This approach follows the agreed pattern of architecture for "Getting Off NOMIS"
+
 
 ## Consequences
-Further investigation on whether other privileges are worth moving off NOMIS.
+
 
 [Next >>](9999-end.md)
