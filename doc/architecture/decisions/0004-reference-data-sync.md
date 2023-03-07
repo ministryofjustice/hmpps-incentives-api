@@ -36,7 +36,7 @@ erDiagram
    
 ```
 
-Tables Affected in **NOMIS**:
+### Tables Affected in **NOMIS**:
 
 - REFERENCE_CODES for where `DOMAIN = 'IEP_LEVEL' OR DOMAIN = 'IEP_OTH_PRIV'`
 ```oracle
@@ -113,11 +113,79 @@ CREATE TABLE "OTHER_PRIVILEGES_LEVELS"
 
 This screen represents the Other Privileges ![](other_privs.png)
 
-### Events to be raised on changes (Insert, update, delete)
-- REFERENCE_DATA_CHANGE (REFERENCE_CODE supplied)
-- INCENTIVE_PRISON_LEVEL_CHANGE (Prison and Level supplied)
-- VISIT_ALLOWANCE_LEVEL_CHANGE (Prison and Level supplied)
-- OTHER_PRIVILEGES_LEVEL_CHANGE (Code, prison and level supplied)
+## Domain Events
+
+### Reference Data Changes
+When a change is made to reference data, one of two events can be fired.  In this instance the reference data will be one of type 
+- IEP_LEVEL
+- IEP_OTH_PRIV
+
+#### Event Types:
+In both instances the domain event will contain the code of the reference data.
+- REFERENCE_DATA_INSERTED 
+- REFERENCE_DATA_UPDATED
+
+Note these should be the standard way of notifying about reference data changes for all NOMIS related reference data.
+**Example:**
+```json
+{
+  "eventType": "REFERENCE_DATA_INSERTED",
+  "occurredAt": "2023-03-07T14:45:00",
+  "version": "1.0",
+  "description": "Reference data IEP Level added : EN4",
+  "additionalInformation": {
+    "referenceDomain": "IEP_LEVEL",
+    "referenceCode": "EN4"
+  }
+}
+```
+### Prison Incentive Level Changes
+These events are raised when changes are made to add or update incentive levels and associated data for a prison
+
+#### Event Types:
+- INCENTIVE_PRISON_LEVEL_INSERTED
+- INCENTIVE_PRISON_LEVEL_UPDATED
+
+**Example:**
+```json
+{
+  "eventType": "INCENTIVE_PRISON_LEVEL_INSERTED",
+  "occurredAt": "2023-03-07T15:45:00",
+  "version": "1.0",
+  "description": "Added EN4 to prison MDI",
+  "additionalInformation": {
+    "prisonId": "MDI",
+    "incentiveLevel": "EN4"
+  }
+}
+```
+
+### Other privilege changes
+Raised when new privileges are added or updated for a specified prison and incentive level.  *To be agreed that this event is needed.*
+
+#### Event Types:
+- OTHER_PRIVILEGES_LEVEL_INSERTED 
+- OTHER_PRIVILEGES_LEVEL_UPDATED
+
+**Example:**
+```json
+{
+  "eventType": "OTHER_PRIVILEGES_LEVEL_INSERTED",
+  "occurredAt": "2023-03-07T15:55:00",
+  "version": "1.0",
+  "description": "Added PS5 Prev to prison MDI for Level EN4",
+  "additionalInformation": {
+    "privilegeCode": "PS5",
+    "prisonId": "MDI",
+    "incentiveLevel": "EN4"
+  }
+}
+```
+
+
+## API endpoints
+
+
 
 ## Migration steps
 
@@ -138,6 +206,6 @@ This screen represents the Other Privileges ![](other_privs.png)
 This approach follows the agreed pattern of architecture for "Getting Off NOMIS"
 
 ## Consequences
-
+Further investigation on whether other privileges are worth moving off NOMIS.
 
 [Next >>](9999-end.md)
