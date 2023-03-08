@@ -26,7 +26,7 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
     fun fixedClock(): Clock {
       return Clock.fixed(
         Instant.parse("2022-01-07T15:30:00.000Z"),
-        ZoneId.systemDefault()
+        ZoneId.of("Europe/London"),
       )
     }
   }

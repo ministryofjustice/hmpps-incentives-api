@@ -24,7 +24,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 
 class NextReviewDateUpdaterServiceTest {
-  private var clock: Clock = Clock.fixed(Instant.parse("2022-08-01T12:45:00.00Z"), ZoneId.systemDefault())
+  private var clock: Clock = Clock.fixed(Instant.parse("2022-08-01T12:45:00.00Z"), ZoneId.of("Europe/London"))
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository = mock()
   private val nextReviewDateRepository: NextReviewDateRepository = mock()
   private val prisonApiService: PrisonApiService = mock()
