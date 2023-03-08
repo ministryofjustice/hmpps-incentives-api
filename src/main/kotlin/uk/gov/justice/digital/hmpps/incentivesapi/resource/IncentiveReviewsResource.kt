@@ -64,7 +64,7 @@ class IncentiveReviewsResource(private val incentiveReviewsService: IncentiveRev
     @Schema(
       description = "Sort reviews by", required = false, defaultValue = "NEXT_REVIEW_DATE", example = "PRISONER_NUMBER",
       allowableValues = [
-        "NEXT_REVIEW_DATE", "FIRST_NAME", "LAST_NAME", "PRISONER_NUMBER", "POSITIVE_BEHAVIOURS", "NEGATIVE_BEHAVIOURS", "HAS_ACCT_OPEN",
+        "NEXT_REVIEW_DATE", "DAYS_SINCE_LAST_REVIEW", "FIRST_NAME", "LAST_NAME", "PRISONER_NUMBER", "POSITIVE_BEHAVIOURS", "NEGATIVE_BEHAVIOURS", "HAS_ACCT_OPEN",
       ]
     )
     @RequestParam(required = false)

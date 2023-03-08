@@ -26,6 +26,8 @@ data class IncentiveReview(
   @Schema(description = "Whether the prisoner has an ACCT open alert", example = "true")
   val hasAcctOpen: Boolean,
 
+  @Schema(description = "Days since last review, null when no real review has taken place", example = "45")
+  var daysSinceLastReview: Int?,
   @Schema(description = "Date of next review", example = "2022-12-31")
   var nextReviewDate: LocalDate,
 )

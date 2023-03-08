@@ -38,7 +38,7 @@ class IncentiveReviewsServiceTest {
   private val behaviourService: BehaviourService = mock()
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository = mock()
   private val nextReviewDateGetterService: NextReviewDateGetterService = mock()
-  private var clock: Clock = Clock.fixed(Instant.parse("2022-08-01T12:45:00.00Z"), ZoneId.systemDefault())
+  private var clock: Clock = Clock.fixed(Instant.parse("2022-08-01T12:45:00.00Z"), ZoneId.of("Europe/London"))
   private val incentiveReviewsService = IncentiveReviewsService(offenderSearchService, prisonApiService, iepLevelService, prisonerIepLevelRepository, nextReviewDateGetterService, behaviourService, clock)
 
   @BeforeEach
@@ -56,9 +56,7 @@ class IncentiveReviewsServiceTest {
 
     whenever(prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(any()))
       .thenReturn(flowOf(prisonerIepLevel(110001), prisonerIepLevel(110002)))
-    whenever(
-      nextReviewDateGetterService.getMany(any())
-    ).thenReturn(
+    whenever(nextReviewDateGetterService.getMany(any())).thenReturn(
       mapOf(
         110001L to LocalDate.parse("2022-12-12"),
         110002L to LocalDate.parse("2022-12-12"),
@@ -145,6 +143,7 @@ class IncentiveReviewsServiceTest {
           negativeBehaviours = 0,
           hasAcctOpen = true,
           nextReviewDate = nextReviewDatesMap[110001L]!!,
+          daysSinceLastReview = null,
         ),
         IncentiveReview(
           prisonerNumber = "G6123VU",
@@ -156,6 +155,7 @@ class IncentiveReviewsServiceTest {
           negativeBehaviours = 0,
           hasAcctOpen = false,
           nextReviewDate = nextReviewDatesMap[110002L]!!,
+          daysSinceLastReview = null,
         ),
       )
     )
@@ -208,6 +208,7 @@ class IncentiveReviewsServiceTest {
           negativeBehaviours = 7,
           hasAcctOpen = false,
           nextReviewDate = nextReviewDatesMap[110002L]!!,
+          daysSinceLastReview = 31,
         ),
       )
     )
@@ -240,6 +241,7 @@ class IncentiveReviewsServiceTest {
           negativeBehaviours = 0,
           hasAcctOpen = false,
           nextReviewDate = expectedNextReviewDate,
+          daysSinceLastReview = null,
         ),
       )
     )
@@ -299,6 +301,7 @@ class IncentiveReviewsServiceTest {
           negativeBehaviours = 0,
           hasAcctOpen = false,
           nextReviewDate = someFutureNextReviewDate,
+          daysSinceLastReview = null,
         ),
         IncentiveReview(
           prisonerNumber = "G6123VX",
@@ -310,6 +313,7 @@ class IncentiveReviewsServiceTest {
           negativeBehaviours = 0,
           hasAcctOpen = false,
           nextReviewDate = someFutureNextReviewDate,
+          daysSinceLastReview = null,
         ),
       )
     )
@@ -350,6 +354,7 @@ class IncentiveReviewsServiceTest {
             negativeBehaviours = 0,
             hasAcctOpen = false,
             nextReviewDate = nextReviewDatesMap[110002L]!!,
+            daysSinceLastReview = null,
           ),
           IncentiveReview(
             prisonerNumber = "A1409AE",
@@ -361,6 +366,7 @@ class IncentiveReviewsServiceTest {
             negativeBehaviours = 0,
             hasAcctOpen = false,
             nextReviewDate = nextReviewDatesMap[110001L]!!,
+            daysSinceLastReview = null,
           ),
         )
       )
