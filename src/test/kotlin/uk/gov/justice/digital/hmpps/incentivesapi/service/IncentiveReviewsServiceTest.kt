@@ -44,7 +44,7 @@ class IncentiveReviewsServiceTest {
   @BeforeEach
   fun setUp(): Unit = runBlocking {
     // Fixes tests which do not explicitly mock retrieveCaseNoteCounts
-    whenever(behaviourService.getBehaviours(anyList())).thenReturn(emptyMap())
+    whenever(behaviourService.getBehaviours(anyList())).thenReturn(BehaviourSummary(emptyMap(), emptyMap()))
     whenever(prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(any()))
       .thenReturn(
         flowOf(
@@ -53,7 +53,6 @@ class IncentiveReviewsServiceTest {
           prisonerIepLevel(bookingId = 110002, iepCode = "BAS", current = false, reviewType = ReviewType.INITIAL),
         )
       )
-    whenever(behaviourService.getBehaviours(anyList())).thenReturn(emptyMap())
 
     whenever(prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(any()))
       .thenReturn(flowOf(prisonerIepLevel(110001), prisonerIepLevel(110002)))
@@ -174,19 +173,22 @@ class IncentiveReviewsServiceTest {
 
     whenever(behaviourService.getBehaviours(anyList()))
       .thenReturn(
-        mapOf(
-          BookingTypeKey(bookingId = 110002L, caseNoteType = "POS")
-            to CaseNoteSummary(
-              key = BookingTypeKey(bookingId = 110002L, caseNoteType = "POS"),
-              totalCaseNotes = 5,
-              numSubTypeCount = 5
-            ),
-          BookingTypeKey(bookingId = 110002L, caseNoteType = "NEG")
-            to CaseNoteSummary(
-              key = BookingTypeKey(bookingId = 110002L, caseNoteType = "NEG"),
-              totalCaseNotes = 7,
-              numSubTypeCount = 7
-            )
+        BehaviourSummary(
+          mapOf(
+            BookingTypeKey(bookingId = 110002L, caseNoteType = "POS")
+              to CaseNoteSummary(
+                key = BookingTypeKey(bookingId = 110002L, caseNoteType = "POS"),
+                totalCaseNotes = 5,
+                numSubTypeCount = 5
+              ),
+            BookingTypeKey(bookingId = 110002L, caseNoteType = "NEG")
+              to CaseNoteSummary(
+                key = BookingTypeKey(bookingId = 110002L, caseNoteType = "NEG"),
+                totalCaseNotes = 7,
+                numSubTypeCount = 7
+              ),
+          ),
+          mapOf(110002L to LocalDateTime.now(clock).minusMonths(1)),
         )
       )
 
@@ -219,8 +221,6 @@ class IncentiveReviewsServiceTest {
 
     whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-2-1")
     whenever(offenderSearchService.findOffenders(any(), any())).thenReturn(listOf(offenderSearchPrisoner(prisonerNumber)))
-
-    whenever(behaviourService.getBehaviours(anyList())).thenReturn(emptyMap())
 
     whenever(nextReviewDateGetterService.getMany(any())).thenReturn(mapOf(110002L to expectedNextReviewDate))
 
@@ -516,7 +516,6 @@ class IncentiveReviewsServiceTest {
       whenever(offenderSearchService.findOffenders(any(), any())).thenReturn(offenders)
       whenever(prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(any())).thenReturn(emptyFlow())
 
-      whenever(behaviourService.getBehaviours(anyList())).thenReturn(emptyMap())
       whenever(prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(any()))
         .thenReturn(
           flowOf(

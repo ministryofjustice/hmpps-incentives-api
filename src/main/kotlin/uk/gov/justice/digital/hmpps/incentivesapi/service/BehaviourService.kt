@@ -16,15 +16,16 @@ class BehaviourService(
 ) {
   private val behaviourCaseNoteMap = mapOf("POS" to "IEP_ENC", "NEG" to "IEP_WARN")
 
-  suspend fun getBehaviours(reviews: List<PrisonerIepLevel>): Map<BookingTypeKey, CaseNoteSummary> {
+  suspend fun getBehaviours(reviews: List<PrisonerIepLevel>): BehaviourSummary {
     val lastRealReviews = getLastRealReviewForOffenders(reviews)
     val lastReviewsOrDefaultPeriods = lastRealReviews.mapValues { truncateReviewDate(it.value) }
-    return getCaseNoteUsageByLastReviewDate(
+    val caseNoteCountsByType = getCaseNoteUsageByLastReviewDate(
       prisonApiService.retrieveCaseNoteCountsByFromDate(
         behaviourCaseNoteMap.keys.toList(),
         lastReviewsOrDefaultPeriods,
       ).toList(),
     )
+    return BehaviourSummary(caseNoteCountsByType, lastRealReviews)
   }
 
   private fun getCaseNoteUsageByLastReviewDate(caseNotesByType: List<PrisonerCaseNoteByTypeSubType>) =
@@ -59,6 +60,16 @@ class BehaviourService(
   }
 }
 
+data class BehaviourSummary(
+  val caseNoteCountsByType: Map<BookingTypeKey, CaseNoteSummary>,
+  val lastRealReviews: Map<Long, LocalDateTime?>,
+)
+
+data class BookingTypeKey(
+  val bookingId: Long,
+  val caseNoteType: String,
+)
+
 data class CaseNoteSummary(
   val key: BookingTypeKey,
   val totalCaseNotes: Int,
@@ -66,8 +77,3 @@ data class CaseNoteSummary(
 )
 
 fun PrisonerCaseNoteByTypeSubType.toKey() = BookingTypeKey(bookingId, caseNoteType)
-
-data class BookingTypeKey(
-  val bookingId: Long,
-  val caseNoteType: String,
-)

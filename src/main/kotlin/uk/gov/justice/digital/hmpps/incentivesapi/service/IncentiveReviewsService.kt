@@ -75,7 +75,7 @@ class IncentiveReviewsService(
     }
 
     val nextReviewDates = deferredNextReviewDates.await()
-    val behaviourCaseNotesSinceLastReview = deferredBehaviourCaseNotesSinceLastReview.await()
+    val (behaviourCaseNotesSinceLastReview) = deferredBehaviourCaseNotesSinceLastReview.await()
 
     val allReviews = offenders
       .map {
