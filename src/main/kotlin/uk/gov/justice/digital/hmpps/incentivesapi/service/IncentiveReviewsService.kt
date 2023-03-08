@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.util.flow.toMap
 import uk.gov.justice.digital.hmpps.incentivesapi.util.paginateWith
 import java.time.Clock
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 import java.util.Comparator
 
 @Service
@@ -75,7 +76,12 @@ class IncentiveReviewsService(
     }
 
     val nextReviewDates = deferredNextReviewDates.await()
-    val behaviourCaseNotesSinceLastReview = deferredBehaviourCaseNotesSinceLastReview.await()
+    val (behaviourCaseNotesSinceLastReview, lastRealReviews) = deferredBehaviourCaseNotesSinceLastReview.await()
+
+    val today = LocalDate.now(clock)
+    val daysSinceLastRealReview = lastRealReviews.mapValues { (_, lastRealReviewDate) ->
+      lastRealReviewDate?.let { ChronoUnit.DAYS.between(it.toLocalDate(), today).toInt() }
+    }
 
     val allReviews = offenders
       .map {
@@ -89,6 +95,7 @@ class IncentiveReviewsService(
           negativeBehaviours = behaviourCaseNotesSinceLastReview[BookingTypeKey(it.bookingId, "NEG")]?.totalCaseNotes ?: 0,
           hasAcctOpen = it.hasAcctOpen,
           nextReviewDate = nextReviewDates[it.bookingId]!!,
+          daysSinceLastReview = daysSinceLastRealReview[it.bookingId],
         )
       }
 
@@ -111,7 +118,7 @@ class IncentiveReviewsService(
       }
 
       prisonersCounts[currentReviewLevel] = prisonersCounts[currentReviewLevel]!! + 1
-      if (nextReviewDates[review.bookingId]!!.isBefore(LocalDate.now(clock))) {
+      if (nextReviewDates[review.bookingId]!!.isBefore(today)) {
         overdueCounts[currentReviewLevel] = overdueCounts[currentReviewLevel]!! + 1
       }
     }
@@ -147,6 +154,7 @@ enum class IncentiveReviewSort(
   private val defaultOrder: Sort.Direction,
 ) {
   NEXT_REVIEW_DATE("nextReviewDate", IncentiveReview::nextReviewDate, Sort.Direction.ASC),
+  DAYS_SINCE_LAST_REVIEW("daysSinceLastReview", { it.daysSinceLastReview ?: Int.MAX_VALUE }, Sort.Direction.DESC),
   FIRST_NAME("firstName", IncentiveReview::firstName, Sort.Direction.ASC),
   LAST_NAME("lastName", IncentiveReview::lastName, Sort.Direction.ASC),
   PRISONER_NUMBER("prisonerNumber", IncentiveReview::prisonerNumber, Sort.Direction.ASC),

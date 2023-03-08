@@ -53,7 +53,7 @@ class IncentiveSummaryService(
     val iepLevelsByCode = iepLevels.associateBy(IepLevel::iepLevel)
     val iepLevelsByDescription = iepLevels.associateBy(IepLevel::iepDescription)
 
-    val behaviourCaseNotesSinceLastReview = deferredBehaviourCaseNotesSinceLastReview.await()
+    val (behaviourCaseNotesSinceLastReview) = deferredBehaviourCaseNotesSinceLastReview.await()
 
     val prisonersByLevel = getPrisonersByLevel(prisoners, iepDetails)
       .map { prisonerIepLevelMap ->

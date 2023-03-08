@@ -40,7 +40,7 @@ class PrisonerIepLevelReviewServiceTest {
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository = mock()
   private val iepLevelService = IepLevelService(prisonApiService)
   private val authenticationFacade: AuthenticationFacade = mock()
-  private var clock: Clock = Clock.fixed(Instant.ofEpochMilli(0), ZoneId.systemDefault())
+  private var clock: Clock = Clock.fixed(Instant.ofEpochMilli(0), ZoneId.of("Europe/London"))
   private val snsService: SnsService = mock()
   private val auditService: AuditService = mock()
   private val nextReviewDateGetterService: NextReviewDateGetterService = mock()

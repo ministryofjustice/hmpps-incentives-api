@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.resource
 
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -12,7 +11,6 @@ import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.NextReviewDate
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.NextReviewDateRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
@@ -25,6 +23,8 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
   @Autowired
   private lateinit var nextReviewDateRepository: NextReviewDateRepository
 
+  private val timeNow: LocalDateTime = LocalDateTime.now()
+
   @BeforeEach
   fun setUp(): Unit = runBlocking {
     offenderSearchMockServer.resetAll()
@@ -32,22 +32,21 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
 
     prisonerIepLevelRepository.deleteAll()
     nextReviewDateRepository.deleteAll()
-    persistPrisonerIepLevel(bookingId = 1234134, prisonerNumber = "A1234AA", iepTime = iepTime)
-    persistPrisonerIepLevel(bookingId = 1234135, prisonerNumber = "A1234AB", iepTime = iepTime)
-    persistPrisonerIepLevel(bookingId = 1234136, prisonerNumber = "A1234AC", iepTime = iepTime)
+    // Prisoners on Standard and not overdue
+    persistPrisonerIepLevel(bookingId = 1234134, prisonerNumber = "A1234AA", iepCode = "STD", iepTime = timeNow.minusDays(2))
+    persistPrisonerIepLevel(bookingId = 1234135, prisonerNumber = "A1234AB", iepCode = "STD", iepTime = timeNow.minusDays(1))
+    persistPrisonerIepLevel(bookingId = 1234136, prisonerNumber = "A1234AC", iepCode = "STD", iepTime = timeNow)
     // A prisoner on Basic
-    persistPrisonerIepLevel(bookingId = 1234137, prisonerNumber = "A1234AD", iepCode = "BAS")
+    persistPrisonerIepLevel(bookingId = 1234137, prisonerNumber = "A1234AD", iepCode = "BAS", iepTime = timeNow.minusDays(3))
     // A prisoner on Enhanced and overdue
-    persistPrisonerIepLevel(bookingId = 1234138, prisonerNumber = "A1234AE", iepCode = "ENH", iepTime = LocalDateTime.now().minusYears(2))
+    persistPrisonerIepLevel(bookingId = 1234138, prisonerNumber = "A1234AE", iepCode = "ENH", iepTime = timeNow.minusYears(2))
   }
-
-  private val iepTime: LocalDateTime = LocalDateTime.now()
 
   private suspend fun persistPrisonerIepLevel(
     bookingId: Long,
     prisonerNumber: String,
-    iepCode: String = "STD",
-    iepTime: LocalDateTime = LocalDateTime.now(),
+    iepCode: String,
+    iepTime: LocalDateTime,
   ) = prisonerIepLevelRepository.save(
     PrisonerIepLevel(
       bookingId = bookingId,
@@ -250,7 +249,8 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "positiveBehaviours": 3,
                 "negativeBehaviours": 3,
                 "hasAcctOpen": true,
-                "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
+                "nextReviewDate": ${timeNow.toLocalDate().plusYears(1).minusDays(2)},
+                "daysSinceLastReview": 2
               },
               {
                 "prisonerNumber": "A1234AB",
@@ -261,7 +261,8 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "positiveBehaviours": 3,
                 "negativeBehaviours": 3,
                 "hasAcctOpen": false,
-                "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
+                "nextReviewDate": ${timeNow.toLocalDate().plusYears(1).minusDays(1)},
+                "daysSinceLastReview": 1
               },
               {
                 "prisonerNumber": "A1234AC",
@@ -272,7 +273,8 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "positiveBehaviours": 2,
                 "negativeBehaviours": 2,
                 "hasAcctOpen": false,
-                "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
+                "nextReviewDate": ${timeNow.toLocalDate().plusYears(1)},
+                "daysSinceLastReview": 0
               }
             ],
             "locationDescription": "Houseblock 1"
@@ -329,7 +331,8 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "positiveBehaviours": 3,
                 "negativeBehaviours": 3,
                 "hasAcctOpen": true,
-                "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
+                "nextReviewDate": ${timeNow.toLocalDate().plusYears(1).minusDays(2)},
+                "daysSinceLastReview": 2
               },
               {
                 "prisonerNumber": "A1234AB",
@@ -340,7 +343,8 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "positiveBehaviours": 3,
                 "negativeBehaviours": 3,
                 "hasAcctOpen": false,
-                "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
+                "nextReviewDate": ${timeNow.toLocalDate().plusYears(1).minusDays(1)},
+                "daysSinceLastReview": 1
               },
               {
                 "prisonerNumber": "A1234AC",
@@ -351,7 +355,8 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "positiveBehaviours": 2,
                 "negativeBehaviours": 2,
                 "hasAcctOpen": false,
-                "nextReviewDate": ${iepTime.toLocalDate().plusYears(1)}
+                "nextReviewDate": ${timeNow.toLocalDate().plusYears(1)},
+                "daysSinceLastReview": 0
               }
             ],
             "locationDescription": "Unknown location"
@@ -369,17 +374,6 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
     prisonApiMockServer.stubCaseNoteSummary()
     prisonApiMockServer.stubIepLevels()
     prisonApiMockServer.stubAgenciesIepLevels("MDI")
-
-    // pre-cache different next review dates as `persistPrisonerIepLevel` defaults lead to all being today + 1 year
-    nextReviewDateRepository.saveAll(
-      listOf(
-        NextReviewDate(bookingId = 1234134, nextReviewDate = iepTime.toLocalDate().plusDays(1)),
-        NextReviewDate(bookingId = 1234135, nextReviewDate = iepTime.toLocalDate().plusDays(2)),
-        NextReviewDate(bookingId = 1234136, nextReviewDate = iepTime.toLocalDate().plusDays(3)),
-        NextReviewDate(bookingId = 1234137, nextReviewDate = iepTime.toLocalDate().plusDays(4)),
-        NextReviewDate(bookingId = 1234138, nextReviewDate = iepTime.toLocalDate().plusDays(5)),
-      )
-    ).collect()
 
     fun loadReviewsField(sortParam: String, orderParam: String, responseField: String) = webTestClient.get()
       .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?sort=$sortParam&order=$orderParam")

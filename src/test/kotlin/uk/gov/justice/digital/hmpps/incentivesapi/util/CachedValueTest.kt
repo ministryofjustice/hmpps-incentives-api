@@ -9,7 +9,7 @@ import java.time.ZoneId
 
 class CachedValueTest {
 
-  private var clockBefore: Clock = Clock.fixed(Instant.parse("2022-08-01T12:45:00.00Z"), ZoneId.systemDefault())
+  private var clockBefore: Clock = Clock.fixed(Instant.parse("2022-08-01T12:45:00.00Z"), ZoneId.of("Europe/London"))
   private var clockAfter: Clock = Clock.offset(clockBefore, Duration.ofHours(2))
   private val cachedValue = CachedValue<String>(validForHours = 1, clockBefore)
 

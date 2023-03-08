@@ -14,61 +14,66 @@ class BehaviourService(
   private val prisonApiService: PrisonApiService,
   private val clock: Clock,
 ) {
-  private fun behaviourCaseNoteMap() = mapOf("POS" to "IEP_ENC", "NEG" to "IEP_WARN")
+  private val behaviourCaseNoteMap = mapOf("POS" to "IEP_ENC", "NEG" to "IEP_WARN")
 
-  suspend fun getBehaviours(reviews: List<PrisonerIepLevel>) =
-    getCaseNoteUsageByLastReviewDate(
+  suspend fun getBehaviours(reviews: List<PrisonerIepLevel>): BehaviourSummary {
+    val lastRealReviews = getLastRealReviewForOffenders(reviews)
+    val lastReviewsOrDefaultPeriods = lastRealReviews.mapValues { truncateReviewDate(it.value) }
+    val caseNoteCountsByType = getCaseNoteUsageByLastReviewDate(
       prisonApiService.retrieveCaseNoteCountsByFromDate(
-        behaviourCaseNoteMap().keys.toList(),
-        getLastRealReviewForOffenders(reviews)
+        behaviourCaseNoteMap.keys.toList(),
+        lastReviewsOrDefaultPeriods,
       ).toList(),
-      behaviourCaseNoteMap(),
     )
-  private fun getCaseNoteUsageByLastReviewDate(caseNotesByType: List<PrisonerCaseNoteByTypeSubType>, subTypeMap: Map<String, String>) =
+    return BehaviourSummary(caseNoteCountsByType, lastRealReviews)
+  }
+
+  private fun getCaseNoteUsageByLastReviewDate(caseNotesByType: List<PrisonerCaseNoteByTypeSubType>) =
     caseNotesByType
       .groupBy(PrisonerCaseNoteByTypeSubType::toKey)
-      .map { cn ->
+      .mapValues { cn ->
         CaseNoteSummary(
           key = cn.key,
           totalCaseNotes = calcTypeCount(cn.value),
-          numSubTypeCount = calcTypeCount(cn.value.filter { cnc -> cnc.caseNoteSubType == subTypeMap[cn.key.caseNoteType] })
-
+          numSubTypeCount = calcTypeCount(cn.value.filter { cnc -> cnc.caseNoteSubType == behaviourCaseNoteMap[cn.key.caseNoteType] }),
         )
-      }.associateBy { it.key }
-
-  private fun calcTypeCount(caseNoteUsage: List<PrisonerCaseNoteByTypeSubType>): Int =
-    caseNoteUsage.map { it.numCaseNotes }.fold(0) { acc, next -> acc + next }
-
-  private fun getLastRealReviewForOffenders(reviews: List<PrisonerIepLevel>): Map<Long, LocalDateTime> =
-    reviews
-      .groupBy { it.bookingId }
-      .map { review ->
-        val latestReview = review.value.firstOrNull(PrisonerIepLevel::isRealReview)
-        review.key to truncateReviewDate(latestReview?.reviewTime)
-      }.associate {
-        it.first to it.second
       }
 
-  private fun defaultReviewPeriod() = LocalDateTime.now(clock).minusMonths(DEFAULT_MONTHS)
+  private fun calcTypeCount(caseNoteUsage: List<PrisonerCaseNoteByTypeSubType>): Int =
+    caseNoteUsage.sumOf { it.numCaseNotes }
+
+  private fun getLastRealReviewForOffenders(reviews: List<PrisonerIepLevel>) =
+    reviews
+      .groupBy { it.bookingId }
+      .mapValues { review ->
+        val latestRealReview = review.value.firstOrNull(PrisonerIepLevel::isRealReview)
+        latestRealReview?.reviewTime
+      }
 
   private fun truncateReviewDate(lastReviewTime: LocalDateTime?): LocalDateTime {
-    if (lastReviewTime == null) return defaultReviewPeriod()
-
-    val today = LocalDateTime.now(clock)
-    return if (lastReviewTime.isBefore(today.minusMonths(DEFAULT_MONTHS))) { defaultReviewPeriod() } else {
+    val defaultReviewPeriod = LocalDateTime.now(clock).minusMonths(DEFAULT_MONTHS)
+    return if (lastReviewTime == null || lastReviewTime.isBefore(defaultReviewPeriod)) {
+      defaultReviewPeriod
+    } else {
       lastReviewTime
     }
   }
 }
+
+data class BehaviourSummary(
+  val caseNoteCountsByType: Map<BookingTypeKey, CaseNoteSummary>,
+  val lastRealReviews: Map<Long, LocalDateTime?>,
+)
+
+data class BookingTypeKey(
+  val bookingId: Long,
+  val caseNoteType: String,
+)
 
 data class CaseNoteSummary(
   val key: BookingTypeKey,
   val totalCaseNotes: Int,
   val numSubTypeCount: Int
 )
-fun PrisonerCaseNoteByTypeSubType.toKey() = BookingTypeKey(bookingId, caseNoteType)
 
-data class BookingTypeKey(
-  val bookingId: Long,
-  val caseNoteType: String,
-)
+fun PrisonerCaseNoteByTypeSubType.toKey() = BookingTypeKey(bookingId, caseNoteType)

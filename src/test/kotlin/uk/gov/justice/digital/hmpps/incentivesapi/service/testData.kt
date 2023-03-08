@@ -42,7 +42,7 @@ fun prisonerAtLocation(bookingId: Long = 1234567, offenderNo: String = "A1234AA"
 fun prisonerIepLevel(
   bookingId: Long,
   iepCode: String = "STD",
-  reviewTime: LocalDateTime = LocalDateTime.now(),
+  reviewTime: LocalDateTime,
   current: Boolean = true,
   reviewType: ReviewType = ReviewType.REVIEW
 ) =
