@@ -216,8 +216,8 @@ class NextReviewDateUpdaterServiceTest {
       .thenReturn(prisonerExtraInfo)
 
     val reviews = flowOf(
-      prisonerIepLevel(bookingId),
-      prisonerIepLevel(bookingId),
+      prisonerIepLevel(bookingId, reviewTime = LocalDateTime.now(clock)),
+      prisonerIepLevel(bookingId, reviewTime = LocalDateTime.now(clock)),
     )
     whenever(nextReviewDateRepository.findAllById(listOf(bookingId)))
       .thenReturn(emptyFlow())
