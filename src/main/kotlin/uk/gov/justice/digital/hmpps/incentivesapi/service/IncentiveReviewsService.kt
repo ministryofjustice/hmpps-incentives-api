@@ -65,7 +65,10 @@ class IncentiveReviewsService(
 
     val bookingIds = offenders.map(OffenderSearchPrisoner::bookingId)
 
-    val deferredBehaviourCaseNotesSinceLastReview = async { behaviourService.getBehaviours(prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds = bookingIds).toList()) }
+    val deferredBehaviourCaseNotesSinceLastReview = async {
+      val reviews = prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds = bookingIds)
+      behaviourService.getBehaviours(reviews.toList())
+    }
     val deferredIncentiveLevels = async { getIncentiveLevelsForOffenders(bookingIds) }
     val deferredNextReviewDates = async { nextReviewDateGetterService.getMany(offenders) }
 
@@ -94,6 +97,7 @@ class IncentiveReviewsService(
           positiveBehaviours = behaviourCaseNotesSinceLastReview[BookingTypeKey(it.bookingId, "POS")]?.totalCaseNotes ?: 0,
           negativeBehaviours = behaviourCaseNotesSinceLastReview[BookingTypeKey(it.bookingId, "NEG")]?.totalCaseNotes ?: 0,
           hasAcctOpen = it.hasAcctOpen,
+          isNewToPrison = daysSinceLastRealReview[it.bookingId] == null,
           nextReviewDate = nextReviewDates[it.bookingId]!!,
           daysSinceLastReview = daysSinceLastRealReview[it.bookingId],
         )
@@ -160,7 +164,8 @@ enum class IncentiveReviewSort(
   PRISONER_NUMBER("prisonerNumber", IncentiveReview::prisonerNumber, Sort.Direction.ASC),
   POSITIVE_BEHAVIOURS("positiveBehaviours", IncentiveReview::positiveBehaviours, Sort.Direction.DESC),
   NEGATIVE_BEHAVIOURS("negativeBehaviours", IncentiveReview::negativeBehaviours, Sort.Direction.DESC),
-  HAS_ACCT_OPEN("hasAcctOpen", IncentiveReview::hasAcctOpen, Sort.Direction.DESC);
+  HAS_ACCT_OPEN("hasAcctOpen", IncentiveReview::hasAcctOpen, Sort.Direction.DESC),
+  IS_NEW_TO_PRISON("isNewToPrison", IncentiveReview::isNewToPrison, Sort.Direction.DESC);
 
   companion object {
     fun orDefault(sort: IncentiveReviewSort?) = sort ?: NEXT_REVIEW_DATE

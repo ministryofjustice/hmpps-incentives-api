@@ -23,7 +23,10 @@ import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 @RestController
 @RequestMapping("/incentives-reviews", produces = [MediaType.APPLICATION_JSON_VALUE])
 @PreAuthorize("hasRole('ROLE_INCENTIVES')")
-@Tag(name = "Incentive Review Summary", description = "List of incentive review information for a given location within a prison and on a given level")
+@Tag(
+  name = "Incentive Review Summary",
+  description = "List of incentive review information for a given location within a prison and on a given level",
+)
 class IncentiveReviewsResource(private val incentiveReviewsService: IncentiveReviewsService) {
   @GetMapping("/prison/{prisonId}/location/{cellLocationPrefix}/level/{levelCode}")
   @Operation(
@@ -64,7 +67,10 @@ class IncentiveReviewsResource(private val incentiveReviewsService: IncentiveRev
     @Schema(
       description = "Sort reviews by", required = false, defaultValue = "NEXT_REVIEW_DATE", example = "PRISONER_NUMBER",
       allowableValues = [
-        "NEXT_REVIEW_DATE", "DAYS_SINCE_LAST_REVIEW", "FIRST_NAME", "LAST_NAME", "PRISONER_NUMBER", "POSITIVE_BEHAVIOURS", "NEGATIVE_BEHAVIOURS", "HAS_ACCT_OPEN",
+        "NEXT_REVIEW_DATE", "DAYS_SINCE_LAST_REVIEW",
+        "FIRST_NAME", "LAST_NAME", "PRISONER_NUMBER",
+        "POSITIVE_BEHAVIOURS", "NEGATIVE_BEHAVIOURS",
+        "HAS_ACCT_OPEN", "IS_NEW_TO_PRISON",
       ]
     )
     @RequestParam(required = false)
