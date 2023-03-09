@@ -87,19 +87,18 @@ data class IepLevel(
 )
 
 data class PrisonLocation(
-
   val agencyId: String,
   val locationPrefix: String,
   val description: String,
   val locationType: String,
-  val userDescription: String?
-
+  val userDescription: String?,
 )
 
-data class IncentiveLevel(
+data class ReferenceCode(
   val domain: String,
   val code: String,
   val description: String,
   val activeFlag: String,
   val listSeq: Int,
+  // TODO: does NOMIS/prison-api reference data include expired date?
 )
