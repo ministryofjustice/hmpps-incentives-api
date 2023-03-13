@@ -144,7 +144,37 @@ In production there are only 12 records across all prisons for 1 privilege (Play
 ## Domain Events
 
 ### Reference Data Changes
-When a change is made to reference data, one of four events can be fired. 
+When a change is made to reference data, one of four events can be fired. The sequence of events for syncing back to NOMIS is show below:
+
+```mermaid
+sequenceDiagram
+
+    actor Prison Staff
+    participant DPS
+    participant Incentives API
+    participant Incentives Database
+    participant Domain Events
+    participant HMPPS Prisoner to NOMIS update
+    participant HMPPS NOMIS Prisoner API
+    participant NOMIS DB
+
+    Prison Staff ->> DPS: Add Incentive Reference data 
+    
+    DPS ->> Incentives API: Call API with changes
+    activate Incentives API
+    Incentives API->>Incentives Database: update DB
+    Incentives API->>Domain Events: domain event raised
+    Note over Incentives API,Domain Events: INCENTIVE_LEVEL_REFERENCE_DATA_[INSERTED/UPDATED]
+    Incentives API-->>DPS: Reference Data updated returned
+    deactivate Incentives API
+    
+    Domain Events-->>HMPPS Prisoner to NOMIS update: Receives INCENTIVE_LEVEL_REFERENCE_DATA_* domain event
+    activate HMPPS Prisoner to NOMIS update
+    HMPPS Prisoner to NOMIS update->>HMPPS NOMIS Prisoner API: Update NOMIS with reference data
+    HMPPS NOMIS Prisoner API ->> NOMIS DB: Persist data into the IEP_LEVELS, VISIT_ALLOWANCE_LEVELS tables
+    deactivate HMPPS Prisoner to NOMIS update
+
+```
 
 #### Event Types:
 In both instances the domain event will contain the code of the reference data.
