@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.resource
 
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -36,7 +37,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
     persistPrisonerIepLevel(bookingId = 1234134, prisonerNumber = "A1234AA", iepCode = "STD", iepTime = timeNow.minusDays(2))
     persistPrisonerIepLevel(bookingId = 1234135, prisonerNumber = "A1234AB", iepCode = "STD", iepTime = timeNow.minusDays(1))
     persistPrisonerIepLevel(bookingId = 1234136, prisonerNumber = "A1234AC", iepCode = "STD", iepTime = timeNow)
-    // A prisoner on Basic
+    // A prisoner on Basic, also not overdue
     persistPrisonerIepLevel(bookingId = 1234137, prisonerNumber = "A1234AD", iepCode = "BAS", iepTime = timeNow.minusDays(3))
     // A prisoner on Enhanced and overdue
     persistPrisonerIepLevel(bookingId = 1234138, prisonerNumber = "A1234AE", iepCode = "ENH", iepTime = timeNow.minusYears(2))
@@ -249,6 +250,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "positiveBehaviours": 3,
                 "negativeBehaviours": 3,
                 "hasAcctOpen": true,
+                "isNewToPrison": false,
                 "nextReviewDate": ${timeNow.toLocalDate().plusYears(1).minusDays(2)},
                 "daysSinceLastReview": 2
               },
@@ -261,6 +263,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "positiveBehaviours": 3,
                 "negativeBehaviours": 3,
                 "hasAcctOpen": false,
+                "isNewToPrison": false,
                 "nextReviewDate": ${timeNow.toLocalDate().plusYears(1).minusDays(1)},
                 "daysSinceLastReview": 1
               },
@@ -273,6 +276,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "positiveBehaviours": 2,
                 "negativeBehaviours": 2,
                 "hasAcctOpen": false,
+                "isNewToPrison": false,
                 "nextReviewDate": ${timeNow.toLocalDate().plusYears(1)},
                 "daysSinceLastReview": 0
               }
@@ -331,6 +335,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "positiveBehaviours": 3,
                 "negativeBehaviours": 3,
                 "hasAcctOpen": true,
+                "isNewToPrison": false,
                 "nextReviewDate": ${timeNow.toLocalDate().plusYears(1).minusDays(2)},
                 "daysSinceLastReview": 2
               },
@@ -343,6 +348,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "positiveBehaviours": 3,
                 "negativeBehaviours": 3,
                 "hasAcctOpen": false,
+                "isNewToPrison": false,
                 "nextReviewDate": ${timeNow.toLocalDate().plusYears(1).minusDays(1)},
                 "daysSinceLastReview": 1
               },
@@ -355,6 +361,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
                 "positiveBehaviours": 2,
                 "negativeBehaviours": 2,
                 "hasAcctOpen": false,
+                "isNewToPrison": false,
                 "nextReviewDate": ${timeNow.toLocalDate().plusYears(1)},
                 "daysSinceLastReview": 0
               }
@@ -374,6 +381,14 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
     prisonApiMockServer.stubCaseNoteSummary()
     prisonApiMockServer.stubIepLevels()
     prisonApiMockServer.stubAgenciesIepLevels("MDI")
+
+    if (sort == IncentiveReviewSort.IS_NEW_TO_PRISON) {
+      // convert one prisoner to be "new to prison" so that sorting is possible
+      var prisonerIepLevel =
+        prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(listOf(1234136)).first()
+      prisonerIepLevel = prisonerIepLevel.copy(reviewType = ReviewType.INITIAL)
+      prisonerIepLevelRepository.save(prisonerIepLevel)
+    }
 
     fun loadReviewsField(sortParam: String, orderParam: String, responseField: String) = webTestClient.get()
       .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?sort=$sortParam&order=$orderParam")
