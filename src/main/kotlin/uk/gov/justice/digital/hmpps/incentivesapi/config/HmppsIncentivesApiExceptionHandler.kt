@@ -153,6 +153,20 @@ class HmppsIncentivesApiExceptionHandler {
       )
   }
 
+  @ExceptionHandler(NoDataWithCodeFoundException::class)
+  fun handleNoDataWithCodeFoundException(e: NoDataWithCodeFoundException): ResponseEntity<ErrorResponse?>? {
+    log.debug("No data found exception caught: {}", e.message)
+    return ResponseEntity
+      .status(NOT_FOUND)
+      .body(
+        ErrorResponse(
+          status = NOT_FOUND,
+          userMessage = e.message,
+          developerMessage = e.message
+        )
+      )
+  }
+
   @ExceptionHandler(ListOfDataNotFoundException::class)
   fun handleListOfDataNotFoundException(e: ListOfDataNotFoundException): ResponseEntity<ErrorResponse?>? {
     log.debug("List of data not found exception caught: {}", e.message)
@@ -230,6 +244,9 @@ class HmppsIncentivesApiExceptionHandler {
 
 class NoDataFoundException(id: Long) :
   Exception("No Data found for ID $id")
+
+class NoDataWithCodeFoundException(dataType: String, code: String) :
+  Exception("No $dataType found for code $code")
 
 class ListOfDataNotFoundException(dataType: String, ids: Collection<Long>) :
   Exception("No $dataType found for ID(s) $ids")
