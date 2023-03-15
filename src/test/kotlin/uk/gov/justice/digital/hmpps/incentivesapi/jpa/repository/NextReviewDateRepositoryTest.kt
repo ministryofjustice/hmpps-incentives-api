@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository
 
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -46,18 +45,16 @@ class NextReviewDateRepositoryTest : TestBase() {
       NextReviewDate(bookingId, nextReviewDate)
     )
 
-    coroutineScope {
-      val result: NextReviewDate? = repository.findById(bookingId)
+    val result: NextReviewDate? = repository.findById(bookingId)
 
-      assertThat(result).isNotNull
+    assertThat(result).isNotNull
 
-      with(result) {
-        assertThat(this!!.nextReviewDate).isEqualTo(nextReviewDate)
-        assertThat(this.whenCreated).isCloseTo(LocalDateTime.now(), within(5, ChronoUnit.MINUTES))
-        assertThat(this.whenUpdated).isCloseTo(LocalDateTime.now(), within(5, ChronoUnit.MINUTES))
-        assertThat(this.id).isEqualTo(bookingId)
-        assertThat(this.new).isFalse()
-      }
+    with(result) {
+      assertThat(this!!.nextReviewDate).isEqualTo(nextReviewDate)
+      assertThat(this.whenCreated).isCloseTo(LocalDateTime.now(), within(5, ChronoUnit.MINUTES))
+      assertThat(this.whenUpdated).isCloseTo(LocalDateTime.now(), within(5, ChronoUnit.MINUTES))
+      assertThat(this.id).isEqualTo(bookingId)
+      assertThat(this.new).isFalse()
     }
   }
 
@@ -109,17 +106,15 @@ class NextReviewDateRepositoryTest : TestBase() {
       repository.save(NextReviewDate(bookingId, reviewDate))
     }
 
-    coroutineScope {
-      val bookingIds = reviewDates.keys.toList()
-      val result = repository.findAllById(bookingIds).toList()
+    val bookingIds = reviewDates.keys.toList()
+    val result = repository.findAllById(bookingIds).toList()
 
-      assertThat(result.size).isEqualTo(reviewDates.size)
+    assertThat(result.size).isEqualTo(reviewDates.size)
 
-      for ((index, bookingId) in bookingIds.withIndex()) {
-        with(result[index]) {
-          assertThat(this.bookingId).isEqualTo(bookingId)
-          assertThat(this.nextReviewDate).isEqualTo(reviewDates[bookingId])
-        }
+    for ((index, bookingId) in bookingIds.withIndex()) {
+      with(result[index]) {
+        assertThat(this.bookingId).isEqualTo(bookingId)
+        assertThat(this.nextReviewDate).isEqualTo(reviewDates[bookingId])
       }
     }
   }
