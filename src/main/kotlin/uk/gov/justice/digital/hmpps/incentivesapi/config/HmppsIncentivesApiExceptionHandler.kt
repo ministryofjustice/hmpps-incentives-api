@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus.BAD_REQUEST
 import org.springframework.http.HttpStatus.FORBIDDEN
 import org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
 import org.springframework.http.HttpStatus.NOT_FOUND
+import org.springframework.http.HttpStatus.UNSUPPORTED_MEDIA_TYPE
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.web.bind.MethodArgumentNotValidException
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.bind.support.WebExchangeBindException
 import org.springframework.web.reactive.function.client.WebClientResponseException.NotFound
 import org.springframework.web.server.ServerWebInputException
+import org.springframework.web.server.UnsupportedMediaTypeStatusException
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveReviewNotFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.service.NoPrisonersAtLocationException
 import uk.gov.justice.digital.hmpps.incentivesapi.util.ParameterValidationException
@@ -69,7 +71,7 @@ class HmppsIncentivesApiExceptionHandler {
   }
 
   @ExceptionHandler(ParameterValidationException::class)
-  fun handleValidationException(e: ParameterValidationException): ResponseEntity<ErrorResponse> {
+  fun handleParameterValidationException(e: ParameterValidationException): ResponseEntity<ErrorResponse> {
     log.info("Invalid parameters: {}", e.errors)
     return ResponseEntity
       .status(BAD_REQUEST)
@@ -93,6 +95,26 @@ class HmppsIncentivesApiExceptionHandler {
           status = BAD_REQUEST,
           userMessage = "Validation failure: $message",
           developerMessage = e.message
+        )
+      )
+  }
+
+  @ExceptionHandler(UnsupportedMediaTypeStatusException::class)
+  fun handleUnsupportedMediaTypeStatusException(e: UnsupportedMediaTypeStatusException): ResponseEntity<ErrorResponse> {
+    val supportedTypes = if (e.supportedMediaTypes.isEmpty()) {
+      "accepted types not specified"
+    } else {
+      e.supportedMediaTypes.joinToString(", ", prefix = "accepted types: ")
+    }
+    val message = "Unsupported media type ${e.contentType}; $supportedTypes"
+    log.info(message)
+    return ResponseEntity
+      .status(UNSUPPORTED_MEDIA_TYPE)
+      .body(
+        ErrorResponse(
+          status = UNSUPPORTED_MEDIA_TYPE,
+          userMessage = message,
+          developerMessage = message
         )
       )
   }

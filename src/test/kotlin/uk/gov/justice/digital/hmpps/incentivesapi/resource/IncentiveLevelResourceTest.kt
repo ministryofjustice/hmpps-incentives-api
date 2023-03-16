@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveLevelRepository
@@ -182,6 +183,37 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
   // TODO: add once roles have been determined
   // fun `requires correct role to create a level`() {}
+
+  @Test
+  fun `fails to create a level when media type is not supported`() {
+    webTestClient.post()
+      .uri("/incentive/levels")
+      .headers(setAuthorisation())
+      .header("Content-Type", "application/yaml")
+      .bodyValue(
+        // language=yaml
+        """
+        code: STD
+        description: Silver
+        active: false
+        """.trimIndent()
+      )
+      .exchange()
+      .expectStatus().isEqualTo(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+      .expectBody().jsonPath("$.userMessage").value<String> {
+        assertThat(it).contains("Unsupported media type")
+        assertThat(it).contains("accepted types: application/json")
+      }
+
+    runBlocking {
+      assertThat(incentiveLevelRepository.count()).isEqualTo(6)
+
+      val incentiveLevel = incentiveLevelRepository.findById("STD")
+      assertThat(incentiveLevel?.code).isEqualTo("STD")
+      assertThat(incentiveLevel?.description).isEqualTo("Standard")
+      assertThat(incentiveLevel?.active).isTrue
+    }
+  }
 
   @Test
   fun `fails to create a level when code already exists`() {
