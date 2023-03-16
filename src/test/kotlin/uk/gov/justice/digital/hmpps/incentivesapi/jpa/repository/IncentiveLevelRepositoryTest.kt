@@ -8,7 +8,7 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest
-import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.dao.NonTransientDataAccessException
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.incentivesapi.helper.TestBase
@@ -37,14 +37,24 @@ class IncentiveLevelRepositoryTest : TestBase() {
   private fun assertThatLevelCannotBeSaved(incentiveLevel: IncentiveLevel) {
     assertThatThrownBy {
       runBlocking { repository.save(incentiveLevel) }
-    }.isInstanceOf(DataIntegrityViolationException::class.java)
+    }.isInstanceOf(NonTransientDataAccessException::class.java)
   }
 
   @Test
   fun `level code cannot be blank`(): Unit = assertThatLevelCannotBeSaved(
     IncentiveLevel(
       code = "",
-      description = "Blank",
+      description = "Standard",
+      sequence = 10,
+      new = true,
+    )
+  )
+
+  @Test
+  fun `level code cannot be too long`(): Unit = assertThatLevelCannotBeSaved(
+    IncentiveLevel(
+      code = "Standard",
+      description = "Standard",
       sequence = 10,
       new = true,
     )

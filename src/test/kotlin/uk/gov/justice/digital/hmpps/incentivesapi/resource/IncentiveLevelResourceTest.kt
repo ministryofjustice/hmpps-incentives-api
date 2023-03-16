@@ -143,6 +143,138 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
   }
 
   @Test
+  fun `creates a level`() {
+    val maxSequence = runBlocking {
+      incentiveLevelRepository.findMaxSequence()!!
+    }
+
+    webTestClient.post()
+      .uri("/incentive/levels")
+      .headers(setAuthorisation())
+      .header("Content-Type", "application/json")
+      .bodyValue(
+        // language=json
+        """
+        {"code": "EN4", "description": "Enhanced 4", "active": false}
+        """
+      )
+      .exchange()
+      .expectStatus().isCreated
+      .expectBody().json(
+        // language=json
+        """
+        {"code": "EN4", "description": "Enhanced 4", "active": false}
+        """,
+        true
+      )
+
+    runBlocking {
+      assertThat(incentiveLevelRepository.count()).isEqualTo(7)
+
+      val incentiveLevel = incentiveLevelRepository.findById("EN4")
+      assertThat(incentiveLevel?.code).isEqualTo("EN4")
+      assertThat(incentiveLevel?.description).isEqualTo("Enhanced 4")
+      assertThat(incentiveLevel?.active).isFalse
+      assertThat(incentiveLevel?.sequence).isGreaterThan(maxSequence)
+    }
+  }
+
+  // TODO: add once roles have been determined
+  // fun `requires correct role to create a level`() {}
+
+  @Test
+  fun `fails to create a level when code already exists`() {
+    webTestClient.post()
+      .uri("/incentive/levels")
+      .headers(setAuthorisation())
+      .header("Content-Type", "application/json")
+      .bodyValue(
+        // language=json
+        """
+        {"code": "STD", "description": "Silver", "active": false}
+        """
+      )
+      .exchange()
+      .expectStatus().isBadRequest
+      .expectBody().jsonPath("$.userMessage").value<String> {
+        assertThat(it).contains("Incentive level with code STD already exists")
+      }
+
+    runBlocking {
+      assertThat(incentiveLevelRepository.count()).isEqualTo(6)
+
+      val incentiveLevel = incentiveLevelRepository.findById("STD")
+      assertThat(incentiveLevel?.code).isEqualTo("STD")
+      assertThat(incentiveLevel?.description).isEqualTo("Standard")
+      assertThat(incentiveLevel?.active).isTrue
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+    strings = [
+      // language=json
+      """
+      {"code": "EN4", "active": false}
+      """,
+      // language=json
+      """
+      {"description": "Enhanced 4", "active": false}
+      """,
+    ]
+  )
+  fun `fails to create a level with missing fields`(body: String) {
+    webTestClient.post()
+      .uri("/incentive/levels")
+      .headers(setAuthorisation())
+      .header("Content-Type", "application/json")
+      .bodyValue(body)
+      .exchange()
+      .expectStatus().isBadRequest
+      .expectBody().jsonPath("$.userMessage").value<String> {
+        assertThat(it).contains("Parameter conversion failure")
+      }
+
+    runBlocking {
+      assertThat(incentiveLevelRepository.count()).isEqualTo(6)
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+    strings = [
+      // language=json
+      """
+      {"code": "", "description": "Enhanced 4", "active": false}
+      """,
+      // language=json
+      """
+      {"code": "Enhanced", "description": "Enhanced Plus", "active": false}
+      """,
+      // language=json
+      """
+      {"code": "EN4", "description": "", "active": false}
+      """,
+    ]
+  )
+  fun `fails to create a level with invalid fields`(body: String) {
+    webTestClient.post()
+      .uri("/incentive/levels")
+      .headers(setAuthorisation())
+      .header("Content-Type", "application/json")
+      .bodyValue(body)
+      .exchange()
+      .expectStatus().isBadRequest
+      .expectBody().jsonPath("$.userMessage").value<String> {
+        assertThat(it).contains("Invalid parameters")
+      }
+
+    runBlocking {
+      assertThat(incentiveLevelRepository.count()).isEqualTo(6)
+    }
+  }
+
+  @Test
   fun `updates a level`() {
     webTestClient.put()
       .uri("/incentive/levels/STD")

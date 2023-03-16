@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveLevelRepository
+import javax.validation.ValidationException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel as IncentiveLevelDTO
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevelUpdate as IncentiveLevelUpdateDTO
 
@@ -24,6 +25,16 @@ class IncentiveLevelService(
 
   suspend fun getIncentiveLevel(code: String): IncentiveLevelDTO? {
     return incentiveLevelRepository.findById(code)?.toDTO()
+  }
+
+  @Transactional
+  suspend fun createIncentiveLevel(dto: IncentiveLevelDTO): IncentiveLevelDTO {
+    if (incentiveLevelRepository.existsById(dto.code)) {
+      throw ValidationException("Incentive level with code ${dto.code} already exists")
+    }
+    val highestSequence = incentiveLevelRepository.findMaxSequence() ?: 0
+    val incentiveLevel = dto.toNewEntity(highestSequence + 1)
+    return incentiveLevelRepository.save(incentiveLevel).toDTO()
   }
 
   @Transactional
@@ -46,6 +57,14 @@ private fun IncentiveLevel.toDTO(): IncentiveLevelDTO = IncentiveLevelDTO(
   code = code,
   description = description,
   active = active,
+)
+
+private fun IncentiveLevelDTO.toNewEntity(sequence: Int): IncentiveLevel = IncentiveLevel(
+  code = code,
+  description = description,
+  sequence = sequence,
+  active = active,
+  new = true,
 )
 
 private suspend fun Flow<IncentiveLevel>.toListOfDTO(): List<IncentiveLevelDTO> = map { it.toDTO() }.toList()

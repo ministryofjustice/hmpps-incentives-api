@@ -5,15 +5,18 @@ import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataWithCodeFoundException
@@ -58,6 +61,42 @@ class IncentiveLevelResource(
     } else {
       incentiveLevelService.getActiveIncentiveLevels()
     }
+  }
+
+  @PostMapping("levels")
+  @ResponseStatus(HttpStatus.CREATED)
+  @Operation(
+    summary = "Creates a new incentive level",
+    responses = [
+      ApiResponse(
+        responseCode = "201",
+        description = "Incentive level created"
+      ),
+      ApiResponse(
+        responseCode = "400",
+        description = "Invalid payload",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Incorrect permissions to use this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+    ]
+  )
+  suspend fun createIncentiveLevel(
+    @RequestBody incentiveLevel: IncentiveLevel,
+  ): IncentiveLevel {
+    ensure {
+      ("code" to incentiveLevel.code).hasLengthAtLeast(1).hasLengthAtMost(6)
+      ("description" to incentiveLevel.description).hasLengthAtLeast(1)
+    }
+    return incentiveLevelService.createIncentiveLevel(incentiveLevel)
   }
 
   @GetMapping("levels/{code}")
