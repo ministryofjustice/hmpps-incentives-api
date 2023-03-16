@@ -1,12 +1,12 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository
 
-import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Assert
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -80,26 +80,30 @@ class PrisonerIepLevelRepositoryTest : TestBase() {
     )
 
     coroutineScope {
-      val prisonerLevelCurrent = async { repository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(listOf(bookingId)).first() }
-      val prisonerLevelFirst = async { repository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId) }
-      val prisonerAllLevels = async { repository.findAllByBookingIdOrderByReviewTimeDesc(bookingId) }
-
-      with(prisonerLevelCurrent.await()) {
-        assertThat(iepCode).isEqualTo("STD")
-        assertThat(prisonId).isEqualTo("MDI")
-        assertThat(current).isEqualTo(true)
-        assertThat(reviewedBy).isEqualTo("TEST_STAFF1")
+      launch {
+        val prisonerLevelCurrent = repository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(listOf(bookingId)).first()
+        with(prisonerLevelCurrent) {
+          assertThat(iepCode).isEqualTo("STD")
+          assertThat(prisonId).isEqualTo("MDI")
+          assertThat(current).isEqualTo(true)
+          assertThat(reviewedBy).isEqualTo("TEST_STAFF1")
+        }
       }
 
-      with(prisonerLevelFirst.await()!!) {
-        assertThat(iepCode).isEqualTo("STD")
-        assertThat(prisonId).isEqualTo("MDI")
-        assertThat(current).isEqualTo(true)
-        assertThat(reviewedBy).isEqualTo("TEST_STAFF1")
+      launch {
+        val prisonerLevelFirst = repository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId)
+        with(prisonerLevelFirst!!) {
+          assertThat(iepCode).isEqualTo("STD")
+          assertThat(prisonId).isEqualTo("MDI")
+          assertThat(current).isEqualTo(true)
+          assertThat(reviewedBy).isEqualTo("TEST_STAFF1")
+        }
       }
 
-      val levels = prisonerAllLevels.await().toList()
-      assertThat(levels).hasSize(2)
+      launch {
+        val prisonerAllLevels = repository.findAllByBookingIdOrderByReviewTimeDesc(bookingId).toList()
+        assertThat(prisonerAllLevels).hasSize(2)
+      }
     }
   }
 
@@ -113,9 +117,9 @@ class PrisonerIepLevelRepositoryTest : TestBase() {
       repository.save(entity(bookingId, true))
 
       // When
-      Assert.assertThrows(DataIntegrityViolationException::class.java) {
+      assertThatThrownBy {
         runBlocking { repository.save(entity(bookingId, true)) }
-      }
+      }.isInstanceOf(DataIntegrityViolationException::class.java)
 
       // Then
       assertThat(repository.findAllByBookingIdOrderByReviewTimeDesc(bookingId).toList()).hasSize(1)

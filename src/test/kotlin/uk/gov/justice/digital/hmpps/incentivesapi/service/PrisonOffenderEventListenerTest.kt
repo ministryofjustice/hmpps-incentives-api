@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -26,57 +25,47 @@ class PrisonOffenderEventListenerTest {
 
   @Test
   fun `process admission prisoner message`(): Unit = runBlocking {
-    coroutineScope {
-      // When
-      listener.onPrisonOffenderEvent("/messages/prisonerReceivedReasonAdmission.json".readResourceAsText())
+    // When
+    listener.onPrisonOffenderEvent("/messages/prisonerReceivedReasonAdmission.json".readResourceAsText())
 
-      // Then
-      verify(prisonerIepLevelReviewService, times(1)).processOffenderEvent(any())
-    }
+    // Then
+    verify(prisonerIepLevelReviewService, times(1)).processOffenderEvent(any())
   }
 
   @Test
   fun `process transferred prisoner message`(): Unit = runBlocking {
-    coroutineScope {
-      // When
-      listener.onPrisonOffenderEvent("/messages/prisonerReceivedReasonTransferred.json".readResourceAsText())
+    // When
+    listener.onPrisonOffenderEvent("/messages/prisonerReceivedReasonTransferred.json".readResourceAsText())
 
-      // Then
-      verify(prisonerIepLevelReviewService, times(1)).processOffenderEvent(any())
-    }
+    // Then
+    verify(prisonerIepLevelReviewService, times(1)).processOffenderEvent(any())
   }
 
   @Test
   fun `do not process eventType of prisoner released`(): Unit = runBlocking {
-    coroutineScope {
-      // When
-      listener.onPrisonOffenderEvent("/messages/prisonerReleased.json".readResourceAsText())
+    // When
+    listener.onPrisonOffenderEvent("/messages/prisonerReleased.json".readResourceAsText())
 
-      // Then
-      verifyNoInteractions(prisonerIepLevelReviewService)
-    }
+    // Then
+    verifyNoInteractions(prisonerIepLevelReviewService)
   }
 
   @Test
   fun `process merged prisoner message`(): Unit = runBlocking {
-    coroutineScope {
-      // When
-      listener.onPrisonOffenderEvent("/messages/prisonerMerged.json".readResourceAsText())
+    // When
+    listener.onPrisonOffenderEvent("/messages/prisonerMerged.json".readResourceAsText())
 
-      // Then
-      verify(prisonerIepLevelReviewService, times(1)).processOffenderEvent(any())
-    }
+    // Then
+    verify(prisonerIepLevelReviewService, times(1)).processOffenderEvent(any())
   }
 
   @Test
   fun `process prisoner alerts updated message`(): Unit = runBlocking {
-    coroutineScope {
-      // When
-      listener.onPrisonOffenderEvent("/messages/prisonerAlertsUpdated.json".readResourceAsText())
+    // When
+    listener.onPrisonOffenderEvent("/messages/prisonerAlertsUpdated.json".readResourceAsText())
 
-      // Then
-      verify(prisonerIepLevelReviewService, times(1)).processPrisonerAlertsUpdatedEvent(any())
-    }
+    // Then
+    verify(prisonerIepLevelReviewService, times(1)).processPrisonerAlertsUpdatedEvent(any())
   }
 
   private fun String.readResourceAsText(): String {

@@ -71,6 +71,7 @@ data class ProvenAdjudication(
   val provenAdjudicationCount: Int
 )
 
+// TODO: this does too many things, split into: • global level as defined in NOMIS reference data • per-prison configured level
 data class IepLevel(
   @Schema(description = "IEP Code for an IEP level", example = "STD")
   val iepLevel: String,
@@ -83,23 +84,23 @@ data class IepLevel(
   @JsonProperty
   val default: Boolean = false,
   @Schema(description = "Indicates that this IEP level is the active", example = "true")
-  val active: Boolean = true
+  val active: Boolean = true,
+  // TODO: the version for NOMIS reference data should include expired date?
 )
 
 data class PrisonLocation(
-
   val agencyId: String,
   val locationPrefix: String,
   val description: String,
   val locationType: String,
-  val userDescription: String?
-
+  val userDescription: String?,
 )
 
-data class IncentiveLevel(
+data class ReferenceCode(
   val domain: String,
   val code: String,
   val description: String,
   val activeFlag: String,
   val listSeq: Int,
+  // TODO: does NOMIS/prison-api reference data include expired date?
 )
