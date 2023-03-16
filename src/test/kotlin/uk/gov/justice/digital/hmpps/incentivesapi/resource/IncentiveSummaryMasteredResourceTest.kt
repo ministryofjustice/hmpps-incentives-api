@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.resource
 
 import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -10,6 +11,7 @@ import org.springframework.context.annotation.Primary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.NextReviewDateRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import java.time.Clock
 import java.time.Instant
@@ -32,7 +34,9 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
   }
 
   @Autowired
-  private lateinit var repository: PrisonerIepLevelRepository
+  private lateinit var prisonerIepLevelRepository: PrisonerIepLevelRepository
+  @Autowired
+  private lateinit var nextReviewDateRepository: NextReviewDateRepository
 
   @BeforeEach
   fun setUp(): Unit = runBlocking {
@@ -136,7 +140,7 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
     )
   }
 
-  suspend fun prisonerIepLevel(
+  private suspend fun prisonerIepLevel(
     bookingId: Long,
     prisonerNumber: String,
     level: String = "STD",
@@ -144,7 +148,7 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
     reviewTime: LocalDateTime = now(),
     current: Boolean = false,
     prisonId: String = "MDI"
-  ) = repository.save(
+  ) = prisonerIepLevelRepository.save(
     PrisonerIepLevel(
       bookingId = bookingId,
       prisonerNumber = prisonerNumber,
@@ -158,6 +162,12 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
       reviewedBy = "TEST_USER",
     )
   )
+
+  @AfterEach
+  fun tearDown(): Unit = runBlocking {
+    prisonerIepLevelRepository.deleteAll()
+    nextReviewDateRepository.deleteAll()
+  }
 
   @Test
   fun `get behaviour summary for wing`() {
