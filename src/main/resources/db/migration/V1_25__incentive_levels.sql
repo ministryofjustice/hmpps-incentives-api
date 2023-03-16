@@ -19,7 +19,8 @@ VALUES ('BAS', 'Basic', 1, true),
        ('ENT', 'Entry', 99, false);
 
 ALTER TABLE prisoner_iep_level
-    ADD FOREIGN KEY (iep_code)
-        REFERENCES incentive_level (code)
-        ON DELETE RESTRICT
-        ON UPDATE RESTRICT;
+    ADD CONSTRAINT incentive_level_fkey
+        FOREIGN KEY (iep_code)
+            REFERENCES incentive_level (code)
+            ON DELETE RESTRICT
+            ON UPDATE RESTRICT;

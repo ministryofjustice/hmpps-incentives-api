@@ -162,7 +162,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       .exchange()
       .expectStatus().isNotFound
       .expectBody().jsonPath("$.userMessage").value<String> {
-        assertThat(it).contains("No incentive level found for code bas")
+        assertThat(it).contains("No incentive level found for code `bas`")
       }
   }
 
@@ -466,7 +466,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       .exchange()
       .expectStatus().isNotFound
       .expectBody().jsonPath("$.userMessage").value<String> {
-        assertThat(it).contains("No incentive level found for code EN4")
+        assertThat(it).contains("No incentive level found for code `EN4`")
       }
 
     runBlocking {
@@ -551,7 +551,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       .exchange()
       .expectStatus().isNotFound
       .expectBody().jsonPath("$.userMessage").value<String> {
-        assertThat(it).contains("No incentive level found for code std")
+        assertThat(it).contains("No incentive level found for code `std`")
       }
 
     runBlocking {
@@ -701,7 +701,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       .exchange()
       .expectStatus().isNotFound
       .expectBody().jsonPath("$.userMessage").value<String> {
-        assertThat(it).contains("No incentive level found for code std")
+        assertThat(it).contains("No incentive level found for code `std`")
       }
 
     runBlocking {
@@ -827,7 +827,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       .exchange()
       .expectStatus().isNotFound
       .expectBody().jsonPath("$.userMessage").value<String> {
-        assertThat(it).contains("No incentive level found for code std")
+        assertThat(it).contains("No incentive level found for code `std`")
       }
 
     runBlocking {

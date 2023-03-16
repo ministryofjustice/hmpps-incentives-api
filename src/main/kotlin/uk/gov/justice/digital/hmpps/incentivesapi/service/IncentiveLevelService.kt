@@ -20,7 +20,7 @@ class IncentiveLevelService(
   private val clock: Clock,
   private val incentiveLevelRepository: IncentiveLevelRepository,
 ) {
-  suspend fun getIncentiveLevels(): List<IncentiveLevelDTO> {
+  suspend fun getAllIncentiveLevels(): List<IncentiveLevelDTO> {
     return incentiveLevelRepository.findAllByOrderBySequence().toListOfDTO()
   }
 

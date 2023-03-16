@@ -268,7 +268,7 @@ class NoDataFoundException(id: Long) :
   Exception("No Data found for ID $id")
 
 class NoDataWithCodeFoundException(dataType: String, code: String) :
-  Exception("No $dataType found for code $code")
+  Exception("No $dataType found for code `$code`")
 
 class ListOfDataNotFoundException(dataType: String, ids: Collection<Long>) :
   Exception("No $dataType found for ID(s) $ids")

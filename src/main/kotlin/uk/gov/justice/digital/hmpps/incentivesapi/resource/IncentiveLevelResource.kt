@@ -57,7 +57,7 @@ class IncentiveLevelResource(
     withInactive: Boolean = false,
   ): List<IncentiveLevel> {
     return if (withInactive) {
-      incentiveLevelService.getIncentiveLevels()
+      incentiveLevelService.getAllIncentiveLevels()
     } else {
       incentiveLevelService.getActiveIncentiveLevels()
     }
