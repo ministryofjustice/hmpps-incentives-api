@@ -23,4 +23,19 @@ data class IncentiveLevel(
   // TODO: add `required` flag to indicate that all prisons must use it
   // @Schema(description = "Indicates that all prisons must have this level active", example = "true", defaultValue = "false")
   // val required: Boolean = false,
+) {
+  fun toUpdate() = IncentiveLevelUpdate(
+    description = description,
+    active = active,
+  )
+}
+
+/**
+ * Update payload for IncentiveLevel
+ */
+data class IncentiveLevelUpdate(
+  @Schema(description = "Description of the incentive level", example = "Standard", minLength = 1)
+  val description: String? = null,
+  @Schema(description = "Indicates that the incentive level is active; inactive levels are historic levels no longer in use", example = "true", defaultValue = "true")
+  val active: Boolean? = null,
 )
