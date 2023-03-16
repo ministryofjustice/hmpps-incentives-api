@@ -5,8 +5,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataWithCodeFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveLevelRepository
+import uk.gov.justice.digital.hmpps.incentivesapi.util.flow.associateByTo
 import javax.validation.ValidationException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel as IncentiveLevelDTO
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevelUpdate as IncentiveLevelUpdateDTO
@@ -44,6 +46,28 @@ class IncentiveLevelService(
         incentiveLevelRepository.save(it.withUpdate(update))
       }
       ?.toDTO()
+  }
+
+  @Transactional
+  suspend fun setOrderOfIncentiveLevels(incentiveLevelCodes: List<String>): List<IncentiveLevelDTO> {
+    val allIncentiveLevels = mutableMapOf<String, IncentiveLevel>()
+    incentiveLevelRepository.findAll().associateByTo(allIncentiveLevels, IncentiveLevel::code)
+
+    val incentiveLevelsInDesiredOrder = incentiveLevelCodes.mapTo(mutableListOf()) { code ->
+      allIncentiveLevels.remove(code)
+        ?: throw NoDataWithCodeFoundException("incentive level", code)
+    }
+    val remainingIncentiveLevels = allIncentiveLevels.values.sortedBy(IncentiveLevel::sequence)
+    incentiveLevelsInDesiredOrder.addAll(remainingIncentiveLevels)
+
+    val incentiveLevelsWithNewSequences = incentiveLevelsInDesiredOrder.mapIndexed { index, incentiveLevel ->
+      incentiveLevel.copy(
+        sequence = index + 1,
+        new = false,
+      )
+    }
+
+    return incentiveLevelRepository.saveAll(incentiveLevelsWithNewSequences).toListOfDTO()
   }
 }
 

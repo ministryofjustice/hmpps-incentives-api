@@ -148,7 +148,7 @@ class IncentiveReviewsService(
 
   private suspend fun getIncentiveLevelsForOffenders(bookingIds: List<Long>): Map<Long, PrisonerIepLevel> =
     prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(bookingIds)
-      .toMap(keySelector = PrisonerIepLevel::bookingId)
+      .toMap(PrisonerIepLevel::bookingId)
 }
 
 @Suppress("unused") // not all enum variants are referred to in code

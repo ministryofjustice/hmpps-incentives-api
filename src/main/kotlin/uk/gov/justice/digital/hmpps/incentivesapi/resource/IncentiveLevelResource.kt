@@ -99,6 +99,46 @@ class IncentiveLevelResource(
     return incentiveLevelService.createIncentiveLevel(incentiveLevel)
   }
 
+  @PatchMapping("level-order")
+  @Operation(
+    summary = "Sets the order of incentive levels",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Incentive levels reordered"
+      ),
+      ApiResponse(
+        responseCode = "400",
+        description = "Not enough level codes provided",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Incorrect permissions to use this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Incentive level with this code not found",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+    ]
+  )
+  suspend fun setOrderOfIncentiveLevels(
+    @RequestBody incentiveLevelCodes: List<String>
+  ): List<IncentiveLevel> {
+    ensure {
+      ("incentiveLevelCodes" to incentiveLevelCodes).hasSizeAtLeast(2)
+    }
+
+    return incentiveLevelService.setOrderOfIncentiveLevels(incentiveLevelCodes)
+  }
+
   @GetMapping("levels/{code}")
   @Operation(
     summary = "Returns an incentive level by code",
