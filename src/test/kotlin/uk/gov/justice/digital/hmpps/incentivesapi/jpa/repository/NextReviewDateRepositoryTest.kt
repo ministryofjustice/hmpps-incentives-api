@@ -3,8 +3,8 @@ package uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.assertj.core.api.Assertions.within
-import org.junit.Assert
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -66,14 +66,14 @@ class NextReviewDateRepositoryTest : TestBase() {
       NextReviewDate(bookingId, LocalDate.parse("2022-12-25"))
     )
 
-    Assert.assertThrows(DataIntegrityViolationException::class.java) {
+    assertThatThrownBy {
       runBlocking {
         // Save another record with same bookingId fails because it's primary key
         repository.save(
           NextReviewDate(bookingId, LocalDate.parse("2030-01-31"))
         )
       }
-    }
+    }.isInstanceOf(DataIntegrityViolationException::class.java)
   }
 
   @Test

@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.Assert
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -117,9 +117,9 @@ class PrisonerIepLevelRepositoryTest : TestBase() {
       repository.save(entity(bookingId, true))
 
       // When
-      Assert.assertThrows(DataIntegrityViolationException::class.java) {
+      assertThatThrownBy {
         runBlocking { repository.save(entity(bookingId, true)) }
-      }
+      }.isInstanceOf(DataIntegrityViolationException::class.java)
 
       // Then
       assertThat(repository.findAllByBookingIdOrderByReviewTimeDesc(bookingId).toList()).hasSize(1)
