@@ -9,12 +9,34 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Primary
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveLevelRepository
+import java.time.Clock
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
 
 class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
+  companion object {
+    val clock: Clock = Clock.fixed(
+      Instant.parse("2022-03-15T12:34:56+00:00"),
+      ZoneId.of("Europe/London"),
+    )
+    val now: LocalDateTime = LocalDateTime.now(clock)
+  }
+
+  @TestConfiguration
+  class FixedClockConfig {
+    @Primary
+    @Bean
+    fun fixedClock(): Clock = clock
+  }
+
   @Autowired
   private lateinit var incentiveLevelRepository: IncentiveLevelRepository
 
@@ -178,6 +200,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       assertThat(incentiveLevel?.description).isEqualTo("Enhanced 4")
       assertThat(incentiveLevel?.active).isFalse
       assertThat(incentiveLevel?.sequence).isGreaterThan(maxSequence)
+      assertThat(incentiveLevel?.whenUpdated).isEqualTo(now)
     }
   }
 
@@ -240,6 +263,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       assertThat(incentiveLevel?.code).isEqualTo("STD")
       assertThat(incentiveLevel?.description).isEqualTo("Standard")
       assertThat(incentiveLevel?.active).isTrue
+      assertThat(incentiveLevel?.whenUpdated).isNotEqualTo(now)
     }
   }
 
@@ -340,6 +364,9 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       val incentiveLevels = incentiveLevelRepository.findAllByOrderBySequence().toList()
       assertThat(incentiveLevels.map { it.code }).isEqualTo(listOf("EN3", "EN2", "ENT", "ENH", "STD", "BAS"))
       assertThat(incentiveLevels.map { it.sequence }).isEqualTo(listOf(1, 2, 3, 4, 5, 6))
+      assertThat(incentiveLevels.map { it.whenUpdated }).allSatisfy {
+        assertThat(it).isEqualTo(now)
+      }
     }
   }
 
@@ -376,6 +403,9 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       val incentiveLevels = incentiveLevelRepository.findAllByOrderBySequence().toList()
       assertThat(incentiveLevels.map { it.code }).isEqualTo(listOf("EN3", "EN2", "ENH", "STD", "BAS", "ENT"))
       assertThat(incentiveLevels.map { it.sequence }).isEqualTo(listOf(1, 2, 3, 4, 5, 6))
+      assertThat(incentiveLevels.map { it.whenUpdated }).allSatisfy {
+        assertThat(it).isEqualTo(now)
+      }
     }
   }
 
@@ -412,6 +442,9 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       val incentiveLevels = incentiveLevelRepository.findAllByOrderBySequence().toList()
       assertThat(incentiveLevels.map { it.code }).isEqualTo(listOf("EN3", "EN2", "BAS", "STD", "ENH", "ENT"))
       assertThat(incentiveLevels.map { it.sequence }).isEqualTo(listOf(1, 2, 3, 4, 5, 6))
+      assertThat(incentiveLevels.map { it.whenUpdated }).allSatisfy {
+        assertThat(it).isEqualTo(now)
+      }
     }
   }
 
@@ -440,6 +473,9 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       val incentiveLevels = incentiveLevelRepository.findAllByOrderBySequence().toList()
       assertThat(incentiveLevels.map { it.code }).isEqualTo(listOf("BAS", "STD", "ENH", "EN2", "EN3", "ENT"))
       assertThat(incentiveLevels.map { it.sequence }).isEqualTo(listOf(1, 2, 3, 4, 5, 99))
+      assertThat(incentiveLevels.map { it.whenUpdated }).allSatisfy {
+        assertThat(it).isNotEqualTo(now)
+      }
     }
   }
 
@@ -493,6 +529,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     runBlocking {
       val incentiveLevel = incentiveLevelRepository.findById("STD")
       assertThat(incentiveLevel?.description).isEqualTo("Silver")
+      assertThat(incentiveLevel?.whenUpdated).isEqualTo(now)
     }
   }
 
@@ -522,6 +559,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       assertThat(incentiveLevel).isNull()
       incentiveLevel = incentiveLevelRepository.findById("STD")
       assertThat(incentiveLevel?.description).isEqualTo("Standard")
+      assertThat(incentiveLevel?.whenUpdated).isNotEqualTo(now)
     }
   }
 
@@ -641,6 +679,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     runBlocking {
       val incentiveLevel = incentiveLevelRepository.findById("STD")
       assertThat(incentiveLevel?.description).isEqualTo("Silver")
+      assertThat(incentiveLevel?.whenUpdated).isEqualTo(now)
     }
   }
 
@@ -670,6 +709,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       assertThat(incentiveLevel).isNull()
       incentiveLevel = incentiveLevelRepository.findById("STD")
       assertThat(incentiveLevel?.description).isEqualTo("Standard")
+      assertThat(incentiveLevel?.whenUpdated).isNotEqualTo(now)
     }
   }
 
@@ -699,9 +739,11 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       var incentiveLevel = incentiveLevelRepository.findById("ENH")
       assertThat(incentiveLevel?.description).isEqualTo("Gold")
       assertThat(incentiveLevel?.active).isFalse
+      assertThat(incentiveLevel?.whenUpdated).isEqualTo(now)
       incentiveLevel = incentiveLevelRepository.findById("STD")
       assertThat(incentiveLevel?.description).isEqualTo("Standard")
       assertThat(incentiveLevel?.active).isTrue
+      assertThat(incentiveLevel?.whenUpdated).isNotEqualTo(now)
     }
   }
 
@@ -748,6 +790,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     runBlocking {
       val incentiveLevel = incentiveLevelRepository.findById("STD")
       assertThat(incentiveLevel?.active).isFalse
+      assertThat(incentiveLevel?.whenUpdated).isEqualTo(now)
     }
   }
 
@@ -769,6 +812,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     runBlocking {
       val incentiveLevel = incentiveLevelRepository.findById("ENT")
       assertThat(incentiveLevel?.active).isFalse
+      assertThat(incentiveLevel?.whenUpdated).isEqualTo(now)
     }
   }
 
@@ -791,6 +835,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       assertThat(incentiveLevel).isNull()
       incentiveLevel = incentiveLevelRepository.findById("STD")
       assertThat(incentiveLevel?.active).isTrue
+      assertThat(incentiveLevel?.whenUpdated).isNotEqualTo(now)
     }
   }
 }
