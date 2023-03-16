@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -109,29 +108,24 @@ class PrisonerIepLevelReviewServiceTest {
 
     @Test
     fun `addIepReview() by prisonerNumber`(): Unit = runBlocking {
-      coroutineScope {
-        // Given
-        whenever(prisonApiService.getPrisonerInfo(prisonerNumber)).thenReturn(prisonerInfo)
+      // Given
+      whenever(prisonApiService.getPrisonerInfo(prisonerNumber)).thenReturn(prisonerInfo)
 
-        // When
-        prisonerIepLevelReviewService.addIepReview(prisonerNumber, iepReview)
+      // When
+      prisonerIepLevelReviewService.addIepReview(prisonerNumber, iepReview)
 
-        testAddIepReviewCommonFunctionality()
-      }
+      testAddIepReviewCommonFunctionality()
     }
 
     @Test
     fun `addIepReview() by bookingId`(): Unit = runBlocking {
-      coroutineScope {
+      // Given
+      whenever(prisonApiService.getPrisonerInfo(bookingId)).thenReturn(prisonerInfo)
 
-        // Given
-        whenever(prisonApiService.getPrisonerInfo(bookingId)).thenReturn(prisonerInfo)
+      // When
+      prisonerIepLevelReviewService.addIepReview(bookingId, iepReview)
 
-        // When
-        prisonerIepLevelReviewService.addIepReview(bookingId, iepReview)
-
-        testAddIepReviewCommonFunctionality()
-      }
+      testAddIepReviewCommonFunctionality()
     }
 
     private suspend fun testAddIepReviewCommonFunctionality() {
@@ -165,15 +159,13 @@ class PrisonerIepLevelReviewServiceTest {
 
     @Test
     fun `update multiple IepLevels with current flag`(): Unit = runBlocking {
-      coroutineScope {
-        // Given
-        whenever(prisonApiService.getPrisonerInfo(bookingId)).thenReturn(prisonerInfo)
+      // Given
+      whenever(prisonApiService.getPrisonerInfo(bookingId)).thenReturn(prisonerInfo)
 
-        // When
-        prisonerIepLevelReviewService.addIepReview(bookingId, iepReview)
+      // When
+      prisonerIepLevelReviewService.addIepReview(bookingId, iepReview)
 
-        verify(incentiveStoreService).saveIncentiveReview(any())
-      }
+      verify(incentiveStoreService).saveIncentiveReview(any())
     }
   }
 
@@ -183,27 +175,25 @@ class PrisonerIepLevelReviewServiceTest {
     @Test
     fun `will not return iep details if withDetails is false`(): Unit =
       runBlocking {
-        coroutineScope {
-          val bookingId = currentLevel.bookingId
-          val expectedNextReviewDate = currentAndPreviousLevels.first().reviewTime.plusYears(1).toLocalDate()
+        val bookingId = currentLevel.bookingId
+        val expectedNextReviewDate = currentAndPreviousLevels.first().reviewTime.plusYears(1).toLocalDate()
 
-          whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
-          whenever(nextReviewDateGetterService.get(bookingId)).thenReturn(expectedNextReviewDate)
+        whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
+        whenever(nextReviewDateGetterService.get(bookingId)).thenReturn(expectedNextReviewDate)
 
-          // Given
-          whenever(prisonerIepLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(bookingId)).thenReturn(
-            currentAndPreviousLevels
-          )
+        // Given
+        whenever(prisonerIepLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(bookingId)).thenReturn(
+          currentAndPreviousLevels
+        )
 
-          // When
-          val result =
-            prisonerIepLevelReviewService.getPrisonerIepLevelHistory(bookingId, withDetails = false)
+        // When
+        val result =
+          prisonerIepLevelReviewService.getPrisonerIepLevelHistory(bookingId, withDetails = false)
 
-          // Then
-          verify(prisonerIepLevelRepository, times(1)).findAllByBookingIdOrderByReviewTimeDesc(bookingId)
-          assertThat(result.iepDetails.size).isZero
-          assertThat(result.nextReviewDate).isEqualTo(expectedNextReviewDate)
-        }
+        // Then
+        verify(prisonerIepLevelRepository, times(1)).findAllByBookingIdOrderByReviewTimeDesc(bookingId)
+        assertThat(result.iepDetails.size).isZero
+        assertThat(result.nextReviewDate).isEqualTo(expectedNextReviewDate)
       }
   }
 
