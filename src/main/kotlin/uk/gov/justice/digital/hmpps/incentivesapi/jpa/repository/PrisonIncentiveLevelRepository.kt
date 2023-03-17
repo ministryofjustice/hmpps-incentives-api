@@ -69,4 +69,20 @@ interface PrisonIncentiveLevelRepository : CoroutineCrudRepository<PrisonIncenti
     """
   )
   suspend fun findFirstByPrisonIdAndLevelCodeAndActiveIsTrue(prisonId: String, levelCode: String): PrisonIncentiveLevel?
+
+  /**
+   * Finds the active and default level configuration for a prison
+   * NB: Each prison should have exactly one but the rule is not enforced at database level
+   */
+  @Query(
+    // language=postgresql
+    """
+    SELECT prison_incentive_level.*, incentive_level.description AS level_description
+    FROM prison_incentive_level
+    JOIN incentive_level ON prison_incentive_level.level_code = incentive_level.code
+    WHERE prison_id = :prisonId AND prison_incentive_level.active IS TRUE AND prison_incentive_level.default_on_admission IS TRUE
+    LIMIT 1
+    """
+  )
+  suspend fun findFirstByPrisonIdAndActiveIsTrueAndDefaultIsTrue(prisonId: String): PrisonIncentiveLevel?
 }

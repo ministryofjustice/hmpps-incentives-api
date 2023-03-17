@@ -189,14 +189,14 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
     assertThat(savedEntity?.levelDescription).isEqualTo("Enhanced")
   }
 
-  @Test
-  fun `does not join on incentive levels when calling standard auto-generated repository methods`(): Unit = runBlocking {
+  private suspend fun generateDefaultData() {
     listOf("BAS", "STD", "ENH", "EN2", "ENT").forEach { levelCode ->
       listOf("BAI", "MDI", "WRI").forEach { prisonId ->
         val entity = PrisonIncentiveLevel(
           levelCode = levelCode,
           prisonId = prisonId,
           active = levelCode != "ENT",
+          defaultOnAdmission = levelCode == "STD",
 
           remandTransferLimitInPence = 5500,
           remandSpendLimitInPence = 55000,
@@ -212,6 +212,11 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
       }
     }
     assertThat(repository.count()).isEqualTo(15)
+  }
+
+  @Test
+  fun `does not join on incentive levels when calling standard auto-generated repository methods`(): Unit = runBlocking {
+    generateDefaultData()
 
     repository.findAll().collect {
       assertThat(it.levelDescription).isNull()
@@ -222,5 +227,17 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
     repository.findAllById(listOf(someId)).collect {
       assertThat(it.levelDescription).isNull()
     }
+  }
+
+  @Test
+  fun `loads default incentive level information in a prison`(): Unit = runBlocking {
+    generateDefaultData()
+
+    val entity = repository.findFirstByPrisonIdAndActiveIsTrueAndDefaultIsTrue("MDI")
+    assertThat(entity?.levelCode).isEqualTo("STD")
+    assertThat(entity?.levelDescription).isEqualTo("Standard")
+
+    val missing = repository.findFirstByPrisonIdAndActiveIsTrueAndDefaultIsTrue("LEI")
+    assertThat(missing).isNull()
   }
 }
