@@ -15,6 +15,9 @@ RUN ./gradlew clean assemble -Dorg.gradle.daemon=false
 FROM eclipse-temurin:19_36-jre-alpine
 LABEL maintainer="HMPPS Digital Studio <info@digital.justice.gov.uk>"
 
+ARG BUILD_NUMBER
+ENV BUILD_NUMBER ${BUILD_NUMBER:-1_0_0}
+
 RUN apk --no-cache upgrade
 
 ENV TZ=Europe/London
