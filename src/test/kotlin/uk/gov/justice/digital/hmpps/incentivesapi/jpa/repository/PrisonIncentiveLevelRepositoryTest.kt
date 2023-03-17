@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository
 
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -131,5 +133,34 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
     )
     assertThatEntityCannotBeSaved(entity)
     assertThat(repository.count()).isEqualTo(0)
+  }
+
+  @Test
+  fun `finds prison incentive levels in globally defined order`(): Unit = runBlocking {
+    // when levels are saved out-of-order
+    listOf("ENH", "BAS", "EN2", "ENT", "STD").forEach { levelCode ->
+      val entity = PrisonIncentiveLevel(
+        levelCode = levelCode,
+        prisonId = "MDI",
+        active = levelCode != "ENT",
+
+        remandTransferLimitInPence = 5500,
+        remandSpendLimitInPence = 55000,
+        convictedTransferLimitInPence = 1800,
+        convictedSpendLimitInPence = 18000,
+
+        visitOrders = 2,
+        privilegedVisitOrders = 1,
+
+        new = true,
+      )
+      repository.save(entity)
+    }
+
+    // assert that repository returns prison incentive levels in globally-defined order
+    var returnedOrder = repository.findAllByPrisonId("MDI").map { it.levelCode }.toList()
+    assertThat(returnedOrder).isEqualTo(listOf("BAS", "STD", "ENH", "EN2", "ENT"))
+    returnedOrder = repository.findAllByPrisonIdAndActiveIsTrue("MDI").map { it.levelCode }.toList()
+    assertThat(returnedOrder).isEqualTo(listOf("BAS", "STD", "ENH", "EN2"))
   }
 }
