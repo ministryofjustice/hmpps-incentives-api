@@ -1,6 +1,6 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository
 
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -158,9 +158,69 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
     }
 
     // assert that repository returns prison incentive levels in globally-defined order
-    var returnedOrder = repository.findAllByPrisonId("MDI").map { it.levelCode }.toList()
-    assertThat(returnedOrder).isEqualTo(listOf("BAS", "STD", "ENH", "EN2", "ENT"))
-    returnedOrder = repository.findAllByPrisonIdAndActiveIsTrue("MDI").map { it.levelCode }.toList()
-    assertThat(returnedOrder).isEqualTo(listOf("BAS", "STD", "ENH", "EN2"))
+    var returnedOrder = repository.findAllByPrisonId("MDI").toList()
+    assertThat(returnedOrder.map { it.levelCode }).isEqualTo(listOf("BAS", "STD", "ENH", "EN2", "ENT"))
+    assertThat(returnedOrder.map { it.levelDescription }).isEqualTo(listOf("Basic", "Standard", "Enhanced", "Enhanced 2", "Entry"))
+    returnedOrder = repository.findAllByPrisonIdAndActiveIsTrue("MDI").toList()
+    assertThat(returnedOrder.map { it.levelDescription }).isEqualTo(listOf("Basic", "Standard", "Enhanced", "Enhanced 2"))
+  }
+
+  @Test
+  fun `loads level description using join to global incentive levels`(): Unit = runBlocking {
+    val entity = PrisonIncentiveLevel(
+      levelCode = "ENH",
+      prisonId = "MDI",
+
+      remandTransferLimitInPence = 5500,
+      remandSpendLimitInPence = 55000,
+      convictedTransferLimitInPence = 1800,
+      convictedSpendLimitInPence = 18000,
+
+      visitOrders = 2,
+      privilegedVisitOrders = 1,
+
+      new = true,
+    )
+    repository.save(entity)
+
+    var savedEntity = repository.findFirstByPrisonIdAndLevelCode("MDI", "ENH")
+    assertThat(savedEntity?.levelDescription).isEqualTo("Enhanced")
+    savedEntity = repository.findFirstByPrisonIdAndLevelCodeAndActiveIsTrue("MDI", "ENH")
+    assertThat(savedEntity?.levelDescription).isEqualTo("Enhanced")
+  }
+
+  @Test
+  fun `does not join on incentive levels when calling standard auto-generated repository methods`(): Unit = runBlocking {
+    listOf("BAS", "STD", "ENH", "EN2", "ENT").forEach { levelCode ->
+      listOf("BAI", "MDI", "WRI").forEach { prisonId ->
+        val entity = PrisonIncentiveLevel(
+          levelCode = levelCode,
+          prisonId = prisonId,
+          active = levelCode != "ENT",
+
+          remandTransferLimitInPence = 5500,
+          remandSpendLimitInPence = 55000,
+          convictedTransferLimitInPence = 1800,
+          convictedSpendLimitInPence = 18000,
+
+          visitOrders = 2,
+          privilegedVisitOrders = 1,
+
+          new = true,
+        )
+        repository.save(entity)
+      }
+    }
+    assertThat(repository.count()).isEqualTo(15)
+
+    repository.findAll().collect {
+      assertThat(it.levelDescription).isNull()
+    }
+    val someId = repository.findAll().first().id
+    val someEntity = repository.findById(someId)!!
+    assertThat(someEntity.levelDescription).isNull()
+    repository.findAllById(listOf(someId)).collect {
+      assertThat(it.levelDescription).isNull()
+    }
   }
 }

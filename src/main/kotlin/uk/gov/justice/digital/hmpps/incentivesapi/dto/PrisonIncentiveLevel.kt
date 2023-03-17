@@ -6,8 +6,10 @@ import io.swagger.v3.oas.annotations.media.Schema
  * Publicly exposed representation of an incentive level’s configuration in a prison
  */
 data class PrisonIncentiveLevel(
-  @Schema(description = "The incentive level this refers to", example = "STD", minLength = 1, maxLength = 6)
+  @Schema(description = "The incentive level code this refers to", example = "STD", minLength = 1, maxLength = 6)
   val levelCode: String,
+  @Schema(description = "The incentive level this refers to", example = "Standard", minLength = 1, readOnly = true)
+  val levelDescription: String,
   @Schema(description = "The prison this refers to", example = "MDI", minLength = 1, maxLength = 6)
   val prisonId: String,
   @Schema(description = "Indicates that this incentive level is enabled in this prison", example = "true", defaultValue = "true")

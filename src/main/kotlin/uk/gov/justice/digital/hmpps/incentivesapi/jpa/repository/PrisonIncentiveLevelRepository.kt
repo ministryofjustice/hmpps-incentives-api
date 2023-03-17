@@ -15,7 +15,7 @@ interface PrisonIncentiveLevelRepository : CoroutineCrudRepository<PrisonIncenti
   @Query(
     // language=postgresql
     """
-    SELECT prison_incentive_level.*
+    SELECT prison_incentive_level.*, incentive_level.description AS level_description
     FROM prison_incentive_level
     JOIN incentive_level ON prison_incentive_level.level_code = incentive_level.code
     WHERE prison_id = :prisonId
@@ -30,7 +30,7 @@ interface PrisonIncentiveLevelRepository : CoroutineCrudRepository<PrisonIncenti
   @Query(
     // language=postgresql
     """
-    SELECT prison_incentive_level.*
+    SELECT prison_incentive_level.*, incentive_level.description AS level_description
     FROM prison_incentive_level
     JOIN incentive_level ON prison_incentive_level.level_code = incentive_level.code
     WHERE prison_id = :prisonId AND prison_incentive_level.active IS TRUE
@@ -38,4 +38,35 @@ interface PrisonIncentiveLevelRepository : CoroutineCrudRepository<PrisonIncenti
     """
   )
   fun findAllByPrisonIdAndActiveIsTrue(prisonId: String): Flow<PrisonIncentiveLevel>
+
+  /**
+   * Finds a levels’ configuration in a prison whether active or inactive; can be missing
+   * NB: Should not be exposed to clients directly
+   */
+  @Query(
+    // language=postgresql
+    """
+    SELECT prison_incentive_level.*, incentive_level.description AS level_description
+    FROM prison_incentive_level
+    JOIN incentive_level ON prison_incentive_level.level_code = incentive_level.code
+    WHERE prison_id = :prisonId AND prison_incentive_level.level_code = :levelCode
+    LIMIT 1
+    """
+  )
+  suspend fun findFirstByPrisonIdAndLevelCode(prisonId: String, levelCode: String): PrisonIncentiveLevel?
+
+  /**
+   * Finds an active levels’ configuration in a prison; can be missing
+   */
+  @Query(
+    // language=postgresql
+    """
+    SELECT prison_incentive_level.*, incentive_level.description AS level_description
+    FROM prison_incentive_level
+    JOIN incentive_level ON prison_incentive_level.level_code = incentive_level.code
+    WHERE prison_id = :prisonId AND prison_incentive_level.level_code = :levelCode AND prison_incentive_level.active IS TRUE
+    LIMIT 1
+    """
+  )
+  suspend fun findFirstByPrisonIdAndLevelCodeAndActiveIsTrue(prisonId: String, levelCode: String): PrisonIncentiveLevel?
 }
