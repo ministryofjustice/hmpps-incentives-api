@@ -34,8 +34,8 @@ data class IncentiveLevel(
  * Update payload for IncentiveLevel
  */
 data class IncentiveLevelUpdate(
-  @Schema(description = "Description of the incentive level", example = "Standard", minLength = 1)
+  @Schema(description = "Description of the incentive level", example = "Standard", minLength = 1, required = false)
   val description: String? = null,
-  @Schema(description = "Indicates that the incentive level is active; inactive levels are historic levels no longer in use", example = "true", defaultValue = "true")
+  @Schema(description = "Indicates that the incentive level is active; inactive levels are historic levels no longer in use", example = "true", required = false)
   val active: Boolean? = null,
 )
