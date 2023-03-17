@@ -370,84 +370,6 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     }
   }
 
-  @Test
-  fun `reorders incomplete set of incentive levels`() {
-    webTestClient.patch()
-      .uri("/incentive/level-order")
-      .headers(setAuthorisation())
-      .header("Content-Type", "application/json")
-      .bodyValue(
-        // language=json
-        """
-        ["EN3", "EN2", "ENH", "STD", "BAS"]
-        """
-      )
-      .exchange()
-      .expectStatus().isOk
-      .expectBody().json(
-        // language=json
-        """
-        [
-          {"code": "EN3", "description": "Enhanced 3", "active": true},
-          {"code": "EN2", "description": "Enhanced 2", "active": true},
-          {"code": "ENH", "description": "Enhanced", "active": true},
-          {"code": "STD", "description": "Standard", "active": true},
-          {"code": "BAS", "description": "Basic", "active": true},
-          {"code": "ENT", "description": "Entry", "active": false}
-        ]
-        """,
-        true
-      )
-
-    runBlocking {
-      val incentiveLevels = incentiveLevelRepository.findAllByOrderBySequence().toList()
-      assertThat(incentiveLevels.map { it.code }).isEqualTo(listOf("EN3", "EN2", "ENH", "STD", "BAS", "ENT"))
-      assertThat(incentiveLevels.map { it.sequence }).isEqualTo(listOf(1, 2, 3, 4, 5, 6))
-      assertThat(incentiveLevels.map { it.whenUpdated }).allSatisfy {
-        assertThat(it).isEqualTo(now)
-      }
-    }
-  }
-
-  @Test
-  fun `reorders minimal set of incentive levels`() {
-    webTestClient.patch()
-      .uri("/incentive/level-order")
-      .headers(setAuthorisation())
-      .header("Content-Type", "application/json")
-      .bodyValue(
-        // language=json
-        """
-        ["EN3", "EN2"]
-        """
-      )
-      .exchange()
-      .expectStatus().isOk
-      .expectBody().json(
-        // language=json
-        """
-        [
-          {"code": "EN3", "description": "Enhanced 3", "active": true},
-          {"code": "EN2", "description": "Enhanced 2", "active": true},
-          {"code": "BAS", "description": "Basic", "active": true},
-          {"code": "STD", "description": "Standard", "active": true},
-          {"code": "ENH", "description": "Enhanced", "active": true},
-          {"code": "ENT", "description": "Entry", "active": false}
-        ]
-        """,
-        true
-      )
-
-    runBlocking {
-      val incentiveLevels = incentiveLevelRepository.findAllByOrderBySequence().toList()
-      assertThat(incentiveLevels.map { it.code }).isEqualTo(listOf("EN3", "EN2", "BAS", "STD", "ENH", "ENT"))
-      assertThat(incentiveLevels.map { it.sequence }).isEqualTo(listOf(1, 2, 3, 4, 5, 6))
-      assertThat(incentiveLevels.map { it.whenUpdated }).allSatisfy {
-        assertThat(it).isEqualTo(now)
-      }
-    }
-  }
-
   // TODO: add once roles have been determined
   // fun `requires correct role to reorder levels`() {}
 
@@ -502,6 +424,25 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       assertThat(incentiveLevels.map { it.code }).isEqualTo(listOf("BAS", "STD", "ENH", "EN2", "EN3", "ENT"))
       assertThat(incentiveLevels.map { it.sequence }).isEqualTo(listOf(1, 2, 3, 4, 5, 99))
     }
+  }
+
+  @Test
+  fun `fails to reorder incomplete set of incentive levels`() {
+    webTestClient.patch()
+      .uri("/incentive/level-order")
+      .headers(setAuthorisation())
+      .header("Content-Type", "application/json")
+      .bodyValue(
+        // language=json
+        """
+        ["EN3", "EN2", "ENH", "STD", "BAS"]
+        """
+      )
+      .exchange()
+      .expectStatus().isBadRequest
+      .expectBody().jsonPath("$.userMessage").value<String> {
+        assertThat(it).contains("All incentive levels required when setting order. Missing: `ENT`")
+      }
   }
 
   @Test

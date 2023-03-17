@@ -56,14 +56,16 @@ class IncentiveLevelService(
     val allIncentiveLevels = mutableMapOf<String, IncentiveLevel>()
     incentiveLevelRepository.findAll().associateByTo(allIncentiveLevels, IncentiveLevel::code)
 
-    val incentiveLevelsInDesiredOrder = incentiveLevelCodes.mapTo(mutableListOf()) { code ->
+    val allIncentiveLevelsInDesiredOrder = incentiveLevelCodes.map { code ->
       allIncentiveLevels.remove(code)
         ?: throw NoDataWithCodeFoundException("incentive level", code)
     }
-    val remainingIncentiveLevels = allIncentiveLevels.values.sortedBy(IncentiveLevel::sequence)
-    incentiveLevelsInDesiredOrder.addAll(remainingIncentiveLevels)
+    if (allIncentiveLevels.isNotEmpty()) {
+      val missing = allIncentiveLevels.keys.joinToString("`, `", prefix = "`", postfix = "`")
+      throw ValidationException("All incentive levels required when setting order. Missing: $missing")
+    }
 
-    val incentiveLevelsWithNewSequences = incentiveLevelsInDesiredOrder.mapIndexed { index, incentiveLevel ->
+    val incentiveLevelsWithNewSequences = allIncentiveLevelsInDesiredOrder.mapIndexed { index, incentiveLevel ->
       incentiveLevel.copy(
         sequence = index + 1,
 

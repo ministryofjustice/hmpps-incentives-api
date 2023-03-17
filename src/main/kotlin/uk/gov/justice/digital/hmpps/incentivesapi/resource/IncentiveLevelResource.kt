@@ -102,6 +102,7 @@ class IncentiveLevelResource(
   @PatchMapping("level-order")
   @Operation(
     summary = "Sets the order of incentive levels",
+    description = "All existing incentive level codes must be provided",
     responses = [
       ApiResponse(
         responseCode = "200",
