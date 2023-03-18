@@ -22,7 +22,9 @@ import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataWithCodeFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevelUpdate
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveLevelService
+import uk.gov.justice.digital.hmpps.incentivesapi.service.PrisonIncentiveLevelService
 import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 
 @RestController
@@ -30,6 +32,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 @Tag(name = "Incentive levels", description = "Incentive levels and their global associated information")
 class IncentiveLevelResource(
   private val incentiveLevelService: IncentiveLevelService,
+  private val prisonIncentiveLevelService: PrisonIncentiveLevelService,
 ) {
   @GetMapping("levels")
   @Operation(
@@ -300,5 +303,67 @@ class IncentiveLevelResource(
     @PathVariable code: String,
   ): IncentiveLevel {
     return partiallyUpdateIncentiveLevel(code, IncentiveLevelUpdate(active = false))
+  }
+
+  @GetMapping("prison-levels/{prisonId}")
+  @Operation(
+    summary = "Lists active incentive levels in this prison",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Prison incentive levels returned"
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Incorrect permissions to use this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+    ]
+  )
+  suspend fun getPrisonIncentiveLevels(
+    @Schema(description = "Prison id", example = "MDI", required = true, minLength = 3, maxLength = 6)
+    @PathVariable prisonId: String,
+  ): List<PrisonIncentiveLevel> {
+    return prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)
+  }
+
+  @GetMapping("prison-levels/{prisonId}/level/{levelCode}")
+  @Operation(
+    summary = "Returns an active incentive level in this prison",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Prison incentive level returned"
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Incorrect permissions to use this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Active prison incentive level not found",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+    ]
+  )
+  suspend fun getPrisonIncentiveLevel(
+    @Schema(description = "Prison id", example = "MDI", required = true, minLength = 3, maxLength = 6)
+    @PathVariable prisonId: String,
+    @Schema(description = "Incentive level code", example = "STD", required = true, minLength = 3, maxLength = 6)
+    @PathVariable levelCode: String,
+  ): PrisonIncentiveLevel {
+    return prisonIncentiveLevelService.getActivePrisonIncentiveLevel(prisonId, levelCode)
+      ?: throw NoDataWithCodeFoundException("active prison incentive level", levelCode)
   }
 }
