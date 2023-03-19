@@ -71,6 +71,9 @@ class PrisonIncentiveLevelService(
         throw ValidationException("A level cannot be made inactive and still be the default for admission")
       }
 
+      if (prisonIncentiveLevel.defaultOnAdmission) {
+        prisonIncentiveLevelRepository.setOtherLevelsNotDefaultForAdmission(prisonId, levelCode)
+      }
       prisonIncentiveLevelRepository.save(prisonIncentiveLevel)
         .copy(levelDescription = incentiveLevel.description)
         .toDTO()

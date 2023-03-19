@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository
 
 import kotlinx.coroutines.flow.Flow
+import org.springframework.data.r2dbc.repository.Modifying
 import org.springframework.data.r2dbc.repository.Query
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import org.springframework.stereotype.Repository
@@ -85,4 +86,19 @@ interface PrisonIncentiveLevelRepository : CoroutineCrudRepository<PrisonIncenti
     """
   )
   suspend fun findFirstByPrisonIdAndActiveIsTrueAndDefaultIsTrue(prisonId: String): PrisonIncentiveLevel?
+
+  /**
+   * Sets levels other than the one privided to be non-default for this prison
+   * Used to ensure there is only one default level for admission in a prison
+   */
+  @Modifying
+  @Query(
+    // language=postgresql
+    """
+    UPDATE prison_incentive_level
+    SET default_on_admission = FALSE
+    WHERE prison_id = :prisonId AND NOT level_code = :levelCode
+    """
+  )
+  suspend fun setOtherLevelsNotDefaultForAdmission(prisonId: String, levelCode: String): Int?
 }

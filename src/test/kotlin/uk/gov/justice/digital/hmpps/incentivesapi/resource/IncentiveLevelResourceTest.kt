@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.resource
 
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -977,6 +979,58 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       }
     }
 
+    @Test
+    fun `updates the default prison incentive level for admission`() {
+      saveLevel("WRI", "STD") // Standard is the default for admission
+
+      webTestClient.put()
+        .uri("/incentive/prison-levels/WRI/level/ENH")
+        .headers(setAuthorisation())
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          {
+            "levelCode": "ENH", "prisonId": "WRI", "defaultOnAdmission": true,
+            "remandTransferLimitInPence": 5500, "remandSpendLimitInPence": 55000, "convictedTransferLimitInPence": 1800, "convictedSpendLimitInPence": 18000,
+            "visitOrders": 2, "privilegedVisitOrders": 1
+          }
+          """
+        )
+        .exchange()
+        .expectStatus().isOk
+        .expectBody().json(
+          // language=json
+          """
+          {
+            "levelCode": "ENH", "levelDescription": "Enhanced", "prisonId": "WRI", "active": true, "defaultOnAdmission": true,
+            "remandTransferLimitInPence": 5500, "remandSpendLimitInPence": 55000, "convictedTransferLimitInPence": 1800, "convictedSpendLimitInPence": 18000,
+            "visitOrders": 2, "privilegedVisitOrders": 1
+          }
+          """,
+          true
+        )
+
+      runBlocking {
+        var prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("WRI", "STD")
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(5500)
+        assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
+        assertThat(prisonIncentiveLevel?.active).isTrue
+        assertThat(prisonIncentiveLevel?.defaultOnAdmission).isFalse
+
+        prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("WRI", "ENH")
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(5500)
+        assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
+        assertThat(prisonIncentiveLevel?.active).isTrue
+        assertThat(prisonIncentiveLevel?.defaultOnAdmission).isTrue
+
+        val defaultLevelCodes =
+          prisonIncentiveLevelRepository.findAll().filter { it.defaultOnAdmission && it.prisonId == "WRI" }
+            .map { it.prisonId to it.levelCode }.toList()
+        assertThat(defaultLevelCodes).isEqualTo(listOf("WRI" to "ENH"))
+      }
+    }
+
     // TODO: add once roles have been determined
     // fun `requires correct role to update a prison incentive level`() {}
 
@@ -1184,6 +1238,56 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       }
     }
 
+    @Test
+    fun `partially updates the default prison incentive level for admission`() {
+      saveLevel("WRI", "STD") // Standard is the default for admission
+
+      webTestClient.patch()
+        .uri("/incentive/prison-levels/WRI/level/ENH")
+        .headers(setAuthorisation())
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          {
+            "defaultOnAdmission": true
+          }
+          """
+        )
+        .exchange()
+        .expectStatus().isOk
+        .expectBody().json(
+          // language=json
+          """
+          {
+            "levelCode": "ENH", "levelDescription": "Enhanced", "prisonId": "WRI", "active": true, "defaultOnAdmission": true,
+            "remandTransferLimitInPence": 5500, "remandSpendLimitInPence": 55000, "convictedTransferLimitInPence": 1800, "convictedSpendLimitInPence": 18000,
+            "visitOrders": 2, "privilegedVisitOrders": 1
+          }
+          """,
+          true
+        )
+
+      runBlocking {
+        var prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("WRI", "STD")
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(5500)
+        assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
+        assertThat(prisonIncentiveLevel?.active).isTrue
+        assertThat(prisonIncentiveLevel?.defaultOnAdmission).isFalse
+
+        prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("WRI", "ENH")
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(5500)
+        assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
+        assertThat(prisonIncentiveLevel?.active).isTrue
+        assertThat(prisonIncentiveLevel?.defaultOnAdmission).isTrue
+
+        val defaultLevelCodes =
+          prisonIncentiveLevelRepository.findAll().filter { it.defaultOnAdmission && it.prisonId == "WRI" }
+            .map { it.prisonId to it.levelCode }.toList()
+        assertThat(defaultLevelCodes).isEqualTo(listOf("WRI" to "ENH"))
+      }
+    }
+
     // TODO: add once roles have been determined
     // fun `requires correct role to partially update a prison incentive level`() {}
 
@@ -1274,7 +1378,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
     @Test
     fun `fails to partially update a prison incentive level when deactivating default level`() {
-      saveLevel("MDI", "STD") // Standard is the default
+      saveLevel("MDI", "STD") // Standard is the default for admission
 
       webTestClient.patch()
         .uri("/incentive/prison-levels/MDI/level/STD")
@@ -1360,7 +1464,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
     @Test
     fun `fails to deactivate a prison incentive level which is default for admission`() {
-      saveLevel("MDI", "STD") // Standard is the default
+      saveLevel("MDI", "STD") // Standard is the default for admission
 
       webTestClient.delete()
         .uri("/incentive/prison-levels/MDI/level/STD")
