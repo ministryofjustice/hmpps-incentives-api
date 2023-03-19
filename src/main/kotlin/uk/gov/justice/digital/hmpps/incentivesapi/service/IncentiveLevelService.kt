@@ -15,6 +15,11 @@ import javax.validation.ValidationException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel as IncentiveLevelDTO
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevelUpdate as IncentiveLevelUpdateDTO
 
+/**
+ * Manages globally-defined incentive levels.
+ *
+ * NB: Conversions between IncentiveLevel entity and data transfer object are _only_ done in this service
+ */
 @Service
 class IncentiveLevelService(
   private val clock: Clock,
@@ -38,7 +43,7 @@ class IncentiveLevelService(
       throw ValidationException("Incentive level with code ${dto.code} already exists")
     }
     val highestSequence = incentiveLevelRepository.findMaxSequence() ?: 0
-    val incentiveLevel = dto.toNewEntity(clock, highestSequence + 1)
+    val incentiveLevel = dto.toNewEntity(highestSequence + 1)
     return incentiveLevelRepository.save(incentiveLevel).toDTO()
   }
 
@@ -46,7 +51,7 @@ class IncentiveLevelService(
   suspend fun updateIncentiveLevel(code: String, update: IncentiveLevelUpdateDTO): IncentiveLevelDTO? {
     return incentiveLevelRepository.findById(code)
       ?.let {
-        incentiveLevelRepository.save(it.withUpdate(clock, update))
+        incentiveLevelRepository.save(it.withUpdate(update))
       }
       ?.toDTO()
   }
@@ -76,33 +81,31 @@ class IncentiveLevelService(
 
     return incentiveLevelRepository.saveAll(incentiveLevelsWithNewSequences).toListOfDTO()
   }
+
+  private fun IncentiveLevel.withUpdate(update: IncentiveLevelUpdateDTO): IncentiveLevel = copy(
+    code = code,
+    description = update.description ?: description,
+    active = update.active ?: active,
+
+    new = false,
+    whenUpdated = LocalDateTime.now(clock),
+  )
+
+  private fun IncentiveLevel.toDTO(): IncentiveLevelDTO = IncentiveLevelDTO(
+    code = code,
+    description = description,
+    active = active,
+  )
+
+  private fun IncentiveLevelDTO.toNewEntity(sequence: Int): IncentiveLevel = IncentiveLevel(
+    code = code,
+    description = description,
+    sequence = sequence,
+    active = active,
+
+    new = true,
+    whenUpdated = LocalDateTime.now(clock),
+  )
+
+  private suspend fun Flow<IncentiveLevel>.toListOfDTO(): List<IncentiveLevelDTO> = map { it.toDTO() }.toList()
 }
-
-// conversions between IncentiveLevel entity and IncentiveLevel data transfer object are _only_ done in this service
-
-private fun IncentiveLevel.withUpdate(clock: Clock, update: IncentiveLevelUpdateDTO): IncentiveLevel = copy(
-  code = code,
-  description = update.description ?: description,
-  active = update.active ?: active,
-
-  new = false,
-  whenUpdated = LocalDateTime.now(clock),
-)
-
-private fun IncentiveLevel.toDTO(): IncentiveLevelDTO = IncentiveLevelDTO(
-  code = code,
-  description = description,
-  active = active,
-)
-
-private fun IncentiveLevelDTO.toNewEntity(clock: Clock, sequence: Int): IncentiveLevel = IncentiveLevel(
-  code = code,
-  description = description,
-  sequence = sequence,
-  active = active,
-
-  new = true,
-  whenUpdated = LocalDateTime.now(clock),
-)
-
-private suspend fun Flow<IncentiveLevel>.toListOfDTO(): List<IncentiveLevelDTO> = map { it.toDTO() }.toList()

@@ -184,7 +184,10 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           assertThat(it).contains("No incentive level found for code `bas`")
         }
     }
+  }
 
+  @Nested
+  inner class `modifying incentive levels` {
     @Test
     fun `creates a level`() {
       val maxSequence = runBlocking {
@@ -801,7 +804,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
   }
 
   @Nested
-  inner class `prison incentive levels` {
+  inner class `retrieving prison incentive levels` {
     @BeforeEach
     fun setUp() = runBlocking {
       prisonIncentiveLevelRepository.deleteAll()
@@ -903,6 +906,470 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         .expectBody().jsonPath("$.userMessage").value<String> {
           assertThat(it).contains("No active prison incentive level found for code `EN4`")
         }
+    }
+  }
+
+  @Nested
+  inner class `modifying prison incentive levels` {
+    private fun saveLevel(prisonId: String, levelCode: String) = runBlocking {
+      prisonIncentiveLevelRepository.save(
+        PrisonIncentiveLevel(
+          levelCode = levelCode,
+          prisonId = prisonId,
+          active = levelCode != "ENT",
+          defaultOnAdmission = levelCode == "STD",
+
+          remandTransferLimitInPence = 5500,
+          remandSpendLimitInPence = 55000,
+          convictedTransferLimitInPence = 1800,
+          convictedSpendLimitInPence = 18000,
+
+          visitOrders = 2,
+          privilegedVisitOrders = 1,
+
+          new = true,
+        )
+      )
+    }
+
+    @Test
+    fun `updates a prison incentive level when one exists`() {
+      saveLevel("MDI", "STD")
+      `updates a prison incentive level when per-prison information does not exist`()
+    }
+
+    @Test
+    fun `updates a prison incentive level when per-prison information does not exist`() {
+      webTestClient.put()
+        .uri("/incentive/prison-levels/MDI/level/STD")
+        .headers(setAuthorisation())
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          {
+            "levelCode": "STD", "prisonId": "MDI",
+            "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1900, "convictedSpendLimitInPence": 19000,
+            "visitOrders": 3, "privilegedVisitOrders": 2
+          }
+          """
+        )
+        .exchange()
+        .expectStatus().isOk
+        .expectBody().json(
+          // language=json
+          """
+          {
+            "levelCode": "STD", "levelDescription": "Standard", "prisonId": "MDI", "active": true, "defaultOnAdmission": false,
+            "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1900, "convictedSpendLimitInPence": 19000,
+            "visitOrders": 3, "privilegedVisitOrders": 2
+          }
+          """,
+          true
+        )
+
+      runBlocking {
+        val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("MDI", "STD")
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(5600)
+        assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(3)
+      }
+    }
+
+    // TODO: add once roles have been determined
+    // fun `requires correct role to update a prison incentive level`() {}
+
+    @Test
+    fun `fails to update a prison incentive level when incentive level does not exist`() {
+      webTestClient.put()
+        .uri("/incentive/prison-levels/MDI/level/std")
+        .headers(setAuthorisation())
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          {
+            "levelCode": "std", "prisonId": "MDI",
+            "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1900, "convictedSpendLimitInPence": 19000,
+            "visitOrders": 3, "privilegedVisitOrders": 2
+          }
+          """
+        )
+        .exchange()
+        .expectStatus().isNotFound
+        .expectBody().jsonPath("$.userMessage").value<String> {
+          assertThat(it).contains("No incentive level found for code `std`")
+        }
+
+      runBlocking {
+        assertThat(prisonIncentiveLevelRepository.count()).isZero
+      }
+    }
+
+    @Test
+    fun `fails to update a prison incentive level with mismatched codes`() {
+      webTestClient.put()
+        .uri("/incentive/prison-levels/MDI/level/STD")
+        .headers(setAuthorisation())
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          {
+            "levelCode": "ENH", "prisonId": "MDI",
+            "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1900, "convictedSpendLimitInPence": 19000,
+            "visitOrders": 3, "privilegedVisitOrders": 2
+          }
+          """
+        )
+        .exchange()
+        .expectStatus().isBadRequest
+        .expectBody().jsonPath("$.userMessage").value<String> {
+          assertThat(it).contains("Incentive level codes must match in URL and payload")
+        }
+
+      runBlocking {
+        assertThat(prisonIncentiveLevelRepository.count()).isZero
+      }
+    }
+
+    @Test
+    fun `fails to update a prison incentive level with mismatched prison id`() {
+      webTestClient.put()
+        .uri("/incentive/prison-levels/MDI/level/STD")
+        .headers(setAuthorisation())
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          {
+            "levelCode": "STD", "prisonId": "WRI",
+            "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1900, "convictedSpendLimitInPence": 19000,
+            "visitOrders": 3, "privilegedVisitOrders": 2
+          }
+          """
+        )
+        .exchange()
+        .expectStatus().isBadRequest
+        .expectBody().jsonPath("$.userMessage").value<String> {
+          assertThat(it).contains("Prison ids must match in URL and payload")
+        }
+
+      runBlocking {
+        assertThat(prisonIncentiveLevelRepository.count()).isZero
+      }
+    }
+
+    @Test
+    fun `fails to update a prison incentive level with missing fields`() {
+      webTestClient.put()
+        .uri("/incentive/prison-levels/WRI/level/STD")
+        .headers(setAuthorisation())
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          {
+            "levelCode": "STD", "prisonId": "WRI", "active": true, "defaultOnAdmission": true
+          }
+          """
+        )
+        .exchange()
+        .expectStatus().isBadRequest
+        .expectBody().jsonPath("$.userMessage").value<String> {
+          assertThat(it).contains("Parameter conversion failure")
+        }
+
+      runBlocking {
+        assertThat(prisonIncentiveLevelRepository.count()).isZero
+      }
+    }
+
+    @Test
+    fun `fails to update a prison incentive level with invalid fields`() {
+      webTestClient.put()
+        .uri("/incentive/prison-levels/WRI/level/ENH")
+        .headers(setAuthorisation())
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          {
+            "levelCode": "ENH", "prisonId": "WRI",
+            "remandTransferLimitInPence": -5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1900, "convictedSpendLimitInPence": 19000,
+            "visitOrders": 3, "privilegedVisitOrders": 2
+          }
+          """
+        )
+        .exchange()
+        .expectStatus().isBadRequest
+        .expectBody().jsonPath("$.userMessage").value<String> {
+          assertThat(it).contains("Invalid parameters")
+        }
+
+      runBlocking {
+        assertThat(prisonIncentiveLevelRepository.count()).isZero
+      }
+    }
+
+    @Test
+    fun `fails to update a prison incentive level when making inactive level the default`() {
+      webTestClient.put()
+        .uri("/incentive/prison-levels/BAI/level/BAS")
+        .headers(setAuthorisation())
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          {
+            "levelCode": "BAS", "prisonId": "BAI", "active": false, "defaultOnAdmission": true,
+            "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1900, "convictedSpendLimitInPence": 19000,
+            "visitOrders": 3, "privilegedVisitOrders": 2
+          }
+          """
+        )
+        .exchange()
+        .expectStatus().isBadRequest
+        .expectBody().jsonPath("$.userMessage").value<String> {
+          assertThat(it).contains("A level cannot be made inactive and still be the default for admission")
+        }
+
+      runBlocking {
+        assertThat(prisonIncentiveLevelRepository.count()).isZero
+      }
+    }
+
+    @Test
+    fun `partially updates a prison incentive level when one exists`() {
+      saveLevel("BAI", "BAS")
+      `partially updates a prison incentive level when per-prison information does not exist`()
+    }
+
+    @Test
+    fun `partially updates a prison incentive level when per-prison information does not exist`() {
+      webTestClient.patch()
+        .uri("/incentive/prison-levels/BAI/level/BAS")
+        .headers(setAuthorisation())
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          {
+            "defaultOnAdmission": true,
+            "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000,
+            "visitOrders": 3
+          }
+          """
+        )
+        .exchange()
+        .expectStatus().isOk
+        .expectBody().json(
+          // language=json
+          """
+          {
+            "levelCode": "BAS", "levelDescription": "Basic", "prisonId": "BAI", "active": true, "defaultOnAdmission": true,
+            "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1800, "convictedSpendLimitInPence": 18000,
+            "visitOrders": 3, "privilegedVisitOrders": 1
+          }
+          """,
+          true
+        )
+
+      runBlocking {
+        val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "BAS")
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(5600)
+        assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(3)
+      }
+    }
+
+    // TODO: add once roles have been determined
+    // fun `requires correct role to partially update a prison incentive level`() {}
+
+    @Test
+    fun `fails to partially update a prison incentive level when incentive level does not exist`() {
+      webTestClient.patch()
+        .uri("/incentive/prison-levels/MDI/level/std")
+        .headers(setAuthorisation())
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          {
+            "visitOrders": 3, "privilegedVisitOrders": 2
+          }
+          """
+        )
+        .exchange()
+        .expectStatus().isNotFound
+        .expectBody().jsonPath("$.userMessage").value<String> {
+          assertThat(it).contains("No incentive level found for code `std`")
+        }
+
+      runBlocking {
+        assertThat(prisonIncentiveLevelRepository.count()).isZero
+      }
+    }
+
+    @Test
+    fun `fails to partially update a prison incentive level with invalid fields`() {
+      saveLevel("WRI", "ENH")
+
+      webTestClient.patch()
+        .uri("/incentive/prison-levels/WRI/level/ENH")
+        .headers(setAuthorisation())
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          {
+            "remandTransferLimitInPence": -5600, "visitOrders": -1
+          }
+          """
+        )
+        .exchange()
+        .expectStatus().isBadRequest
+        .expectBody().jsonPath("$.userMessage").value<String> {
+          assertThat(it).contains("Invalid parameters")
+        }
+
+      runBlocking {
+        val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("WRI", "ENH")
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(5500)
+        assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
+      }
+    }
+
+    @Test
+    fun `fails to partially update a prison incentive level when making inactive level the default`() {
+      saveLevel("MDI", "ENT") // Entry is inactive
+
+      webTestClient.patch()
+        .uri("/incentive/prison-levels/MDI/level/ENT")
+        .headers(setAuthorisation())
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          {
+            "defaultOnAdmission": true
+          }
+          """
+        )
+        .exchange()
+        .expectStatus().isBadRequest
+        .expectBody().jsonPath("$.userMessage").value<String> {
+          assertThat(it).contains("A level cannot be made inactive and still be the default for admission")
+        }
+
+      runBlocking {
+        val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("MDI", "ENT")
+        assertThat(prisonIncentiveLevel?.active).isFalse
+        assertThat(prisonIncentiveLevel?.defaultOnAdmission).isFalse
+      }
+    }
+
+    @Test
+    fun `fails to partially update a prison incentive level when deactivating default level`() {
+      saveLevel("MDI", "STD") // Standard is the default
+
+      webTestClient.patch()
+        .uri("/incentive/prison-levels/MDI/level/STD")
+        .headers(setAuthorisation())
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          {
+            "active": false
+          }
+          """
+        )
+        .exchange()
+        .expectStatus().isBadRequest
+        .expectBody().jsonPath("$.userMessage").value<String> {
+          assertThat(it).contains("A level cannot be made inactive and still be the default for admission")
+        }
+
+      runBlocking {
+        val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("MDI", "STD")
+        assertThat(prisonIncentiveLevel?.active).isTrue
+        assertThat(prisonIncentiveLevel?.defaultOnAdmission).isTrue
+      }
+    }
+
+    @Test
+    fun `deactivates a prison incentive level when one exists`() {
+      saveLevel("WRI", "EN2")
+      `deactivates a prison incentive level when per-prison information does not exist`()
+    }
+
+    @Test
+    fun `deactivates a prison incentive level when per-prison information does not exist`() {
+      webTestClient.delete()
+        .uri("/incentive/prison-levels/WRI/level/EN2")
+        .headers(setAuthorisation())
+        .header("Content-Type", "application/json")
+        .exchange()
+        .expectStatus().isOk
+        .expectBody().json(
+          // language=json
+          """
+          {
+            "levelCode": "EN2", "levelDescription": "Enhanced 2", "prisonId": "WRI", "active": false, "defaultOnAdmission": false,
+            "remandTransferLimitInPence": 5500, "remandSpendLimitInPence": 55000, "convictedTransferLimitInPence": 1800, "convictedSpendLimitInPence": 18000,
+            "visitOrders": 2, "privilegedVisitOrders": 1
+          }
+          """,
+          true
+        )
+
+      runBlocking {
+        val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("WRI", "EN2")
+        assertThat(prisonIncentiveLevel?.active).isFalse
+        assertThat(prisonIncentiveLevel?.defaultOnAdmission).isFalse
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(5500)
+        assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
+      }
+    }
+
+    // TODO: add once roles have been determined
+    // fun `requires correct role to deactivate a prison incentive level`() {}
+
+    @Test
+    fun `fails to deactivate a prison incentive level when incentive level does not exist`() {
+      webTestClient.delete()
+        .uri("/incentive/prison-levels/WRI/level/bas")
+        .headers(setAuthorisation())
+        .header("Content-Type", "application/json")
+        .exchange()
+        .expectStatus().isNotFound
+        .expectBody().jsonPath("$.userMessage").value<String> {
+          assertThat(it).contains("No incentive level found for code `bas`")
+        }
+
+      runBlocking {
+        assertThat(prisonIncentiveLevelRepository.count()).isZero
+      }
+    }
+
+    @Test
+    fun `fails to deactivate a prison incentive level which is default for admission`() {
+      saveLevel("MDI", "STD") // Standard is the default
+
+      webTestClient.delete()
+        .uri("/incentive/prison-levels/MDI/level/STD")
+        .headers(setAuthorisation())
+        .header("Content-Type", "application/json")
+        .exchange()
+        .expectStatus().isBadRequest
+        .expectBody().jsonPath("$.userMessage").value<String> {
+          assertThat(it).contains("A level cannot be made inactive and still be the default for admission")
+        }
+
+      runBlocking {
+        val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("MDI", "STD")
+        assertThat(prisonIncentiveLevel?.active).isTrue
+        assertThat(prisonIncentiveLevel?.defaultOnAdmission).isTrue
+      }
     }
   }
 }

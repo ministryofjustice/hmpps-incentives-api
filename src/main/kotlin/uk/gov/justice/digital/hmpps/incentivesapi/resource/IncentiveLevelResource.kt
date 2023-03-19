@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataWithCodeFoundExce
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevelUpdate
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevelUpdate
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveLevelService
 import uk.gov.justice.digital.hmpps.incentivesapi.service.PrisonIncentiveLevelService
 import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
@@ -270,7 +271,7 @@ class IncentiveLevelResource(
   @DeleteMapping("levels/{code}")
   @Operation(
     summary = "Disables an incentive level",
-    description = "",
+    // TODO: decide and explain what happens to associated per-prison data
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -365,5 +366,168 @@ class IncentiveLevelResource(
   ): PrisonIncentiveLevel {
     return prisonIncentiveLevelService.getActivePrisonIncentiveLevel(prisonId, levelCode)
       ?: throw NoDataWithCodeFoundException("active prison incentive level", levelCode)
+  }
+
+  @PutMapping("prison-levels/{prisonId}/level/{levelCode}")
+  @Operation(
+    summary = "Updates prison incentive level information",
+    description = "Payload must include all required fields",
+    // TODO: decide and explain what happens to prisoners if level is deactivated
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Prison incentive level updated"
+      ),
+      ApiResponse(
+        responseCode = "400",
+        description = "Invalid payload", // TODO: maybe also when deactivating and there are prisoners on level?
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Incorrect permissions to use this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Incentive level not found globally", // TODO: ensure prison exists?
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+    ]
+  )
+  suspend fun updatePrisonIncentiveLevel(
+    @Schema(description = "Prison id", example = "MDI", required = true, minLength = 3, maxLength = 6)
+    @PathVariable prisonId: String,
+    @Schema(description = "Incentive level code", example = "STD", required = true, minLength = 3, maxLength = 6)
+    @PathVariable levelCode: String,
+    @RequestBody prisonIncentiveLevel: PrisonIncentiveLevel
+  ): PrisonIncentiveLevel {
+    ensure {
+      if (prisonId != prisonIncentiveLevel.prisonId) {
+        errors.add("Prison ids must match in URL and payload")
+      }
+      if (levelCode != prisonIncentiveLevel.levelCode) {
+        errors.add("Incentive level codes must match in URL and payload")
+      }
+    }
+    return partiallyUpdatePrisonIncentiveLevel(prisonId, levelCode, prisonIncentiveLevel.toUpdate())
+  }
+
+  @PatchMapping("prison-levels/{prisonId}/level/{levelCode}")
+  @Operation(
+    summary = "Updates prison incentive level information",
+    description = "Partial updates are allowed",
+    // TODO: decide and explain what happens to prisoners if level is deactivated
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Prison incentive level updated"
+      ),
+      ApiResponse(
+        responseCode = "400",
+        description = "Invalid payload", // TODO: maybe also when deactivating and there are prisoners on level?
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Incorrect permissions to use this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Incentive level not found globally", // TODO: ensure prison exists?
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+    ]
+  )
+  suspend fun partiallyUpdatePrisonIncentiveLevel(
+    @Schema(description = "Prison id", example = "MDI", required = true, minLength = 3, maxLength = 6)
+    @PathVariable prisonId: String,
+    @Schema(description = "Incentive level code", example = "STD", required = true, minLength = 3, maxLength = 6)
+    @PathVariable levelCode: String,
+    @RequestBody update: PrisonIncentiveLevelUpdate
+  ): PrisonIncentiveLevel {
+    ensure {
+      update.active?.let { active ->
+        update.defaultOnAdmission?.let { defaultOnAdmission ->
+          if (!active && defaultOnAdmission) {
+            errors.add("A level cannot be made inactive and still be the default for admission")
+          }
+        }
+      }
+
+      update.remandTransferLimitInPence?.let {
+        ("remandTransferLimitInPence" to it).isAtLeast(0)
+      }
+      update.remandSpendLimitInPence?.let {
+        ("remandSpendLimitInPence" to it).isAtLeast(0)
+      }
+      update.convictedTransferLimitInPence?.let {
+        ("convictedTransferLimitInPence" to it).isAtLeast(0)
+      }
+      update.convictedSpendLimitInPence?.let {
+        ("convictedSpendLimitInPence" to it).isAtLeast(0)
+      }
+
+      update.visitOrders?.let {
+        ("visitOrders" to it).isAtLeast(0)
+      }
+      update.privilegedVisitOrders?.let {
+        ("privilegeVisitOrders" to it).isAtLeast(0)
+      }
+    }
+
+    return prisonIncentiveLevelService.updatePrisonIncentiveLevel(prisonId, levelCode, update)
+      ?: throw NoDataWithCodeFoundException("incentive level", levelCode)
+  }
+
+  @DeleteMapping("prison-levels/{prisonId}/level/{levelCode}")
+  @Operation(
+    summary = "Disables an incentive level for a prison",
+    // TODO: decide and explain what happens to prisoners if level is deactivated
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Prison incentive level deactivated"
+      ),
+      // ApiResponse(
+      //   responseCode = "400",
+      //   description = "There are prisoners on this incentive level at this prison",
+      //   content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      // ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Incorrect permissions to use this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Incentive level not found globally", // TODO: ensure prison exists?
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+      ),
+    ]
+  )
+  suspend fun disablePrisonIncentiveLevel(
+    @Schema(description = "Prison id", example = "MDI", required = true, minLength = 3, maxLength = 6)
+    @PathVariable prisonId: String,
+    @Schema(description = "Incentive level code", example = "STD", required = true, minLength = 3, maxLength = 6)
+    @PathVariable levelCode: String,
+  ): PrisonIncentiveLevel {
+    return partiallyUpdatePrisonIncentiveLevel(prisonId, levelCode, PrisonIncentiveLevelUpdate(active = false))
   }
 }
