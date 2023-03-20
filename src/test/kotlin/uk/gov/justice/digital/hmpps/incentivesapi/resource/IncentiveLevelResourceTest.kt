@@ -951,7 +951,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           // language=json
           """
           {
-            "levelCode": "STD", "prisonId": "MDI",
+            "levelCode": "STD", "prisonId": "MDI", "defaultOnAdmission": true,
             "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1900, "convictedSpendLimitInPence": 19000,
             "visitOrders": 3, "privilegedVisitOrders": 2
           }
@@ -963,7 +963,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           // language=json
           """
           {
-            "levelCode": "STD", "levelDescription": "Standard", "prisonId": "MDI", "active": true, "defaultOnAdmission": false,
+            "levelCode": "STD", "levelDescription": "Standard", "prisonId": "MDI", "active": true, "defaultOnAdmission": true,
             "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1900, "convictedSpendLimitInPence": 19000,
             "visitOrders": 3, "privilegedVisitOrders": 2
           }
@@ -1195,6 +1195,76 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     }
 
     @Test
+    fun `fails to update a prison incentive level when no default for admission would remain`() {
+      saveLevel("BAI", "STD")
+
+      webTestClient.put()
+        .uri("/incentive/prison-levels/BAI/level/STD")
+        .headers(setAuthorisation())
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          {
+            "levelCode": "STD", "prisonId": "BAI", "active": true, "defaultOnAdmission": false,
+            "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1900, "convictedSpendLimitInPence": 19000,
+            "visitOrders": 3, "privilegedVisitOrders": 2
+          }
+          """
+        )
+        .exchange()
+        .expectStatus().isBadRequest
+        .expectBody().jsonPath("$.userMessage").value<String> {
+          assertThat(it).contains("There must be an active default level for admission in a prison")
+        }
+
+      runBlocking {
+        val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "STD")
+        assertThat(prisonIncentiveLevel?.active).isTrue
+        assertThat(prisonIncentiveLevel?.defaultOnAdmission).isTrue
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(5500)
+        assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
+        assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
+      }
+    }
+
+    @Test
+    fun `fails to update a non-default prison incentive level when there is no other default level for admission`() {
+      // data integrity problem: there is no default level for admission
+      saveLevel("BAI", "BAS")
+      saveLevel("BAI", "ENH")
+
+      webTestClient.put()
+        .uri("/incentive/prison-levels/BAI/level/BAS")
+        .headers(setAuthorisation())
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          {
+            "levelCode": "BAS", "prisonId": "BAI", "active": true, "defaultOnAdmission": false,
+            "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1900, "convictedSpendLimitInPence": 19000,
+            "visitOrders": 3, "privilegedVisitOrders": 2
+          }
+          """
+        )
+        .exchange()
+        .expectStatus().isBadRequest
+        .expectBody().jsonPath("$.userMessage").value<String> {
+          assertThat(it).contains("There must be an active default level for admission in a prison")
+        }
+
+      runBlocking {
+        val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "BAS")
+        assertThat(prisonIncentiveLevel?.active).isTrue
+        assertThat(prisonIncentiveLevel?.defaultOnAdmission).isFalse
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(5500)
+        assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
+        assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
+      }
+    }
+
+    @Test
     fun `partially updates a prison incentive level when one exists`() {
       saveLevel("BAI", "BAS")
       `partially updates a prison incentive level when per-prison information does not exist`()
@@ -1407,6 +1477,71 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     }
 
     @Test
+    fun `fails to partially update a prison incentive level when no default for admission would remain`() {
+      saveLevel("BAI", "STD") // Standard is the default for admission
+
+      webTestClient.patch()
+        .uri("/incentive/prison-levels/MDI/level/STD")
+        .headers(setAuthorisation())
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          {
+            "defaultOnAdmission": false
+          }
+          """
+        )
+        .exchange()
+        .expectStatus().isBadRequest
+        .expectBody().jsonPath("$.userMessage").value<String> {
+          assertThat(it).contains("There must be an active default level for admission in a prison")
+        }
+
+      runBlocking {
+        val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "STD")
+        assertThat(prisonIncentiveLevel?.active).isTrue
+        assertThat(prisonIncentiveLevel?.defaultOnAdmission).isTrue
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(5500)
+        assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
+        assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
+      }
+    }
+
+    @Test
+    fun `fails to partially update a non-default prison incentive level when there is no other default level for admission`() {
+      // data integrity problem: there is no default level for admission
+      saveLevel("BAI", "BAS")
+      saveLevel("BAI", "ENH")
+
+      webTestClient.patch()
+        .uri("/incentive/prison-levels/BAI/level/BAS")
+        .headers(setAuthorisation())
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          {
+            "defaultOnAdmission": false, "remandTransferLimitInPence": 5600
+          }
+          """
+        )
+        .exchange()
+        .expectStatus().isBadRequest
+        .expectBody().jsonPath("$.userMessage").value<String> {
+          assertThat(it).contains("There must be an active default level for admission in a prison")
+        }
+
+      runBlocking {
+        val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "BAS")
+        assertThat(prisonIncentiveLevel?.active).isTrue
+        assertThat(prisonIncentiveLevel?.defaultOnAdmission).isFalse
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(5500)
+        assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
+      }
+    }
+
+    @Test
     fun `deactivates a prison incentive level when one exists`() {
       saveLevel("WRI", "EN2")
       `deactivates a prison incentive level when per-prison information does not exist`()
@@ -1414,6 +1549,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
     @Test
     fun `deactivates a prison incentive level when per-prison information does not exist`() {
+      saveLevel("WRI", "STD") // Standard is the default for admission, needed to allow deactivation of EN2
+
       webTestClient.delete()
         .uri("/incentive/prison-levels/WRI/level/EN2")
         .headers(setAuthorisation())

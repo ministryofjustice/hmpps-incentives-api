@@ -20,6 +20,8 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevelUpdate
  * Conceptually, every incentive level exists in every prison and is inactive by default.
  * This means that PrisonIncentiveLevel do not need to be created, only updated.
  *
+ * Business rules require every prison to have an active level that is the default for admission.
+ *
  * NB: Conversions between PrisonIncentiveLevel entity and data transfer object are _only_ done in this service
  */
 @Service
@@ -73,7 +75,15 @@ class PrisonIncentiveLevelService(
 
       if (prisonIncentiveLevel.defaultOnAdmission) {
         prisonIncentiveLevelRepository.setOtherLevelsNotDefaultForAdmission(prisonId, levelCode)
+      } else {
+        val currentDefaultLevelCode =
+          prisonIncentiveLevelRepository.findFirstByPrisonIdAndActiveIsTrueAndDefaultIsTrue(prisonId)?.levelCode
+        if (currentDefaultLevelCode == null || currentDefaultLevelCode == prisonIncentiveLevel.levelCode) {
+          // NB: this rule means that for a prison with no levels yet in the database, the first one added must be the default level
+          throw ValidationException("There must be an active default level for admission in a prison")
+        }
       }
+
       prisonIncentiveLevelRepository.save(prisonIncentiveLevel)
         .copy(levelDescription = incentiveLevel.description)
         .toDTO()
