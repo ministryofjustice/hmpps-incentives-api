@@ -270,16 +270,16 @@ class IncentiveLevelResource(
 
   @DeleteMapping("levels/{code}")
   @Operation(
-    summary = "Disables an incentive level",
+    summary = "Deactivates an incentive level",
     // TODO: decide and explain what happens to associated per-prison data
     responses = [
       ApiResponse(
         responseCode = "200",
-        description = "Incentive level disabled"
+        description = "Incentive level deactivated"
       ),
       // ApiResponse(
       //   responseCode = "400",
-      //   description = "This incentive level is active in some prison so cannot be disabled",
+      //   description = "This incentive level is active in some prison so cannot be deactivated",
       //   content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
       // ),
       ApiResponse(
@@ -299,7 +299,7 @@ class IncentiveLevelResource(
       ),
     ]
   )
-  suspend fun disableIncentiveLevel(
+  suspend fun deactivateIncentiveLevel(
     @Schema(description = "Incentive level code", example = "STD", required = true, minLength = 3, maxLength = 6)
     @PathVariable code: String,
   ): IncentiveLevel {
@@ -493,7 +493,7 @@ class IncentiveLevelResource(
 
   @DeleteMapping("prison-levels/{prisonId}/level/{levelCode}")
   @Operation(
-    summary = "Disables an incentive level for a prison",
+    summary = "Deactivate an incentive level for a prison",
     // TODO: decide and explain what happens to prisoners if level is deactivated
     responses = [
       ApiResponse(
@@ -522,7 +522,7 @@ class IncentiveLevelResource(
       ),
     ]
   )
-  suspend fun disablePrisonIncentiveLevel(
+  suspend fun deactivatePrisonIncentiveLevel(
     @Schema(description = "Prison id", example = "MDI", required = true, minLength = 3, maxLength = 6)
     @PathVariable prisonId: String,
     @Schema(description = "Incentive level code", example = "STD", required = true, minLength = 3, maxLength = 6)

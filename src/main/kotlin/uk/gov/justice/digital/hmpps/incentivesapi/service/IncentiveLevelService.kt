@@ -25,18 +25,30 @@ class IncentiveLevelService(
   private val clock: Clock,
   private val incentiveLevelRepository: IncentiveLevelRepository,
 ) {
+  /**
+   * Returns all incentive levels, including inactive ones, in globally-defined order
+   */
   suspend fun getAllIncentiveLevels(): List<IncentiveLevelDTO> {
     return incentiveLevelRepository.findAllByOrderBySequence().toListOfDTO()
   }
 
+  /**
+   * Returns all active incentive levels, in globally-defined order
+   */
   suspend fun getActiveIncentiveLevels(): List<IncentiveLevelDTO> {
     return incentiveLevelRepository.findAllByActiveIsTrueOrderBySequence().toListOfDTO()
   }
 
+  /**
+   * Returns an incentive level, whether active or not, by code
+   */
   suspend fun getIncentiveLevel(code: String): IncentiveLevelDTO? {
     return incentiveLevelRepository.findById(code)?.toDTO()
   }
 
+  /**
+   * Creates a new incentive level; will fail if code already exists
+   */
   @Transactional
   suspend fun createIncentiveLevel(dto: IncentiveLevelDTO): IncentiveLevelDTO {
     if (incentiveLevelRepository.existsById(dto.code)) {
@@ -47,6 +59,9 @@ class IncentiveLevelService(
     return incentiveLevelRepository.save(incentiveLevel).toDTO()
   }
 
+  /**
+   * Updates an existing incentive level; will fail if code does not exists
+   */
   @Transactional
   suspend fun updateIncentiveLevel(code: String, update: IncentiveLevelUpdateDTO): IncentiveLevelDTO? {
     return incentiveLevelRepository.findById(code)
@@ -56,6 +71,9 @@ class IncentiveLevelService(
       ?.toDTO()
   }
 
+  /**
+   * Reorders incentive levels; will fail is not provided with all known codes
+   */
   @Transactional
   suspend fun setOrderOfIncentiveLevels(incentiveLevelCodes: List<String>): List<IncentiveLevelDTO> {
     val allIncentiveLevels = mutableMapOf<String, IncentiveLevel>()

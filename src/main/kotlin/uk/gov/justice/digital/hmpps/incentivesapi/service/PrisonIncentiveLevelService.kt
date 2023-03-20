@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevelUpdate
  *
  * Conceptually, every incentive level exists in every prison and is inactive by default.
  * This means that PrisonIncentiveLevel do not need to be created, only updated.
+ * Hence public methods only allow retrieving active prison incentive levels.
  *
  * Business rules require every prison to have an active level that is the default for admission.
  *
@@ -30,14 +31,25 @@ class PrisonIncentiveLevelService(
   private val incentiveLevelRepository: IncentiveLevelRepository,
   private val prisonIncentiveLevelRepository: PrisonIncentiveLevelRepository,
 ) {
+  /**
+   * Returns all active incentive levels for given prison, along with associated information, in globally-defined order
+   */
   suspend fun getActivePrisonIncentiveLevels(prisonId: String): List<PrisonIncentiveLevelDTO> {
     return prisonIncentiveLevelRepository.findAllByPrisonIdAndActiveIsTrue(prisonId).toListOfDTO()
   }
 
+  /**
+   * Returns an active incentive level for given prison and level code, along with associated information
+   */
   suspend fun getActivePrisonIncentiveLevel(prisonId: String, levelCode: String): PrisonIncentiveLevelDTO? {
     return prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCodeAndActiveIsTrue(prisonId, levelCode)?.toDTO()
   }
 
+  /**
+   * Updates an incentive level for given prison and level code; will fail if data integrity is not maintained.
+   * Conceptually, every incetive level exists in every prison but is considered inactive if it does not exist in the database.
+   * NB: Default values may be used for associated information if not fully specified and not already in database.
+   */
   @Transactional
   suspend fun updatePrisonIncentiveLevel(
     prisonId: String,
