@@ -213,7 +213,7 @@ VALUES ('ACI', 'BAS', TRUE, FALSE, '2020-01-14 11:39:57 Europe/London', 2500, 25
        ('FKI', 'STD', TRUE, FALSE, '2022-09-26 13:54:47 Europe/London', 6050, 60500, 1980, 19800, 1, 1),
        ('FMI', 'STD', TRUE, FALSE, '2023-02-07 17:07:34 Europe/London', 6050, 47500, 1980, 15500, 1, 1),
        ('FNI', 'STD', TRUE, TRUE, '2022-08-30 15:49:27 Europe/London', 6050, 60500, 1980, 19800, 1, 1),
-       ('FSI', 'STD', TRUE, FALSE, '2023-01-19 15:23:31 Europe/London', 6050, 60500, 3000, 30000, 1, 1),
+       ('FSI', 'STD', TRUE, TRUE, '2023-01-19 15:23:31 Europe/London', 6050, 60500, 3000, 30000, 1, 1), -- NB: forced to be default
        ('FWI', 'STD', TRUE, FALSE, '2022-01-08 18:08:01 Europe/London', 0, 0, 0, 0, 0, 0),
        ('FYI', 'STD', TRUE, TRUE, '2022-09-09 11:27:22 Europe/London', 6050, 47500, 1980, 15500, 1, 1),
        ('GHI', 'STD', TRUE, TRUE, '2022-08-30 12:36:56 Europe/London', 6050, 60500, 1980, 19800, 1, 2),
@@ -243,9 +243,9 @@ VALUES ('ACI', 'BAS', TRUE, FALSE, '2020-01-14 11:39:57 Europe/London', 2500, 25
        ('KVI', 'STD', TRUE, FALSE, '2022-09-01 08:53:28 Europe/London', 5500, 55000, 1980, 18000, 1, 0),
        ('LAI', 'STD', TRUE, TRUE, '2010-12-20 11:01:56 Europe/London', 4300, 43000, 1550, 15500, 2, 1),
        ('LCI', 'STD', TRUE, TRUE, '2023-01-06 16:57:37 Europe/London', 6050, 60500, 1980, 19800, 1, 0),
-       ('LEI', 'STD', TRUE, FALSE, '2023-02-01 13:51:26 Europe/London', 6050, 60500, 1980, 19800, 3, 0),
+       ('LEI', 'STD', TRUE, TRUE, '2023-02-01 13:51:26 Europe/London', 6050, 60500, 1980, 19800, 3, 0), -- NB: forced to be default
        ('LFI', 'STD', TRUE, TRUE, '2022-12-30 14:36:05 Europe/London', 5500, 55000, 1980, 18000, 1, 1),
-       ('LHI', 'STD', TRUE, FALSE, '2022-12-09 16:20:16 Europe/London', 4300, 43000, 4000, 40000, 1, 1),
+       ('LHI', 'STD', TRUE, TRUE, '2022-12-09 16:20:16 Europe/London', 4300, 43000, 4000, 40000, 1, 1), -- NB: forced to be default
        ('LII', 'STD', TRUE, TRUE, '2022-08-31 14:40:26 Europe/London', 6050, 60500, 1980, 19800, 1, 1),
        ('LLI', 'STD', TRUE, TRUE, '2022-09-01 10:44:50 Europe/London', 6050, 60500, 1980, 19800, 1, 2),
        ('LMI', 'STD', TRUE, TRUE, '2007-07-24 19:57:25 Europe/London', 4300, 43000, 1400, 14000, 1, 0),
