@@ -19,8 +19,8 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
         aResponse()
           .withHeader("Content-Type", "application/json")
           .withBody(if (status == 200) "pong" else "some error")
-          .withStatus(status)
-      )
+          .withStatus(status),
+      ),
     )
   }
 
@@ -39,9 +39,9 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                   "locationType": "WING",
                   "userDescription": "Houseblock 1"
                 }
-            """
-          )
-      )
+            """,
+          ),
+      ),
     )
   }
 
@@ -97,9 +97,9 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                   "activeFlag": "Y"
                 }
               ]
-            """
-          )
-      )
+            """,
+          ),
+      ),
     )
   }
 
@@ -131,9 +131,9 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                       "defaultLevel": false
                   }
               ]
-            """
-          )
-      )
+            """,
+          ),
+      ),
     )
   }
 
@@ -153,9 +153,9 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
               "developerMessage": "This is a test 404 Not Found response",
               "moreInfo": "This is a test 404 Not Found response"
             }
-            """
-          )
-      )
+            """,
+          ),
+      ),
     )
   }
 
@@ -163,7 +163,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
     stubFor(
       post("/api/case-notes/usage-by-types")
         .withRequestBody(
-          WireMock.equalToJson("""{ "types": ["POS", "NEG"] }""", true, true)
+          WireMock.equalToJson("""{ "types": ["POS", "NEG"] }""", true, true),
         )
         .willReturn(
           aResponse()
@@ -271,9 +271,9 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                   "bookingId": 1234138
                 }
               ]
-              """
-            )
-        )
+              """,
+            ),
+        ),
     )
   }
 
@@ -303,9 +303,9 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                   "provenAdjudicationCount": 2
                 }
               ]
-            """
-          )
-      )
+            """,
+          ),
+      ),
     )
   }
 
@@ -314,8 +314,8 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
       post("/api/bookings/$bookingId/iepLevels").willReturn(
         aResponse()
           .withHeader("Content-Type", "application/json")
-          .withStatus(204)
-      )
+          .withStatus(204),
+      ),
     )
   }
 
@@ -336,9 +336,9 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                 "lastName": "SMITH",
                 "offenderNo": "$prisonerNumber"
               }
-            """
-          )
-      )
+            """,
+          ),
+      ),
     )
   }
 
@@ -359,9 +359,9 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                 "lastName": "SMITH",
                 "offenderNo": "$prisonerNumber"
               }
-            """
-          )
-      )
+            """,
+          ),
+      ),
     )
   }
 
@@ -380,9 +380,9 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                 "receptionDate": "2020-07-01",
                 "alerts":  []
               }
-            """
-          )
-      )
+            """,
+          ),
+      ),
     )
   }
 
@@ -400,9 +400,9 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                 "description": "$locationDesc",
                 "locationType": "CELL"
               }
-            """
-          )
-      )
+            """,
+          ),
+      ),
     )
   }
 }

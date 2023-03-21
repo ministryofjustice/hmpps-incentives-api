@@ -47,7 +47,7 @@ class IncentiveLevelRepositoryTest : TestBase() {
       description = "Standard",
       sequence = 10,
       new = true,
-    )
+    ),
   )
 
   @Test
@@ -57,7 +57,7 @@ class IncentiveLevelRepositoryTest : TestBase() {
       description = "Standard",
       sequence = 10,
       new = true,
-    )
+    ),
   )
 
   @Test
@@ -67,6 +67,6 @@ class IncentiveLevelRepositoryTest : TestBase() {
       description = "",
       sequence = 10,
       new = true,
-    )
+    ),
   )
 }

@@ -23,6 +23,7 @@ import java.time.LocalDateTime
 class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
   @Autowired
   private lateinit var prisonerIepLevelRepository: PrisonerIepLevelRepository
+
   @Autowired
   private lateinit var nextReviewDateRepository: NextReviewDateRepository
 
@@ -62,7 +63,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
       locationId = "1-1-002",
       commentText = "test comment",
       reviewedBy = "TEST_USER",
-    )
+    ),
   )
 
   @AfterEach

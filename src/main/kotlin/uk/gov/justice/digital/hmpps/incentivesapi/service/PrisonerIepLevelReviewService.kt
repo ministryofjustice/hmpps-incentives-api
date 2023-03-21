@@ -61,9 +61,10 @@ class PrisonerIepLevelReviewService(
   }
 
   suspend fun getPrisonerIepLevelHistory(prisonerNumber: String): IepSummary {
-
     val reviews = prisonerIepLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(prisonerNumber)
-    if (reviews.count() == 0) throw IncentiveReviewNotFoundException("No Incentive Reviews for prisoner number $prisonerNumber")
+    if (reviews.count() == 0) {
+      throw IncentiveReviewNotFoundException("No Incentive Reviews for prisoner number $prisonerNumber")
+    }
     return buildIepSummary(reviews, prisonApiService.getIncentiveLevels())
   }
 
@@ -80,7 +81,7 @@ class PrisonerIepLevelReviewService(
   suspend fun persistSyncPostRequest(
     bookingId: Long,
     syncPostRequest: SyncPostRequest,
-    includeLocation: Boolean
+    includeLocation: Boolean,
   ): IepDetail {
     val prisonerInfo = prisonApiService.getPrisonerInfo(bookingId, true)
     var locationInfo: Location? = null
@@ -100,7 +101,7 @@ class PrisonerIepLevelReviewService(
         reviewedBy = syncPostRequest.userId,
         reviewTime = syncPostRequest.iepTime,
         reviewType = syncPostRequest.reviewType,
-      )
+      ),
     )
 
     return review.toIepDetail(prisonApiService.getIncentiveLevels())
@@ -111,7 +112,11 @@ class PrisonerIepLevelReviewService(
 
     // NOTE: This reason is to allow service that syncs back to NOMIS to ignore these domain events (as these reviews
     // are already coming from NOMIS, they don't need to be synced again)
-    publishReviewDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_INSERTED, IepReviewReason.USER_CREATED_NOMIS)
+    publishReviewDomainEvent(
+      iepDetail,
+      IncentivesDomainEventType.IEP_REVIEW_INSERTED,
+      IepReviewReason.USER_CREATED_NOMIS,
+    )
     publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_ADDED)
 
     return iepDetail
@@ -120,7 +125,7 @@ class PrisonerIepLevelReviewService(
   suspend fun handleSyncPatchIepReviewRequest(
     bookingId: Long,
     id: Long,
-    syncPatchRequest: SyncPatchRequest
+    syncPatchRequest: SyncPatchRequest,
   ): IepDetail {
     if (listOf(syncPatchRequest.iepTime, syncPatchRequest.comment, syncPatchRequest.current).all { it == null }) {
       throw ValidationException("Please provide fields to update")
@@ -168,7 +173,7 @@ class PrisonerIepLevelReviewService(
       .map {
         CurrentIepLevel(
           iepLevel = incentiveLevels[it.iepCode]?.iepDescription ?: "Unmapped",
-          bookingId = it.bookingId
+          bookingId = it.bookingId,
         )
       }.toList()
   }
@@ -190,8 +195,10 @@ class PrisonerIepLevelReviewService(
 
   @Transactional
   suspend fun processPrisonerAlertsUpdatedEvent(prisonOffenderEvent: HMPPSDomainEvent) {
-    val acctAdded: Boolean = prisonOffenderEvent.additionalInformation.alertsAdded?.contains(PrisonerAlert.ACCT_ALERT_CODE) == true
-    val acctRemoved: Boolean = prisonOffenderEvent.additionalInformation.alertsRemoved?.contains(PrisonerAlert.ACCT_ALERT_CODE) == true
+    val acctAdded: Boolean = prisonOffenderEvent.additionalInformation.alertsAdded
+      ?.contains(PrisonerAlert.ACCT_ALERT_CODE) == true
+    val acctRemoved: Boolean = prisonOffenderEvent.additionalInformation.alertsRemoved
+      ?.contains(PrisonerAlert.ACCT_ALERT_CODE) == true
 
     if (acctAdded || acctRemoved) {
       updateNextReviewDate(prisonOffenderEvent)
@@ -217,7 +224,7 @@ class PrisonerIepLevelReviewService(
       val iepReview = IepReview(
         iepLevel = iepLevel,
         comment = comment,
-        reviewType = reviewType
+        reviewType = reviewType,
       )
 
       val locationInfo = prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId, true)
@@ -234,8 +241,8 @@ class PrisonerIepLevelReviewService(
           reviewedBy = SYSTEM_USERNAME,
           reviewTime = LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
           reviewType = iepReview.reviewType ?: ReviewType.REVIEW,
-          prisonerNumber = prisonerInfo.offenderNo
-        )
+          prisonerNumber = prisonerInfo.offenderNo,
+        ),
       )
 
       val iepDetail = prisonerIepLevel.toIepDetail(prisonApiService.getIncentiveLevels())
@@ -266,7 +273,7 @@ class PrisonerIepLevelReviewService(
             getPrisonerIepLevelHistory(
               prisonerInfo.bookingId,
               withDetails = true,
-              useClientCredentials = true
+              useClientCredentials = true,
             ).iepDetails
           val levelCodeBeforeTransfer =
             iepHistory.sortedBy(IepDetail::iepTime).lastOrNull { it.agencyId != prisonerInfo.agencyId }?.iepCode
@@ -290,7 +297,7 @@ class PrisonerIepLevelReviewService(
   private suspend fun buildIepSummary(
     levels: Flow<PrisonerIepLevel>,
     incentiveLevels: Map<String, IepLevel>,
-    withDetails: Boolean = true
+    withDetails: Boolean = true,
   ): IepSummary {
     val iepDetails = levels.map { it.toIepDetail(incentiveLevels) }.toList()
 
@@ -336,8 +343,8 @@ class PrisonerIepLevelReviewService(
         reviewedBy = reviewerUserName,
         reviewTime = reviewTime,
         reviewType = iepReview.reviewType ?: ReviewType.REVIEW,
-        prisonerNumber = prisonerInfo.offenderNo
-      )
+        prisonerNumber = prisonerInfo.offenderNo,
+      ),
     ).toIepDetail(prisonApiService.getIncentiveLevels())
 
     // Propagate new IEP review to other services
@@ -396,7 +403,6 @@ class PrisonerIepLevelReviewService(
 
   @Transactional
   suspend fun mergedPrisonerDetails(prisonerMergeEvent: HMPPSDomainEvent) {
-
     val removedPrisonerNumber = prisonerMergeEvent.additionalInformation.removedNomsNumber!!
     val remainingPrisonerNumber = prisonerMergeEvent.additionalInformation.nomsNumber!!
     log.info("Processing merge event: Prisoner Number Merge $removedPrisonerNumber -> $remainingPrisonerNumber")

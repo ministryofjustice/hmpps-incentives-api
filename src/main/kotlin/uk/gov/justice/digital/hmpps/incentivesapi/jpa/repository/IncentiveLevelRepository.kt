@@ -26,7 +26,7 @@ interface IncentiveLevelRepository : CoroutineCrudRepository<IncentiveLevel, Str
     """
     SELECT MAX("sequence")
     FROM incentive_level
-    """
+    """,
   )
   suspend fun findMaxSequence(): Int?
 }

@@ -85,8 +85,8 @@ class OffenderSearchServiceTest {
                   "content" to responses[page],
                   "totalElements" to responses.sumOf { it.size },
                   "last" to (page == responses.size - 1),
-                )
-              )
+                ),
+              ),
             )
             .build()
         } else {
@@ -130,7 +130,7 @@ class OffenderSearchServiceTest {
           dateOfBirth = LocalDate.parse("1971-07-01"),
           receptionDate = LocalDate.parse("2020-07-01"),
           prisonId = "MDI",
-        )
+        ),
       ),
       listOf(
         OffenderSearchPrisoner(
@@ -142,7 +142,7 @@ class OffenderSearchServiceTest {
           dateOfBirth = LocalDate.parse("1970-03-02"),
           receptionDate = LocalDate.parse("2020-07-02"),
           prisonId = "MDI",
-        )
+        ),
       ),
       listOf(
         OffenderSearchPrisoner(
@@ -153,7 +153,7 @@ class OffenderSearchServiceTest {
           dateOfBirth = LocalDate.parse("1970-03-31"),
           receptionDate = LocalDate.parse("2020-07-03"),
           prisonId = "MDI",
-        )
+        ),
       ),
     )
     val offenderSearchService = OffenderSearchService(webClient)

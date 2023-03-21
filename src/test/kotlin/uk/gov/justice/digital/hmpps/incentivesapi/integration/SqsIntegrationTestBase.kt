@@ -29,7 +29,10 @@ class SqsIntegrationTestBase : IntegrationTestBase() {
   @Autowired
   protected lateinit var objectMapper: ObjectMapper
 
-  private val domainEventsTopic by lazy { hmppsQueueService.findByTopicId("domainevents") ?: throw MissingQueueException("HmppsTopic domainevents not found") }
+  private val domainEventsTopic by lazy {
+    hmppsQueueService.findByTopicId("domainevents")
+      ?: throw MissingQueueException("HmppsTopic domainevents not found")
+  }
   protected val domainEventsTopicSnsClient by lazy { domainEventsTopic.snsClient }
   protected val domainEventsTopicArn by lazy { domainEventsTopic.arn }
 
@@ -37,7 +40,8 @@ class SqsIntegrationTestBase : IntegrationTestBase() {
   protected val incentivesQueue by lazy { hmppsQueueService.findByQueueId("incentives") as HmppsQueue }
 
   fun HmppsSqsProperties.domaineventsTopicConfig() =
-    topics["domainevents"] ?: throw MissingTopicException("domainevents has not been loaded from configuration properties")
+    topics["domainevents"]
+      ?: throw MissingTopicException("domainevents has not been loaded from configuration properties")
 
   @BeforeEach
   fun cleanQueue() {
@@ -59,7 +63,10 @@ class SqsIntegrationTestBase : IntegrationTestBase() {
   protected fun jsonString(any: Any) = objectMapper.writeValueAsString(any) as String
 
   fun getNumberOfMessagesCurrentlyOnQueue(): Int? {
-    val queueAttributes = incentivesQueue.sqsClient.getQueueAttributes(incentivesQueue.queueUrl, listOf("ApproximateNumberOfMessages"))
+    val queueAttributes = incentivesQueue.sqsClient.getQueueAttributes(
+      incentivesQueue.queueUrl,
+      listOf("ApproximateNumberOfMessages"),
+    )
     return queueAttributes.attributes["ApproximateNumberOfMessages"]?.toInt()
   }
 }

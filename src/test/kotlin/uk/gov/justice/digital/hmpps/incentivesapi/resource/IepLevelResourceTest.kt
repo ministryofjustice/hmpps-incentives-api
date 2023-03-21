@@ -90,7 +90,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
                 "default": false
             }
         ]
-        """.trimIndent()
+        """.trimIndent(),
       )
   }
 
@@ -169,7 +169,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
                 }
              ]
           }
-          """
+          """,
       )
   }
 
@@ -244,7 +244,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
 
              ]
           }
-          """
+          """,
       )
   }
 
@@ -256,7 +256,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
     prisonApiMockServer.stubGetPrisonerInfoByBooking(
       bookingId = bookingId,
       prisonerNumber = prisonerNumber,
-      locationId = 77778L
+      locationId = 77778L,
     )
     prisonApiMockServer.stubGetLocationById(locationId = 77778L, locationDesc = "1-2-003")
     prisonApiMockServer.stubAddIep(bookingId = bookingId)
@@ -281,7 +281,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
     prisonApiMockServer.stubGetPrisonerInfoByBooking(
       bookingId = bookingId2,
       prisonerNumber = prisonerNumber2,
-      locationId = 77779L
+      locationId = 77779L,
     )
     prisonApiMockServer.stubGetLocationById(locationId = 77779L, locationDesc = "1-2-004")
     prisonApiMockServer.stubAddIep(bookingId = bookingId2)
@@ -310,7 +310,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
              "iepLevel": "Enhanced"
               }
           ]
-          """
+          """,
       )
   }
 
@@ -330,7 +330,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
     @BeforeEach
     fun setUp(): Unit = runBlocking {
       existingPrisonerIepLevel = repository.save(
-        prisonerIepLevel(bookingId = bookingId, prisonerNumber = prisonerNumber)
+        prisonerIepLevel(bookingId = bookingId, prisonerNumber = prisonerNumber),
       )
 
       syncPatchEndpoint = "/iep/sync/booking/$bookingId/id/${existingPrisonerIepLevel.id}"
@@ -515,7 +515,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
             "reviewType":"${requestBody.reviewType}",
             "auditModuleName":"INCENTIVES_API"
           }
-          """.trimIndent()
+          """.trimIndent(),
         )
         .returnResult()
         .responseBody ?: ByteArray(0)
@@ -542,7 +542,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
                  "reviewType":"${requestBody.reviewType}",
                  "auditModuleName":"INCENTIVES_API"
               }
-          """
+          """,
         )
     }
 
@@ -732,7 +732,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
                 }
              ]
           }
-          """
+          """,
         )
     }
 
@@ -762,7 +762,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
             "userId": "XYZ_GEN",
             "reviewType": "MIGRATED",
             "current": true
-          }"""
+          }""",
         )
         .exchange()
         .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid parameters: `iepLevel` must have length of at most 6")

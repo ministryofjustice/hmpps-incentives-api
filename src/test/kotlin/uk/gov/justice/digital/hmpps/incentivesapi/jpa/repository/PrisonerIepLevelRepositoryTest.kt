@@ -62,8 +62,8 @@ class PrisonerIepLevelRepositoryTest : TestBase() {
         current = false,
         reviewedBy = "TEST_STAFF1",
         reviewTime = LocalDateTime.now().minusDays(2),
-        prisonerNumber = "A1234AB"
-      )
+        prisonerNumber = "A1234AB",
+      ),
     )
 
     repository.save(
@@ -75,8 +75,8 @@ class PrisonerIepLevelRepositoryTest : TestBase() {
         current = true,
         reviewedBy = "TEST_STAFF1",
         reviewTime = LocalDateTime.now(),
-        prisonerNumber = "A1234AB"
-      )
+        prisonerNumber = "A1234AB",
+      ),
     )
 
     coroutineScope {

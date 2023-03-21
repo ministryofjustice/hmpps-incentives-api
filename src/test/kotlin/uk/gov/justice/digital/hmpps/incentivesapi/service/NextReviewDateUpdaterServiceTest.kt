@@ -68,7 +68,7 @@ class NextReviewDateUpdaterServiceTest {
     fun `updateMany() when no reviews in database`(): Unit = runBlocking {
       val bookingIds = listOf(offender1.bookingId, offender2.bookingId)
       whenever(
-        prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds)
+        prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds),
       ).thenReturn(emptyFlow())
       whenever(nextReviewDateRepository.findAllById(bookingIds))
         .thenReturn(emptyFlow())
@@ -79,7 +79,7 @@ class NextReviewDateUpdaterServiceTest {
           receptionDate = offender1.receptionDate,
           hasAcctOpen = offender1.hasAcctOpen,
           iepDetails = emptyList(),
-        )
+        ),
       ).calculate()
       val expectedDate2 = NextReviewDateService(
         NextReviewDateInput(
@@ -87,7 +87,7 @@ class NextReviewDateUpdaterServiceTest {
           receptionDate = offender2.receptionDate,
           hasAcctOpen = offender2.hasAcctOpen,
           iepDetails = emptyList(),
-        )
+        ),
       ).calculate()
 
       whenever(nextReviewDateRepository.existsById(offender1.bookingId))
@@ -108,7 +108,7 @@ class NextReviewDateUpdaterServiceTest {
         mapOf(
           offender1.bookingId to expectedDate1,
           offender2.bookingId to expectedDate2,
-        )
+        ),
       )
 
       verify(nextReviewDateRepository, times(1))
@@ -127,7 +127,7 @@ class NextReviewDateUpdaterServiceTest {
       )
       val bookingIds = listOf(offender1.bookingId, offender2.bookingId)
       whenever(
-        prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds)
+        prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds),
       ).thenReturn(offender2Reviews)
 
       whenever(nextReviewDateRepository.existsById(offender1.bookingId)).thenReturn(false)
@@ -139,8 +139,8 @@ class NextReviewDateUpdaterServiceTest {
               bookingId = offender2.bookingId,
               // NOTE: next review date is out-of-date and will change
               nextReviewDate = offender2Reviews.last().reviewTime.plusYears(1).toLocalDate(),
-            )
-          )
+            ),
+          ),
         )
 
       val expectedDate1 = NextReviewDateService(
@@ -149,7 +149,7 @@ class NextReviewDateUpdaterServiceTest {
           receptionDate = offender1.receptionDate,
           hasAcctOpen = offender1.hasAcctOpen,
           iepDetails = emptyList(),
-        )
+        ),
       ).calculate()
       val expectedDate2 = NextReviewDateService(
         NextReviewDateInput(
@@ -157,7 +157,7 @@ class NextReviewDateUpdaterServiceTest {
           receptionDate = offender2.receptionDate,
           hasAcctOpen = offender2.hasAcctOpen,
           iepDetails = offender2Reviews.toList().toIepDetails(iepLevels),
-        )
+        ),
       ).calculate()
 
       val expectedRecordsFlow = flowOf(
@@ -174,7 +174,7 @@ class NextReviewDateUpdaterServiceTest {
         mapOf(
           offender1.bookingId to expectedDate1,
           offender2.bookingId to expectedDate2,
-        )
+        ),
       )
 
       verify(nextReviewDateRepository, times(1))
@@ -230,7 +230,7 @@ class NextReviewDateUpdaterServiceTest {
         receptionDate = prisonerExtraInfo.receptionDate,
         hasAcctOpen = prisonerExtraInfo.hasAcctOpen,
         iepDetails = reviews.toList().toIepDetails(iepLevels),
-      )
+      ),
     ).calculate()
 
     whenever(nextReviewDateRepository.existsById(bookingId)).thenReturn(true)

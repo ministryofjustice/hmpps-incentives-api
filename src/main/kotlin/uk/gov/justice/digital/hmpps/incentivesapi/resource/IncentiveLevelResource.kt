@@ -42,19 +42,19 @@ class IncentiveLevelResource(
     responses = [
       ApiResponse(
         responseCode = "200",
-        description = "Incentive levels returned"
+        description = "Incentive levels returned",
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "403",
         description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun getIncentiveLevels(
     @Schema(description = "Include inactive incentive levels", example = "true", required = false, defaultValue = "false", type = "boolean", pattern = "^[true|false]$")
@@ -76,24 +76,24 @@ class IncentiveLevelResource(
     responses = [
       ApiResponse(
         responseCode = "201",
-        description = "Incentive level created"
+        description = "Incentive level created",
       ),
       ApiResponse(
         responseCode = "400",
         description = "Invalid payload",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "403",
         description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun createIncentiveLevel(
     @RequestBody incentiveLevel: IncentiveLevel,
@@ -113,32 +113,32 @@ class IncentiveLevelResource(
     responses = [
       ApiResponse(
         responseCode = "200",
-        description = "Incentive levels reordered"
+        description = "Incentive levels reordered",
       ),
       ApiResponse(
         responseCode = "400",
         description = "Not enough level codes provided",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "403",
         description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "404",
         description = "Incentive level with this code not found",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun setOrderOfIncentiveLevels(
-    @RequestBody incentiveLevelCodes: List<String>
+    @RequestBody incentiveLevelCodes: List<String>,
   ): List<IncentiveLevel> {
     ensure {
       ("incentiveLevelCodes" to incentiveLevelCodes).hasSizeAtLeast(2)
@@ -153,28 +153,29 @@ class IncentiveLevelResource(
     responses = [
       ApiResponse(
         responseCode = "200",
-        description = "Incentive level returned"
+        description = "Incentive level returned",
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "403",
         description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "404",
         description = "Incentive level with this code not found",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun getIncentiveLevel(
     @Schema(description = "Incentive level code", example = "STD", required = true, minLength = 3, maxLength = 6)
-    @PathVariable code: String,
+    @PathVariable
+    code: String,
   ): IncentiveLevel {
     return incentiveLevelService.getIncentiveLevel(code)
       ?: throw NoDataWithCodeFoundException("incentive level", code)
@@ -189,34 +190,36 @@ class IncentiveLevelResource(
     responses = [
       ApiResponse(
         responseCode = "200",
-        description = "Incentive level updated"
+        description = "Incentive level updated",
       ),
       ApiResponse(
         responseCode = "400",
         description = "Invalid payload", // TODO: maybe also when deactivating and there are prisons with level activated?
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "403",
         description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "404",
         description = "Incentive level not found",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun updateIncentiveLevel(
     @Schema(description = "Incentive level code", example = "STD", required = true, minLength = 3, maxLength = 6)
-    @PathVariable code: String,
-    @RequestBody incentiveLevel: IncentiveLevel
+    @PathVariable
+    code: String,
+    @RequestBody
+    incentiveLevel: IncentiveLevel,
   ): IncentiveLevel {
     ensure {
       if (code != incentiveLevel.code) {
@@ -235,34 +238,36 @@ class IncentiveLevelResource(
     responses = [
       ApiResponse(
         responseCode = "200",
-        description = "Incentive level updated"
+        description = "Incentive level updated",
       ),
       ApiResponse(
         responseCode = "400",
         description = "Invalid payload", // TODO: maybe also when deactivating and there are prisons with level activated?
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "403",
         description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "404",
         description = "Incentive level not found",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun partiallyUpdateIncentiveLevel(
     @Schema(description = "Incentive level code", example = "STD", required = true, minLength = 3, maxLength = 6)
-    @PathVariable code: String,
-    @RequestBody update: IncentiveLevelUpdate
+    @PathVariable
+    code: String,
+    @RequestBody
+    update: IncentiveLevelUpdate,
   ): IncentiveLevel {
     ensure {
       update.description?.let {
@@ -281,7 +286,7 @@ class IncentiveLevelResource(
     responses = [
       ApiResponse(
         responseCode = "200",
-        description = "Incentive level deactivated"
+        description = "Incentive level deactivated",
       ),
       // ApiResponse(
       //   responseCode = "400",
@@ -291,23 +296,24 @@ class IncentiveLevelResource(
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "403",
         description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "404",
         description = "Incentive level not found",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun deactivateIncentiveLevel(
     @Schema(description = "Incentive level code", example = "STD", required = true, minLength = 3, maxLength = 6)
-    @PathVariable code: String,
+    @PathVariable
+    code: String,
   ): IncentiveLevel {
     return partiallyUpdateIncentiveLevel(code, IncentiveLevelUpdate(active = false))
   }
@@ -318,23 +324,24 @@ class IncentiveLevelResource(
     responses = [
       ApiResponse(
         responseCode = "200",
-        description = "Prison incentive levels returned"
+        description = "Prison incentive levels returned",
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "403",
         description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun getPrisonIncentiveLevels(
     @Schema(description = "Prison id", example = "MDI", required = true, minLength = 3, maxLength = 6)
-    @PathVariable prisonId: String,
+    @PathVariable
+    prisonId: String,
   ): List<PrisonIncentiveLevel> {
     return prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)
   }
@@ -345,30 +352,32 @@ class IncentiveLevelResource(
     responses = [
       ApiResponse(
         responseCode = "200",
-        description = "Prison incentive level returned"
+        description = "Prison incentive level returned",
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "403",
         description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "404",
         description = "Active prison incentive level not found",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun getPrisonIncentiveLevel(
     @Schema(description = "Prison id", example = "MDI", required = true, minLength = 3, maxLength = 6)
-    @PathVariable prisonId: String,
+    @PathVariable
+    prisonId: String,
     @Schema(description = "Incentive level code", example = "STD", required = true, minLength = 3, maxLength = 6)
-    @PathVariable levelCode: String,
+    @PathVariable
+    levelCode: String,
   ): PrisonIncentiveLevel {
     return prisonIncentiveLevelService.getActivePrisonIncentiveLevel(prisonId, levelCode)
       ?: throw NoDataWithCodeFoundException("active prison incentive level", levelCode)
@@ -383,36 +392,39 @@ class IncentiveLevelResource(
     responses = [
       ApiResponse(
         responseCode = "200",
-        description = "Prison incentive level updated"
+        description = "Prison incentive level updated",
       ),
       ApiResponse(
         responseCode = "400",
         description = "Invalid payload", // TODO: maybe also when deactivating and there are prisoners on level?
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "403",
         description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "404",
         description = "Incentive level not found globally", // TODO: ensure prison exists?
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun updatePrisonIncentiveLevel(
     @Schema(description = "Prison id", example = "MDI", required = true, minLength = 3, maxLength = 6)
-    @PathVariable prisonId: String,
+    @PathVariable
+    prisonId: String,
     @Schema(description = "Incentive level code", example = "STD", required = true, minLength = 3, maxLength = 6)
-    @PathVariable levelCode: String,
-    @RequestBody prisonIncentiveLevel: PrisonIncentiveLevel
+    @PathVariable
+    levelCode: String,
+    @RequestBody
+    prisonIncentiveLevel: PrisonIncentiveLevel,
   ): PrisonIncentiveLevel {
     ensure {
       if (prisonId != prisonIncentiveLevel.prisonId) {
@@ -434,36 +446,39 @@ class IncentiveLevelResource(
     responses = [
       ApiResponse(
         responseCode = "200",
-        description = "Prison incentive level updated"
+        description = "Prison incentive level updated",
       ),
       ApiResponse(
         responseCode = "400",
         description = "Invalid payload", // TODO: maybe also when deactivating and there are prisoners on level?
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "403",
         description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "404",
         description = "Incentive level not found globally", // TODO: ensure prison exists?
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun partiallyUpdatePrisonIncentiveLevel(
     @Schema(description = "Prison id", example = "MDI", required = true, minLength = 3, maxLength = 6)
-    @PathVariable prisonId: String,
+    @PathVariable
+    prisonId: String,
     @Schema(description = "Incentive level code", example = "STD", required = true, minLength = 3, maxLength = 6)
-    @PathVariable levelCode: String,
-    @RequestBody update: PrisonIncentiveLevelUpdate
+    @PathVariable
+    levelCode: String,
+    @RequestBody
+    update: PrisonIncentiveLevelUpdate,
   ): PrisonIncentiveLevel {
     ensure {
       update.active?.let { active ->
@@ -507,7 +522,7 @@ class IncentiveLevelResource(
     responses = [
       ApiResponse(
         responseCode = "200",
-        description = "Prison incentive level deactivated"
+        description = "Prison incentive level deactivated",
       ),
       // ApiResponse(
       //   responseCode = "400",
@@ -517,25 +532,27 @@ class IncentiveLevelResource(
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "403",
         description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "404",
         description = "Incentive level not found globally", // TODO: ensure prison exists?
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
-    ]
+    ],
   )
   suspend fun deactivatePrisonIncentiveLevel(
     @Schema(description = "Prison id", example = "MDI", required = true, minLength = 3, maxLength = 6)
-    @PathVariable prisonId: String,
+    @PathVariable
+    prisonId: String,
     @Schema(description = "Incentive level code", example = "STD", required = true, minLength = 3, maxLength = 6)
-    @PathVariable levelCode: String,
+    @PathVariable
+    levelCode: String,
   ): PrisonIncentiveLevel {
     return partiallyUpdatePrisonIncentiveLevel(prisonId, levelCode, PrisonIncentiveLevelUpdate(active = false))
   }

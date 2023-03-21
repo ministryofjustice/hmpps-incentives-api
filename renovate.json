@@ -7,7 +7,7 @@
       "matchManagers": ["gradle"],
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "all non major Gradle dependencies",
-      "groupSlug": "all-npm-minor-patch"
+      "groupSlug": "all-gradle-minor-patch"
     }
   ]
 }

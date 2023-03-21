@@ -17,7 +17,7 @@ class AuthTokenFilterFunction : ExchangeFilterFunction {
 
 class AuthTokenResponseMono(
   private val request: ClientRequest,
-  private val next: ExchangeFunction
+  private val next: ExchangeFunction,
 ) : Mono<ClientResponse>() {
 
   override fun subscribe(subscriber: CoreSubscriber<in ClientResponse>) {
