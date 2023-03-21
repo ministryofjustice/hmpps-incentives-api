@@ -17,6 +17,8 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.http.HttpStatus
+import org.springframework.test.web.reactive.server.WebTestClient
+import uk.gov.justice.digital.hmpps.incentivesapi.helper.expectErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonIncentiveLevel
@@ -181,15 +183,16 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         .uri("/incentive/levels/bas")
         .headers(setAuthorisation())
         .exchange()
-        .expectStatus().isNotFound
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("No incentive level found for code `bas`")
-        }
+        .expectErrorResponse(HttpStatus.NOT_FOUND, "No incentive level found for code `bas`")
     }
   }
 
   @Nested
   inner class `modifying incentive levels` {
+    private fun <T : WebTestClient.RequestHeadersSpec<*>> T.withCentralAuthorisation(): T = apply {
+      headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_INCENTIVE_LEVELS"), scopes = listOf("read", "write")))
+    }
+
     @Test
     fun `creates a level`() {
       val maxSequence = runBlocking {
@@ -198,7 +201,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       webTestClient.post()
         .uri("/incentive/levels")
-        .headers(setAuthorisation())
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -228,14 +231,31 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       }
     }
 
-    // TODO: add once roles have been determined
-    // fun `requires correct role to create a level`() {}
+    @Test
+    fun `requires correct role to create a level`() {
+      webTestClient.post()
+        .uri("/incentive/levels")
+        .headers(setAuthorisation())
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          {"code": "EN4", "description": "Enhanced 4", "active": false}
+          """
+        )
+        .exchange()
+        .expectErrorResponse(HttpStatus.FORBIDDEN, "Forbidden")
+
+      runBlocking {
+        assertThat(incentiveLevelRepository.count()).isEqualTo(6)
+      }
+    }
 
     @Test
     fun `fails to create a level when media type is not supported`() {
       webTestClient.post()
         .uri("/incentive/levels")
-        .headers(setAuthorisation())
+        .withCentralAuthorisation()
         .header("Content-Type", "application/yaml")
         .bodyValue(
           // language=yaml
@@ -246,11 +266,11 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """.trimIndent()
         )
         .exchange()
-        .expectStatus().isEqualTo(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Unsupported media type")
-          assertThat(it).contains("accepted types: application/json")
-        }
+        .expectErrorResponse(
+          HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+          "Unsupported media type",
+          "accepted types: application/json",
+        )
 
       runBlocking {
         assertThat(incentiveLevelRepository.count()).isEqualTo(6)
@@ -266,7 +286,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to create a level when code already exists`() {
       webTestClient.post()
         .uri("/incentive/levels")
-        .headers(setAuthorisation())
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -275,10 +295,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Incentive level with code STD already exists")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Incentive level with code STD already exists")
 
       runBlocking {
         assertThat(incentiveLevelRepository.count()).isEqualTo(6)
@@ -307,14 +324,11 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to create a level with missing fields`(body: String) {
       webTestClient.post()
         .uri("/incentive/levels")
-        .headers(setAuthorisation())
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(body)
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Parameter conversion failure")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Parameter conversion failure")
 
       runBlocking {
         assertThat(incentiveLevelRepository.count()).isEqualTo(6)
@@ -341,14 +355,11 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to create a level with invalid fields`(body: String) {
       webTestClient.post()
         .uri("/incentive/levels")
-        .headers(setAuthorisation())
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(body)
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Invalid parameters")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid parameters")
 
       runBlocking {
         assertThat(incentiveLevelRepository.count()).isEqualTo(6)
@@ -359,7 +370,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `reorders complete set of incentive levels`() {
       webTestClient.patch()
         .uri("/incentive/level-order")
-        .headers(setAuthorisation())
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -394,14 +405,32 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       }
     }
 
-    // TODO: add once roles have been determined
-    // fun `requires correct role to reorder levels`() {}
+    @Test
+    fun `requires correct role to reorder levels`() {
+      webTestClient.patch()
+        .uri("/incentive/level-order")
+        .headers(setAuthorisation())
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          ["EN3", "EN2", "ENT", "ENH", "STD", "BAS"]
+          """
+        )
+        .exchange()
+        .expectErrorResponse(HttpStatus.FORBIDDEN, "Forbidden")
+
+      runBlocking {
+        val incentiveLevelCodes = incentiveLevelRepository.findAllByOrderBySequence().map { it.code }.toList()
+        assertThat(incentiveLevelCodes).isEqualTo(listOf("BAS", "STD", "ENH", "EN2", "EN3", "ENT"))
+      }
+    }
 
     @Test
     fun `fails to reorder incentive levels when some are missing`() {
       webTestClient.patch()
         .uri("/incentive/level-order")
-        .headers(setAuthorisation())
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -410,10 +439,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isNotFound
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("No incentive level found for code `EN4`")
-        }
+        .expectErrorResponse(HttpStatus.NOT_FOUND, "No incentive level found for code `EN4`")
 
       runBlocking {
         val incentiveLevels = incentiveLevelRepository.findAllByOrderBySequence().toList()
@@ -429,7 +455,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to reorder incentive levels when not enough provided`() {
       webTestClient.patch()
         .uri("/incentive/level-order")
-        .headers(setAuthorisation())
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -438,10 +464,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("must have size of at least 2")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "must have size of at least 2")
 
       runBlocking {
         val incentiveLevels = incentiveLevelRepository.findAllByOrderBySequence().toList()
@@ -454,7 +477,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to reorder incomplete set of incentive levels`() {
       webTestClient.patch()
         .uri("/incentive/level-order")
-        .headers(setAuthorisation())
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -463,17 +486,14 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("All incentive levels required when setting order. Missing: `ENT`")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "All incentive levels required when setting order. Missing: `ENT`")
     }
 
     @Test
     fun `updates a level`() {
       webTestClient.put()
         .uri("/incentive/levels/STD")
-        .headers(setAuthorisation())
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -498,14 +518,32 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       }
     }
 
-    // TODO: add once roles have been determined
-    // fun `requires correct role to update a level`() {}
+    @Test
+    fun `requires correct role to update a level`() {
+      webTestClient.put()
+        .uri("/incentive/levels/STD")
+        .headers(setAuthorisation())
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          {"code": "STD", "description": "Silver", "active": true}
+          """
+        )
+        .exchange()
+        .expectErrorResponse(HttpStatus.FORBIDDEN, "Forbidden")
+
+      runBlocking {
+        val incentiveLevel = incentiveLevelRepository.findById("STD")
+        assertThat(incentiveLevel?.description).isNotEqualTo("Silver")
+      }
+    }
 
     @Test
     fun `fails to update a missing level`() {
       webTestClient.put()
         .uri("/incentive/levels/std")
-        .headers(setAuthorisation())
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -514,10 +552,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isNotFound
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("No incentive level found for code `std`")
-        }
+        .expectErrorResponse(HttpStatus.NOT_FOUND, "No incentive level found for code `std`")
 
       runBlocking {
         var incentiveLevel = incentiveLevelRepository.findById("std")
@@ -532,7 +567,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to update a level with mismatched codes`() {
       webTestClient.put()
         .uri("/incentive/levels/ENH")
-        .headers(setAuthorisation())
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -541,10 +576,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Incentive level codes must match in URL and payload")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Incentive level codes must match in URL and payload")
 
       runBlocking {
         var incentiveLevel = incentiveLevelRepository.findById("STD")
@@ -576,14 +608,11 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to update a level with missing fields`(body: String) {
       webTestClient.put()
         .uri("/incentive/levels/STD")
-        .headers(setAuthorisation())
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(body)
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Parameter conversion failure")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Parameter conversion failure")
 
       runBlocking {
         val incentiveLevel = incentiveLevelRepository.findById("STD")
@@ -596,7 +625,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to update a level with invalid fields`() {
       webTestClient.put()
         .uri("/incentive/levels/STD")
-        .headers(setAuthorisation())
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -605,10 +634,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """,
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Invalid parameters")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid parameters")
 
       runBlocking {
         var incentiveLevel = incentiveLevelRepository.findById("STD")
@@ -623,7 +649,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `partially updates a level`() {
       webTestClient.patch()
         .uri("/incentive/levels/STD")
-        .headers(setAuthorisation())
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -648,13 +674,10 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       }
     }
 
-    // TODO: add once roles have been determined
-    // fun `requires correct role to partially update a level`() {}
-
     @Test
-    fun `fails to partially update a missing level`() {
+    fun `requires correct role to partially update a level`() {
       webTestClient.patch()
-        .uri("/incentive/levels/std")
+        .uri("/incentive/levels/STD")
         .headers(setAuthorisation())
         .header("Content-Type", "application/json")
         .bodyValue(
@@ -664,10 +687,28 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isNotFound
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("No incentive level found for code `std`")
-        }
+        .expectErrorResponse(HttpStatus.FORBIDDEN, "Forbidden")
+
+      runBlocking {
+        val incentiveLevel = incentiveLevelRepository.findById("STD")
+        assertThat(incentiveLevel?.description).isNotEqualTo("Silver")
+      }
+    }
+
+    @Test
+    fun `fails to partially update a missing level`() {
+      webTestClient.patch()
+        .uri("/incentive/levels/std")
+        .withCentralAuthorisation()
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          {"description": "Silver"}
+          """
+        )
+        .exchange()
+        .expectErrorResponse(HttpStatus.NOT_FOUND, "No incentive level found for code `std`")
 
       runBlocking {
         var incentiveLevel = incentiveLevelRepository.findById("std")
@@ -682,7 +723,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `partially updates a level but does not change the code`() {
       webTestClient.patch()
         .uri("/incentive/levels/ENH")
-        .headers(setAuthorisation())
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -716,7 +757,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to partially update a level with invalid fields`() {
       webTestClient.patch()
         .uri("/incentive/levels/STD")
-        .headers(setAuthorisation())
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -725,10 +766,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """,
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Invalid parameters")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid parameters")
 
       runBlocking {
         val incentiveLevel = incentiveLevelRepository.findById("STD")
@@ -741,7 +779,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `deactivates a level`() {
       webTestClient.delete()
         .uri("/incentive/levels/STD")
-        .headers(setAuthorisation())
+        .withCentralAuthorisation()
         .exchange()
         .expectStatus().isOk
         .expectBody().json(
@@ -763,7 +801,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `deactivates an inactive level`() {
       webTestClient.delete()
         .uri("/incentive/levels/ENT")
-        .headers(setAuthorisation())
+        .withCentralAuthorisation()
         .exchange()
         .expectStatus().isOk
         .expectBody().json(
@@ -781,19 +819,27 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       }
     }
 
-    // TODO: add once roles have been determined
-    // fun `requires correct role to deactivate a level`() {}
+    @Test
+    fun `requires correct role to deactivate a level`() {
+      webTestClient.delete()
+        .uri("/incentive/levels/STD")
+        .headers(setAuthorisation())
+        .exchange()
+        .expectErrorResponse(HttpStatus.FORBIDDEN, "Forbidden")
+
+      runBlocking {
+        val incentiveLevel = incentiveLevelRepository.findById("STD")
+        assertThat(incentiveLevel?.active).isTrue
+      }
+    }
 
     @Test
     fun `fails to deactivate a missing level`() {
       webTestClient.delete()
         .uri("/incentive/levels/std")
-        .headers(setAuthorisation())
+        .withCentralAuthorisation()
         .exchange()
-        .expectStatus().isNotFound
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("No incentive level found for code `std`")
-        }
+        .expectErrorResponse(HttpStatus.NOT_FOUND, "No incentive level found for code `std`")
 
       runBlocking {
         var incentiveLevel = incentiveLevelRepository.findById("std")
@@ -892,10 +938,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         .uri("/incentive/prison-levels/MDI/level/ENT")
         .headers(setAuthorisation())
         .exchange()
-        .expectStatus().isNotFound
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("No active prison incentive level found for code `ENT`")
-        }
+        .expectErrorResponse(HttpStatus.NOT_FOUND, "No active prison incentive level found for code `ENT`")
     }
 
     @Test
@@ -904,15 +947,16 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         .uri("/incentive/prison-levels/BAI/level/EN4")
         .headers(setAuthorisation())
         .exchange()
-        .expectStatus().isNotFound
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("No active prison incentive level found for code `EN4`")
-        }
+        .expectErrorResponse(HttpStatus.NOT_FOUND, "No active prison incentive level found for code `EN4`")
     }
   }
 
   @Nested
   inner class `modifying prison incentive levels` {
+    private fun <T : WebTestClient.RequestHeadersSpec<*>> T.withLocalAuthorisation(): T = apply {
+      headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_PRISON_IEP_LEVELS"), scopes = listOf("read", "write")))
+    }
+
     private fun saveLevel(prisonId: String, levelCode: String) = runBlocking {
       prisonIncentiveLevelRepository.save(
         PrisonIncentiveLevel(
@@ -945,7 +989,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `updates a prison incentive level when per-prison information does not exist`() {
       webTestClient.put()
         .uri("/incentive/prison-levels/MDI/level/STD")
-        .headers(setAuthorisation())
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -985,7 +1029,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       webTestClient.put()
         .uri("/incentive/prison-levels/WRI/level/ENH")
-        .headers(setAuthorisation())
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1031,14 +1075,40 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       }
     }
 
-    // TODO: add once roles have been determined
-    // fun `requires correct role to update a prison incentive level`() {}
+    @Test
+    fun `requires correct role to update a prison incentive level`() {
+      saveLevel("MDI", "STD")
+
+      webTestClient.put()
+        .uri("/incentive/prison-levels/MDI/level/STD")
+        .headers(setAuthorisation())
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          {
+            "levelCode": "STD", "prisonId": "MDI", "defaultOnAdmission": true,
+            "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1900, "convictedSpendLimitInPence": 19000,
+            "visitOrders": 3, "privilegedVisitOrders": 2
+          }
+          """
+        )
+        .exchange()
+        .expectErrorResponse(HttpStatus.FORBIDDEN, "Forbidden")
+
+      runBlocking {
+        val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("MDI", "STD")
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(5500)
+        assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
+        assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
+      }
+    }
 
     @Test
     fun `fails to update a prison incentive level when incentive level does not exist`() {
       webTestClient.put()
         .uri("/incentive/prison-levels/MDI/level/std")
-        .headers(setAuthorisation())
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1051,10 +1121,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isNotFound
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("No incentive level found for code `std`")
-        }
+        .expectErrorResponse(HttpStatus.NOT_FOUND, "No incentive level found for code `std`")
 
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
@@ -1065,7 +1132,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to update a prison incentive level with mismatched codes`() {
       webTestClient.put()
         .uri("/incentive/prison-levels/MDI/level/STD")
-        .headers(setAuthorisation())
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1078,10 +1145,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Incentive level codes must match in URL and payload")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Incentive level codes must match in URL and payload")
 
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
@@ -1092,7 +1156,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to update a prison incentive level with mismatched prison id`() {
       webTestClient.put()
         .uri("/incentive/prison-levels/MDI/level/STD")
-        .headers(setAuthorisation())
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1105,10 +1169,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Prison ids must match in URL and payload")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Prison ids must match in URL and payload")
 
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
@@ -1119,7 +1180,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to update a prison incentive level with missing fields`() {
       webTestClient.put()
         .uri("/incentive/prison-levels/WRI/level/STD")
-        .headers(setAuthorisation())
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1130,10 +1191,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Parameter conversion failure")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Parameter conversion failure")
 
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
@@ -1144,7 +1202,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to update a prison incentive level with invalid fields`() {
       webTestClient.put()
         .uri("/incentive/prison-levels/WRI/level/ENH")
-        .headers(setAuthorisation())
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1157,10 +1215,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Invalid parameters")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid parameters")
 
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
@@ -1171,7 +1226,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to update a prison incentive level when making inactive level the default`() {
       webTestClient.put()
         .uri("/incentive/prison-levels/BAI/level/BAS")
-        .headers(setAuthorisation())
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1184,10 +1239,10 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("A level cannot be made inactive and still be the default for admission")
-        }
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "A level cannot be made inactive and still be the default for admission",
+        )
 
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
@@ -1200,7 +1255,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       webTestClient.put()
         .uri("/incentive/prison-levels/BAI/level/STD")
-        .headers(setAuthorisation())
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1213,10 +1268,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("There must be an active default level for admission in a prison")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "There must be an active default level for admission in a prison")
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "STD")
@@ -1236,7 +1288,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       webTestClient.put()
         .uri("/incentive/prison-levels/BAI/level/BAS")
-        .headers(setAuthorisation())
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1249,10 +1301,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("There must be an active default level for admission in a prison")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "There must be an active default level for admission in a prison")
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "BAS")
@@ -1274,7 +1323,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `partially updates a prison incentive level when per-prison information does not exist`() {
       webTestClient.patch()
         .uri("/incentive/prison-levels/BAI/level/BAS")
-        .headers(setAuthorisation())
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1314,7 +1363,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       webTestClient.patch()
         .uri("/incentive/prison-levels/WRI/level/ENH")
-        .headers(setAuthorisation())
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1358,14 +1407,37 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       }
     }
 
-    // TODO: add once roles have been determined
-    // fun `requires correct role to partially update a prison incentive level`() {}
+    @Test
+    fun `requires correct role to partially update a prison incentive level`() {
+      saveLevel("BAI", "BAS")
+
+      webTestClient.patch()
+        .uri("/incentive/prison-levels/BAI/level/BAS")
+        .headers(setAuthorisation())
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          {
+            "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000
+          }
+          """
+        )
+        .exchange()
+        .expectErrorResponse(HttpStatus.FORBIDDEN, "Forbidden")
+
+      runBlocking {
+        val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "BAS")
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(5500)
+        assertThat(prisonIncentiveLevel?.remandSpendLimitInPence).isEqualTo(55000)
+      }
+    }
 
     @Test
     fun `fails to partially update a prison incentive level when incentive level does not exist`() {
       webTestClient.patch()
         .uri("/incentive/prison-levels/MDI/level/std")
-        .headers(setAuthorisation())
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1376,10 +1448,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isNotFound
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("No incentive level found for code `std`")
-        }
+        .expectErrorResponse(HttpStatus.NOT_FOUND, "No incentive level found for code `std`")
 
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
@@ -1392,7 +1461,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       webTestClient.patch()
         .uri("/incentive/prison-levels/WRI/level/ENH")
-        .headers(setAuthorisation())
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1403,10 +1472,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Invalid parameters")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid parameters")
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("WRI", "ENH")
@@ -1422,7 +1488,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       webTestClient.patch()
         .uri("/incentive/prison-levels/MDI/level/ENT")
-        .headers(setAuthorisation())
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1433,10 +1499,10 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("A level cannot be made inactive and still be the default for admission")
-        }
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "A level cannot be made inactive and still be the default for admission",
+        )
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("MDI", "ENT")
@@ -1452,7 +1518,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       webTestClient.patch()
         .uri("/incentive/prison-levels/MDI/level/STD")
-        .headers(setAuthorisation())
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1463,10 +1529,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("A level cannot be made inactive and still be the default for admission")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "A level cannot be made inactive and still be the default for admission")
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("MDI", "STD")
@@ -1482,7 +1545,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       webTestClient.patch()
         .uri("/incentive/prison-levels/MDI/level/STD")
-        .headers(setAuthorisation())
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1493,10 +1556,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("There must be an active default level for admission in a prison")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "There must be an active default level for admission in a prison")
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "STD")
@@ -1516,7 +1576,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       webTestClient.patch()
         .uri("/incentive/prison-levels/BAI/level/BAS")
-        .headers(setAuthorisation())
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1527,10 +1587,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("There must be an active default level for admission in a prison")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "There must be an active default level for admission in a prison")
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "BAS")
@@ -1553,7 +1610,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       webTestClient.delete()
         .uri("/incentive/prison-levels/WRI/level/EN2")
-        .headers(setAuthorisation())
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .exchange()
         .expectStatus().isOk
@@ -1579,20 +1636,31 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       }
     }
 
-    // TODO: add once roles have been determined
-    // fun `requires correct role to deactivate a prison incentive level`() {}
+    @Test
+    fun `requires correct role to deactivate a prison incentive level`() {
+      saveLevel("WRI", "ENH")
+
+      webTestClient.delete()
+        .uri("/incentive/prison-levels/WRI/level/ENH")
+        .headers(setAuthorisation())
+        .header("Content-Type", "application/json")
+        .exchange()
+        .expectErrorResponse(HttpStatus.FORBIDDEN, "Forbidden")
+
+      runBlocking {
+        val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("WRI", "ENH")
+        assertThat(prisonIncentiveLevel?.active).isTrue
+      }
+    }
 
     @Test
     fun `fails to deactivate a prison incentive level when incentive level does not exist`() {
       webTestClient.delete()
         .uri("/incentive/prison-levels/WRI/level/bas")
-        .headers(setAuthorisation())
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .exchange()
-        .expectStatus().isNotFound
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("No incentive level found for code `bas`")
-        }
+        .expectErrorResponse(HttpStatus.NOT_FOUND, "No incentive level found for code `bas`")
 
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
@@ -1605,13 +1673,13 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       webTestClient.delete()
         .uri("/incentive/prison-levels/MDI/level/STD")
-        .headers(setAuthorisation())
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("A level cannot be made inactive and still be the default for admission")
-        }
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "A level cannot be made inactive and still be the default for admission",
+        )
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("MDI", "STD")

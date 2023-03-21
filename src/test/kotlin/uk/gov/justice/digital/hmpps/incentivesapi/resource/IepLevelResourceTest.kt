@@ -1,16 +1,17 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.resource
 
 import kotlinx.coroutines.runBlocking
-import org.assertj.core.api.Assertions.assertThat
 import org.json.JSONObject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
+import uk.gov.justice.digital.hmpps.incentivesapi.helper.expectErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
@@ -764,11 +765,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
           }"""
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody()
-        .jsonPath("userMessage").value<String> {
-          assertThat(it).contains("Invalid parameters: `iepLevel` must have length of at most 6")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid parameters: `iepLevel` must have length of at most 6")
     }
 
     @Test

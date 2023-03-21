@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
@@ -68,6 +69,7 @@ class IncentiveLevelResource(
   }
 
   @PostMapping("levels")
+  @PreAuthorize("hasRole('MAINTAIN_INCENTIVE_LEVELS') and hasAuthority('SCOPE_write')")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new incentive level",
@@ -104,6 +106,7 @@ class IncentiveLevelResource(
   }
 
   @PatchMapping("level-order")
+  @PreAuthorize("hasRole('MAINTAIN_INCENTIVE_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
     summary = "Sets the order of incentive levels",
     description = "All existing incentive level codes must be provided",
@@ -178,6 +181,7 @@ class IncentiveLevelResource(
   }
 
   @PutMapping("levels/{code}")
+  @PreAuthorize("hasRole('MAINTAIN_INCENTIVE_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
     summary = "Updates an incentive level",
     description = "Payload must include all required fields",
@@ -223,6 +227,7 @@ class IncentiveLevelResource(
   }
 
   @PatchMapping("levels/{code}")
+  @PreAuthorize("hasRole('MAINTAIN_INCENTIVE_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
     summary = "Updates an incentive level",
     description = "Partial updates are allowed",
@@ -269,6 +274,7 @@ class IncentiveLevelResource(
   }
 
   @DeleteMapping("levels/{code}")
+  @PreAuthorize("hasRole('MAINTAIN_INCENTIVE_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
     summary = "Deactivates an incentive level",
     // TODO: decide and explain what happens to associated per-prison data
@@ -369,6 +375,7 @@ class IncentiveLevelResource(
   }
 
   @PutMapping("prison-levels/{prisonId}/level/{levelCode}")
+  @PreAuthorize("hasRole('MAINTAIN_PRISON_IEP_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
     summary = "Updates prison incentive level information",
     description = "Payload must include all required fields",
@@ -419,6 +426,7 @@ class IncentiveLevelResource(
   }
 
   @PatchMapping("prison-levels/{prisonId}/level/{levelCode}")
+  @PreAuthorize("hasRole('MAINTAIN_PRISON_IEP_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
     summary = "Updates prison incentive level information",
     description = "Partial updates are allowed",
@@ -492,6 +500,7 @@ class IncentiveLevelResource(
   }
 
   @DeleteMapping("prison-levels/{prisonId}/level/{levelCode}")
+  @PreAuthorize("hasRole('MAINTAIN_PRISON_IEP_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
     summary = "Deactivate an incentive level for a prison",
     // TODO: decide and explain what happens to prisoners if level is deactivated
