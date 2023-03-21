@@ -227,16 +227,12 @@ These events are raised when changes are made to add or update incentive levels 
   {
     "code": "EN3",
     "description": "Enhanced 3",
-    "sequence": 4,
-    "active": true,
-    "expiredOn": null
+    "active": true
   },
   {
     "code": "EN4",
     "description": "Enhanced 4",
-    "sequence": 5,
-    "active": true,
-    "expiredOn": null
+    "active": true
   }
 ]
 ```
@@ -245,20 +241,21 @@ These events are raised when changes are made to add or update incentive levels 
 #### Get the details of an incentive level for a specified prison
 This contains spend limits and visit allowances
 
-`GET /incentive/levels/{level}/{prisonId}` -
+`GET incentive/prison-levels/{prisondId}/level/{level}` -
+e.g. **/incentive/prison-levels/MDI/level/STD** returns
 ```json
 {
-  "incentiveLevel": "EN4",
+  "levelCode": "STD",
+  "levelDescription": "string",
   "prisonId": "MDI",
   "active": true,
-  "expiredOn": null,
-  "default": false,
-  "remandTransferLimit": 10.50,
-  "remandSpendLimit": 20.90,
-  "convictedTransferLimit": 15.99,
-  "convictedSpendLimit": 25.99,
+  "defaultOnAdmission": true,
+  "remandTransferLimitInPence": 5500,
+  "remandSpendLimitInPence": 55000,
+  "convictedTransferLimitInPence": 1800,
+  "convictedSpendLimitInPence": 18000,
   "visitOrders": 2,
-  "privilegeVisitOrders": 3
+  "privilegedVisitOrders": 1
 }
 ```
 
@@ -266,59 +263,44 @@ This contains spend limits and visit allowances
 ### Write endpoints for reference data
 
 #### Add / Update a incentive level
-`POST /incentive/levels` -
+`POST /incentive/levels/{code}` -
 ```json
-
 {
-  "code": "EH4",
-  "description": "Enhanced 4",
-  "sequence": 4,
+  "code": "STD",
+  "description": "Standard",
   "active": true
 }
 ```
 
-`PUT /incentive/levels/{level}` -
+`PUT /incentive/levels/{code}` -
 ```json
-
 {
-  "description": "Enhanced Level 4",
-  "sequence": 5,
-  "active": false
+  "code": "STD",
+  "description": "Standard",
+  "active": true
 }
 ```
 
-#### Add / Update an incentive level config data in a prison
+#### Update an incentive level config data in a prison
 Insert incentive reference config for a prison level
-`POST /incentive/levels/prison` -
+`PUT /incentive/prison-levels/{prisonId}/level/{levelCode}` -
+
 ```json
 {
+  "levelCode": "STD",
+  "levelDescription": "string",
   "prisonId": "MDI",
-  "incentiveLevel": "EN4",
   "active": true,
-  "default": false,
-  "remandTransferLimit": 10.50,
-  "remandSpendLimit": 20.90,
-  "convictedTransferLimit": 15.99,
-  "convictedSpendLimit": 25.99,
+  "defaultOnAdmission": true,
+  "remandTransferLimitInPence": 5500,
+  "remandSpendLimitInPence": 55000,
+  "convictedTransferLimitInPence": 1800,
+  "convictedSpendLimitInPence": 18000,
   "visitOrders": 2,
-  "privilegeVisitOrders": 3
+  "privilegedVisitOrders": 1
 }
 ```
 
-Update incentive reference config for a prison and level
-`PUT /incentive/levels/prison/{prisonId}/{level}` -
-```json
-{
-  "active": true,
-  "default": true,
-  "remandTransferLimit": 10.50,
-  "remandSpendLimit": 20.90,
-  "convictedTransferLimit": 15.99,
-  "convictedSpendLimit": 25.99,
-  "visitOrders": 2,
-  "privilegeVisitOrders": 3
-}
-```
 
 
 
