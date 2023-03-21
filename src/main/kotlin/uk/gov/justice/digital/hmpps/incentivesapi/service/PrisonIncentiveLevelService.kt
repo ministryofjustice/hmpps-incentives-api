@@ -137,26 +137,45 @@ class PrisonIncentiveLevelService(
   private fun PrisonIncentiveLevelUpdateDTO.toNewEntity(
     prisonId: String,
     levelCode: String,
-  ): PrisonIncentiveLevel = PrisonIncentiveLevel(
-    levelCode = levelCode,
-    prisonId = prisonId,
-    active = active ?: true,
-    defaultOnAdmission = defaultOnAdmission ?: false,
+  ): PrisonIncentiveLevel {
+    val fallbackSpendLimits = spendLimitPolicy.getOrDefault(levelCode, spendLimitPolicy["ENH"]!!)
 
-    // TODO: find sensible defaults or have these configured per-level on IncentiveLevel
+    return PrisonIncentiveLevel(
+      levelCode = levelCode,
+      prisonId = prisonId,
+      active = active ?: true,
+      defaultOnAdmission = defaultOnAdmission ?: false,
 
-    remandTransferLimitInPence = remandTransferLimitInPence ?: 5500,
-    remandSpendLimitInPence = remandSpendLimitInPence ?: 55000,
-    convictedTransferLimitInPence = convictedTransferLimitInPence ?: 1800,
-    convictedSpendLimitInPence = convictedSpendLimitInPence ?: 18000,
+      remandTransferLimitInPence = remandTransferLimitInPence
+        ?: fallbackSpendLimits.remandTransferLimitInPence,
+      remandSpendLimitInPence = remandSpendLimitInPence
+        ?: fallbackSpendLimits.remandSpendLimitInPence,
+      convictedTransferLimitInPence = convictedTransferLimitInPence
+        ?: fallbackSpendLimits.convictedTransferLimitInPence,
+      convictedSpendLimitInPence = convictedSpendLimitInPence
+        ?: fallbackSpendLimits.convictedSpendLimitInPence,
 
-    visitOrders = visitOrders ?: 2,
-    privilegedVisitOrders = privilegedVisitOrders ?: 1,
+      visitOrders = visitOrders ?: 2,
+      privilegedVisitOrders = privilegedVisitOrders ?: 1,
 
-    new = true,
-    whenUpdated = LocalDateTime.now(clock),
-  )
+      new = true,
+      whenUpdated = LocalDateTime.now(clock),
+    )
+  }
 
   private suspend fun Flow<PrisonIncentiveLevel>.toListOfDTO(): List<PrisonIncentiveLevelDTO> =
     map { it.toDTO() }.toList()
 }
+
+private data class SpendLimits(
+  val remandTransferLimitInPence: Int,
+  val remandSpendLimitInPence: Int,
+  val convictedTransferLimitInPence: Int,
+  val convictedSpendLimitInPence: Int,
+)
+
+private val spendLimitPolicy = mapOf(
+  "BAS" to SpendLimits(27_50, 275_00, 5_50, 55_00),
+  "STD" to SpendLimits(60_50, 605_00, 19_80, 198_00),
+  "ENH" to SpendLimits(66_00, 660_00, 33_00, 330_00),
+)

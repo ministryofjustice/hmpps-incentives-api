@@ -854,10 +854,10 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
               active = levelCode != "ENT",
               defaultOnAdmission = levelCode == "STD",
 
-              remandTransferLimitInPence = 5500,
-              remandSpendLimitInPence = 55000,
-              convictedTransferLimitInPence = 1800,
-              convictedSpendLimitInPence = 18000,
+              remandTransferLimitInPence = 6050,
+              remandSpendLimitInPence = 60500,
+              convictedTransferLimitInPence = 1980,
+              convictedSpendLimitInPence = 19800,
 
               visitOrders = 2,
               privilegedVisitOrders = 1,
@@ -882,17 +882,17 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           [
             {
               "levelCode": "BAS", "levelDescription": "Basic", "prisonId": "MDI", "active": true, "defaultOnAdmission": false,
-              "remandTransferLimitInPence": 5500, "remandSpendLimitInPence": 55000, "convictedTransferLimitInPence": 1800, "convictedSpendLimitInPence": 18000,
+              "remandTransferLimitInPence": 6050, "remandSpendLimitInPence": 60500, "convictedTransferLimitInPence": 1980, "convictedSpendLimitInPence": 19800,
               "visitOrders": 2, "privilegedVisitOrders": 1
             },
             {
               "levelCode": "STD", "levelDescription": "Standard", "prisonId": "MDI", "active": true, "defaultOnAdmission": true,
-              "remandTransferLimitInPence": 5500, "remandSpendLimitInPence": 55000, "convictedTransferLimitInPence": 1800, "convictedSpendLimitInPence": 18000,
+              "remandTransferLimitInPence": 6050, "remandSpendLimitInPence": 60500, "convictedTransferLimitInPence": 1980, "convictedSpendLimitInPence": 19800,
               "visitOrders": 2, "privilegedVisitOrders": 1
             },
             {
               "levelCode": "ENH", "levelDescription": "Enhanced", "prisonId": "MDI", "active": true, "defaultOnAdmission": false,
-              "remandTransferLimitInPence": 5500, "remandSpendLimitInPence": 55000, "convictedTransferLimitInPence": 1800, "convictedSpendLimitInPence": 18000,
+              "remandTransferLimitInPence": 6050, "remandSpendLimitInPence": 60500, "convictedTransferLimitInPence": 1980, "convictedSpendLimitInPence": 19800,
               "visitOrders": 2, "privilegedVisitOrders": 1
             }
           ]
@@ -913,7 +913,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
           {
             "levelCode": "ENH", "levelDescription": "Enhanced", "prisonId": "WRI", "active": true, "defaultOnAdmission": false,
-            "remandTransferLimitInPence": 5500, "remandSpendLimitInPence": 55000, "convictedTransferLimitInPence": 1800, "convictedSpendLimitInPence": 18000,
+            "remandTransferLimitInPence": 6050, "remandSpendLimitInPence": 60500, "convictedTransferLimitInPence": 1980, "convictedSpendLimitInPence": 19800,
             "visitOrders": 2, "privilegedVisitOrders": 1
           }
           """,
@@ -954,10 +954,26 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           active = levelCode != "ENT",
           defaultOnAdmission = levelCode == "STD",
 
-          remandTransferLimitInPence = 5500,
-          remandSpendLimitInPence = 55000,
-          convictedTransferLimitInPence = 1800,
-          convictedSpendLimitInPence = 18000,
+          remandTransferLimitInPence = when (levelCode) {
+            "BAS" -> 27_50
+            "STD" -> 60_50
+            else -> 66_00
+          },
+          remandSpendLimitInPence = when (levelCode) {
+            "BAS" -> 275_00
+            "STD" -> 605_00
+            else -> 660_00
+          },
+          convictedTransferLimitInPence = when (levelCode) {
+            "BAS" -> 5_50
+            "STD" -> 19_80
+            else -> 33_00
+          },
+          convictedSpendLimitInPence = when (levelCode) {
+            "BAS" -> 55_00
+            "STD" -> 198_00
+            else -> 330_00
+          },
 
           visitOrders = 2,
           privilegedVisitOrders = 1,
@@ -985,7 +1001,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
           {
             "levelCode": "STD", "prisonId": "MDI", "defaultOnAdmission": true,
-            "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1900, "convictedSpendLimitInPence": 19000,
+            "remandTransferLimitInPence": 6150, "remandSpendLimitInPence": 61500, "convictedTransferLimitInPence": 2080, "convictedSpendLimitInPence": 20800,
             "visitOrders": 3, "privilegedVisitOrders": 2
           }
           """,
@@ -997,7 +1013,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
           {
             "levelCode": "STD", "levelDescription": "Standard", "prisonId": "MDI", "active": true, "defaultOnAdmission": true,
-            "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1900, "convictedSpendLimitInPence": 19000,
+            "remandTransferLimitInPence": 6150, "remandSpendLimitInPence": 61500, "convictedTransferLimitInPence": 2080, "convictedSpendLimitInPence": 20800,
             "visitOrders": 3, "privilegedVisitOrders": 2
           }
           """,
@@ -1006,7 +1022,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("MDI", "STD")
-        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(5600)
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(6150)
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(3)
         assertThat(prisonIncentiveLevel?.whenUpdated).isEqualTo(now)
       }
@@ -1025,7 +1041,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
           {
             "levelCode": "ENH", "prisonId": "WRI", "defaultOnAdmission": true,
-            "remandTransferLimitInPence": 5500, "remandSpendLimitInPence": 55000, "convictedTransferLimitInPence": 1800, "convictedSpendLimitInPence": 18000,
+            "remandTransferLimitInPence": 6050, "remandSpendLimitInPence": 60500, "convictedTransferLimitInPence": 1980, "convictedSpendLimitInPence": 19800,
             "visitOrders": 2, "privilegedVisitOrders": 1
           }
           """,
@@ -1037,7 +1053,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
           {
             "levelCode": "ENH", "levelDescription": "Enhanced", "prisonId": "WRI", "active": true, "defaultOnAdmission": true,
-            "remandTransferLimitInPence": 5500, "remandSpendLimitInPence": 55000, "convictedTransferLimitInPence": 1800, "convictedSpendLimitInPence": 18000,
+            "remandTransferLimitInPence": 6050, "remandSpendLimitInPence": 60500, "convictedTransferLimitInPence": 1980, "convictedSpendLimitInPence": 19800,
             "visitOrders": 2, "privilegedVisitOrders": 1
           }
           """,
@@ -1046,13 +1062,13 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       runBlocking {
         var prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("WRI", "STD")
-        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(5500)
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(6050)
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
         assertThat(prisonIncentiveLevel?.active).isTrue
         assertThat(prisonIncentiveLevel?.defaultOnAdmission).isFalse
 
         prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("WRI", "ENH")
-        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(5500)
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(6050)
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
         assertThat(prisonIncentiveLevel?.active).isTrue
         assertThat(prisonIncentiveLevel?.defaultOnAdmission).isTrue
@@ -1077,7 +1093,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
           {
             "levelCode": "STD", "prisonId": "MDI", "defaultOnAdmission": true,
-            "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1900, "convictedSpendLimitInPence": 19000,
+            "remandTransferLimitInPence": 6150, "remandSpendLimitInPence": 61500, "convictedTransferLimitInPence": 2080, "convictedSpendLimitInPence": 20800,
             "visitOrders": 3, "privilegedVisitOrders": 2
           }
           """,
@@ -1087,7 +1103,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("MDI", "STD")
-        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(5500)
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(6050)
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
@@ -1104,7 +1120,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
           {
             "levelCode": "std", "prisonId": "MDI",
-            "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1900, "convictedSpendLimitInPence": 19000,
+            "remandTransferLimitInPence": 6150, "remandSpendLimitInPence": 61500, "convictedTransferLimitInPence": 2080, "convictedSpendLimitInPence": 20800,
             "visitOrders": 3, "privilegedVisitOrders": 2
           }
           """,
@@ -1128,7 +1144,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
           {
             "levelCode": "ENH", "prisonId": "MDI",
-            "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1900, "convictedSpendLimitInPence": 19000,
+            "remandTransferLimitInPence": 6150, "remandSpendLimitInPence": 61500, "convictedTransferLimitInPence": 2080, "convictedSpendLimitInPence": 20800,
             "visitOrders": 3, "privilegedVisitOrders": 2
           }
           """,
@@ -1152,7 +1168,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
           {
             "levelCode": "STD", "prisonId": "WRI",
-            "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1900, "convictedSpendLimitInPence": 19000,
+            "remandTransferLimitInPence": 6150, "remandSpendLimitInPence": 61500, "convictedTransferLimitInPence": 2080, "convictedSpendLimitInPence": 20800,
             "visitOrders": 3, "privilegedVisitOrders": 2
           }
           """,
@@ -1198,7 +1214,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
           {
             "levelCode": "ENH", "prisonId": "WRI",
-            "remandTransferLimitInPence": -5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1900, "convictedSpendLimitInPence": 19000,
+            "remandTransferLimitInPence": -6150, "remandSpendLimitInPence": 61500, "convictedTransferLimitInPence": 2080, "convictedSpendLimitInPence": 20800,
             "visitOrders": 3, "privilegedVisitOrders": 2
           }
           """,
@@ -1222,7 +1238,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
           {
             "levelCode": "BAS", "prisonId": "BAI", "active": false, "defaultOnAdmission": true,
-            "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1900, "convictedSpendLimitInPence": 19000,
+            "remandTransferLimitInPence": 6150, "remandSpendLimitInPence": 61500, "convictedTransferLimitInPence": 2080, "convictedSpendLimitInPence": 20800,
             "visitOrders": 3, "privilegedVisitOrders": 2
           }
           """,
@@ -1251,7 +1267,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
           {
             "levelCode": "STD", "prisonId": "BAI", "active": true, "defaultOnAdmission": false,
-            "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1900, "convictedSpendLimitInPence": 19000,
+            "remandTransferLimitInPence": 6150, "remandSpendLimitInPence": 61500, "convictedTransferLimitInPence": 2080, "convictedSpendLimitInPence": 20800,
             "visitOrders": 3, "privilegedVisitOrders": 2
           }
           """,
@@ -1263,7 +1279,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "STD")
         assertThat(prisonIncentiveLevel?.active).isTrue
         assertThat(prisonIncentiveLevel?.defaultOnAdmission).isTrue
-        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(5500)
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(6050)
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
@@ -1284,7 +1300,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
           {
             "levelCode": "BAS", "prisonId": "BAI", "active": true, "defaultOnAdmission": false,
-            "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1900, "convictedSpendLimitInPence": 19000,
+            "remandTransferLimitInPence": 6150, "remandSpendLimitInPence": 61500, "convictedTransferLimitInPence": 2080, "convictedSpendLimitInPence": 20800,
             "visitOrders": 3, "privilegedVisitOrders": 2
           }
           """,
@@ -1296,7 +1312,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "BAS")
         assertThat(prisonIncentiveLevel?.active).isTrue
         assertThat(prisonIncentiveLevel?.defaultOnAdmission).isFalse
-        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(5500)
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(2750)
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
@@ -1319,7 +1335,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
           {
             "defaultOnAdmission": true,
-            "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000,
+            "remandTransferLimitInPence": 2850, "remandSpendLimitInPence": 28500,
             "visitOrders": 3
           }
           """,
@@ -1331,7 +1347,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
           {
             "levelCode": "BAS", "levelDescription": "Basic", "prisonId": "BAI", "active": true, "defaultOnAdmission": true,
-            "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1800, "convictedSpendLimitInPence": 18000,
+            "remandTransferLimitInPence": 2850, "remandSpendLimitInPence": 28500, "convictedTransferLimitInPence": 550, "convictedSpendLimitInPence": 5500,
             "visitOrders": 3, "privilegedVisitOrders": 1
           }
           """,
@@ -1340,8 +1356,9 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "BAS")
-        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(5600)
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(2850)
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(3)
+        assertThat(prisonIncentiveLevel?.privilegedVisitOrders).isEqualTo(1)
         assertThat(prisonIncentiveLevel?.whenUpdated).isEqualTo(now)
       }
     }
@@ -1369,7 +1386,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
           {
             "levelCode": "ENH", "levelDescription": "Enhanced", "prisonId": "WRI", "active": true, "defaultOnAdmission": true,
-            "remandTransferLimitInPence": 5500, "remandSpendLimitInPence": 55000, "convictedTransferLimitInPence": 1800, "convictedSpendLimitInPence": 18000,
+            "remandTransferLimitInPence": 6600, "remandSpendLimitInPence": 66000, "convictedTransferLimitInPence": 3300, "convictedSpendLimitInPence": 33000,
             "visitOrders": 2, "privilegedVisitOrders": 1
           }
           """,
@@ -1378,13 +1395,13 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       runBlocking {
         var prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("WRI", "STD")
-        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(5500)
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(6050)
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
         assertThat(prisonIncentiveLevel?.active).isTrue
         assertThat(prisonIncentiveLevel?.defaultOnAdmission).isFalse
 
         prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("WRI", "ENH")
-        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(5500)
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(6600)
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
         assertThat(prisonIncentiveLevel?.active).isTrue
         assertThat(prisonIncentiveLevel?.defaultOnAdmission).isTrue
@@ -1408,7 +1425,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           // language=json
           """
           {
-            "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000
+            "remandTransferLimitInPence": 6150, "remandSpendLimitInPence": 61500
           }
           """,
         )
@@ -1417,8 +1434,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "BAS")
-        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(5500)
-        assertThat(prisonIncentiveLevel?.remandSpendLimitInPence).isEqualTo(55000)
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(2750)
+        assertThat(prisonIncentiveLevel?.remandSpendLimitInPence).isEqualTo(27500)
       }
     }
 
@@ -1456,7 +1473,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           // language=json
           """
           {
-            "remandTransferLimitInPence": -5600, "visitOrders": -1
+            "remandTransferLimitInPence": -6150, "visitOrders": -1
           }
           """,
         )
@@ -1465,7 +1482,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("WRI", "ENH")
-        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(5500)
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(6600)
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
@@ -1551,7 +1568,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "STD")
         assertThat(prisonIncentiveLevel?.active).isTrue
         assertThat(prisonIncentiveLevel?.defaultOnAdmission).isTrue
-        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(5500)
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(6050)
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
@@ -1582,7 +1599,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "BAS")
         assertThat(prisonIncentiveLevel?.active).isTrue
         assertThat(prisonIncentiveLevel?.defaultOnAdmission).isFalse
-        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(5500)
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(2750)
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
     }
@@ -1608,7 +1625,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
           {
             "levelCode": "EN2", "levelDescription": "Enhanced 2", "prisonId": "WRI", "active": false, "defaultOnAdmission": false,
-            "remandTransferLimitInPence": 5500, "remandSpendLimitInPence": 55000, "convictedTransferLimitInPence": 1800, "convictedSpendLimitInPence": 18000,
+            "remandTransferLimitInPence": 6600, "remandSpendLimitInPence": 66000, "convictedTransferLimitInPence": 3300, "convictedSpendLimitInPence": 33000,
             "visitOrders": 2, "privilegedVisitOrders": 1
           }
           """,
@@ -1619,7 +1636,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("WRI", "EN2")
         assertThat(prisonIncentiveLevel?.active).isFalse
         assertThat(prisonIncentiveLevel?.defaultOnAdmission).isFalse
-        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(5500)
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(6600)
+        assertThat(prisonIncentiveLevel?.convictedTransferLimitInPence).isEqualTo(3300)
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
         assertThat(prisonIncentiveLevel?.whenUpdated).isEqualTo(now)
       }
