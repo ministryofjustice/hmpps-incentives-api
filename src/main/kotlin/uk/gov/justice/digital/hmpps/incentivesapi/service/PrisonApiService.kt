@@ -62,7 +62,7 @@ class PrisonApiService(
           iepLevel = it.code,
           iepDescription = it.description,
           sequence = it.listSeq,
-          active = it.activeFlag == "Y"
+          active = it.activeFlag == "Y",
         )
       }
       .toList()
@@ -75,7 +75,12 @@ class PrisonApiService(
   fun retrieveCaseNoteCountsByFromDate(types: List<String>, prisonerByLastReviewDate: Map<Long, LocalDateTime>): Flow<PrisonerCaseNoteByTypeSubType> =
     prisonWebClient.post()
       .uri("/api/case-notes/usage-by-types")
-      .bodyValue(CaseNoteUsageTypesRequest(types = types, bookingFromDateSelection = prisonerByLastReviewDate.map { BookingFromDatePair(it.key, it.value) }))
+      .bodyValue(
+        CaseNoteUsageTypesRequest(
+          types = types,
+          bookingFromDateSelection = prisonerByLastReviewDate.map { BookingFromDatePair(it.key, it.value) },
+        ),
+      )
       .retrieve()
       .bodyToFlow()
 

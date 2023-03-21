@@ -33,24 +33,24 @@ class IncentiveSummaryResource(private val incentiveSummaryService: IncentiveSum
     responses = [
       ApiResponse(
         responseCode = "200",
-        description = "Incentive Information returned"
+        description = "Incentive Information returned",
       ),
       ApiResponse(
         responseCode = "400",
         description = "Incorrect data specified to return incentive data",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "403",
         description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
-      )
-    ]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
   )
   suspend fun getIncentiveSummary(
     @Schema(description = "Prison Id", required = true, example = "MDI", minLength = 3, maxLength = 5)
@@ -62,7 +62,10 @@ class IncentiveSummaryResource(private val incentiveSummaryService: IncentiveSum
     locationId: String,
 
     @Schema(
-      description = "Sort By", required = false, defaultValue = "NAME", example = "NAME",
+      description = "Sort By",
+      required = false,
+      defaultValue = "NAME",
+      example = "NAME",
       allowableValues = ["NUMBER", "NAME", "DAYS_ON_LEVEL", "POS_BEHAVIOURS", "NEG_BEHAVIOURS", "DAYS_SINCE_LAST_REVIEW", "INCENTIVE_WARNINGS", "INCENTIVE_ENCOURAGEMENTS", "PROVEN_ADJUDICATIONS"],
     )
     @RequestParam(required = false, defaultValue = "NAME")
@@ -70,7 +73,7 @@ class IncentiveSummaryResource(private val incentiveSummaryService: IncentiveSum
 
     @Schema(description = "Sort Direction", required = false, defaultValue = "ASC", example = "ASC")
     @RequestParam(required = false, defaultValue = "ASC")
-    sortDirection: Sort.Direction
+    sortDirection: Sort.Direction,
   ): BehaviourSummary {
     ensure {
       ("prisonId" to prisonId).hasLengthAtLeast(3).hasLengthAtMost(5)

@@ -21,7 +21,7 @@ interface PrisonIncentiveLevelRepository : CoroutineCrudRepository<PrisonIncenti
     JOIN incentive_level ON prison_incentive_level.level_code = incentive_level.code
     WHERE prison_id = :prisonId
     ORDER BY incentive_level.sequence
-    """
+    """,
   )
   fun findAllByPrisonId(prisonId: String): Flow<PrisonIncentiveLevel>
 
@@ -36,7 +36,7 @@ interface PrisonIncentiveLevelRepository : CoroutineCrudRepository<PrisonIncenti
     JOIN incentive_level ON prison_incentive_level.level_code = incentive_level.code
     WHERE prison_id = :prisonId AND prison_incentive_level.active IS TRUE
     ORDER BY incentive_level.sequence
-    """
+    """,
   )
   fun findAllByPrisonIdAndActiveIsTrue(prisonId: String): Flow<PrisonIncentiveLevel>
 
@@ -52,7 +52,7 @@ interface PrisonIncentiveLevelRepository : CoroutineCrudRepository<PrisonIncenti
     JOIN incentive_level ON prison_incentive_level.level_code = incentive_level.code
     WHERE prison_id = :prisonId AND prison_incentive_level.level_code = :levelCode
     LIMIT 1
-    """
+    """,
   )
   suspend fun findFirstByPrisonIdAndLevelCode(prisonId: String, levelCode: String): PrisonIncentiveLevel?
 
@@ -67,7 +67,7 @@ interface PrisonIncentiveLevelRepository : CoroutineCrudRepository<PrisonIncenti
     JOIN incentive_level ON prison_incentive_level.level_code = incentive_level.code
     WHERE prison_id = :prisonId AND prison_incentive_level.level_code = :levelCode AND prison_incentive_level.active IS TRUE
     LIMIT 1
-    """
+    """,
   )
   suspend fun findFirstByPrisonIdAndLevelCodeAndActiveIsTrue(prisonId: String, levelCode: String): PrisonIncentiveLevel?
 
@@ -83,7 +83,7 @@ interface PrisonIncentiveLevelRepository : CoroutineCrudRepository<PrisonIncenti
     JOIN incentive_level ON prison_incentive_level.level_code = incentive_level.code
     WHERE prison_id = :prisonId AND prison_incentive_level.active IS TRUE AND prison_incentive_level.default_on_admission IS TRUE
     LIMIT 1
-    """
+    """,
   )
   suspend fun findFirstByPrisonIdAndActiveIsTrueAndDefaultIsTrue(prisonId: String): PrisonIncentiveLevel?
 
@@ -98,7 +98,7 @@ interface PrisonIncentiveLevelRepository : CoroutineCrudRepository<PrisonIncenti
     UPDATE prison_incentive_level
     SET default_on_admission = FALSE
     WHERE prison_id = :prisonId AND NOT level_code = :levelCode
-    """
+    """,
   )
   suspend fun setOtherLevelsNotDefaultForAdmission(prisonId: String, levelCode: String): Int?
 }

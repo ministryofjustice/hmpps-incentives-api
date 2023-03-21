@@ -47,6 +47,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
   @Autowired
   private lateinit var incentiveLevelRepository: IncentiveLevelRepository
+
   @Autowired
   private lateinit var prisonIncentiveLevelRepository: PrisonIncentiveLevelRepository
 
@@ -56,25 +57,13 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     incentiveLevelRepository.deleteAll()
     incentiveLevelRepository.saveAll(
       listOf(
-        IncentiveLevel(
-          code = "BAS", description = "Basic", sequence = 1, new = true
-        ),
-        IncentiveLevel(
-          code = "STD", description = "Standard", sequence = 2, new = true
-        ),
-        IncentiveLevel(
-          code = "ENH", description = "Enhanced", sequence = 3, new = true
-        ),
-        IncentiveLevel(
-          code = "EN2", description = "Enhanced 2", sequence = 4, new = true
-        ),
-        IncentiveLevel(
-          code = "EN3", description = "Enhanced 3", sequence = 5, new = true
-        ),
-        IncentiveLevel(
-          code = "ENT", description = "Entry", active = false, sequence = 99, new = true
-        ),
-      )
+        IncentiveLevel(code = "BAS", description = "Basic", sequence = 1, new = true),
+        IncentiveLevel(code = "STD", description = "Standard", sequence = 2, new = true),
+        IncentiveLevel(code = "ENH", description = "Enhanced", sequence = 3, new = true),
+        IncentiveLevel(code = "EN2", description = "Enhanced 2", sequence = 4, new = true),
+        IncentiveLevel(code = "EN3", description = "Enhanced 3", sequence = 5, new = true),
+        IncentiveLevel(code = "ENT", description = "Entry", active = false, sequence = 99, new = true),
+      ),
     ).collect()
   }
 
@@ -90,7 +79,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         "/incentive/prison-levels/MDI/level/STD",
         "/incentive/prison-levels/MISSING/level/STD",
         "/incentive/prison-levels/MDI/level/MISSING",
-      ]
+      ],
     )
     fun `requires a valid token to retrieve data`(url: String) {
       webTestClient.get()
@@ -118,7 +107,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
             {"code": "EN3", "description": "Enhanced 3", "active": true}
           ]
           """,
-          true
+          true,
         )
     }
 
@@ -141,7 +130,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
             {"code": "ENT", "description": "Entry", "active": false}
           ]
           """,
-          true
+          true,
         )
     }
 
@@ -157,7 +146,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
           {"code": "EN2", "description": "Enhanced 2", "active": true}
           """,
-          true
+          true,
         )
     }
 
@@ -173,7 +162,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
           {"code": "ENT", "description": "Entry", "active": false}
           """,
-          true
+          true,
         )
     }
 
@@ -207,7 +196,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           // language=json
           """
           {"code": "EN4", "description": "Enhanced 4", "active": false}
-          """
+          """,
         )
         .exchange()
         .expectStatus().isCreated
@@ -216,7 +205,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
           {"code": "EN4", "description": "Enhanced 4", "active": false}
           """,
-          true
+          true,
         )
 
       runBlocking {
@@ -241,7 +230,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           // language=json
           """
           {"code": "EN4", "description": "Enhanced 4", "active": false}
-          """
+          """,
         )
         .exchange()
         .expectErrorResponse(HttpStatus.FORBIDDEN, "Forbidden")
@@ -263,7 +252,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           code: STD
           description: Silver
           active: false
-          """.trimIndent()
+          """.trimIndent(),
         )
         .exchange()
         .expectErrorResponse(
@@ -292,7 +281,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           // language=json
           """
           {"code": "STD", "description": "Silver", "active": false}
-          """
+          """,
         )
         .exchange()
         .expectErrorResponse(HttpStatus.BAD_REQUEST, "Incentive level with code STD already exists")
@@ -319,7 +308,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         """
         {"description": "Enhanced 4", "active": false}
         """,
-      ]
+      ],
     )
     fun `fails to create a level with missing fields`(body: String) {
       webTestClient.post()
@@ -350,7 +339,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         """
         {"code": "EN4", "description": "", "active": false}
         """,
-      ]
+      ],
     )
     fun `fails to create a level with invalid fields`(body: String) {
       webTestClient.post()
@@ -376,7 +365,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           // language=json
           """
           ["EN3", "EN2", "ENT", "ENH", "STD", "BAS"]
-          """
+          """,
         )
         .exchange()
         .expectStatus().isOk
@@ -392,7 +381,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
             {"code": "BAS", "description": "Basic", "active": true}
           ]
           """,
-          true
+          true,
         )
 
       runBlocking {
@@ -415,7 +404,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           // language=json
           """
           ["EN3", "EN2", "ENT", "ENH", "STD", "BAS"]
-          """
+          """,
         )
         .exchange()
         .expectErrorResponse(HttpStatus.FORBIDDEN, "Forbidden")
@@ -436,7 +425,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           // language=json
           """
           ["EN3", "EN2", "EN4", "ENH", "STD", "BAS"]
-          """
+          """,
         )
         .exchange()
         .expectErrorResponse(HttpStatus.NOT_FOUND, "No incentive level found for code `EN4`")
@@ -461,7 +450,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           // language=json
           """
           ["BAS"]
-          """
+          """,
         )
         .exchange()
         .expectErrorResponse(HttpStatus.BAD_REQUEST, "must have size of at least 2")
@@ -483,7 +472,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           // language=json
           """
           ["EN3", "EN2", "ENH", "STD", "BAS"]
-          """
+          """,
         )
         .exchange()
         .expectErrorResponse(HttpStatus.BAD_REQUEST, "All incentive levels required when setting order. Missing: `ENT`")
@@ -499,7 +488,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           // language=json
           """
           {"code": "STD", "description": "Silver", "active": true}
-          """
+          """,
         )
         .exchange()
         .expectStatus().isOk
@@ -508,7 +497,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
           {"code": "STD", "description": "Silver", "active": true}
           """,
-          true
+          true,
         )
 
       runBlocking {
@@ -528,7 +517,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           // language=json
           """
           {"code": "STD", "description": "Silver", "active": true}
-          """
+          """,
         )
         .exchange()
         .expectErrorResponse(HttpStatus.FORBIDDEN, "Forbidden")
@@ -549,7 +538,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           // language=json
           """
           {"code": "std", "description": "Silver", "active": true}
-          """
+          """,
         )
         .exchange()
         .expectErrorResponse(HttpStatus.NOT_FOUND, "No incentive level found for code `std`")
@@ -573,7 +562,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           // language=json
           """
           {"code": "STD", "description": "Silver", "active": false}
-          """
+          """,
         )
         .exchange()
         .expectErrorResponse(HttpStatus.BAD_REQUEST, "Incentive level codes must match in URL and payload")
@@ -603,7 +592,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         """
         {"active": false}
         """,
-      ]
+      ],
     )
     fun `fails to update a level with missing fields`(body: String) {
       webTestClient.put()
@@ -655,7 +644,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           // language=json
           """
           {"description": "Silver"}
-          """
+          """,
         )
         .exchange()
         .expectStatus().isOk
@@ -664,7 +653,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
           {"code": "STD", "description": "Silver", "active": true}
           """,
-          true
+          true,
         )
 
       runBlocking {
@@ -684,7 +673,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           // language=json
           """
           {"description": "Silver"}
-          """
+          """,
         )
         .exchange()
         .expectErrorResponse(HttpStatus.FORBIDDEN, "Forbidden")
@@ -705,7 +694,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           // language=json
           """
           {"description": "Silver"}
-          """
+          """,
         )
         .exchange()
         .expectErrorResponse(HttpStatus.NOT_FOUND, "No incentive level found for code `std`")
@@ -729,7 +718,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           // language=json
           """
           {"code": "STD", "description": "Gold", "active": false}
-          """
+          """,
         )
         .exchange()
         .expectStatus().isOk
@@ -738,7 +727,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
           {"code": "ENH", "description": "Gold", "active": false}
           """,
-          true
+          true,
         )
 
       runBlocking {
@@ -787,7 +776,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
           {"code": "STD", "description": "Standard", "active": false}
           """,
-          true
+          true,
         )
 
       runBlocking {
@@ -809,7 +798,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
           {"code": "ENT", "description": "Entry", "active": false}
           """,
-          true
+          true,
         )
 
       runBlocking {
@@ -874,7 +863,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
               privilegedVisitOrders = 1,
 
               new = true,
-            )
+            ),
           )
         }
       }
@@ -908,7 +897,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
             }
           ]
           """,
-          true
+          true,
         )
     }
 
@@ -928,7 +917,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
             "visitOrders": 2, "privilegedVisitOrders": 1
           }
           """,
-          true
+          true,
         )
     }
 
@@ -975,7 +964,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
           new = true,
           whenUpdated = now.minusDays(3),
-        )
+        ),
       )
     }
 
@@ -999,7 +988,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
             "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1900, "convictedSpendLimitInPence": 19000,
             "visitOrders": 3, "privilegedVisitOrders": 2
           }
-          """
+          """,
         )
         .exchange()
         .expectStatus().isOk
@@ -1012,7 +1001,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
             "visitOrders": 3, "privilegedVisitOrders": 2
           }
           """,
-          true
+          true,
         )
 
       runBlocking {
@@ -1039,7 +1028,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
             "remandTransferLimitInPence": 5500, "remandSpendLimitInPence": 55000, "convictedTransferLimitInPence": 1800, "convictedSpendLimitInPence": 18000,
             "visitOrders": 2, "privilegedVisitOrders": 1
           }
-          """
+          """,
         )
         .exchange()
         .expectStatus().isOk
@@ -1052,7 +1041,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
             "visitOrders": 2, "privilegedVisitOrders": 1
           }
           """,
-          true
+          true,
         )
 
       runBlocking {
@@ -1091,7 +1080,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
             "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1900, "convictedSpendLimitInPence": 19000,
             "visitOrders": 3, "privilegedVisitOrders": 2
           }
-          """
+          """,
         )
         .exchange()
         .expectErrorResponse(HttpStatus.FORBIDDEN, "Forbidden")
@@ -1118,7 +1107,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
             "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1900, "convictedSpendLimitInPence": 19000,
             "visitOrders": 3, "privilegedVisitOrders": 2
           }
-          """
+          """,
         )
         .exchange()
         .expectErrorResponse(HttpStatus.NOT_FOUND, "No incentive level found for code `std`")
@@ -1142,7 +1131,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
             "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1900, "convictedSpendLimitInPence": 19000,
             "visitOrders": 3, "privilegedVisitOrders": 2
           }
-          """
+          """,
         )
         .exchange()
         .expectErrorResponse(HttpStatus.BAD_REQUEST, "Incentive level codes must match in URL and payload")
@@ -1166,7 +1155,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
             "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1900, "convictedSpendLimitInPence": 19000,
             "visitOrders": 3, "privilegedVisitOrders": 2
           }
-          """
+          """,
         )
         .exchange()
         .expectErrorResponse(HttpStatus.BAD_REQUEST, "Prison ids must match in URL and payload")
@@ -1188,7 +1177,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           {
             "levelCode": "STD", "prisonId": "WRI", "active": true, "defaultOnAdmission": true
           }
-          """
+          """,
         )
         .exchange()
         .expectErrorResponse(HttpStatus.BAD_REQUEST, "Parameter conversion failure")
@@ -1212,7 +1201,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
             "remandTransferLimitInPence": -5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1900, "convictedSpendLimitInPence": 19000,
             "visitOrders": 3, "privilegedVisitOrders": 2
           }
-          """
+          """,
         )
         .exchange()
         .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid parameters")
@@ -1236,7 +1225,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
             "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1900, "convictedSpendLimitInPence": 19000,
             "visitOrders": 3, "privilegedVisitOrders": 2
           }
-          """
+          """,
         )
         .exchange()
         .expectErrorResponse(
@@ -1265,7 +1254,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
             "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1900, "convictedSpendLimitInPence": 19000,
             "visitOrders": 3, "privilegedVisitOrders": 2
           }
-          """
+          """,
         )
         .exchange()
         .expectErrorResponse(HttpStatus.BAD_REQUEST, "There must be an active default level for admission in a prison")
@@ -1298,7 +1287,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
             "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000, "convictedTransferLimitInPence": 1900, "convictedSpendLimitInPence": 19000,
             "visitOrders": 3, "privilegedVisitOrders": 2
           }
-          """
+          """,
         )
         .exchange()
         .expectErrorResponse(HttpStatus.BAD_REQUEST, "There must be an active default level for admission in a prison")
@@ -1333,7 +1322,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
             "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000,
             "visitOrders": 3
           }
-          """
+          """,
         )
         .exchange()
         .expectStatus().isOk
@@ -1346,7 +1335,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
             "visitOrders": 3, "privilegedVisitOrders": 1
           }
           """,
-          true
+          true,
         )
 
       runBlocking {
@@ -1371,7 +1360,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           {
             "defaultOnAdmission": true
           }
-          """
+          """,
         )
         .exchange()
         .expectStatus().isOk
@@ -1384,7 +1373,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
             "visitOrders": 2, "privilegedVisitOrders": 1
           }
           """,
-          true
+          true,
         )
 
       runBlocking {
@@ -1421,7 +1410,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           {
             "remandTransferLimitInPence": 5600, "remandSpendLimitInPence": 56000
           }
-          """
+          """,
         )
         .exchange()
         .expectErrorResponse(HttpStatus.FORBIDDEN, "Forbidden")
@@ -1445,7 +1434,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           {
             "visitOrders": 3, "privilegedVisitOrders": 2
           }
-          """
+          """,
         )
         .exchange()
         .expectErrorResponse(HttpStatus.NOT_FOUND, "No incentive level found for code `std`")
@@ -1469,7 +1458,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           {
             "remandTransferLimitInPence": -5600, "visitOrders": -1
           }
-          """
+          """,
         )
         .exchange()
         .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid parameters")
@@ -1496,7 +1485,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           {
             "defaultOnAdmission": true
           }
-          """
+          """,
         )
         .exchange()
         .expectErrorResponse(
@@ -1526,7 +1515,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           {
             "active": false
           }
-          """
+          """,
         )
         .exchange()
         .expectErrorResponse(HttpStatus.BAD_REQUEST, "A level cannot be made inactive and still be the default for admission")
@@ -1553,7 +1542,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           {
             "defaultOnAdmission": false
           }
-          """
+          """,
         )
         .exchange()
         .expectErrorResponse(HttpStatus.BAD_REQUEST, "There must be an active default level for admission in a prison")
@@ -1584,7 +1573,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           {
             "defaultOnAdmission": false, "remandTransferLimitInPence": 5600
           }
-          """
+          """,
         )
         .exchange()
         .expectErrorResponse(HttpStatus.BAD_REQUEST, "There must be an active default level for admission in a prison")
@@ -1623,7 +1612,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
             "visitOrders": 2, "privilegedVisitOrders": 1
           }
           """,
-          true
+          true,
         )
 
       runBlocking {

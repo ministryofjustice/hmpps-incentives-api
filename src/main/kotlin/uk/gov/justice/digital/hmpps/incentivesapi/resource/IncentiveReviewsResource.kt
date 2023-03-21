@@ -37,19 +37,19 @@ class IncentiveReviewsResource(private val incentiveReviewsService: IncentiveRev
       ApiResponse(
         responseCode = "400",
         description = "Invalid request parameters",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorised request",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "403",
         description = "Request does not have necessary permissions",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
-      )
-    ]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
   )
   suspend fun getReviews(
     @Schema(description = "Prison ID", required = true, example = "MDI", minLength = 3, maxLength = 5)
@@ -65,21 +65,21 @@ class IncentiveReviewsResource(private val incentiveReviewsService: IncentiveRev
     levelCode: String,
 
     @Schema(
-      description = "Sort reviews by", required = false, defaultValue = "NEXT_REVIEW_DATE", example = "PRISONER_NUMBER",
+      description = "Sort reviews by",
+      required = false,
+      defaultValue = "NEXT_REVIEW_DATE",
+      example = "PRISONER_NUMBER",
       allowableValues = [
         "NEXT_REVIEW_DATE", "DAYS_SINCE_LAST_REVIEW",
         "FIRST_NAME", "LAST_NAME", "PRISONER_NUMBER",
         "POSITIVE_BEHAVIOURS", "NEGATIVE_BEHAVIOURS",
         "HAS_ACCT_OPEN", "IS_NEW_TO_PRISON",
-      ]
+      ],
     )
     @RequestParam(required = false)
     sort: IncentiveReviewSort? = null,
 
-    @Schema(
-      description = "Sort direction", required = false, defaultValue = "ASC", example = "ASC",
-      allowableValues = ["ASC", "DESC"]
-    )
+    @Schema(description = "Sort direction", required = false, defaultValue = "ASC", example = "ASC", allowableValues = ["ASC", "DESC"])
     @RequestParam(required = false)
     order: Sort.Direction? = null,
 

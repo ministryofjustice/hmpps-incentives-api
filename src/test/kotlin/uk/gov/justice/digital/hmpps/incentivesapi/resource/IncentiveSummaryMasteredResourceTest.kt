@@ -35,6 +35,7 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
 
   @Autowired
   private lateinit var prisonerIepLevelRepository: PrisonerIepLevelRepository
+
   @Autowired
   private lateinit var nextReviewDateRepository: NextReviewDateRepository
 
@@ -48,7 +49,7 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
       prisonerNumber = "A1234AA",
       level = "BAS",
       reviewTime = LocalDateTime.of(2021, 12, 2, 9, 24, 42),
-      current = true
+      current = true,
     )
 
     prisonerIepLevel(
@@ -58,7 +59,7 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
       reviewType = ReviewType.INITIAL,
       reviewTime = LocalDateTime.of(2021, 11, 2, 9, 24, 42),
       current = false,
-      prisonId = "MDI"
+      prisonId = "MDI",
     )
 
     // Prisoner A1234AB has 1 incentive entry current STD from entering prison
@@ -67,7 +68,7 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
       prisonerNumber = "A1234AB",
       reviewType = ReviewType.INITIAL,
       reviewTime = LocalDateTime.of(2022, 1, 2, 9, 9, 24, 42),
-      current = true
+      current = true,
     )
 
     // Prisoner A1234AC as 2 incentive entry current ENH,
@@ -76,13 +77,13 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
       prisonerNumber = "A1234AC",
       reviewType = ReviewType.REVIEW,
       level = "ENH",
-      reviewTime = LocalDateTime.of(2021, 10, 2, 9, 24, 42)
+      reviewTime = LocalDateTime.of(2021, 10, 2, 9, 24, 42),
     )
     prisonerIepLevel(
       bookingId = 1234136,
       prisonerNumber = "A1234AC",
       reviewType = ReviewType.INITIAL,
-      reviewTime = LocalDateTime.of(2021, 9, 9, 2, 9, 24, 42)
+      reviewTime = LocalDateTime.of(2021, 9, 9, 2, 9, 24, 42),
     )
 
     // Prisoner A1234AD as 3 incentive entry current BASic,
@@ -92,7 +93,7 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
       reviewType = ReviewType.TRANSFER,
       level = "BAS",
       reviewTime = LocalDateTime.of(2022, 1, 7, 2, 9, 24, 42),
-      prisonId = "MDI"
+      prisonId = "MDI",
     )
 
     prisonerIepLevel(
@@ -101,7 +102,7 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
       reviewType = ReviewType.REVIEW,
       level = "BAS",
       reviewTime = LocalDateTime.of(2021, 12, 2, 9, 24, 42),
-      prisonId = "LEI"
+      prisonId = "LEI",
     )
 
     prisonerIepLevel(
@@ -110,7 +111,7 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
       level = "STD",
       reviewType = ReviewType.MIGRATED,
       reviewTime = LocalDateTime.of(2020, 7, 2, 9, 24, 42),
-      prisonId = "LEI"
+      prisonId = "LEI",
     )
 
     // Prisoner A1234AE as 1 incentive entry current Standard,
@@ -119,7 +120,7 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
       prisonerNumber = "A1234AE",
       reviewType = ReviewType.REVIEW,
       reviewTime = LocalDateTime.of(2021, 12, 2, 9, 24, 42),
-      prisonId = "MDI"
+      prisonId = "MDI",
     )
 
     // Prisoner A1934AA as 2 incentive entry current Entry (Invalid),
@@ -129,14 +130,14 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
       reviewType = ReviewType.MIGRATED,
       level = "ENT",
       reviewTime = LocalDateTime.of(2022, 1, 2, 9, 24, 42),
-      prisonId = "MDI"
+      prisonId = "MDI",
     )
     prisonerIepLevel(
       bookingId = 2734134,
       prisonerNumber = "A1934AA",
       reviewType = ReviewType.MIGRATED,
       reviewTime = LocalDateTime.of(2021, 11, 2, 9, 24, 42),
-      prisonId = "MDI"
+      prisonId = "MDI",
     )
   }
 
@@ -147,7 +148,7 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
     reviewType: ReviewType = ReviewType.REVIEW,
     reviewTime: LocalDateTime = now(),
     current: Boolean = false,
-    prisonId: String = "MDI"
+    prisonId: String = "MDI",
   ) = prisonerIepLevelRepository.save(
     PrisonerIepLevel(
       bookingId = bookingId,
@@ -160,7 +161,7 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
       locationId = "1-1-002",
       commentText = "test comment",
       reviewedBy = "TEST_USER",
-    )
+    ),
   )
 
   @AfterEach
@@ -171,7 +172,6 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
 
   @Test
   fun `get behaviour summary for wing`() {
-
     prisonApiMockServer.stubIepLevels()
     prisonApiMockServer.stubAgenciesIepLevels("MDI")
     offenderSearchMockServer.stubFindOffenders("MDI", includeInvalid = true)
@@ -325,7 +325,7 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
   "totalNegativeBehaviours": 18,
   "totalPositiveBehaviours": 17
 }
-         """
+         """,
       )
   }
 }

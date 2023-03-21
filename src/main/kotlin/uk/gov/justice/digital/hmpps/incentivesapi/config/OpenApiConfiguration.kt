@@ -22,7 +22,7 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class OpenApiConfiguration(
   buildProperties: BuildProperties,
-  @Value("\${api.base.url.oauth}") val oauthUrl: String
+  @Value("\${api.base.url.oauth}") val oauthUrl: String,
 ) {
   private val version: String = buildProperties.version
 
@@ -37,7 +37,7 @@ class OpenApiConfiguration(
       Info().title("HMPPS Incentives API")
         .version(version)
         .description("API for viewing an managing Incentive data for prisoners")
-        .contact(Contact().name("HMPPS Digital Studio").email("feedback@digital.justice.gov.uk"))
+        .contact(Contact().name("HMPPS Digital Studio").email("feedback@digital.justice.gov.uk")),
     )
     .components(
       Components().addSecuritySchemes(
@@ -88,7 +88,7 @@ class OpenApiConfiguration(
               .example("2021-07-05T10:35:17")
               .pattern("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$")
               .description(propertySchema.description)
-              .required(propertySchema.required)
+              .required(propertySchema.required),
           )
         }
       }

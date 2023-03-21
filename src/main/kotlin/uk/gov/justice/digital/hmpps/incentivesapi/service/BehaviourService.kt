@@ -73,7 +73,7 @@ data class BookingTypeKey(
 data class CaseNoteSummary(
   val key: BookingTypeKey,
   val totalCaseNotes: Int,
-  val numSubTypeCount: Int
+  val numSubTypeCount: Int,
 )
 
 fun PrisonerCaseNoteByTypeSubType.toKey() = BookingTypeKey(bookingId, caseNoteType)

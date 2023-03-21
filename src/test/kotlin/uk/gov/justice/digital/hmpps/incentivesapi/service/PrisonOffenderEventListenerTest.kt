@@ -69,6 +69,7 @@ class PrisonOffenderEventListenerTest {
   }
 
   private fun String.readResourceAsText(): String {
-    return PrisonOffenderEventListenerTest::class.java.getResource(this)?.readText() ?: throw AssertionError("can not find file")
+    return PrisonOffenderEventListenerTest::class.java.getResource(this)?.readText()
+      ?: throw AssertionError("can not find file")
   }
 }

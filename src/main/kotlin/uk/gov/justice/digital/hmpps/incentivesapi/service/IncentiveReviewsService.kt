@@ -165,7 +165,8 @@ enum class IncentiveReviewSort(
   POSITIVE_BEHAVIOURS("positiveBehaviours", IncentiveReview::positiveBehaviours, Sort.Direction.DESC),
   NEGATIVE_BEHAVIOURS("negativeBehaviours", IncentiveReview::negativeBehaviours, Sort.Direction.DESC),
   HAS_ACCT_OPEN("hasAcctOpen", IncentiveReview::hasAcctOpen, Sort.Direction.DESC),
-  IS_NEW_TO_PRISON("isNewToPrison", IncentiveReview::isNewToPrison, Sort.Direction.DESC);
+  IS_NEW_TO_PRISON("isNewToPrison", IncentiveReview::isNewToPrison, Sort.Direction.DESC),
+  ;
 
   companion object {
     fun orDefault(sort: IncentiveReviewSort?) = sort ?: NEXT_REVIEW_DATE
