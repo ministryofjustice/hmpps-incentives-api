@@ -17,6 +17,7 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.http.HttpStatus
+import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.incentivesapi.helper.expectErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveLevel
@@ -188,6 +189,10 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
   @Nested
   inner class `modifying incentive levels` {
+    private fun <T : WebTestClient.RequestHeadersSpec<*>> T.withCentralAuthorisation(): T = apply {
+      headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_INCENTIVE_LEVELS"), scopes = listOf("read", "write")))
+    }
+
     @Test
     fun `creates a level`() {
       val maxSequence = runBlocking {
@@ -196,7 +201,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       webTestClient.post()
         .uri("/incentive/levels")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_INCENTIVE_LEVELS"), scopes = listOf("read", "write")))
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -250,7 +255,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to create a level when media type is not supported`() {
       webTestClient.post()
         .uri("/incentive/levels")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_INCENTIVE_LEVELS"), scopes = listOf("read", "write")))
+        .withCentralAuthorisation()
         .header("Content-Type", "application/yaml")
         .bodyValue(
           // language=yaml
@@ -281,7 +286,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to create a level when code already exists`() {
       webTestClient.post()
         .uri("/incentive/levels")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_INCENTIVE_LEVELS"), scopes = listOf("read", "write")))
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -319,7 +324,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to create a level with missing fields`(body: String) {
       webTestClient.post()
         .uri("/incentive/levels")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_INCENTIVE_LEVELS"), scopes = listOf("read", "write")))
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(body)
         .exchange()
@@ -350,7 +355,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to create a level with invalid fields`(body: String) {
       webTestClient.post()
         .uri("/incentive/levels")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_INCENTIVE_LEVELS"), scopes = listOf("read", "write")))
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(body)
         .exchange()
@@ -365,7 +370,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `reorders complete set of incentive levels`() {
       webTestClient.patch()
         .uri("/incentive/level-order")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_INCENTIVE_LEVELS"), scopes = listOf("read", "write")))
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -425,7 +430,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to reorder incentive levels when some are missing`() {
       webTestClient.patch()
         .uri("/incentive/level-order")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_INCENTIVE_LEVELS"), scopes = listOf("read", "write")))
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -450,7 +455,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to reorder incentive levels when not enough provided`() {
       webTestClient.patch()
         .uri("/incentive/level-order")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_INCENTIVE_LEVELS"), scopes = listOf("read", "write")))
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -472,7 +477,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to reorder incomplete set of incentive levels`() {
       webTestClient.patch()
         .uri("/incentive/level-order")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_INCENTIVE_LEVELS"), scopes = listOf("read", "write")))
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -488,7 +493,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `updates a level`() {
       webTestClient.put()
         .uri("/incentive/levels/STD")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_INCENTIVE_LEVELS"), scopes = listOf("read", "write")))
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -538,7 +543,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to update a missing level`() {
       webTestClient.put()
         .uri("/incentive/levels/std")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_INCENTIVE_LEVELS"), scopes = listOf("read", "write")))
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -562,7 +567,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to update a level with mismatched codes`() {
       webTestClient.put()
         .uri("/incentive/levels/ENH")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_INCENTIVE_LEVELS"), scopes = listOf("read", "write")))
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -603,7 +608,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to update a level with missing fields`(body: String) {
       webTestClient.put()
         .uri("/incentive/levels/STD")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_INCENTIVE_LEVELS"), scopes = listOf("read", "write")))
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(body)
         .exchange()
@@ -620,7 +625,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to update a level with invalid fields`() {
       webTestClient.put()
         .uri("/incentive/levels/STD")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_INCENTIVE_LEVELS"), scopes = listOf("read", "write")))
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -644,7 +649,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `partially updates a level`() {
       webTestClient.patch()
         .uri("/incentive/levels/STD")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_INCENTIVE_LEVELS"), scopes = listOf("read", "write")))
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -694,7 +699,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to partially update a missing level`() {
       webTestClient.patch()
         .uri("/incentive/levels/std")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_INCENTIVE_LEVELS"), scopes = listOf("read", "write")))
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -718,7 +723,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `partially updates a level but does not change the code`() {
       webTestClient.patch()
         .uri("/incentive/levels/ENH")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_INCENTIVE_LEVELS"), scopes = listOf("read", "write")))
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -752,7 +757,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to partially update a level with invalid fields`() {
       webTestClient.patch()
         .uri("/incentive/levels/STD")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_INCENTIVE_LEVELS"), scopes = listOf("read", "write")))
+        .withCentralAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -774,7 +779,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `deactivates a level`() {
       webTestClient.delete()
         .uri("/incentive/levels/STD")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_INCENTIVE_LEVELS"), scopes = listOf("read", "write")))
+        .withCentralAuthorisation()
         .exchange()
         .expectStatus().isOk
         .expectBody().json(
@@ -796,7 +801,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `deactivates an inactive level`() {
       webTestClient.delete()
         .uri("/incentive/levels/ENT")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_INCENTIVE_LEVELS"), scopes = listOf("read", "write")))
+        .withCentralAuthorisation()
         .exchange()
         .expectStatus().isOk
         .expectBody().json(
@@ -832,7 +837,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to deactivate a missing level`() {
       webTestClient.delete()
         .uri("/incentive/levels/std")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_INCENTIVE_LEVELS"), scopes = listOf("read", "write")))
+        .withCentralAuthorisation()
         .exchange()
         .expectErrorResponse(HttpStatus.NOT_FOUND, "No incentive level found for code `std`")
 
@@ -948,6 +953,10 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
   @Nested
   inner class `modifying prison incentive levels` {
+    private fun <T : WebTestClient.RequestHeadersSpec<*>> T.withLocalAuthorisation(): T = apply {
+      headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_PRISON_IEP_LEVELS"), scopes = listOf("read", "write")))
+    }
+
     private fun saveLevel(prisonId: String, levelCode: String) = runBlocking {
       prisonIncentiveLevelRepository.save(
         PrisonIncentiveLevel(
@@ -980,7 +989,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `updates a prison incentive level when per-prison information does not exist`() {
       webTestClient.put()
         .uri("/incentive/prison-levels/MDI/level/STD")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_PRISON_IEP_LEVELS"), scopes = listOf("read", "write")))
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1020,7 +1029,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       webTestClient.put()
         .uri("/incentive/prison-levels/WRI/level/ENH")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_PRISON_IEP_LEVELS"), scopes = listOf("read", "write")))
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1099,7 +1108,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to update a prison incentive level when incentive level does not exist`() {
       webTestClient.put()
         .uri("/incentive/prison-levels/MDI/level/std")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_PRISON_IEP_LEVELS"), scopes = listOf("read", "write")))
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1123,7 +1132,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to update a prison incentive level with mismatched codes`() {
       webTestClient.put()
         .uri("/incentive/prison-levels/MDI/level/STD")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_PRISON_IEP_LEVELS"), scopes = listOf("read", "write")))
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1147,7 +1156,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to update a prison incentive level with mismatched prison id`() {
       webTestClient.put()
         .uri("/incentive/prison-levels/MDI/level/STD")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_PRISON_IEP_LEVELS"), scopes = listOf("read", "write")))
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1171,7 +1180,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to update a prison incentive level with missing fields`() {
       webTestClient.put()
         .uri("/incentive/prison-levels/WRI/level/STD")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_PRISON_IEP_LEVELS"), scopes = listOf("read", "write")))
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1193,7 +1202,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to update a prison incentive level with invalid fields`() {
       webTestClient.put()
         .uri("/incentive/prison-levels/WRI/level/ENH")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_PRISON_IEP_LEVELS"), scopes = listOf("read", "write")))
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1217,7 +1226,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to update a prison incentive level when making inactive level the default`() {
       webTestClient.put()
         .uri("/incentive/prison-levels/BAI/level/BAS")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_PRISON_IEP_LEVELS"), scopes = listOf("read", "write")))
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1246,7 +1255,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       webTestClient.put()
         .uri("/incentive/prison-levels/BAI/level/STD")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_PRISON_IEP_LEVELS"), scopes = listOf("read", "write")))
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1279,7 +1288,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       webTestClient.put()
         .uri("/incentive/prison-levels/BAI/level/BAS")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_PRISON_IEP_LEVELS"), scopes = listOf("read", "write")))
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1314,7 +1323,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `partially updates a prison incentive level when per-prison information does not exist`() {
       webTestClient.patch()
         .uri("/incentive/prison-levels/BAI/level/BAS")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_PRISON_IEP_LEVELS"), scopes = listOf("read", "write")))
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1354,7 +1363,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       webTestClient.patch()
         .uri("/incentive/prison-levels/WRI/level/ENH")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_PRISON_IEP_LEVELS"), scopes = listOf("read", "write")))
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1428,7 +1437,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to partially update a prison incentive level when incentive level does not exist`() {
       webTestClient.patch()
         .uri("/incentive/prison-levels/MDI/level/std")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_PRISON_IEP_LEVELS"), scopes = listOf("read", "write")))
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1452,7 +1461,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       webTestClient.patch()
         .uri("/incentive/prison-levels/WRI/level/ENH")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_PRISON_IEP_LEVELS"), scopes = listOf("read", "write")))
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1479,7 +1488,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       webTestClient.patch()
         .uri("/incentive/prison-levels/MDI/level/ENT")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_PRISON_IEP_LEVELS"), scopes = listOf("read", "write")))
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1509,7 +1518,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       webTestClient.patch()
         .uri("/incentive/prison-levels/MDI/level/STD")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_PRISON_IEP_LEVELS"), scopes = listOf("read", "write")))
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1536,7 +1545,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       webTestClient.patch()
         .uri("/incentive/prison-levels/MDI/level/STD")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_PRISON_IEP_LEVELS"), scopes = listOf("read", "write")))
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1567,7 +1576,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       webTestClient.patch()
         .uri("/incentive/prison-levels/BAI/level/BAS")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_PRISON_IEP_LEVELS"), scopes = listOf("read", "write")))
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .bodyValue(
           // language=json
@@ -1601,7 +1610,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       webTestClient.delete()
         .uri("/incentive/prison-levels/WRI/level/EN2")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_PRISON_IEP_LEVELS"), scopes = listOf("read", "write")))
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .exchange()
         .expectStatus().isOk
@@ -1648,7 +1657,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
     fun `fails to deactivate a prison incentive level when incentive level does not exist`() {
       webTestClient.delete()
         .uri("/incentive/prison-levels/WRI/level/bas")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_PRISON_IEP_LEVELS"), scopes = listOf("read", "write")))
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .exchange()
         .expectErrorResponse(HttpStatus.NOT_FOUND, "No incentive level found for code `bas`")
@@ -1664,7 +1673,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       webTestClient.delete()
         .uri("/incentive/prison-levels/MDI/level/STD")
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_PRISON_IEP_LEVELS"), scopes = listOf("read", "write")))
+        .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .exchange()
         .expectErrorResponse(
