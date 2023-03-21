@@ -34,14 +34,14 @@ class IncentiveLevelRepositoryTest : TestBase() {
     }
   }
 
-  private fun assertThatLevelCannotBeSaved(incentiveLevel: IncentiveLevel) {
+  private fun assertThatEntityCannotBeSaved(entity: IncentiveLevel) {
     assertThatThrownBy {
-      runBlocking { repository.save(incentiveLevel) }
+      runBlocking { repository.save(entity) }
     }.isInstanceOf(NonTransientDataAccessException::class.java)
   }
 
   @Test
-  fun `level code cannot be blank`(): Unit = assertThatLevelCannotBeSaved(
+  fun `level code cannot be blank`(): Unit = assertThatEntityCannotBeSaved(
     IncentiveLevel(
       code = "",
       description = "Standard",
@@ -51,7 +51,7 @@ class IncentiveLevelRepositoryTest : TestBase() {
   )
 
   @Test
-  fun `level code cannot be too long`(): Unit = assertThatLevelCannotBeSaved(
+  fun `level code cannot be too long`(): Unit = assertThatEntityCannotBeSaved(
     IncentiveLevel(
       code = "Standard",
       description = "Standard",
@@ -61,7 +61,7 @@ class IncentiveLevelRepositoryTest : TestBase() {
   )
 
   @Test
-  fun `level description cannot be blank`(): Unit = assertThatLevelCannotBeSaved(
+  fun `level description cannot be blank`(): Unit = assertThatEntityCannotBeSaved(
     IncentiveLevel(
       code = "ABC",
       description = "",
