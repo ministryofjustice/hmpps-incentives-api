@@ -17,6 +17,7 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.http.HttpStatus
+import uk.gov.justice.digital.hmpps.incentivesapi.helper.expectErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonIncentiveLevel
@@ -181,10 +182,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         .uri("/incentive/levels/bas")
         .headers(setAuthorisation())
         .exchange()
-        .expectStatus().isNotFound
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("No incentive level found for code `bas`")
-        }
+        .expectErrorResponse(HttpStatus.NOT_FOUND, "No incentive level found for code `bas`")
     }
   }
 
@@ -241,10 +239,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isForbidden
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Forbidden")
-        }
+        .expectErrorResponse(HttpStatus.FORBIDDEN, "Forbidden")
 
       runBlocking {
         assertThat(incentiveLevelRepository.count()).isEqualTo(6)
@@ -266,11 +261,11 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """.trimIndent()
         )
         .exchange()
-        .expectStatus().isEqualTo(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Unsupported media type")
-          assertThat(it).contains("accepted types: application/json")
-        }
+        .expectErrorResponse(
+          HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+          "Unsupported media type",
+          "accepted types: application/json",
+        )
 
       runBlocking {
         assertThat(incentiveLevelRepository.count()).isEqualTo(6)
@@ -295,10 +290,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Incentive level with code STD already exists")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Incentive level with code STD already exists")
 
       runBlocking {
         assertThat(incentiveLevelRepository.count()).isEqualTo(6)
@@ -331,10 +323,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         .header("Content-Type", "application/json")
         .bodyValue(body)
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Parameter conversion failure")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Parameter conversion failure")
 
       runBlocking {
         assertThat(incentiveLevelRepository.count()).isEqualTo(6)
@@ -365,10 +354,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         .header("Content-Type", "application/json")
         .bodyValue(body)
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Invalid parameters")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid parameters")
 
       runBlocking {
         assertThat(incentiveLevelRepository.count()).isEqualTo(6)
@@ -427,10 +413,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isForbidden
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Forbidden")
-        }
+        .expectErrorResponse(HttpStatus.FORBIDDEN, "Forbidden")
 
       runBlocking {
         val incentiveLevelCodes = incentiveLevelRepository.findAllByOrderBySequence().map { it.code }.toList()
@@ -451,10 +434,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isNotFound
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("No incentive level found for code `EN4`")
-        }
+        .expectErrorResponse(HttpStatus.NOT_FOUND, "No incentive level found for code `EN4`")
 
       runBlocking {
         val incentiveLevels = incentiveLevelRepository.findAllByOrderBySequence().toList()
@@ -479,10 +459,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("must have size of at least 2")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "must have size of at least 2")
 
       runBlocking {
         val incentiveLevels = incentiveLevelRepository.findAllByOrderBySequence().toList()
@@ -504,10 +481,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("All incentive levels required when setting order. Missing: `ENT`")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "All incentive levels required when setting order. Missing: `ENT`")
     }
 
     @Test
@@ -552,10 +526,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isForbidden
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Forbidden")
-        }
+        .expectErrorResponse(HttpStatus.FORBIDDEN, "Forbidden")
 
       runBlocking {
         val incentiveLevel = incentiveLevelRepository.findById("STD")
@@ -576,10 +547,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isNotFound
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("No incentive level found for code `std`")
-        }
+        .expectErrorResponse(HttpStatus.NOT_FOUND, "No incentive level found for code `std`")
 
       runBlocking {
         var incentiveLevel = incentiveLevelRepository.findById("std")
@@ -603,10 +571,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Incentive level codes must match in URL and payload")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Incentive level codes must match in URL and payload")
 
       runBlocking {
         var incentiveLevel = incentiveLevelRepository.findById("STD")
@@ -642,10 +607,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         .header("Content-Type", "application/json")
         .bodyValue(body)
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Parameter conversion failure")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Parameter conversion failure")
 
       runBlocking {
         val incentiveLevel = incentiveLevelRepository.findById("STD")
@@ -667,10 +629,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """,
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Invalid parameters")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid parameters")
 
       runBlocking {
         var incentiveLevel = incentiveLevelRepository.findById("STD")
@@ -723,10 +682,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isForbidden
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Forbidden")
-        }
+        .expectErrorResponse(HttpStatus.FORBIDDEN, "Forbidden")
 
       runBlocking {
         val incentiveLevel = incentiveLevelRepository.findById("STD")
@@ -747,10 +703,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isNotFound
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("No incentive level found for code `std`")
-        }
+        .expectErrorResponse(HttpStatus.NOT_FOUND, "No incentive level found for code `std`")
 
       runBlocking {
         var incentiveLevel = incentiveLevelRepository.findById("std")
@@ -808,10 +761,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """,
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Invalid parameters")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid parameters")
 
       runBlocking {
         val incentiveLevel = incentiveLevelRepository.findById("STD")
@@ -870,10 +820,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         .uri("/incentive/levels/STD")
         .headers(setAuthorisation())
         .exchange()
-        .expectStatus().isForbidden
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Forbidden")
-        }
+        .expectErrorResponse(HttpStatus.FORBIDDEN, "Forbidden")
 
       runBlocking {
         val incentiveLevel = incentiveLevelRepository.findById("STD")
@@ -887,10 +834,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         .uri("/incentive/levels/std")
         .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_INCENTIVE_LEVELS"), scopes = listOf("read", "write")))
         .exchange()
-        .expectStatus().isNotFound
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("No incentive level found for code `std`")
-        }
+        .expectErrorResponse(HttpStatus.NOT_FOUND, "No incentive level found for code `std`")
 
       runBlocking {
         var incentiveLevel = incentiveLevelRepository.findById("std")
@@ -989,10 +933,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         .uri("/incentive/prison-levels/MDI/level/ENT")
         .headers(setAuthorisation())
         .exchange()
-        .expectStatus().isNotFound
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("No active prison incentive level found for code `ENT`")
-        }
+        .expectErrorResponse(HttpStatus.NOT_FOUND, "No active prison incentive level found for code `ENT`")
     }
 
     @Test
@@ -1001,10 +942,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         .uri("/incentive/prison-levels/BAI/level/EN4")
         .headers(setAuthorisation())
         .exchange()
-        .expectStatus().isNotFound
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("No active prison incentive level found for code `EN4`")
-        }
+        .expectErrorResponse(HttpStatus.NOT_FOUND, "No active prison incentive level found for code `EN4`")
     }
   }
 
@@ -1147,10 +1085,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isForbidden
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Forbidden")
-        }
+        .expectErrorResponse(HttpStatus.FORBIDDEN, "Forbidden")
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("MDI", "STD")
@@ -1177,10 +1112,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isNotFound
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("No incentive level found for code `std`")
-        }
+        .expectErrorResponse(HttpStatus.NOT_FOUND, "No incentive level found for code `std`")
 
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
@@ -1204,10 +1136,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Incentive level codes must match in URL and payload")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Incentive level codes must match in URL and payload")
 
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
@@ -1231,10 +1160,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Prison ids must match in URL and payload")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Prison ids must match in URL and payload")
 
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
@@ -1256,10 +1182,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Parameter conversion failure")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Parameter conversion failure")
 
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
@@ -1283,10 +1206,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Invalid parameters")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid parameters")
 
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
@@ -1310,10 +1230,10 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("A level cannot be made inactive and still be the default for admission")
-        }
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "A level cannot be made inactive and still be the default for admission",
+        )
 
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
@@ -1339,10 +1259,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("There must be an active default level for admission in a prison")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "There must be an active default level for admission in a prison")
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "STD")
@@ -1375,10 +1292,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("There must be an active default level for admission in a prison")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "There must be an active default level for admission in a prison")
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "BAS")
@@ -1501,10 +1415,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isForbidden
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Forbidden")
-        }
+        .expectErrorResponse(HttpStatus.FORBIDDEN, "Forbidden")
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "BAS")
@@ -1528,10 +1439,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isNotFound
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("No incentive level found for code `std`")
-        }
+        .expectErrorResponse(HttpStatus.NOT_FOUND, "No incentive level found for code `std`")
 
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
@@ -1555,10 +1463,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Invalid parameters")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid parameters")
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("WRI", "ENH")
@@ -1585,10 +1490,10 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("A level cannot be made inactive and still be the default for admission")
-        }
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "A level cannot be made inactive and still be the default for admission",
+        )
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("MDI", "ENT")
@@ -1615,10 +1520,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("A level cannot be made inactive and still be the default for admission")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "A level cannot be made inactive and still be the default for admission")
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("MDI", "STD")
@@ -1645,10 +1547,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("There must be an active default level for admission in a prison")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "There must be an active default level for admission in a prison")
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "STD")
@@ -1679,10 +1578,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           """
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("There must be an active default level for admission in a prison")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "There must be an active default level for admission in a prison")
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "BAS")
@@ -1740,10 +1636,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         .headers(setAuthorisation())
         .header("Content-Type", "application/json")
         .exchange()
-        .expectStatus().isForbidden
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("Forbidden")
-        }
+        .expectErrorResponse(HttpStatus.FORBIDDEN, "Forbidden")
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("WRI", "ENH")
@@ -1758,10 +1651,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_PRISON_IEP_LEVELS"), scopes = listOf("read", "write")))
         .header("Content-Type", "application/json")
         .exchange()
-        .expectStatus().isNotFound
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("No incentive level found for code `bas`")
-        }
+        .expectErrorResponse(HttpStatus.NOT_FOUND, "No incentive level found for code `bas`")
 
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
@@ -1777,10 +1667,10 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_PRISON_IEP_LEVELS"), scopes = listOf("read", "write")))
         .header("Content-Type", "application/json")
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().jsonPath("$.userMessage").value<String> {
-          assertThat(it).contains("A level cannot be made inactive and still be the default for admission")
-        }
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "A level cannot be made inactive and still be the default for admission",
+        )
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("MDI", "STD")
