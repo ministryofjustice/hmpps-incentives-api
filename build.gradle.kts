@@ -74,6 +74,13 @@ openApi {
   customBootRun.args.set(listOf("--spring.profiles.active=dev,localstack,docs"))
 }
 
+// Fixes error when using openapi-gradle-plugin 1.6 with gradle 8
+afterEvaluate {
+  tasks.named("forkedSpringBootRun") {
+    dependsOn(tasks.named("inspectClassesForKotlinIC"))
+  }
+}
+
 java {
   toolchain.languageVersion.set(JavaLanguageVersion.of(19))
 }
