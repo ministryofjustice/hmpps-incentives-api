@@ -4,6 +4,7 @@
 
 
 Date: 2023-03-05
+Updated: 2023-03-21
 
 ## Status
 
@@ -58,10 +59,10 @@ The `IEP_OTH_PRIV` domain allows extra privileges to be added ![](other_privs_re
              
 | Code | Description       | Active |
 |------|-------------------|--------|
-| INET | Internet Access   | 	Y     |
-| IPOD | Apple IPOD Player | 	N     |
-| PP   | Piano Practice    | 	Y     |
-| SP2  | Sony Playstation  | 	Y     |
+| INET | Internet Access   | Y      |
+| IPOD | Apple IPOD Player | N      |
+| PP   | Piano Practice    | Y      |
+| SP2  | Sony Playstation  | Y      |
 
 
 The **OIMOIEPS** NOMIS screen allows config of levels, visits and other privilages.
@@ -125,20 +126,20 @@ This screen represents the Other Privileges ![](other_privs.png)
 
 In production there are only 12 records across all prisons for 1 privilege (Play Station PS2) for privilages and most records were added over 8 years ago.
 
-| Code  | Prison Id | Min Incentive Level | Active |
-|-------|-----------|---------------------|--------|
-| SP2   | PKI       | ENH                 | Y      |
-| SP2   | 	HDI	     | ENH                 | Y      |
-| SP2   | 	WDI	     | ENH                 | 	Y     |
-| SP2   | 	LEI	     | ENH                 | 	N     |
-| SP2   | 	LWI	     | ENH                 | 	Y     |
-| SP2   | 	FMI	     | ENH                 | 	Y     |
-| SP2   | 	CLI	     | ENH                 | 	Y     |
-| SP2   | 	IWI	     | ENH                 | 	Y     |
-| SP2   | 	SKI	     | ENH                 | 	Y     |
-| SP2   | 	WWI	     | ENH                 | 	Y     |
-| SP2   | 	HCI	     | ENH                 | 	Y     |
-| SP2   | 	SHI	     | ENH                 | 	Y     |
+| Code | Prison Id | Min Incentive Level | Active |
+|------|-----------|---------------------|--------|
+| SP2  | PKI       | ENH                 | Y      |
+| SP2  | HDI       | ENH                 | Y      |
+| SP2  | WDI       | ENH                 | Y      |
+| SP2  | LEI       | ENH                 | N      |
+| SP2  | LWI       | ENH                 | Y      |
+| SP2  | FMI       | ENH                 | Y      |
+| SP2  | CLI       | ENH                 | Y      |
+| SP2  | IWI       | ENH                 | Y      |
+| SP2  | SKI       | ENH                 | Y      |
+| SP2  | WWI       | ENH                 | Y      |
+| SP2  | HCI       | ENH                 | Y      |
+| SP2  | SHI       | ENH                 | Y      |
 
 
 ## Domain Events
@@ -219,34 +220,87 @@ These events are raised when changes are made to add or update incentive levels 
 
 ## API endpoints
 
-### Read endpoints for incentive and privilege data
-#### Get a list of all incentive levels globally of all prisons
+### Read endpoints for incentive levels and prisons’ associated information
+
+Authorised requests do not require any roles.
+
+#### Get a list of active incentive levels globally of all prisons
 `GET /incentive/levels` - 
-```json
+```json5
 [
   {
-    "code": "EN3",
-    "description": "Enhanced 3",
+    "code": "BAS",
+    "description": "Basic",
     "active": true
   },
   {
-    "code": "EN4",
-    "description": "Enhanced 4",
+    "code": "STD",
+    "description": "Standard",
     "active": true
+  },
+  // more entries…
+]
+```
+
+#### Get a list of all incentive levels globally of all prisons
+`GET /incentive/levels?with-inactive=true` -
+```json5
+[
+  {
+    "code": "BAS",
+    "description": "Basic",
+    "active": true
+  },
+  {
+    "code": "STD",
+    "description": "Standard",
+    "active": true
+  },
+  // more entries…
+  {
+    "code": "ENT",
+    "description": "Entry",
+    "active": false
   }
 ]
 ```
 
 
+#### Get the details of all incentive levels for a specified prison
+This contains spend limits and visit allowances
+
+`GET /incentive/prison-levels/{prisondId}` -
+
+e.g. **/incentive/prison-levels/MDI** returns
+```json5
+[
+  {
+    "levelCode": "STD",
+    "levelDescription": "Standard",
+    "prisonId": "MDI",
+    "active": true,
+    "defaultOnAdmission": true,
+    "remandTransferLimitInPence": 5500,
+    "remandSpendLimitInPence": 55000,
+    "convictedTransferLimitInPence": 1800,
+    "convictedSpendLimitInPence": 18000,
+    "visitOrders": 2,
+    "privilegedVisitOrders": 1
+  },
+  // more entries…
+]
+```
+
 #### Get the details of an incentive level for a specified prison
 This contains spend limits and visit allowances
 
-`GET incentive/prison-levels/{prisondId}/level/{level}` -
+`GET /incentive/prison-levels/{prisondId}/level/{level}` -
+
 e.g. **/incentive/prison-levels/MDI/level/STD** returns
 ```json
 {
   "levelCode": "STD",
-  "levelDescription": "string",
+  "levelDescription": "Standard",
   "prisonId": "MDI",
   "active": true,
   "defaultOnAdmission": true,
@@ -262,33 +316,53 @@ e.g. **/incentive/prison-levels/MDI/level/STD** returns
 
 ### Write endpoints for reference data
 
-#### Add / Update a incentive level
+Authorised requests will require roles with write scope.
+
+#### Add a new incentive level
 `POST /incentive/levels/{code}` -
 ```json
 {
-  "code": "STD",
-  "description": "Standard",
+  "code": "EN4",
+  "description": "Enhanced 4",
   "active": true
 }
 ```
 
+#### Update an existing incentive level
 `PUT /incentive/levels/{code}` -
 ```json
 {
   "code": "STD",
-  "description": "Standard",
+  "description": "Silver",
   "active": true
 }
 ```
 
-#### Update an incentive level config data in a prison
-Insert incentive reference config for a prison level
-`PUT /incentive/prison-levels/{prisonId}/level/{levelCode}` -
+`PATCH /incentive/levels/{code}` -
+```json
+{
+  "description": "Silver"
+}
+```
 
+#### Deactivate an existing incentive level
+
+`DELETE /incentive/levels/{code}`
+
+#### Change order of incentive levels globally
+
+`PATCH /incentive/level-order` -
+```json
+["BAS", "ENT", "STD", "ENH", "EN2", "EN3"]
+```
+
+#### Update an incentive level’s associated information in a prison
+
+`PUT /incentive/prison-levels/{prisonId}/level/{levelCode}` -
 ```json
 {
   "levelCode": "STD",
-  "levelDescription": "string",
+  "levelDescription": "Standard",
   "prisonId": "MDI",
   "active": true,
   "defaultOnAdmission": true,
@@ -301,8 +375,17 @@ Insert incentive reference config for a prison level
 }
 ```
 
+`PATCH /incentive/prison-levels/{prisonId}/level/{levelCode}` -
+```json
+{
+  "remandTransferLimitInPence": 5500,
+  "remandSpendLimitInPence": 55000
+}
+```
 
+#### Deactivate a level in a prison
 
+`DELETE /incentive/prison-levels/{prisonId}/level/{levelCode}`
 
 ## Migration steps
 
