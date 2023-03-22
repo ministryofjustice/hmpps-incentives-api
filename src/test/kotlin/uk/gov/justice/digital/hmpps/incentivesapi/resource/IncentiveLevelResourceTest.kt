@@ -24,6 +24,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonIncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveLevelRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonIncentiveLevelRepository
+import uk.gov.justice.digital.hmpps.incentivesapi.service.AuditEvent
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDateTime
@@ -65,6 +66,26 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         IncentiveLevel(code = "ENT", description = "Entry", active = false, sequence = 99, new = true),
       ),
     ).collect()
+  }
+
+  private fun assertNoAuditMessageSent() {
+    val queueSize = auditQueue.sqsClient.getQueueAttributes(auditQueue.queueUrl, listOf("ApproximateNumberOfMessages"))
+      .attributes["ApproximateNumberOfMessages"]?.toInt()
+    assertThat(queueSize).isEqualTo(0)
+  }
+
+  private inline fun <reified T> assertAuditMessageSent(eventType: String): T {
+    val queueSize = auditQueue.sqsClient.getQueueAttributes(auditQueue.queueUrl, listOf("ApproximateNumberOfMessages"))
+      .attributes["ApproximateNumberOfMessages"]?.toInt()
+    assertThat(queueSize).isEqualTo(1)
+
+    val message = auditQueue.sqsClient.receiveMessage(auditQueue.queueUrl).messages[0].body
+    val event = objectMapper.readValue(message, AuditEvent::class.java)
+    assertThat(event.what).isEqualTo(eventType)
+    assertThat(event.who).isEqualTo("USER_ADM")
+    assertThat(event.service).isEqualTo("hmpps-incentives-api")
+
+    return objectMapper.readValue(event.details, T::class.java)
   }
 
   @Nested
@@ -179,7 +200,13 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
   @Nested
   inner class `modifying incentive levels` {
     private fun <T : WebTestClient.RequestHeadersSpec<*>> T.withCentralAuthorisation(): T = apply {
-      headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_INCENTIVE_LEVELS"), scopes = listOf("read", "write")))
+      headers(
+        setAuthorisation(
+          user = "USER_ADM",
+          roles = listOf("ROLE_MAINTAIN_INCENTIVE_LEVELS"),
+          scopes = listOf("read", "write"),
+        ),
+      )
     }
 
     @Test
@@ -218,6 +245,10 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         assertThat(incentiveLevel?.sequence).isGreaterThan(maxSequence)
         assertThat(incentiveLevel?.whenUpdated).isEqualTo(now)
       }
+
+      assertAuditMessageSent<Map<String, Any>>("INCENTIVE_LEVEL_ADDED").let {
+        assertThat(it["code"]).isEqualTo("EN4")
+      }
     }
 
     @Test
@@ -238,6 +269,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       runBlocking {
         assertThat(incentiveLevelRepository.count()).isEqualTo(6)
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -269,6 +302,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         assertThat(incentiveLevel?.description).isEqualTo("Standard")
         assertThat(incentiveLevel?.active).isTrue
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -295,6 +330,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         assertThat(incentiveLevel?.active).isTrue
         assertThat(incentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
+
+      assertNoAuditMessageSent()
     }
 
     @ParameterizedTest
@@ -322,6 +359,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       runBlocking {
         assertThat(incentiveLevelRepository.count()).isEqualTo(6)
       }
+
+      assertNoAuditMessageSent()
     }
 
     @ParameterizedTest
@@ -353,6 +392,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       runBlocking {
         assertThat(incentiveLevelRepository.count()).isEqualTo(6)
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -392,6 +433,10 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           assertThat(it).isEqualTo(now)
         }
       }
+
+      assertAuditMessageSent<List<String>>("INCENTIVE_LEVELS_REORDERED").let {
+        assertThat(it).isEqualTo(listOf("EN3", "EN2", "ENT", "ENH", "STD", "BAS"))
+      }
     }
 
     @Test
@@ -413,6 +458,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         val incentiveLevelCodes = incentiveLevelRepository.findAllByOrderBySequence().map { it.code }.toList()
         assertThat(incentiveLevelCodes).isEqualTo(listOf("BAS", "STD", "ENH", "EN2", "EN3", "ENT"))
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -438,6 +485,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           assertThat(it).isNotEqualTo(now)
         }
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -460,6 +509,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         assertThat(incentiveLevels.map { it.code }).isEqualTo(listOf("BAS", "STD", "ENH", "EN2", "EN3", "ENT"))
         assertThat(incentiveLevels.map { it.sequence }).isEqualTo(listOf(1, 2, 3, 4, 5, 99))
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -476,6 +527,14 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         )
         .exchange()
         .expectErrorResponse(HttpStatus.BAD_REQUEST, "All incentive levels required when setting order. Missing: `ENT`")
+
+      runBlocking {
+        val incentiveLevels = incentiveLevelRepository.findAllByOrderBySequence().toList()
+        assertThat(incentiveLevels.map { it.code }).isEqualTo(listOf("BAS", "STD", "ENH", "EN2", "EN3", "ENT"))
+        assertThat(incentiveLevels.map { it.sequence }).isEqualTo(listOf(1, 2, 3, 4, 5, 99))
+      }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -505,6 +564,10 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         assertThat(incentiveLevel?.description).isEqualTo("Silver")
         assertThat(incentiveLevel?.whenUpdated).isEqualTo(now)
       }
+
+      assertAuditMessageSent<Map<String, Any>>("INCENTIVE_LEVEL_UPDATED").let {
+        assertThat(it["description"]).isEqualTo("Silver")
+      }
     }
 
     @Test
@@ -526,6 +589,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         val incentiveLevel = incentiveLevelRepository.findById("STD")
         assertThat(incentiveLevel?.description).isNotEqualTo("Silver")
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -550,6 +615,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         assertThat(incentiveLevel?.description).isEqualTo("Standard")
         assertThat(incentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -575,6 +642,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         assertThat(incentiveLevel?.description).isEqualTo("Enhanced")
         assertThat(incentiveLevel?.active).isTrue
       }
+
+      assertNoAuditMessageSent()
     }
 
     @ParameterizedTest
@@ -608,6 +677,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         assertThat(incentiveLevel?.description).isEqualTo("Standard")
         assertThat(incentiveLevel?.active).isTrue
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -632,6 +703,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         incentiveLevel = incentiveLevelRepository.findById("")
         assertThat(incentiveLevel).isNull()
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -661,6 +734,10 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         assertThat(incentiveLevel?.description).isEqualTo("Silver")
         assertThat(incentiveLevel?.whenUpdated).isEqualTo(now)
       }
+
+      assertAuditMessageSent<Map<String, Any>>("INCENTIVE_LEVEL_UPDATED").let {
+        assertThat(it["description"]).isEqualTo("Silver")
+      }
     }
 
     @Test
@@ -682,6 +759,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         val incentiveLevel = incentiveLevelRepository.findById("STD")
         assertThat(incentiveLevel?.description).isNotEqualTo("Silver")
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -706,6 +785,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         assertThat(incentiveLevel?.description).isEqualTo("Standard")
         assertThat(incentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -740,6 +821,11 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         assertThat(incentiveLevel?.active).isTrue
         assertThat(incentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
+
+      assertAuditMessageSent<Map<String, Any>>("INCENTIVE_LEVEL_UPDATED").let {
+        assertThat(it["code"]).isEqualTo("ENH")
+        assertThat(it["description"]).isEqualTo("Gold")
+      }
     }
 
     @Test
@@ -762,6 +848,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         assertThat(incentiveLevel?.description).isEqualTo("Standard")
         assertThat(incentiveLevel?.active).isTrue
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -783,6 +871,11 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         val incentiveLevel = incentiveLevelRepository.findById("STD")
         assertThat(incentiveLevel?.active).isFalse
         assertThat(incentiveLevel?.whenUpdated).isEqualTo(now)
+      }
+
+      assertAuditMessageSent<Map<String, Any>>("INCENTIVE_LEVEL_UPDATED").let {
+        assertThat(it["code"]).isEqualTo("STD")
+        assertThat(it["active"]).isEqualTo(false)
       }
     }
 
@@ -806,6 +899,11 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         assertThat(incentiveLevel?.active).isFalse
         assertThat(incentiveLevel?.whenUpdated).isEqualTo(now)
       }
+
+      assertAuditMessageSent<Map<String, Any>>("INCENTIVE_LEVEL_UPDATED").let {
+        assertThat(it["code"]).isEqualTo("ENT")
+        assertThat(it["active"]).isEqualTo(false)
+      }
     }
 
     @Test
@@ -820,6 +918,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         val incentiveLevel = incentiveLevelRepository.findById("STD")
         assertThat(incentiveLevel?.active).isTrue
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -837,6 +937,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         assertThat(incentiveLevel?.active).isTrue
         assertThat(incentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
+
+      assertNoAuditMessageSent()
     }
   }
 
@@ -943,7 +1045,13 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
   @Nested
   inner class `modifying prison incentive levels` {
     private fun <T : WebTestClient.RequestHeadersSpec<*>> T.withLocalAuthorisation(): T = apply {
-      headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_PRISON_IEP_LEVELS"), scopes = listOf("read", "write")))
+      headers(
+        setAuthorisation(
+          user = "USER_ADM",
+          roles = listOf("ROLE_MAINTAIN_PRISON_IEP_LEVELS"),
+          scopes = listOf("read", "write"),
+        ),
+      )
     }
 
     private fun saveLevel(prisonId: String, levelCode: String) = runBlocking {
@@ -1026,6 +1134,17 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(3)
         assertThat(prisonIncentiveLevel?.whenUpdated).isEqualTo(now)
       }
+
+      assertAuditMessageSent<Map<String, Any>>("PRISON_INCENTIVE_LEVEL_UPDATED").let {
+        assertThat(it).containsAllEntriesOf(
+          mapOf(
+            "prisonId" to "MDI",
+            "levelCode" to "STD",
+            "remandTransferLimitInPence" to 6150,
+            "visitOrders" to 3,
+          ),
+        )
+      }
     }
 
     @Test
@@ -1078,6 +1197,17 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
             .map { it.prisonId to it.levelCode }.toList()
         assertThat(defaultLevelCodes).isEqualTo(listOf("WRI" to "ENH"))
       }
+
+      assertAuditMessageSent<Map<String, Any>>("PRISON_INCENTIVE_LEVEL_UPDATED").let {
+        assertThat(it).containsAllEntriesOf(
+          mapOf(
+            "prisonId" to "WRI",
+            "levelCode" to "ENH",
+            "active" to true,
+            "defaultOnAdmission" to true,
+          ),
+        )
+      }
     }
 
     @Test
@@ -1107,6 +1237,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -1131,6 +1263,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -1155,6 +1289,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -1179,6 +1315,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -1201,6 +1339,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -1225,6 +1365,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -1252,6 +1394,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -1283,6 +1427,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -1316,6 +1462,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -1357,9 +1505,22 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "BAS")
         assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(2850)
+        assertThat(prisonIncentiveLevel?.convictedTransferLimitInPence).isEqualTo(550)
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(3)
         assertThat(prisonIncentiveLevel?.privilegedVisitOrders).isEqualTo(1)
         assertThat(prisonIncentiveLevel?.whenUpdated).isEqualTo(now)
+      }
+
+      assertAuditMessageSent<Map<String, Any>>("PRISON_INCENTIVE_LEVEL_UPDATED").let {
+        assertThat(it).containsAllEntriesOf(
+          mapOf(
+            "prisonId" to "BAI",
+            "levelCode" to "BAS",
+            "remandTransferLimitInPence" to 2850,
+            "convictedTransferLimitInPence" to 550,
+            "visitOrders" to 3,
+          ),
+        )
       }
     }
 
@@ -1411,6 +1572,17 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
             .map { it.prisonId to it.levelCode }.toList()
         assertThat(defaultLevelCodes).isEqualTo(listOf("WRI" to "ENH"))
       }
+
+      assertAuditMessageSent<Map<String, Any>>("PRISON_INCENTIVE_LEVEL_UPDATED").let {
+        assertThat(it).containsAllEntriesOf(
+          mapOf(
+            "prisonId" to "WRI",
+            "levelCode" to "ENH",
+            "remandTransferLimitInPence" to 6600,
+            "visitOrders" to 2,
+          ),
+        )
+      }
     }
 
     @Test
@@ -1437,6 +1609,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(2750)
         assertThat(prisonIncentiveLevel?.remandSpendLimitInPence).isEqualTo(27500)
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -1459,6 +1633,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -1486,6 +1662,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -1516,6 +1694,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         assertThat(prisonIncentiveLevel?.defaultOnAdmission).isFalse
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -1543,6 +1723,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         assertThat(prisonIncentiveLevel?.defaultOnAdmission).isTrue
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -1572,6 +1754,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -1602,6 +1786,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(2750)
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -1641,6 +1827,17 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
         assertThat(prisonIncentiveLevel?.whenUpdated).isEqualTo(now)
       }
+
+      assertAuditMessageSent<Map<String, Any>>("PRISON_INCENTIVE_LEVEL_UPDATED").let {
+        assertThat(it).containsAllEntriesOf(
+          mapOf(
+            "prisonId" to "WRI",
+            "levelCode" to "EN2",
+            "active" to false,
+            "defaultOnAdmission" to false,
+          ),
+        )
+      }
     }
 
     @Test
@@ -1658,6 +1855,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("WRI", "ENH")
         assertThat(prisonIncentiveLevel?.active).isTrue
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -1672,6 +1871,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
       }
+
+      assertNoAuditMessageSent()
     }
 
     @Test
@@ -1694,6 +1895,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         assertThat(prisonIncentiveLevel?.defaultOnAdmission).isTrue
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
+
+      assertNoAuditMessageSent()
     }
   }
 }

@@ -63,9 +63,14 @@ data class AuditEvent(
   val service: String,
   val details: String? = null,
 )
+
 enum class AuditType {
   IEP_REVIEW_ADDED,
   IEP_REVIEW_UPDATED,
   IEP_REVIEW_DELETED,
   PRISONER_NUMBER_MERGE,
+  INCENTIVE_LEVEL_ADDED,
+  INCENTIVE_LEVEL_UPDATED,
+  INCENTIVE_LEVELS_REORDERED,
+  PRISON_INCENTIVE_LEVEL_UPDATED,
 }
