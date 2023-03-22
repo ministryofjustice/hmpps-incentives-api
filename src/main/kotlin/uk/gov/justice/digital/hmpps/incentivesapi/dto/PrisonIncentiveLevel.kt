@@ -36,10 +36,10 @@ data class PrisonIncentiveLevel(
   @JsonProperty(required = true)
   val convictedSpendLimitInPence: Int,
 
-  @Schema(description = "The number of weekday visits for a convicted prisoner", example = "2", minimum = "0", type = "integer", format = "int32")
+  @Schema(description = "The number of weekday visits for a convicted prisoner per fortnight", example = "2", minimum = "0", type = "integer", format = "int32")
   @JsonProperty(required = true)
   val visitOrders: Int,
-  @Schema(description = "The number of privileged/weekend visits for a convicted prisoner", example = "1", minimum = "0", type = "integer", format = "int32")
+  @Schema(description = "The number of privileged/weekend visits for a convicted prisoner per 4 weeks", example = "1", minimum = "0", type = "integer", format = "int32")
   @JsonProperty(required = true)
   val privilegedVisitOrders: Int,
 ) {
@@ -73,8 +73,8 @@ data class PrisonIncentiveLevelUpdate(
   @Schema(description = "The maximum amount allowed in the spends account for a convicted prisoner", example = "18000", minimum = "0", type = "integer", format = "int32", required = false)
   val convictedSpendLimitInPence: Int? = null,
 
-  @Schema(description = "The number of weekday visits for a convicted prisoner", example = "2", minimum = "0", type = "integer", format = "int32", required = false)
+  @Schema(description = "The number of weekday visits for a convicted prisoner per fortnight", example = "2", minimum = "0", type = "integer", format = "int32", required = false)
   val visitOrders: Int? = null,
-  @Schema(description = "The number of privileged/weekend visits for a convicted prisoner", example = "1", minimum = "0", type = "integer", format = "int32", required = false)
+  @Schema(description = "The number of privileged/weekend visits for a convicted prisoner per 4 weeks", example = "1", minimum = "0", type = "integer", format = "int32", required = false)
   val privilegedVisitOrders: Int? = null,
 )
