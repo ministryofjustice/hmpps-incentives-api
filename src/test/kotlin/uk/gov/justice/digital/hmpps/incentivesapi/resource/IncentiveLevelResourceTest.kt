@@ -956,10 +956,10 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
               active = levelCode != "ENT",
               defaultOnAdmission = levelCode == "STD",
 
-              remandTransferLimitInPence = 6050,
-              remandSpendLimitInPence = 60500,
-              convictedTransferLimitInPence = 1980,
-              convictedSpendLimitInPence = 19800,
+              remandTransferLimitInPence = 60_50,
+              remandSpendLimitInPence = 605_00,
+              convictedTransferLimitInPence = 19_80,
+              convictedSpendLimitInPence = 198_00,
 
               visitOrders = 2,
               privilegedVisitOrders = 1,
@@ -1130,7 +1130,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("MDI", "STD")
-        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(6150)
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(61_50)
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(3)
         assertThat(prisonIncentiveLevel?.whenUpdated).isEqualTo(now)
       }
@@ -1140,7 +1140,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           mapOf(
             "prisonId" to "MDI",
             "levelCode" to "STD",
-            "remandTransferLimitInPence" to 6150,
+            "remandTransferLimitInPence" to 61_50,
             "visitOrders" to 3,
           ),
         )
@@ -1181,13 +1181,13 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       runBlocking {
         var prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("WRI", "STD")
-        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(6050)
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(60_50)
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
         assertThat(prisonIncentiveLevel?.active).isTrue
         assertThat(prisonIncentiveLevel?.defaultOnAdmission).isFalse
 
         prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("WRI", "ENH")
-        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(6050)
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(60_50)
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
         assertThat(prisonIncentiveLevel?.active).isTrue
         assertThat(prisonIncentiveLevel?.defaultOnAdmission).isTrue
@@ -1233,7 +1233,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("MDI", "STD")
-        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(6050)
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(60_50)
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
@@ -1423,7 +1423,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "STD")
         assertThat(prisonIncentiveLevel?.active).isTrue
         assertThat(prisonIncentiveLevel?.defaultOnAdmission).isTrue
-        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(6050)
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(60_50)
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
@@ -1458,7 +1458,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "BAS")
         assertThat(prisonIncentiveLevel?.active).isTrue
         assertThat(prisonIncentiveLevel?.defaultOnAdmission).isFalse
-        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(2750)
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(27_50)
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
@@ -1504,8 +1504,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "BAS")
-        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(2850)
-        assertThat(prisonIncentiveLevel?.convictedTransferLimitInPence).isEqualTo(550)
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(28_50)
+        assertThat(prisonIncentiveLevel?.convictedTransferLimitInPence).isEqualTo(5_50)
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(3)
         assertThat(prisonIncentiveLevel?.privilegedVisitOrders).isEqualTo(1)
         assertThat(prisonIncentiveLevel?.whenUpdated).isEqualTo(now)
@@ -1516,8 +1516,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           mapOf(
             "prisonId" to "BAI",
             "levelCode" to "BAS",
-            "remandTransferLimitInPence" to 2850,
-            "convictedTransferLimitInPence" to 550,
+            "remandTransferLimitInPence" to 28_50,
+            "convictedTransferLimitInPence" to 5_50,
             "visitOrders" to 3,
           ),
         )
@@ -1556,13 +1556,13 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       runBlocking {
         var prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("WRI", "STD")
-        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(6050)
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(60_50)
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
         assertThat(prisonIncentiveLevel?.active).isTrue
         assertThat(prisonIncentiveLevel?.defaultOnAdmission).isFalse
 
         prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("WRI", "ENH")
-        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(6600)
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(66_00)
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
         assertThat(prisonIncentiveLevel?.active).isTrue
         assertThat(prisonIncentiveLevel?.defaultOnAdmission).isTrue
@@ -1578,7 +1578,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
           mapOf(
             "prisonId" to "WRI",
             "levelCode" to "ENH",
-            "remandTransferLimitInPence" to 6600,
+            "remandTransferLimitInPence" to 66_00,
             "visitOrders" to 2,
           ),
         )
@@ -1606,8 +1606,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "BAS")
-        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(2750)
-        assertThat(prisonIncentiveLevel?.remandSpendLimitInPence).isEqualTo(27500)
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(27_50)
+        assertThat(prisonIncentiveLevel?.remandSpendLimitInPence).isEqualTo(275_00)
       }
 
       assertNoAuditMessageSent()
@@ -1658,7 +1658,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("WRI", "ENH")
-        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(6600)
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(66_00)
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
@@ -1750,7 +1750,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "STD")
         assertThat(prisonIncentiveLevel?.active).isTrue
         assertThat(prisonIncentiveLevel?.defaultOnAdmission).isTrue
-        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(6050)
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(60_50)
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
@@ -1783,7 +1783,7 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "BAS")
         assertThat(prisonIncentiveLevel?.active).isTrue
         assertThat(prisonIncentiveLevel?.defaultOnAdmission).isFalse
-        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(2750)
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(27_50)
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
 
@@ -1822,8 +1822,8 @@ class IncentiveLevelResourceTest : SqsIntegrationTestBase() {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("WRI", "EN2")
         assertThat(prisonIncentiveLevel?.active).isFalse
         assertThat(prisonIncentiveLevel?.defaultOnAdmission).isFalse
-        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(6600)
-        assertThat(prisonIncentiveLevel?.convictedTransferLimitInPence).isEqualTo(3300)
+        assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(66_00)
+        assertThat(prisonIncentiveLevel?.convictedTransferLimitInPence).isEqualTo(33_00)
         assertThat(prisonIncentiveLevel?.visitOrders).isEqualTo(2)
         assertThat(prisonIncentiveLevel?.whenUpdated).isEqualTo(now)
       }
