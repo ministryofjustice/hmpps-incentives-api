@@ -97,6 +97,10 @@ class IncentiveLevelResource(
     ensure {
       ("code" to incentiveLevel.code).hasLengthAtLeast(1).hasLengthAtMost(6)
       ("description" to incentiveLevel.description).hasLengthAtLeast(1)
+
+      if (!incentiveLevel.active && incentiveLevel.required) {
+        errors.add("A level must be active if it is required")
+      }
     }
     return incentiveLevelService.createIncentiveLevel(incentiveLevel)
   }
@@ -269,6 +273,14 @@ class IncentiveLevelResource(
       update.description?.let {
         ("description" to it).hasLengthAtLeast(1)
       }
+
+      update.active?.let { active ->
+        update.required?.let { required ->
+          if (!active && required) {
+            errors.add("A level must be active if it is required")
+          }
+        }
+      }
     }
     return incentiveLevelService.updateIncentiveLevel(code, update)
       ?: throw NoDataWithCodeFoundException("incentive level", code)
@@ -311,6 +323,6 @@ class IncentiveLevelResource(
     @PathVariable
     code: String,
   ): IncentiveLevel {
-    return partiallyUpdateIncentiveLevel(code, IncentiveLevelUpdate(active = false))
+    return partiallyUpdateIncentiveLevel(code, IncentiveLevelUpdate(active = false, required = false))
   }
 }

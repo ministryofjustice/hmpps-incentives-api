@@ -58,11 +58,11 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           // language=json
           """
           [
-            {"code": "BAS", "description": "Basic", "active": true},
-            {"code": "STD", "description": "Standard", "active": true},
-            {"code": "ENH", "description": "Enhanced", "active": true},
-            {"code": "EN2", "description": "Enhanced 2", "active": true},
-            {"code": "EN3", "description": "Enhanced 3", "active": true}
+            {"code": "BAS", "description": "Basic", "active": true, "required": true},
+            {"code": "STD", "description": "Standard", "active": true, "required": true},
+            {"code": "ENH", "description": "Enhanced", "active": true, "required": true},
+            {"code": "EN2", "description": "Enhanced 2", "active": true, "required": false},
+            {"code": "EN3", "description": "Enhanced 3", "active": true, "required": false}
           ]
           """,
           true,
@@ -80,12 +80,12 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           // language=json
           """
           [
-            {"code": "BAS", "description": "Basic", "active": true},
-            {"code": "STD", "description": "Standard", "active": true},
-            {"code": "ENH", "description": "Enhanced", "active": true},
-            {"code": "EN2", "description": "Enhanced 2", "active": true},
-            {"code": "EN3", "description": "Enhanced 3", "active": true},
-            {"code": "ENT", "description": "Entry", "active": false}
+            {"code": "BAS", "description": "Basic", "active": true, "required": true},
+            {"code": "STD", "description": "Standard", "active": true, "required": true},
+            {"code": "ENH", "description": "Enhanced", "active": true, "required": true},
+            {"code": "EN2", "description": "Enhanced 2", "active": true, "required": false},
+            {"code": "EN3", "description": "Enhanced 3", "active": true, "required": false},
+            {"code": "ENT", "description": "Entry", "active": false, "required": false}
           ]
           """,
           true,
@@ -102,7 +102,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectBody().json(
           // language=json
           """
-          {"code": "EN2", "description": "Enhanced 2", "active": true}
+          {"code": "EN2", "description": "Enhanced 2", "active": true, "required": false}
           """,
           true,
         )
@@ -118,7 +118,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectBody().json(
           // language=json
           """
-          {"code": "ENT", "description": "Entry", "active": false}
+          {"code": "ENT", "description": "Entry", "active": false, "required": false}
           """,
           true,
         )
@@ -167,7 +167,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectBody().json(
           // language=json
           """
-          {"code": "EN4", "description": "Enhanced 4", "active": false}
+          {"code": "EN4", "description": "Enhanced 4", "active": false, "required": false}
           """,
           true,
         )
@@ -315,6 +315,10 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         """
         {"code": "EN4", "description": "", "active": false}
         """,
+        // language=json
+        """
+        {"code": "EN4", "description": "Enhanced 4", "active": false, "required": true}
+        """,
       ],
     )
     fun `fails to create a level with invalid fields`(body: String) {
@@ -351,12 +355,12 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           // language=json
           """
           [
-            {"code": "EN3", "description": "Enhanced 3", "active": true},
-            {"code": "EN2", "description": "Enhanced 2", "active": true},
-            {"code": "ENT", "description": "Entry", "active": false},
-            {"code": "ENH", "description": "Enhanced", "active": true},
-            {"code": "STD", "description": "Standard", "active": true},
-            {"code": "BAS", "description": "Basic", "active": true}
+            {"code": "EN3", "description": "Enhanced 3", "active": true, "required": false},
+            {"code": "EN2", "description": "Enhanced 2", "active": true, "required": false},
+            {"code": "ENT", "description": "Entry", "active": false, "required": false},
+            {"code": "ENH", "description": "Enhanced", "active": true, "required": true},
+            {"code": "STD", "description": "Standard", "active": true, "required": true},
+            {"code": "BAS", "description": "Basic", "active": true, "required": true}
           ]
           """,
           true,
@@ -483,7 +487,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .bodyValue(
           // language=json
           """
-          {"code": "STD", "description": "Silver", "active": true}
+          {"code": "STD", "description": "Silver", "active": true, "required": true}
           """,
         )
         .exchange()
@@ -491,7 +495,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectBody().json(
           // language=json
           """
-          {"code": "STD", "description": "Silver", "active": true}
+          {"code": "STD", "description": "Silver", "active": true, "required": true}
           """,
           true,
         )
@@ -618,18 +622,25 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
       assertNoAuditMessageSent()
     }
 
-    @Test
-    fun `fails to update a level with invalid fields`() {
+    @ParameterizedTest
+    @ValueSource(
+      strings = [
+        // language=json
+        """
+        {"code": "STD", "description": "", "active": false}
+        """,
+        // language=json
+        """
+        {"code": "STD", "description": "Standard", "active": false, "required": true}
+        """,
+      ],
+    )
+    fun `fails to update a level with invalid fields`(body: String) {
       webTestClient.put()
         .uri("/incentive/levels/STD")
         .withCentralAuthorisation()
         .header("Content-Type", "application/json")
-        .bodyValue(
-          // language=json
-          """
-          {"code": "STD", "description": "", "active": false}
-          """,
-        )
+        .bodyValue(body)
         .exchange()
         .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid parameters")
 
@@ -661,7 +672,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectBody().json(
           // language=json
           """
-          {"code": "STD", "description": "Silver", "active": true}
+          {"code": "STD", "description": "Silver", "active": true, "required": true}
           """,
           true,
         )
@@ -735,7 +746,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .bodyValue(
           // language=json
           """
-          {"code": "STD", "description": "Gold", "active": false}
+          {"code": "STD", "description": "Gold", "active": false, "required": false}
           """,
         )
         .exchange()
@@ -743,7 +754,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectBody().json(
           // language=json
           """
-          {"code": "ENH", "description": "Gold", "active": false}
+          {"code": "ENH", "description": "Gold", "active": false, "required": false}
           """,
           true,
         )
@@ -752,10 +763,12 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         var incentiveLevel = incentiveLevelRepository.findById("ENH")
         assertThat(incentiveLevel?.description).isEqualTo("Gold")
         assertThat(incentiveLevel?.active).isFalse
+        assertThat(incentiveLevel?.required).isFalse
         assertThat(incentiveLevel?.whenUpdated).isEqualTo(now)
         incentiveLevel = incentiveLevelRepository.findById("STD")
         assertThat(incentiveLevel?.description).isEqualTo("Standard")
         assertThat(incentiveLevel?.active).isTrue
+        assertThat(incentiveLevel?.required).isTrue
         assertThat(incentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
 
@@ -765,18 +778,25 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
       }
     }
 
-    @Test
-    fun `fails to partially update a level with invalid fields`() {
+    @ParameterizedTest
+    @ValueSource(
+      strings = [
+        // language=json
+        """
+        {"description": "", "active": false}
+        """,
+        // language=json
+        """
+        {"active": false, "required": true}
+        """,
+      ],
+    )
+    fun `fails to partially update a level with invalid fields`(body: String) {
       webTestClient.patch()
         .uri("/incentive/levels/STD")
         .withCentralAuthorisation()
         .header("Content-Type", "application/json")
-        .bodyValue(
-          // language=json
-          """
-          {"description": "", "active": false}
-          """,
-        )
+        .bodyValue(body)
         .exchange()
         .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid parameters")
 
@@ -784,6 +804,30 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         val incentiveLevel = incentiveLevelRepository.findById("STD")
         assertThat(incentiveLevel?.description).isEqualTo("Standard")
         assertThat(incentiveLevel?.active).isTrue
+      }
+
+      assertNoAuditMessageSent()
+    }
+
+    @Test
+    fun `fails to partially update a level when inactive level is made required`() {
+      webTestClient.patch()
+        .uri("/incentive/levels/ENT")
+        .withCentralAuthorisation()
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          {"required": true}
+          """,
+        )
+        .exchange()
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "A level must be active if it is required")
+
+      runBlocking {
+        val incentiveLevel = incentiveLevelRepository.findById("ENT")
+        assertThat(incentiveLevel?.active).isFalse
+        assertThat(incentiveLevel?.required).isFalse
       }
 
       assertNoAuditMessageSent()
@@ -799,7 +843,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectBody().json(
           // language=json
           """
-          {"code": "STD", "description": "Standard", "active": false}
+          {"code": "STD", "description": "Standard", "active": false, "required": false}
           """,
           true,
         )
@@ -826,7 +870,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectBody().json(
           // language=json
           """
-          {"code": "ENT", "description": "Entry", "active": false}
+          {"code": "ENT", "description": "Entry", "active": false, "required": false}
           """,
           true,
         )

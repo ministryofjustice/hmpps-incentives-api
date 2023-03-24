@@ -36,9 +36,9 @@ class IncentiveLevelResourceTestBase : SqsIntegrationTestBase() {
     incentiveLevelRepository.deleteAll()
     incentiveLevelRepository.saveAll(
       listOf(
-        IncentiveLevel(code = "BAS", description = "Basic", sequence = 1, new = true),
-        IncentiveLevel(code = "STD", description = "Standard", sequence = 2, new = true),
-        IncentiveLevel(code = "ENH", description = "Enhanced", sequence = 3, new = true),
+        IncentiveLevel(code = "BAS", description = "Basic", sequence = 1, required = true, new = true),
+        IncentiveLevel(code = "STD", description = "Standard", sequence = 2, required = true, new = true),
+        IncentiveLevel(code = "ENH", description = "Enhanced", sequence = 3, required = true, new = true),
         IncentiveLevel(code = "EN2", description = "Enhanced 2", sequence = 4, new = true),
         IncentiveLevel(code = "EN3", description = "Enhanced 3", sequence = 5, new = true),
         IncentiveLevel(code = "ENT", description = "Entry", active = false, sequence = 99, new = true),

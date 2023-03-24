@@ -55,9 +55,13 @@ class IncentiveLevelService(
    */
   @Transactional
   suspend fun createIncentiveLevel(dto: IncentiveLevelDTO): IncentiveLevelDTO {
+    if (!dto.active && dto.required) {
+      throw ValidationException("A level must be active if it is required")
+    }
     if (incentiveLevelRepository.existsById(dto.code)) {
       throw ValidationException("Incentive level with code ${dto.code} already exists")
     }
+
     val highestSequence = incentiveLevelRepository.findMaxSequence() ?: 0
     val incentiveLevel = dto.toNewEntity(highestSequence + 1)
     return incentiveLevelRepository.save(incentiveLevel)
@@ -74,7 +78,13 @@ class IncentiveLevelService(
   suspend fun updateIncentiveLevel(code: String, update: IncentiveLevelUpdateDTO): IncentiveLevelDTO? {
     return incentiveLevelRepository.findById(code)
       ?.let {
-        incentiveLevelRepository.save(it.withUpdate(update))
+        val incentiveLevel = it.withUpdate(update)
+
+        if (!incentiveLevel.active && incentiveLevel.required) {
+          throw ValidationException("A level must be active if it is required")
+        }
+
+        incentiveLevelRepository.save(incentiveLevel)
           .toDTO()
           .also {
             auditService.sendMessage(INCENTIVE_LEVEL_UPDATED, it.code, it)
@@ -120,6 +130,7 @@ class IncentiveLevelService(
     code = code,
     description = update.description ?: description,
     active = update.active ?: active,
+    required = update.required ?: required,
 
     new = false,
     whenUpdated = LocalDateTime.now(clock),
@@ -129,6 +140,7 @@ class IncentiveLevelService(
     code = code,
     description = description,
     active = active,
+    required = required,
   )
 
   private fun IncentiveLevelDTO.toNewEntity(sequence: Int): IncentiveLevel = IncentiveLevel(
@@ -136,6 +148,7 @@ class IncentiveLevelService(
     description = description,
     sequence = sequence,
     active = active,
+    required = required,
 
     new = true,
     whenUpdated = LocalDateTime.now(clock),
