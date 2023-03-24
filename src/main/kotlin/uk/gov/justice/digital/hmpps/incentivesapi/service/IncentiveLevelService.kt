@@ -8,6 +8,9 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataWithCodeFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveLevelRepository
+import uk.gov.justice.digital.hmpps.incentivesapi.service.AuditType.INCENTIVE_LEVELS_REORDERED
+import uk.gov.justice.digital.hmpps.incentivesapi.service.AuditType.INCENTIVE_LEVEL_ADDED
+import uk.gov.justice.digital.hmpps.incentivesapi.service.AuditType.INCENTIVE_LEVEL_UPDATED
 import uk.gov.justice.digital.hmpps.incentivesapi.util.flow.associateByTo
 import java.time.Clock
 import java.time.LocalDateTime
@@ -24,6 +27,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevelUpdate as In
 class IncentiveLevelService(
   private val clock: Clock,
   private val incentiveLevelRepository: IncentiveLevelRepository,
+  private val auditService: AuditService,
 ) {
   /**
    * Returns all incentive levels, including inactive ones, in globally-defined order
@@ -56,7 +60,11 @@ class IncentiveLevelService(
     }
     val highestSequence = incentiveLevelRepository.findMaxSequence() ?: 0
     val incentiveLevel = dto.toNewEntity(highestSequence + 1)
-    return incentiveLevelRepository.save(incentiveLevel).toDTO()
+    return incentiveLevelRepository.save(incentiveLevel)
+      .toDTO()
+      .also {
+        auditService.sendMessage(INCENTIVE_LEVEL_ADDED, it.code, it)
+      }
   }
 
   /**
@@ -67,8 +75,11 @@ class IncentiveLevelService(
     return incentiveLevelRepository.findById(code)
       ?.let {
         incentiveLevelRepository.save(it.withUpdate(update))
+          .toDTO()
+          .also {
+            auditService.sendMessage(INCENTIVE_LEVEL_UPDATED, it.code, it)
+          }
       }
-      ?.toDTO()
   }
 
   /**
@@ -97,7 +108,12 @@ class IncentiveLevelService(
       )
     }
 
-    return incentiveLevelRepository.saveAll(incentiveLevelsWithNewSequences).toListOfDTO()
+    return incentiveLevelRepository.saveAll(incentiveLevelsWithNewSequences)
+      .toListOfDTO()
+      .also {
+        val orderedCodes = it.map(IncentiveLevelDTO::code)
+        auditService.sendMessage(INCENTIVE_LEVELS_REORDERED, orderedCodes.joinToString(", "), orderedCodes)
+      }
   }
 
   private fun IncentiveLevel.withUpdate(update: IncentiveLevelUpdateDTO): IncentiveLevel = copy(
