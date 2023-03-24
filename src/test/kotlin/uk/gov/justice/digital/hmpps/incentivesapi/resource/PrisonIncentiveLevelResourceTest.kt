@@ -551,6 +551,32 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
     }
 
     @Test
+    fun `fails to update a prison incentive level if it would become inactive despite being globally required`() {
+      webTestClient.put()
+        .uri("/incentive/prison-levels/WRI/level/BAS")
+        .withLocalAuthorisation()
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          {
+            "levelCode": "BAS", "prisonId": "WRI", "active": false,
+            "remandTransferLimitInPence": 2850, "remandSpendLimitInPence": 28500, "convictedTransferLimitInPence": 650, "convictedSpendLimitInPence": 6500,
+            "visitOrders": 1, "privilegedVisitOrders": 1
+          }
+          """,
+        )
+        .exchange()
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "A level cannot be made inactive and when it is globally required")
+
+      runBlocking {
+        assertThat(prisonIncentiveLevelRepository.count()).isZero
+      }
+
+      assertNoAuditMessageSent()
+    }
+
+    @Test
     fun `partially updates a prison incentive level when one exists`() {
       saveLevel("BAI", "BAS")
       `partially updates a prison incentive level when per-prison information does not exist`()
@@ -784,6 +810,11 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
     @Test
     fun `fails to partially update a prison incentive level when deactivating default level`() {
+      runBlocking {
+        // Pretend that Standard is not required
+        val standard = incentiveLevelRepository.findById("STD")!!.copy(required = false)
+        incentiveLevelRepository.save(standard)
+      }
       saveLevel("MDI", "STD") // Standard is the default for admission
 
       webTestClient.patch()
@@ -868,6 +899,34 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(prisonIncentiveLevel?.active).isTrue
         assertThat(prisonIncentiveLevel?.defaultOnAdmission).isFalse
         assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(27_50)
+        assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
+      }
+
+      assertNoAuditMessageSent()
+    }
+
+    @Test
+    fun `fails to partially update a prison incentive level if it would become inactive despite being globally required`() {
+      saveLevel("BAI", "BAS") // Basic is required in all prisons
+
+      webTestClient.patch()
+        .uri("/incentive/prison-levels/BAI/level/BAS")
+        .withLocalAuthorisation()
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          {
+            "active": false
+          }
+          """,
+        )
+        .exchange()
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "A level cannot be made inactive and when it is globally required")
+
+      runBlocking {
+        val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "BAS")
+        assertThat(prisonIncentiveLevel?.active).isTrue
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
 
@@ -961,6 +1020,11 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
     @Test
     fun `fails to deactivate a prison incentive level which is default for admission`() {
+      runBlocking {
+        // Pretend that Standard is not required
+        val standard = incentiveLevelRepository.findById("STD")!!.copy(required = false)
+        incentiveLevelRepository.save(standard)
+      }
       saveLevel("MDI", "STD") // Standard is the default for admission
 
       webTestClient.delete()
@@ -977,6 +1041,29 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("MDI", "STD")
         assertThat(prisonIncentiveLevel?.active).isTrue
         assertThat(prisonIncentiveLevel?.defaultOnAdmission).isTrue
+        assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
+      }
+
+      assertNoAuditMessageSent()
+    }
+
+    @Test
+    fun `fails to deactivate a prison incentive level which is required globally`() {
+      saveLevel("MDI", "BAS") // Basic is globally required
+
+      webTestClient.delete()
+        .uri("/incentive/prison-levels/MDI/level/BAS")
+        .withLocalAuthorisation()
+        .header("Content-Type", "application/json")
+        .exchange()
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "A level cannot be made inactive and when it is globally required",
+        )
+
+      runBlocking {
+        val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("MDI", "BAS")
+        assertThat(prisonIncentiveLevel?.active).isTrue
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
 

@@ -83,6 +83,9 @@ class PrisonIncentiveLevelService(
           ?.withUpdate(update)
           ?: update.toNewEntity(prisonId, levelCode)
 
+      if (incentiveLevel.required && !prisonIncentiveLevel.active) {
+        throw ValidationException("A level cannot be made inactive and when it is globally required")
+      }
       if (!prisonIncentiveLevel.active && prisonIncentiveLevel.defaultOnAdmission) {
         throw ValidationException("A level cannot be made inactive and still be the default for admission")
       }
