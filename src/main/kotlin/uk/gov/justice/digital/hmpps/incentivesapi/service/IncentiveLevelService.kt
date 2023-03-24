@@ -111,7 +111,8 @@ class IncentiveLevelService(
     return incentiveLevelRepository.saveAll(incentiveLevelsWithNewSequences)
       .toListOfDTO()
       .also {
-        auditService.sendMessage(INCENTIVE_LEVELS_REORDERED, "*", it.map(IncentiveLevelDTO::code))
+        val orderedCodes = it.map(IncentiveLevelDTO::code)
+        auditService.sendMessage(INCENTIVE_LEVELS_REORDERED, orderedCodes.joinToString(", "), orderedCodes)
       }
   }
 
