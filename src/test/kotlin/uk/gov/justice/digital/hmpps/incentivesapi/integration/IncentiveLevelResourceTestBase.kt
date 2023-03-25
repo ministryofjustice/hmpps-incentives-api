@@ -7,6 +7,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonIncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveLevelRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonIncentiveLevelRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.service.AuditEvent
@@ -74,5 +75,43 @@ class IncentiveLevelResourceTestBase : SqsIntegrationTestBase() {
   protected fun assertAuditMessageSentWithMap(eventType: String): Map<String, Any> {
     val event = assertAuditMessageSent(eventType)
     return objectMapper.readValue(event.details, object : TypeReference<Map<String, Any>>() {})
+  }
+
+  protected fun makePrisonIncentiveLevel(prisonId: String, levelCode: String) = runBlocking {
+    prisonIncentiveLevelRepository.save(
+      PrisonIncentiveLevel(
+        levelCode = levelCode,
+        prisonId = prisonId,
+        active = levelCode != "ENT",
+        defaultOnAdmission = levelCode == "STD",
+
+        remandTransferLimitInPence = when (levelCode) {
+          "BAS" -> 27_50
+          "STD" -> 60_50
+          else -> 66_00
+        },
+        remandSpendLimitInPence = when (levelCode) {
+          "BAS" -> 275_00
+          "STD" -> 605_00
+          else -> 660_00
+        },
+        convictedTransferLimitInPence = when (levelCode) {
+          "BAS" -> 5_50
+          "STD" -> 19_80
+          else -> 33_00
+        },
+        convictedSpendLimitInPence = when (levelCode) {
+          "BAS" -> 55_00
+          "STD" -> 198_00
+          else -> 330_00
+        },
+
+        visitOrders = 2,
+        privilegedVisitOrders = 1,
+
+        new = true,
+        whenUpdated = now.minusDays(3),
+      ),
+    )
   }
 }

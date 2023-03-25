@@ -15,7 +15,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.incentivesapi.helper.expectErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.IncentiveLevelResourceTestBase
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonIncentiveLevel
 import java.time.Clock
 
 class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
@@ -33,24 +32,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
       prisonIncentiveLevelRepository.deleteAll()
       listOf("BAS", "STD", "ENH", "ENT").forEach { levelCode ->
         listOf("BAI", "MDI", "WRI").forEach { prisonId ->
-          prisonIncentiveLevelRepository.save(
-            PrisonIncentiveLevel(
-              levelCode = levelCode,
-              prisonId = prisonId,
-              active = levelCode != "ENT",
-              defaultOnAdmission = levelCode == "STD",
-
-              remandTransferLimitInPence = 60_50,
-              remandSpendLimitInPence = 605_00,
-              convictedTransferLimitInPence = 19_80,
-              convictedSpendLimitInPence = 198_00,
-
-              visitOrders = 2,
-              privilegedVisitOrders = 1,
-
-              new = true,
-            ),
-          )
+          makePrisonIncentiveLevel(prisonId, levelCode)
         }
       }
     }
@@ -68,7 +50,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           [
             {
               "levelCode": "BAS", "levelDescription": "Basic", "prisonId": "MDI", "active": true, "defaultOnAdmission": false,
-              "remandTransferLimitInPence": 6050, "remandSpendLimitInPence": 60500, "convictedTransferLimitInPence": 1980, "convictedSpendLimitInPence": 19800,
+              "remandTransferLimitInPence": 2750, "remandSpendLimitInPence": 27500, "convictedTransferLimitInPence": 550, "convictedSpendLimitInPence": 5500,
               "visitOrders": 2, "privilegedVisitOrders": 1
             },
             {
@@ -78,7 +60,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
             },
             {
               "levelCode": "ENH", "levelDescription": "Enhanced", "prisonId": "MDI", "active": true, "defaultOnAdmission": false,
-              "remandTransferLimitInPence": 6050, "remandSpendLimitInPence": 60500, "convictedTransferLimitInPence": 1980, "convictedSpendLimitInPence": 19800,
+              "remandTransferLimitInPence": 6600, "remandSpendLimitInPence": 66000, "convictedTransferLimitInPence": 3300, "convictedSpendLimitInPence": 33000,
               "visitOrders": 2, "privilegedVisitOrders": 1
             }
           ]
@@ -99,7 +81,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """
           {
             "levelCode": "ENH", "levelDescription": "Enhanced", "prisonId": "WRI", "active": true, "defaultOnAdmission": false,
-            "remandTransferLimitInPence": 6050, "remandSpendLimitInPence": 60500, "convictedTransferLimitInPence": 1980, "convictedSpendLimitInPence": 19800,
+            "remandTransferLimitInPence": 6600, "remandSpendLimitInPence": 66000, "convictedTransferLimitInPence": 3300, "convictedSpendLimitInPence": 33000,
             "visitOrders": 2, "privilegedVisitOrders": 1
           }
           """,
@@ -138,47 +120,9 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
       )
     }
 
-    private fun saveLevel(prisonId: String, levelCode: String) = runBlocking {
-      prisonIncentiveLevelRepository.save(
-        PrisonIncentiveLevel(
-          levelCode = levelCode,
-          prisonId = prisonId,
-          active = levelCode != "ENT",
-          defaultOnAdmission = levelCode == "STD",
-
-          remandTransferLimitInPence = when (levelCode) {
-            "BAS" -> 27_50
-            "STD" -> 60_50
-            else -> 66_00
-          },
-          remandSpendLimitInPence = when (levelCode) {
-            "BAS" -> 275_00
-            "STD" -> 605_00
-            else -> 660_00
-          },
-          convictedTransferLimitInPence = when (levelCode) {
-            "BAS" -> 5_50
-            "STD" -> 19_80
-            else -> 33_00
-          },
-          convictedSpendLimitInPence = when (levelCode) {
-            "BAS" -> 55_00
-            "STD" -> 198_00
-            else -> 330_00
-          },
-
-          visitOrders = 2,
-          privilegedVisitOrders = 1,
-
-          new = true,
-          whenUpdated = now.minusDays(3),
-        ),
-      )
-    }
-
     @Test
     fun `updates a prison incentive level when one exists`() {
-      saveLevel("MDI", "STD")
+      makePrisonIncentiveLevel("MDI", "STD")
       `updates a prison incentive level when per-prison information does not exist`()
     }
 
@@ -233,7 +177,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
     @Test
     fun `updates the default prison incentive level for admission`() {
-      saveLevel("WRI", "STD") // Standard is the default for admission
+      makePrisonIncentiveLevel("WRI", "STD") // Standard is the default for admission
 
       webTestClient.put()
         .uri("/incentive/prison-levels/WRI/level/ENH")
@@ -296,7 +240,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
     @Test
     fun `requires correct role to update a prison incentive level`() {
-      saveLevel("MDI", "STD")
+      makePrisonIncentiveLevel("MDI", "STD")
 
       webTestClient.put()
         .uri("/incentive/prison-levels/MDI/level/STD")
@@ -484,7 +428,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
     @Test
     fun `fails to update a prison incentive level when no default for admission would remain`() {
-      saveLevel("BAI", "STD")
+      makePrisonIncentiveLevel("BAI", "STD")
 
       webTestClient.put()
         .uri("/incentive/prison-levels/BAI/level/STD")
@@ -518,8 +462,8 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
     @Test
     fun `fails to update a non-default prison incentive level when there is no other default level for admission`() {
       // data integrity problem: there is no default level for admission
-      saveLevel("BAI", "BAS")
-      saveLevel("BAI", "ENH")
+      makePrisonIncentiveLevel("BAI", "BAS")
+      makePrisonIncentiveLevel("BAI", "ENH")
 
       webTestClient.put()
         .uri("/incentive/prison-levels/BAI/level/BAS")
@@ -578,7 +522,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
     @Test
     fun `partially updates a prison incentive level when one exists`() {
-      saveLevel("BAI", "BAS")
+      makePrisonIncentiveLevel("BAI", "BAS")
       `partially updates a prison incentive level when per-prison information does not exist`()
     }
 
@@ -636,7 +580,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
     @Test
     fun `partially updates the default prison incentive level for admission`() {
-      saveLevel("WRI", "STD") // Standard is the default for admission
+      makePrisonIncentiveLevel("WRI", "STD") // Standard is the default for admission
 
       webTestClient.patch()
         .uri("/incentive/prison-levels/WRI/level/ENH")
@@ -697,7 +641,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
     @Test
     fun `requires correct role to partially update a prison incentive level`() {
-      saveLevel("BAI", "BAS")
+      makePrisonIncentiveLevel("BAI", "BAS")
 
       webTestClient.patch()
         .uri("/incentive/prison-levels/BAI/level/BAS")
@@ -749,7 +693,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
     @Test
     fun `fails to partially update a prison incentive level with invalid fields`() {
-      saveLevel("WRI", "ENH")
+      makePrisonIncentiveLevel("WRI", "ENH")
 
       webTestClient.patch()
         .uri("/incentive/prison-levels/WRI/level/ENH")
@@ -778,7 +722,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
     @Test
     fun `fails to partially update a prison incentive level when making inactive level the default`() {
-      saveLevel("MDI", "ENT") // Entry is inactive
+      makePrisonIncentiveLevel("MDI", "ENT") // Entry is inactive
 
       webTestClient.patch()
         .uri("/incentive/prison-levels/MDI/level/ENT")
@@ -815,7 +759,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         val standard = incentiveLevelRepository.findById("STD")!!.copy(required = false)
         incentiveLevelRepository.save(standard)
       }
-      saveLevel("MDI", "STD") // Standard is the default for admission
+      makePrisonIncentiveLevel("MDI", "STD") // Standard is the default for admission
 
       webTestClient.patch()
         .uri("/incentive/prison-levels/MDI/level/STD")
@@ -844,7 +788,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
     @Test
     fun `fails to partially update a prison incentive level when no default for admission would remain`() {
-      saveLevel("BAI", "STD") // Standard is the default for admission
+      makePrisonIncentiveLevel("BAI", "STD") // Standard is the default for admission
 
       webTestClient.patch()
         .uri("/incentive/prison-levels/MDI/level/STD")
@@ -876,8 +820,8 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
     @Test
     fun `fails to partially update a non-default prison incentive level when there is no other default level for admission`() {
       // data integrity problem: there is no default level for admission
-      saveLevel("BAI", "BAS")
-      saveLevel("BAI", "ENH")
+      makePrisonIncentiveLevel("BAI", "BAS")
+      makePrisonIncentiveLevel("BAI", "ENH")
 
       webTestClient.patch()
         .uri("/incentive/prison-levels/BAI/level/BAS")
@@ -907,7 +851,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
     @Test
     fun `fails to partially update a prison incentive level if it would become inactive despite being globally required`() {
-      saveLevel("BAI", "BAS") // Basic is required in all prisons
+      makePrisonIncentiveLevel("BAI", "BAS") // Basic is required in all prisons
 
       webTestClient.patch()
         .uri("/incentive/prison-levels/BAI/level/BAS")
@@ -935,13 +879,13 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
     @Test
     fun `deactivates a prison incentive level when one exists`() {
-      saveLevel("WRI", "EN2")
+      makePrisonIncentiveLevel("WRI", "EN2")
       `deactivates a prison incentive level when per-prison information does not exist`()
     }
 
     @Test
     fun `deactivates a prison incentive level when per-prison information does not exist`() {
-      saveLevel("WRI", "STD") // Standard is the default for admission, needed to allow deactivation of EN2
+      makePrisonIncentiveLevel("WRI", "STD") // Standard is the default for admission, needed to allow deactivation of EN2
 
       webTestClient.delete()
         .uri("/incentive/prison-levels/WRI/level/EN2")
@@ -985,7 +929,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
     @Test
     fun `requires correct role to deactivate a prison incentive level`() {
-      saveLevel("WRI", "ENH")
+      makePrisonIncentiveLevel("WRI", "ENH")
 
       webTestClient.delete()
         .uri("/incentive/prison-levels/WRI/level/ENH")
@@ -1025,7 +969,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         val standard = incentiveLevelRepository.findById("STD")!!.copy(required = false)
         incentiveLevelRepository.save(standard)
       }
-      saveLevel("MDI", "STD") // Standard is the default for admission
+      makePrisonIncentiveLevel("MDI", "STD") // Standard is the default for admission
 
       webTestClient.delete()
         .uri("/incentive/prison-levels/MDI/level/STD")
@@ -1049,7 +993,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
     @Test
     fun `fails to deactivate a prison incentive level which is required globally`() {
-      saveLevel("MDI", "BAS") // Basic is globally required
+      makePrisonIncentiveLevel("MDI", "BAS") // Basic is globally required
 
       webTestClient.delete()
         .uri("/incentive/prison-levels/MDI/level/BAS")
