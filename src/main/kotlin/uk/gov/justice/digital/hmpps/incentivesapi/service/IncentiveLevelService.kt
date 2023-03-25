@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataWithCodeFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveLevelRepository
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonIncentiveLevelRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.service.AuditType.INCENTIVE_LEVELS_REORDERED
 import uk.gov.justice.digital.hmpps.incentivesapi.service.AuditType.INCENTIVE_LEVEL_ADDED
 import uk.gov.justice.digital.hmpps.incentivesapi.service.AuditType.INCENTIVE_LEVEL_UPDATED
@@ -17,6 +18,7 @@ import java.time.LocalDateTime
 import javax.validation.ValidationException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel as IncentiveLevelDTO
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevelUpdate as IncentiveLevelUpdateDTO
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevelUpdate as PrisonIncentiveLevelUpdateDTO
 
 /**
  * Manages globally-defined incentive levels.
@@ -27,6 +29,8 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevelUpdate as In
 class IncentiveLevelService(
   private val clock: Clock,
   private val incentiveLevelRepository: IncentiveLevelRepository,
+  private val prisonIncentiveLevelRepository: PrisonIncentiveLevelRepository,
+  private val prisonIncentiveLevelService: PrisonIncentiveLevelService,
   private val auditService: AuditService,
 ) {
   /**
@@ -67,6 +71,10 @@ class IncentiveLevelService(
     return incentiveLevelRepository.save(incentiveLevel)
       .toDTO()
       .also {
+        if (it.required) {
+          // This probably could be moved out of the transaction once auditing is moved out:
+          enablePrisonIncentiveLevelEverywhere(it.code)
+        }
         auditService.sendMessage(INCENTIVE_LEVEL_ADDED, it.code, it)
       }
   }
@@ -77,8 +85,8 @@ class IncentiveLevelService(
   @Transactional
   suspend fun updateIncentiveLevel(code: String, update: IncentiveLevelUpdateDTO): IncentiveLevelDTO? {
     return incentiveLevelRepository.findById(code)
-      ?.let {
-        val incentiveLevel = it.withUpdate(update)
+      ?.let { originalIncentiveLevel ->
+        val incentiveLevel = originalIncentiveLevel.withUpdate(update)
 
         if (!incentiveLevel.active && incentiveLevel.required) {
           throw ValidationException("A level must be active if it is required")
@@ -87,9 +95,24 @@ class IncentiveLevelService(
         incentiveLevelRepository.save(incentiveLevel)
           .toDTO()
           .also {
+            if (it.required && !originalIncentiveLevel.required) {
+              // This probably could be moved out of the transaction once auditing is moved out:
+              enablePrisonIncentiveLevelEverywhere(it.code)
+            }
             auditService.sendMessage(INCENTIVE_LEVEL_UPDATED, it.code, it)
           }
       }
+  }
+
+  // TODO: Many DB queries are made: does this warrant NOT being in a transaction?
+  private suspend fun enablePrisonIncentiveLevelEverywhere(levelCode: String) {
+    prisonIncentiveLevelRepository.findPrisonIdsOfActiveLevels().collect { prisonId ->
+      prisonIncentiveLevelService.updatePrisonIncentiveLevel(
+        prisonId,
+        levelCode,
+        PrisonIncentiveLevelUpdateDTO(active = true),
+      )
+    }
   }
 
   /**

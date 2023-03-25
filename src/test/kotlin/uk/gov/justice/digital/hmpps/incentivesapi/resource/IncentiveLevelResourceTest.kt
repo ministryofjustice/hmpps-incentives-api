@@ -181,10 +181,48 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevel?.active).isFalse
         assertThat(incentiveLevel?.sequence).isGreaterThan(maxSequence)
         assertThat(incentiveLevel?.whenUpdated).isEqualTo(now)
+
+        assertThat(prisonIncentiveLevelRepository.count()).isEqualTo(0)
       }
 
       assertAuditMessageSentWithMap("INCENTIVE_LEVEL_ADDED").let {
         assertThat(it["code"]).isEqualTo("EN4")
+      }
+    }
+
+    @Test
+    fun `creates a required level and activates it in all prisons with defaults`() {
+      runBlocking {
+        // 2 prisons with active levels and 1 without
+        makePrisonIncentiveLevel("MDI", "STD")
+        makePrisonIncentiveLevel("WRI", "STD")
+        makePrisonIncentiveLevel("BAI", "ENT")
+      }
+
+      webTestClient.post()
+        .uri("/incentive/levels")
+        .withCentralAuthorisation()
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          {"code": "EN4", "description": "Enhanced 4", "required": true}
+          """,
+        )
+        .exchange()
+        .expectStatus().isCreated
+
+      runBlocking {
+        listOf("MDI", "WRI").forEach { prisonId ->
+          val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode(prisonId, "EN4")
+          assertThat(prisonIncentiveLevel?.active).isTrue
+          assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(66_00)
+          assertThat(prisonIncentiveLevel?.convictedTransferLimitInPence).isEqualTo(33_00)
+        }
+        listOf("BAI").forEach { prisonId ->
+          val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode(prisonId, "EN4")
+          assertThat(prisonIncentiveLevel).isNull()
+        }
       }
     }
 
@@ -512,6 +550,43 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
     }
 
     @Test
+    fun `updates a required level and activates it in all prisons with defaults`() {
+      runBlocking {
+        // 2 prisons with active levels and 1 without
+        makePrisonIncentiveLevel("MDI", "STD")
+        makePrisonIncentiveLevel("WRI", "STD")
+        makePrisonIncentiveLevel("BAI", "ENT")
+      }
+
+      webTestClient.put()
+        .uri("/incentive/levels/ENT")
+        .withCentralAuthorisation()
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          {"code": "ENT", "description": "Entry", "active": true, "required": true}
+          """,
+        )
+        .exchange()
+        .expectStatus().isOk
+
+      runBlocking {
+        listOf("MDI", "WRI").forEach { prisonId ->
+          val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode(prisonId, "ENT")
+          assertThat(prisonIncentiveLevel?.active).isTrue
+          // NB: Entry is not in current policy so is assumed to be equivalent to Enhanced
+          assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(66_00)
+          assertThat(prisonIncentiveLevel?.convictedTransferLimitInPence).isEqualTo(33_00)
+        }
+        listOf("BAI").forEach { prisonId ->
+          val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode(prisonId, "ENT")
+          assertThat(prisonIncentiveLevel?.active).isFalse
+        }
+      }
+    }
+
+    @Test
     fun `requires correct role to update a level`() {
       webTestClient.put()
         .uri("/incentive/levels/STD")
@@ -685,6 +760,43 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
       assertAuditMessageSentWithMap("INCENTIVE_LEVEL_UPDATED").let {
         assertThat(it["description"]).isEqualTo("Silver")
+      }
+    }
+
+    @Test
+    fun `partially updates a required level and activates it in all prisons`() {
+      runBlocking {
+        // 2 prisons with active levels and 1 without
+        makePrisonIncentiveLevel("MDI", "STD")
+        makePrisonIncentiveLevel("WRI", "STD")
+        makePrisonIncentiveLevel("BAI", "ENT")
+      }
+
+      webTestClient.patch()
+        .uri("/incentive/levels/ENT")
+        .withCentralAuthorisation()
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          {"active": true, "required": true}
+          """,
+        )
+        .exchange()
+        .expectStatus().isOk
+
+      runBlocking {
+        listOf("MDI", "WRI").forEach { prisonId ->
+          val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode(prisonId, "ENT")
+          assertThat(prisonIncentiveLevel?.active).isTrue
+          // NB: Entry is not in current policy so is assumed to be equivalent to Enhanced
+          assertThat(prisonIncentiveLevel?.remandTransferLimitInPence).isEqualTo(66_00)
+          assertThat(prisonIncentiveLevel?.convictedTransferLimitInPence).isEqualTo(33_00)
+        }
+        listOf("BAI").forEach { prisonId ->
+          val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode(prisonId, "ENT")
+          assertThat(prisonIncentiveLevel?.active).isFalse
+        }
       }
     }
 
