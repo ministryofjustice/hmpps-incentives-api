@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository
 
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.toSet
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -239,5 +240,35 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
 
     val missing = repository.findFirstByPrisonIdAndActiveIsTrueAndDefaultIsTrue("LEI")
     assertThat(missing).isNull()
+  }
+
+  @Test
+  fun `find prisons that have active levels`(): Unit = runBlocking {
+    generateDefaultData()
+    // Generate inactive prisons that will not be returned:
+    listOf("BAS", "STD", "ENH", "EN2", "ENT").forEach { levelCode ->
+      listOf("EXI", "LEI").forEach { prisonId ->
+        val entity = PrisonIncentiveLevel(
+          levelCode = levelCode,
+          prisonId = prisonId,
+          active = false,
+          defaultOnAdmission = levelCode == "STD",
+
+          remandTransferLimitInPence = 6050,
+          remandSpendLimitInPence = 60500,
+          convictedTransferLimitInPence = 1980,
+          convictedSpendLimitInPence = 19800,
+
+          visitOrders = 2,
+          privilegedVisitOrders = 1,
+
+          new = true,
+        )
+        repository.save(entity)
+      }
+    }
+
+    val prisonIds = repository.findPrisonIdsOfActiveLevels().toSet()
+    assertThat(prisonIds).isEqualTo(setOf("BAI", "MDI", "WRI"))
   }
 }
