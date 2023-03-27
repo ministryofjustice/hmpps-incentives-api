@@ -948,27 +948,29 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
     @Test
     fun `deactivates a level`() {
       webTestClient.delete()
-        .uri("/incentive/levels/STD")
+        .uri("/incentive/levels/EN2")
         .withCentralAuthorisation()
         .exchange()
         .expectStatus().isOk
         .expectBody().json(
           // language=json
           """
-          {"code": "STD", "description": "Standard", "active": false, "required": false}
+          {"code": "EN2", "description": "Enhanced 2", "active": false, "required": false}
           """,
           true,
         )
 
       runBlocking {
-        val incentiveLevel = incentiveLevelRepository.findById("STD")
+        val incentiveLevel = incentiveLevelRepository.findById("EN2")
         assertThat(incentiveLevel?.active).isFalse
+        assertThat(incentiveLevel?.required).isFalse
         assertThat(incentiveLevel?.whenUpdated).isEqualTo(now)
       }
 
       assertAuditMessageSentWithMap("INCENTIVE_LEVEL_UPDATED").let {
-        assertThat(it["code"]).isEqualTo("STD")
+        assertThat(it["code"]).isEqualTo("EN2")
         assertThat(it["active"]).isEqualTo(false)
+        assertThat(it["required"]).isEqualTo(false)
       }
     }
 
@@ -1028,6 +1030,24 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevel).isNull()
         incentiveLevel = incentiveLevelRepository.findById("STD")
         assertThat(incentiveLevel?.active).isTrue
+        assertThat(incentiveLevel?.whenUpdated).isNotEqualTo(now)
+      }
+
+      assertNoAuditMessageSent()
+    }
+
+    @Test
+    fun `fails to deactivate a required level`() {
+      webTestClient.delete()
+        .uri("/incentive/levels/STD")
+        .withCentralAuthorisation()
+        .exchange()
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "A level must be active if it is required")
+
+      runBlocking {
+        val incentiveLevel = incentiveLevelRepository.findById("STD")
+        assertThat(incentiveLevel?.active).isTrue
+        assertThat(incentiveLevel?.required).isTrue
         assertThat(incentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
 
