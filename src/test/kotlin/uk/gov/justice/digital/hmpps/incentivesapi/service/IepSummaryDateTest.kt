@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
@@ -50,7 +49,6 @@ class IepSummaryDateTest {
       )
 
       assertThat(iepSummary.daysSinceReviewCalc(clock)).isEqualTo(60)
-      assertThat(daysOnLevel(clock, iepSummary.iepDetails)).isEqualTo(60)
     }
 
     @Test
@@ -77,7 +75,6 @@ class IepSummaryDateTest {
       )
 
       assertThat(iepSummary.daysSinceReviewCalc(clock)).isEqualTo(3)
-      assertThat(daysOnLevel(clock, iepSummary.iepDetails)).isEqualTo(3)
     }
 
     @Test
@@ -115,7 +112,6 @@ class IepSummaryDateTest {
       )
 
       assertThat(iepSummary.daysSinceReviewCalc(clock)).isEqualTo(0)
-      assertThat(daysOnLevel(clock, iepSummary.iepDetails)).isEqualTo(0)
     }
 
     @Test
@@ -164,7 +160,6 @@ class IepSummaryDateTest {
       )
 
       assertThat(iepSummary.daysSinceReviewCalc(clock)).isEqualTo(1)
-      assertThat(daysOnLevel(clock, iepSummary.iepDetails)).isEqualTo(10)
     }
 
     @Test
@@ -200,7 +195,6 @@ class IepSummaryDateTest {
       )
 
       assertThat(iepSummary.daysSinceReviewCalc(clock)).isEqualTo(0)
-      assertThat(daysOnLevel(clock, iepSummary.iepDetails)).isEqualTo(0)
     }
 
     @Test
@@ -246,7 +240,6 @@ class IepSummaryDateTest {
       )
 
       assertThat(iepSummary.daysSinceReviewCalc(clock)).isEqualTo(30)
-      assertThat(daysOnLevel(clock, iepSummary.iepDetails)).isEqualTo(90)
     }
 
     @Test
@@ -261,9 +254,6 @@ class IepSummaryDateTest {
       )
 
       assertThat(iepSummary.daysSinceReviewCalc(clock)).isEqualTo(3)
-      assertThatThrownBy { daysOnLevel(clock, iepSummary.iepDetails) }
-        .isInstanceOf(UnsupportedOperationException::class.java)
-        .hasMessageContaining("Empty collection")
     }
   }
 }

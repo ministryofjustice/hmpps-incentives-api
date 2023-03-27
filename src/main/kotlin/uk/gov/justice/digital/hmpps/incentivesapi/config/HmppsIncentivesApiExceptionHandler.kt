@@ -20,7 +20,6 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.springframework.web.server.ServerWebInputException
 import org.springframework.web.server.UnsupportedMediaTypeStatusException
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveReviewNotFoundException
-import uk.gov.justice.digital.hmpps.incentivesapi.service.NoPrisonersAtLocationException
 import uk.gov.justice.digital.hmpps.incentivesapi.util.ParameterValidationException
 import javax.validation.ValidationException
 
@@ -122,20 +121,6 @@ class HmppsIncentivesApiExceptionHandler {
   @ExceptionHandler(NotFound::class)
   fun handleNotFound(e: NotFound): ResponseEntity<ErrorResponse?>? {
     log.debug("Not found exception caught: {}", e.message)
-    return ResponseEntity
-      .status(NOT_FOUND)
-      .body(
-        ErrorResponse(
-          status = NOT_FOUND,
-          userMessage = "Not Found: ${e.message}",
-          developerMessage = e.message,
-        ),
-      )
-  }
-
-  @ExceptionHandler(NoPrisonersAtLocationException::class)
-  fun handleNoPrisonersAtLocationException(e: NoPrisonersAtLocationException): ResponseEntity<ErrorResponse?>? {
-    log.debug("No prisoners found exception caught: {}", e.message)
     return ResponseEntity
       .status(NOT_FOUND)
       .body(
