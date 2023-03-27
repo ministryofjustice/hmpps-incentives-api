@@ -98,7 +98,8 @@ data class IepReview(
     required = true,
     allowableValues = ["BAS", "STD", "ENH", "EN2", "EN3"],
     example = "STD",
-    minLength = 2, maxLength = 6,
+    minLength = 2,
+    maxLength = 6,
     nullable = false,
   )
   val iepLevel: String,
@@ -131,7 +132,8 @@ data class SyncPostRequest(
     required = true,
     allowableValues = ["BAS", "STD", "ENH", "EN2", "EN3"],
     example = "STD",
-    minLength = 2, maxLength = 6,
+    minLength = 2,
+    maxLength = 6,
     nullable = false,
   )
   val iepLevel: String,

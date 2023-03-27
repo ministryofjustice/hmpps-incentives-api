@@ -91,7 +91,7 @@ class WebClientConfiguration(
 
     val authorizedClientManager = AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager(
       clientRegistrationRepository,
-      oAuth2AuthorizedClientService
+      oAuth2AuthorizedClientService,
     )
     authorizedClientManager.setAuthorizedClientProvider(authorizedClientProvider)
     return authorizedClientManager

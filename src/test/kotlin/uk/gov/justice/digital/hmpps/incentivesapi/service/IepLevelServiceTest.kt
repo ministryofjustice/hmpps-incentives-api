@@ -29,7 +29,7 @@ class IepLevelServiceTest {
           IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3),
           IepLevel(iepLevel = "ENH2", iepDescription = "Enhanced 2", sequence = 4),
           IepLevel(iepLevel = "ENH3", iepDescription = "Enhanced 3", sequence = 5),
-        )
+        ),
       )
 
       // When
@@ -52,7 +52,7 @@ class IepLevelServiceTest {
           IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1, default = true),
           IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2),
           IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3),
-        )
+        ),
       )
 
       // When
@@ -79,7 +79,7 @@ class IepLevelServiceTest {
           IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 4),
           IepLevel(iepLevel = "EN2", iepDescription = "Enhanced 2", sequence = 5),
           IepLevel(iepLevel = "EN3", iepDescription = "Enhanced 3", sequence = 6),
-        )
+        ),
       )
     }
 

@@ -46,7 +46,7 @@ class IepSummaryDateTest {
             userId = "TEST_USER",
             auditModuleName = "PRISON_API",
           ),
-        )
+        ),
       )
 
       assertThat(iepSummary.daysSinceReviewCalc(clock)).isEqualTo(60)
@@ -73,7 +73,7 @@ class IepSummaryDateTest {
             userId = "ADMISSION",
             auditModuleName = "OIDADMIS",
           ),
-        )
+        ),
       )
 
       assertThat(iepSummary.daysSinceReviewCalc(clock)).isEqualTo(3)
@@ -111,7 +111,7 @@ class IepSummaryDateTest {
             userId = "ADMISSION",
             auditModuleName = "OIDADMIS",
           ),
-        )
+        ),
       )
 
       assertThat(iepSummary.daysSinceReviewCalc(clock)).isEqualTo(0)
@@ -160,7 +160,7 @@ class IepSummaryDateTest {
             userId = "TESTUSER",
             auditModuleName = "PRISON_API",
           ),
-        )
+        ),
       )
 
       assertThat(iepSummary.daysSinceReviewCalc(clock)).isEqualTo(1)
@@ -196,7 +196,7 @@ class IepSummaryDateTest {
             userId = "TEST_USER",
             auditModuleName = "PRISON_API",
           ),
-        )
+        ),
       )
 
       assertThat(iepSummary.daysSinceReviewCalc(clock)).isEqualTo(0)
@@ -242,7 +242,7 @@ class IepSummaryDateTest {
             userId = "TEST_USER",
             auditModuleName = "PRISON_API",
           ),
-        )
+        ),
       )
 
       assertThat(iepSummary.daysSinceReviewCalc(clock)).isEqualTo(30)

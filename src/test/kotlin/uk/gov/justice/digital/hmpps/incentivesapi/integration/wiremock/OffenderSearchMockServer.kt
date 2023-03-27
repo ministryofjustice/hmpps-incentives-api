@@ -22,8 +22,8 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
         aResponse()
           .withHeader("Content-Type", "application/json")
           .withBody(if (status == 200) "pong" else "some error")
-          .withStatus(status)
-      )
+          .withStatus(status),
+      ),
     )
   }
 
@@ -107,7 +107,7 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
             receptionDate = LocalDate.parse("2020-07-01"),
             prisonId = prisonId,
           ),
-        )
+        ),
       )
     }
     // </editor-fold>
@@ -121,22 +121,26 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
                 "content" to offenders,
                 "totalElements" to offenders.size,
                 "last" to true,
-              )
-            )
-          )
-      )
+              ),
+            ),
+          ),
+      ),
     )
   }
 
   fun stubGetOffender(prisonId: String, prisonerNumber: String, bookingId: Long, withOpenAcct: Boolean = true) {
-    val alerts = if (withOpenAcct) listOf(
-      PrisonerAlert(
-        alertType = "H",
-        alertCode = "HA",
-        active = true,
-        expired = false,
-      ),
-    ) else emptyList()
+    val alerts = if (withOpenAcct) {
+      listOf(
+        PrisonerAlert(
+          alertType = "H",
+          alertCode = "HA",
+          active = true,
+          expired = false,
+        ),
+      )
+    } else {
+      emptyList()
+    }
 
     stubFor(
       get("/prisoner/$prisonerNumber").willReturn(
@@ -154,10 +158,10 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
                 receptionDate = LocalDate.parse("2020-07-01"),
                 prisonId = prisonId,
                 alerts = alerts,
-              )
-            )
-          )
-      )
+              ),
+            ),
+          ),
+      ),
     )
   }
 }

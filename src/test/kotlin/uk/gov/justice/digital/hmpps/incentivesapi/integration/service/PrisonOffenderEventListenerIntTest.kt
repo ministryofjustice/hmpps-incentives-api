@@ -135,7 +135,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
         iepCode = "BAS",
         current = true,
         reviewTime = LocalDateTime.now().minusDays(2),
-      )
+      ),
     )
     prisonerIepLevelRepository.save(
       PrisonerIepLevel(
@@ -147,7 +147,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
         iepCode = "STD",
         current = true,
         reviewTime = LocalDateTime.now().minusDays(50),
-      )
+      ),
     )
     prisonerIepLevelRepository.save(
       PrisonerIepLevel(
@@ -159,7 +159,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
         iepCode = "BAS",
         current = false,
         reviewTime = LocalDateTime.now().minusDays(200),
-      )
+      ),
     )
     prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = locationId)
 
@@ -194,7 +194,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
         current = true,
         reviewTime = lastReviewTime,
         reviewType = ReviewType.REVIEW,
-      )
+      ),
     )
     // First review
     prisonerIepLevelRepository.save(
@@ -208,11 +208,16 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
         current = false,
         reviewTime = lastReviewTime.minusDays(7),
         reviewType = ReviewType.REVIEW,
-      )
+      ),
     )
 
     // When
-    publishPrisonerAlertsUpdatedMessage(prisonerNumber, bookingId, alertsAdded = emptyList(), alertsRemoved = listOf(PrisonerAlert.ACCT_ALERT_CODE))
+    publishPrisonerAlertsUpdatedMessage(
+      prisonerNumber,
+      bookingId,
+      alertsAdded = emptyList(),
+      alertsRemoved = listOf(PrisonerAlert.ACCT_ALERT_CODE),
+    )
 
     awaitAtMost30Secs untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
 
@@ -231,7 +236,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
       additionalInformation = AdditionalInformation(
         id = 123,
         nomsNumber = "A1244AB",
-        reason = reason
+        reason = reason,
       ),
       description = "A prisoner has been received into a prison with reason: admission on new charges",
     )
@@ -264,7 +269,11 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
       description = "A prisoner record has been updated",
     )
 
-  private fun publishDomainEventMessage(eventType: String, additionalInformation: AdditionalInformation, description: String) {
+  private fun publishDomainEventMessage(
+    eventType: String,
+    additionalInformation: AdditionalInformation,
+    description: String,
+  ) {
     domainEventsTopicSnsClient.publish(
       PublishRequest(
         domainEventsTopicArn,
@@ -273,16 +282,16 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
             eventType = eventType,
             additionalInformation = additionalInformation,
             occurredAt = Instant.now(),
-            description = description
-          )
-        )
+            description = description,
+          ),
+        ),
       )
         .withMessageAttributes(
           mapOf(
             "eventType" to MessageAttributeValue().withDataType("String")
               .withStringValue(eventType),
-          )
-        )
+          ),
+        ),
     )
   }
 }

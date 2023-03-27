@@ -57,7 +57,7 @@ data class PrisonerCaseNoteByTypeSubType(
 
 data class CaseNoteUsageTypesRequest(
   val types: List<String>,
-  val bookingFromDateSelection: List<BookingFromDatePair>
+  val bookingFromDateSelection: List<BookingFromDatePair>,
 )
 
 data class BookingFromDatePair(
@@ -68,7 +68,7 @@ data class BookingFromDatePair(
 
 data class ProvenAdjudication(
   val bookingId: Long,
-  val provenAdjudicationCount: Int
+  val provenAdjudicationCount: Int,
 )
 
 // TODO: this does too many things, split into: • global level as defined in NOMIS reference data • per-prison configured level

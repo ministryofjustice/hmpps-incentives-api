@@ -50,6 +50,20 @@ class Ensure {
     }
     return this
   }
+
+  fun <T, C : Collection<T>> Pair<String, C>.hasSizeAtLeast(min: Int): Pair<String, C> {
+    if (second.size < min) {
+      errors.add("`$first` must have size of at least $min")
+    }
+    return this
+  }
+
+  fun <T, C : Collection<T>> Pair<String, C>.hasSizeAtMost(max: Int): Pair<String, C> {
+    if (second.size > max) {
+      errors.add("`$first` must have size of at most $max")
+    }
+    return this
+  }
 }
 
 class ParameterValidationException(val errors: List<String>) :

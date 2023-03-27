@@ -10,7 +10,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
+import uk.gov.justice.digital.hmpps.incentivesapi.helper.expectErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.NextReviewDateRepository
@@ -21,6 +23,7 @@ import java.time.LocalDateTime
 class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
   @Autowired
   private lateinit var prisonerIepLevelRepository: PrisonerIepLevelRepository
+
   @Autowired
   private lateinit var nextReviewDateRepository: NextReviewDateRepository
 
@@ -60,7 +63,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
       locationId = "1-1-002",
       commentText = "test comment",
       reviewedBy = "TEST_USER",
-    )
+    ),
   )
 
   @AfterEach
@@ -106,17 +109,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
         .uri("/incentives-reviews/prison/Moorland/location/MDI-1/level/STD")
         .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().json(
-          // language=json
-          """
-          {
-            "status": 400,
-            "userMessage": "Invalid parameters: `prisonId` must have length of at most 5",
-            "developerMessage": "Invalid parameters: `prisonId` must have length of at most 5"
-          }
-          """
-        )
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid parameters: `prisonId` must have length of at most 5")
     }
 
     @Test
@@ -128,17 +121,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
         .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/s")
         .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().json(
-          // language=json
-          """
-          {
-            "status": 400,
-            "userMessage": "Invalid parameters: `levelCode` must have length of at least 2",
-            "developerMessage": "Invalid parameters: `levelCode` must have length of at least 2"
-          }
-          """
-        )
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid parameters: `levelCode` must have length of at least 2")
     }
 
     @Test
@@ -150,12 +133,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
         .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?sort=PRISON")
         .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody()
-        .jsonPath("status").isEqualTo(400)
-        .jsonPath("userMessage").value<String> {
-          assertThat(it).contains("No enum constant")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "No enum constant")
     }
 
     @Test
@@ -167,17 +145,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
         .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?page=-1")
         .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().json(
-          // language=json
-          """
-          {
-            "status": 400,
-            "userMessage": "Invalid parameters: `page` must be at least 0",
-            "developerMessage": "Invalid parameters: `page` must be at least 0"
-          }
-          """
-        )
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid parameters: `page` must be at least 0")
     }
 
     @Test
@@ -189,16 +157,9 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
         .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?page=-1&pageSize=0")
         .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().json(
-          // language=json
-          """
-          {
-            "status": 400,
-            "userMessage": "Invalid parameters: `page` must be at least 0, `pageSize` must be at least 1",
-            "developerMessage": "Invalid parameters: `page` must be at least 0, `pageSize` must be at least 1"
-          }
-          """
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "Invalid parameters: `page` must be at least 0, `pageSize` must be at least 1",
         )
     }
   }
@@ -454,17 +415,7 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
         .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?sort=PRISONER_NUMBER&order=DESC&page=$page&pageSize=2")
         .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody().json(
-          // language=json
-          """
-          {
-            "status": 400,
-            "userMessage": "Validation failure: Page number is out of range",
-            "developerMessage": "Page number is out of range"
-          }
-          """
-        )
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Page number is out of range")
     }
   }
 
@@ -481,16 +432,9 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
       .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD")
       .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
       .exchange()
-      .expectStatus().isNotFound
-      .expectBody().json(
-        // language=json
-        """
-          {
-            "status": 404,
-            "userMessage": "No incentive levels found for ID(s) [1234134, 1234135, 1234136, 1234137, 1234138]",
-            "developerMessage": "No incentive levels found for ID(s) [1234134, 1234135, 1234136, 1234137, 1234138]"
-          }
-          """
+      .expectErrorResponse(
+        HttpStatus.NOT_FOUND,
+        "No incentive levels found for ID(s) [1234134, 1234135, 1234136, 1234137, 1234138]",
       )
   }
 }

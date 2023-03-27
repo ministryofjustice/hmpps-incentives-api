@@ -1,16 +1,17 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.resource
 
 import kotlinx.coroutines.runBlocking
-import org.assertj.core.api.Assertions.assertThat
 import org.json.JSONObject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
+import uk.gov.justice.digital.hmpps.incentivesapi.helper.expectErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
@@ -89,7 +90,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
                 "default": false
             }
         ]
-        """.trimIndent()
+        """.trimIndent(),
       )
   }
 
@@ -168,7 +169,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
                 }
              ]
           }
-          """
+          """,
       )
   }
 
@@ -243,7 +244,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
 
              ]
           }
-          """
+          """,
       )
   }
 
@@ -255,7 +256,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
     prisonApiMockServer.stubGetPrisonerInfoByBooking(
       bookingId = bookingId,
       prisonerNumber = prisonerNumber,
-      locationId = 77778L
+      locationId = 77778L,
     )
     prisonApiMockServer.stubGetLocationById(locationId = 77778L, locationDesc = "1-2-003")
     prisonApiMockServer.stubAddIep(bookingId = bookingId)
@@ -280,7 +281,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
     prisonApiMockServer.stubGetPrisonerInfoByBooking(
       bookingId = bookingId2,
       prisonerNumber = prisonerNumber2,
-      locationId = 77779L
+      locationId = 77779L,
     )
     prisonApiMockServer.stubGetLocationById(locationId = 77779L, locationDesc = "1-2-004")
     prisonApiMockServer.stubAddIep(bookingId = bookingId2)
@@ -309,7 +310,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
              "iepLevel": "Enhanced"
               }
           ]
-          """
+          """,
       )
   }
 
@@ -329,7 +330,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
     @BeforeEach
     fun setUp(): Unit = runBlocking {
       existingPrisonerIepLevel = repository.save(
-        prisonerIepLevel(bookingId = bookingId, prisonerNumber = prisonerNumber)
+        prisonerIepLevel(bookingId = bookingId, prisonerNumber = prisonerNumber),
       )
 
       syncPatchEndpoint = "/iep/sync/booking/$bookingId/id/${existingPrisonerIepLevel.id}"
@@ -514,7 +515,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
             "reviewType":"${requestBody.reviewType}",
             "auditModuleName":"INCENTIVES_API"
           }
-          """.trimIndent()
+          """.trimIndent(),
         )
         .returnResult()
         .responseBody ?: ByteArray(0)
@@ -541,7 +542,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
                  "reviewType":"${requestBody.reviewType}",
                  "auditModuleName":"INCENTIVES_API"
               }
-          """
+          """,
         )
     }
 
@@ -731,7 +732,7 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
                 }
              ]
           }
-          """
+          """,
         )
     }
 
@@ -761,14 +762,10 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
             "userId": "XYZ_GEN",
             "reviewType": "MIGRATED",
             "current": true
-          }"""
+          }""",
         )
         .exchange()
-        .expectStatus().isBadRequest
-        .expectBody()
-        .jsonPath("userMessage").value<String> {
-          assertThat(it).contains("Invalid parameters: `iepLevel` must have length of at most 6")
-        }
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid parameters: `iepLevel` must have length of at most 6")
     }
 
     @Test

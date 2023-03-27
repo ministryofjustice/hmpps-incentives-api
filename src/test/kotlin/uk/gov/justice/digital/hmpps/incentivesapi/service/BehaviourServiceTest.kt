@@ -73,7 +73,7 @@ class BehaviourServiceTest {
 
           PrisonerCaseNoteByTypeSubType(bookingId = 110004, caseNoteType = "POS", caseNoteSubType = "IEP_ENC", numCaseNotes = 1),
 
-        )
+        ),
       )
 
       val behaviours = behaviourService.getBehaviours(reviews)
@@ -88,7 +88,7 @@ class BehaviourServiceTest {
           BookingTypeKey(bookingId = 110003, caseNoteType = "NEG") to CaseNoteSummary(BookingTypeKey(bookingId = 110003, caseNoteType = "NEG"), 3, 0),
 
           BookingTypeKey(bookingId = 110004, caseNoteType = "POS") to CaseNoteSummary(BookingTypeKey(bookingId = 110004, caseNoteType = "POS"), 1, 1),
-        )
+        ),
       )
       assertThat(behaviours.lastRealReviews).isEqualTo(prisonerByLastRealReviewDate)
 

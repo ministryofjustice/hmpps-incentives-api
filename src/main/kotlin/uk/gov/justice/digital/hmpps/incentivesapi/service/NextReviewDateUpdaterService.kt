@@ -74,7 +74,7 @@ class NextReviewDateUpdaterService(
           receptionDate = offender.receptionDate,
           hasAcctOpen = offender.hasAcctOpen,
           iepDetails = iepDetails,
-        )
+        ),
       ).calculate()
 
       NextReviewDate(

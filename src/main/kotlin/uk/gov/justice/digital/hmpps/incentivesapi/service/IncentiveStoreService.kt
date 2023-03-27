@@ -13,16 +13,15 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLeve
 @Transactional
 class IncentiveStoreService(
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository,
-  private val nextReviewDateUpdaterService: NextReviewDateUpdaterService
+  private val nextReviewDateUpdaterService: NextReviewDateUpdaterService,
 ) {
   companion object {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
   }
 
   suspend fun saveIncentiveReview(
-    incentiveLevel: PrisonerIepLevel
+    incentiveLevel: PrisonerIepLevel,
   ): PrisonerIepLevel {
-
     if (incentiveLevel.current) {
       prisonerIepLevelRepository.updateIncentivesToNotCurrentForBooking(incentiveLevel.bookingId)
     }
@@ -39,7 +38,7 @@ class IncentiveStoreService(
         reviewedBy = incentiveLevel.reviewedBy,
         reviewTime = incentiveLevel.reviewTime,
         reviewType = incentiveLevel.reviewType,
-      )
+      ),
     )
     nextReviewDateUpdaterService.update(incentiveLevel.bookingId)
     return review
@@ -47,7 +46,7 @@ class IncentiveStoreService(
 
   suspend fun updateMergedReviews(
     reviewsToUpdate: List<PrisonerIepLevel>,
-    remainingBookingId: Long
+    remainingBookingId: Long,
   ) {
     val savedReviews = prisonerIepLevelRepository.saveAll(reviewsToUpdate)
     log.debug("${savedReviews.count()} records saved")
@@ -56,7 +55,7 @@ class IncentiveStoreService(
 
   suspend fun deleteIncentiveReview(
     prisonerIepLevel: PrisonerIepLevel,
-    bookingId: Long
+    bookingId: Long,
   ) {
     prisonerIepLevelRepository.delete(prisonerIepLevel)
     nextReviewDateUpdaterService.update(bookingId)
@@ -73,9 +72,8 @@ class IncentiveStoreService(
   suspend fun patchIncentiveReview(
     syncPatchRequest: SyncPatchRequest,
     bookingId: Long,
-    prisonerIepLevel: PrisonerIepLevel
+    prisonerIepLevel: PrisonerIepLevel,
   ): PrisonerIepLevel {
-
     syncPatchRequest.current?.let {
       prisonerIepLevelRepository.updateIncentivesToNotCurrentForBookingAndIncentive(bookingId, prisonerIepLevel.id)
     }
@@ -85,7 +83,7 @@ class IncentiveStoreService(
         reviewTime = syncPatchRequest.iepTime ?: prisonerIepLevel.reviewTime,
         commentText = syncPatchRequest.comment ?: prisonerIepLevel.commentText,
         current = syncPatchRequest.current ?: prisonerIepLevel.current,
-      )
+      ),
     )
     nextReviewDateUpdaterService.update(review.bookingId)
     return review
