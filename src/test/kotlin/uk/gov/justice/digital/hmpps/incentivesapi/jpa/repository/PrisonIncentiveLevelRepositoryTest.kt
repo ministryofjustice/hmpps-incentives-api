@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository
 
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.toSet
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -65,10 +66,10 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
       levelCode = "STD",
       prisonId = "MDI",
 
-      remandTransferLimitInPence = 2750,
-      remandSpendLimitInPence = 27500,
-      convictedTransferLimitInPence = 550,
-      convictedSpendLimitInPence = 5500,
+      remandTransferLimitInPence = 27_50,
+      remandSpendLimitInPence = 275_00,
+      convictedTransferLimitInPence = 5_50,
+      convictedSpendLimitInPence = 55_00,
 
       visitOrders = 2,
       privilegedVisitOrders = 1,
@@ -81,10 +82,10 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
       levelCode = "STD",
       prisonId = "MDI",
 
-      remandTransferLimitInPence = 6050,
-      remandSpendLimitInPence = 60500,
-      convictedTransferLimitInPence = 1980,
-      convictedSpendLimitInPence = 19800,
+      remandTransferLimitInPence = 60_50,
+      remandSpendLimitInPence = 605_00,
+      convictedTransferLimitInPence = 19_80,
+      convictedSpendLimitInPence = 198_00,
 
       visitOrders = 2,
       privilegedVisitOrders = 1,
@@ -101,10 +102,10 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
       levelCode = "std", // ← does not exist
       prisonId = "MDI",
 
-      remandTransferLimitInPence = 6050,
-      remandSpendLimitInPence = 60500,
-      convictedTransferLimitInPence = 1980,
-      convictedSpendLimitInPence = 19800,
+      remandTransferLimitInPence = 60_50,
+      remandSpendLimitInPence = 605_00,
+      convictedTransferLimitInPence = 19_80,
+      convictedSpendLimitInPence = 198_00,
 
       visitOrders = 2,
       privilegedVisitOrders = 1,
@@ -121,10 +122,10 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
       levelCode = "STD",
       prisonId = "MDI",
 
-      remandTransferLimitInPence = 6050,
-      remandSpendLimitInPence = 60500,
-      convictedTransferLimitInPence = 1980,
-      convictedSpendLimitInPence = -19800, // ← cannot be negative
+      remandTransferLimitInPence = 60_50,
+      remandSpendLimitInPence = 605_00,
+      convictedTransferLimitInPence = 19_80,
+      convictedSpendLimitInPence = -198_00, // ← cannot be negative
 
       visitOrders = 2,
       privilegedVisitOrders = 0,
@@ -144,10 +145,10 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
         prisonId = "MDI",
         active = levelCode != "ENT",
 
-        remandTransferLimitInPence = 6050,
-        remandSpendLimitInPence = 60500,
-        convictedTransferLimitInPence = 1980,
-        convictedSpendLimitInPence = 19800,
+        remandTransferLimitInPence = 60_50,
+        remandSpendLimitInPence = 605_00,
+        convictedTransferLimitInPence = 19_80,
+        convictedSpendLimitInPence = 198_00,
 
         visitOrders = 2,
         privilegedVisitOrders = 1,
@@ -171,10 +172,10 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
       levelCode = "ENH",
       prisonId = "MDI",
 
-      remandTransferLimitInPence = 6600,
-      remandSpendLimitInPence = 66000,
-      convictedTransferLimitInPence = 3300,
-      convictedSpendLimitInPence = 33000,
+      remandTransferLimitInPence = 66_00,
+      remandSpendLimitInPence = 660_00,
+      convictedTransferLimitInPence = 33_00,
+      convictedSpendLimitInPence = 330_00,
 
       visitOrders = 2,
       privilegedVisitOrders = 1,
@@ -189,26 +190,27 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
     assertThat(savedEntity?.levelDescription).isEqualTo("Enhanced")
   }
 
+  private fun makeNewEntity(levelCode: String, prisonId: String) = PrisonIncentiveLevel(
+    levelCode = levelCode,
+    prisonId = prisonId,
+    active = levelCode != "ENT",
+    defaultOnAdmission = levelCode == "STD",
+
+    remandTransferLimitInPence = 60_50,
+    remandSpendLimitInPence = 605_00,
+    convictedTransferLimitInPence = 19_80,
+    convictedSpendLimitInPence = 198_00,
+
+    visitOrders = 2,
+    privilegedVisitOrders = 1,
+
+    new = true,
+  )
+
   private suspend fun generateDefaultData() {
     listOf("BAS", "STD", "ENH", "EN2", "ENT").forEach { levelCode ->
       listOf("BAI", "MDI", "WRI").forEach { prisonId ->
-        val entity = PrisonIncentiveLevel(
-          levelCode = levelCode,
-          prisonId = prisonId,
-          active = levelCode != "ENT",
-          defaultOnAdmission = levelCode == "STD",
-
-          remandTransferLimitInPence = 6050,
-          remandSpendLimitInPence = 60500,
-          convictedTransferLimitInPence = 1980,
-          convictedSpendLimitInPence = 19800,
-
-          visitOrders = 2,
-          privilegedVisitOrders = 1,
-
-          new = true,
-        )
-        repository.save(entity)
+        repository.save(makeNewEntity(levelCode, prisonId))
       }
     }
     assertThat(repository.count()).isEqualTo(15)
@@ -239,5 +241,19 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
 
     val missing = repository.findFirstByPrisonIdAndActiveIsTrueAndDefaultIsTrue("LEI")
     assertThat(missing).isNull()
+  }
+
+  @Test
+  fun `find prisons that have active levels`(): Unit = runBlocking {
+    generateDefaultData()
+    // Generate inactive prisons that will not be returned:
+    listOf("BAS", "STD", "ENH", "EN2", "ENT").forEach { levelCode ->
+      listOf("EXI", "LEI").forEach { prisonId ->
+        repository.save(makeNewEntity(levelCode, prisonId).copy(active = false))
+      }
+    }
+
+    val prisonIds = repository.findPrisonIdsWithActiveLevels().toSet()
+    assertThat(prisonIds).isEqualTo(setOf("BAI", "MDI", "WRI"))
   }
 }

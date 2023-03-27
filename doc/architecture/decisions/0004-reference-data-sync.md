@@ -15,11 +15,11 @@ Accepted
 This document will cover the approach for the incentive service to master incentive reference data and synchronisation this information back into NOMIS
 
 Reference data for incentives includes:-
-- List of values for incentive levels for available to all prisons.  These are 
-  - Basic (BAS), 
-  - Standard (STD), 
-  - Enhanced (ENH), 
-  - Enhanced 2 (EN2), 
+- List of values for incentive levels for available to all prisons.  These are
+  - Basic (BAS),
+  - Standard (STD),
+  - Enhanced (ENH),
+  - Enhanced 2 (EN2),
   - Enhanced 3 (EN3)
 - List of incentive levels that apply to a prison
 - Spends for each level in each prison
@@ -34,7 +34,7 @@ erDiagram
     Prison_Incentive_Level ||--o{ VisitAllowance: has_visit_attributes
     Prison_Incentive_Level ||--o{ Privileges: has_priv_attributes
     Incentive_Level ||--o{ Prison_Incentive_Level: define_allowed_levels
-   
+
 ```
 
 ### Tables Affected in **NOMIS**:
@@ -51,12 +51,12 @@ erDiagram
    CONSTRAINT "REFERENCE_CODES_PK" PRIMARY KEY ("DOMAIN", "CODE")
  )
 ```
-Levels are set with the DOMAIN of `IEP_LEVELS` as a central admin user on the Reference Codes screen ![](reference_codes.png) 
+Levels are set with the DOMAIN of `IEP_LEVELS` as a central admin user on the Reference Codes screen ![](reference_codes.png)
 
 The `IEP_OTH_PRIV` domain allows extra privileges to be added ![](other_privs_ref.png)
 
 **There are only 3 active privileges in production**
-             
+
 | Code | Description       | Active |
 |------|-------------------|--------|
 | INET | Internet Access   | Y      |
@@ -67,7 +67,7 @@ The `IEP_OTH_PRIV` domain allows extra privileges to be added ![](other_privs_re
 
 The **OIMOIEPS** NOMIS screen allows config of levels, visits and other privilages.
 
-- IEP_LEVELS 
+- IEP_LEVELS
 ```oracle
   CREATE TABLE "IEP_LEVELS"
   (
@@ -159,8 +159,8 @@ sequenceDiagram
     participant HMPPS NOMIS Prisoner API
     participant NOMIS DB
 
-    Prison Staff ->> DPS: Add Incentive Reference data 
-    
+    Prison Staff ->> DPS: Add Incentive Reference data
+
     DPS ->> Incentives API: Call API with changes
     activate Incentives API
     Incentives API->>Incentives Database: update DB
@@ -168,7 +168,7 @@ sequenceDiagram
     Note over Incentives API,Domain Events: INCENTIVE_LEVEL_REFERENCE_DATA_[INSERTED/UPDATED]
     Incentives API-->>DPS: Reference Data updated returned
     deactivate Incentives API
-    
+
     Domain Events-->>HMPPS Prisoner to NOMIS update: Receives INCENTIVE_LEVEL_REFERENCE_DATA_* domain event
     activate HMPPS Prisoner to NOMIS update
     HMPPS Prisoner to NOMIS update->>HMPPS NOMIS Prisoner API: Update NOMIS with reference data
@@ -179,7 +179,7 @@ sequenceDiagram
 
 #### Event Types:
 In both instances the domain event will contain the code of the reference data.
-- INCENTIVE_LEVEL_REFERENCE_DATA_INSERTED 
+- INCENTIVE_LEVEL_REFERENCE_DATA_INSERTED
 - INCENTIVE_LEVEL_REFERENCE_DATA_UPDATED
 
 Note these should be the standard way of notifying about reference data changes for all NOMIS related reference data.
@@ -225,18 +225,20 @@ These events are raised when changes are made to add or update incentive levels 
 Authorised requests do not require any roles.
 
 #### Get a list of active incentive levels globally of all prisons
-`GET /incentive/levels` - 
+`GET /incentive/levels` -
 ```json5
 [
   {
     "code": "BAS",
     "description": "Basic",
-    "active": true
+    "active": true,
+    "required": true
   },
   {
     "code": "STD",
     "description": "Standard",
-    "active": true
+    "active": true,
+    "required": true
   },
   // more entries…
 ]
@@ -249,18 +251,21 @@ Authorised requests do not require any roles.
   {
     "code": "BAS",
     "description": "Basic",
-    "active": true
+    "active": true,
+    "required": true
   },
   {
     "code": "STD",
     "description": "Standard",
-    "active": true
+    "active": true,
+    "required": true
   },
   // more entries…
   {
     "code": "ENT",
     "description": "Entry",
-    "active": false
+    "active": false,
+    "required": false
   }
 ]
 ```

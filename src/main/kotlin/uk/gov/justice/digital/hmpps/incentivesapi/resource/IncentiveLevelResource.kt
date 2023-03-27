@@ -97,6 +97,10 @@ class IncentiveLevelResource(
     ensure {
       ("code" to incentiveLevel.code).hasLengthAtLeast(1).hasLengthAtMost(6)
       ("description" to incentiveLevel.description).hasLengthAtLeast(1)
+
+      if (!incentiveLevel.active && incentiveLevel.required) {
+        errors.add("A level must be active if it is required")
+      }
     }
     return incentiveLevelService.createIncentiveLevel(incentiveLevel)
   }
@@ -181,8 +185,9 @@ class IncentiveLevelResource(
   @PreAuthorize("hasRole('MAINTAIN_INCENTIVE_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
     summary = "Updates an incentive level",
-    description = "Payload must include all required fields",
-    // TODO: decide and explain what happens to associated per-prison data
+    description = "Payload must include all required fields. A level marked as required must also be active.",
+    // TODO: decide and explain what happens to associated per-prison data when activating/deactivating;
+    //       especially if level is active and/or occupied in some prison
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -190,7 +195,7 @@ class IncentiveLevelResource(
       ),
       ApiResponse(
         responseCode = "400",
-        description = "Invalid payload", // TODO: maybe also when deactivating and there are prisons with level activated?
+        description = "Invalid payload",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
@@ -229,8 +234,9 @@ class IncentiveLevelResource(
   @PreAuthorize("hasRole('MAINTAIN_INCENTIVE_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
     summary = "Updates an incentive level",
-    description = "Partial updates are allowed",
-    // TODO: decide and explain what happens to associated per-prison data
+    description = "Partial updates are allowed. A level marked as required must also be active.",
+    // TODO: decide and explain what happens to associated per-prison data when activating/deactivating;
+    //       especially if level is active and/or occupied in some prison
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -238,7 +244,7 @@ class IncentiveLevelResource(
       ),
       ApiResponse(
         responseCode = "400",
-        description = "Invalid payload", // TODO: maybe also when deactivating and there are prisons with level activated?
+        description = "Invalid payload",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
@@ -269,6 +275,14 @@ class IncentiveLevelResource(
       update.description?.let {
         ("description" to it).hasLengthAtLeast(1)
       }
+
+      update.active?.let { active ->
+        update.required?.let { required ->
+          if (!active && required) {
+            errors.add("A level must be active if it is required")
+          }
+        }
+      }
     }
     return incentiveLevelService.updateIncentiveLevel(code, update)
       ?: throw NoDataWithCodeFoundException("incentive level", code)
@@ -278,17 +292,19 @@ class IncentiveLevelResource(
   @PreAuthorize("hasRole('MAINTAIN_INCENTIVE_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
     summary = "Deactivates an incentive level",
-    // TODO: decide and explain what happens to associated per-prison data
+    description = "A required level cannot be deactivated, needs to be updated first to be not required.",
+    // TODO: decide and explain what happens to associated per-prison data;
+    //       especially if level is active and/or occupied in some prison
     responses = [
       ApiResponse(
         responseCode = "200",
         description = "Incentive level deactivated",
       ),
-      // ApiResponse(
-      //   responseCode = "400",
-      //   description = "This incentive level is active in some prison so cannot be deactivated",
-      //   content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
-      // ),
+      ApiResponse(
+        responseCode = "400",
+        description = "Incentive level is marked as required",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",

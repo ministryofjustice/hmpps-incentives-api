@@ -16,6 +16,7 @@ data class IncentiveLevel(
   val description: String,
   val sequence: Int,
   val active: Boolean = true,
+  val required: Boolean = false,
   @ReadOnlyProperty
   val whenCreated: LocalDateTime = LocalDateTime.now(),
   val whenUpdated: LocalDateTime = LocalDateTime.now(),

@@ -101,4 +101,17 @@ interface PrisonIncentiveLevelRepository : CoroutineCrudRepository<PrisonIncenti
     """,
   )
   suspend fun setOtherLevelsNotDefaultForAdmission(prisonId: String, levelCode: String): Int?
+
+  /**
+   * All prisons that have active level configurations, effectively a way to find all active prisons
+   */
+  @Query(
+    // language=postgresql
+    """
+    SELECT DISTINCT prison_id
+    FROM prison_incentive_level
+    WHERE active IS TRUE
+    """,
+  )
+  fun findPrisonIdsWithActiveLevels(): Flow<String>
 }
