@@ -66,10 +66,10 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
       levelCode = "STD",
       prisonId = "MDI",
 
-      remandTransferLimitInPence = 2750,
-      remandSpendLimitInPence = 27500,
-      convictedTransferLimitInPence = 550,
-      convictedSpendLimitInPence = 5500,
+      remandTransferLimitInPence = 27_50,
+      remandSpendLimitInPence = 275_00,
+      convictedTransferLimitInPence = 5_50,
+      convictedSpendLimitInPence = 55_00,
 
       visitOrders = 2,
       privilegedVisitOrders = 1,
@@ -82,10 +82,10 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
       levelCode = "STD",
       prisonId = "MDI",
 
-      remandTransferLimitInPence = 6050,
-      remandSpendLimitInPence = 60500,
-      convictedTransferLimitInPence = 1980,
-      convictedSpendLimitInPence = 19800,
+      remandTransferLimitInPence = 60_50,
+      remandSpendLimitInPence = 605_00,
+      convictedTransferLimitInPence = 19_80,
+      convictedSpendLimitInPence = 198_00,
 
       visitOrders = 2,
       privilegedVisitOrders = 1,
@@ -102,10 +102,10 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
       levelCode = "std", // ← does not exist
       prisonId = "MDI",
 
-      remandTransferLimitInPence = 6050,
-      remandSpendLimitInPence = 60500,
-      convictedTransferLimitInPence = 1980,
-      convictedSpendLimitInPence = 19800,
+      remandTransferLimitInPence = 60_50,
+      remandSpendLimitInPence = 605_00,
+      convictedTransferLimitInPence = 19_80,
+      convictedSpendLimitInPence = 198_00,
 
       visitOrders = 2,
       privilegedVisitOrders = 1,
@@ -122,10 +122,10 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
       levelCode = "STD",
       prisonId = "MDI",
 
-      remandTransferLimitInPence = 6050,
-      remandSpendLimitInPence = 60500,
-      convictedTransferLimitInPence = 1980,
-      convictedSpendLimitInPence = -19800, // ← cannot be negative
+      remandTransferLimitInPence = 60_50,
+      remandSpendLimitInPence = 605_00,
+      convictedTransferLimitInPence = 19_80,
+      convictedSpendLimitInPence = -198_00, // ← cannot be negative
 
       visitOrders = 2,
       privilegedVisitOrders = 0,
@@ -145,10 +145,10 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
         prisonId = "MDI",
         active = levelCode != "ENT",
 
-        remandTransferLimitInPence = 6050,
-        remandSpendLimitInPence = 60500,
-        convictedTransferLimitInPence = 1980,
-        convictedSpendLimitInPence = 19800,
+        remandTransferLimitInPence = 60_50,
+        remandSpendLimitInPence = 605_00,
+        convictedTransferLimitInPence = 19_80,
+        convictedSpendLimitInPence = 198_00,
 
         visitOrders = 2,
         privilegedVisitOrders = 1,
@@ -172,10 +172,10 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
       levelCode = "ENH",
       prisonId = "MDI",
 
-      remandTransferLimitInPence = 6600,
-      remandSpendLimitInPence = 66000,
-      convictedTransferLimitInPence = 3300,
-      convictedSpendLimitInPence = 33000,
+      remandTransferLimitInPence = 66_00,
+      remandSpendLimitInPence = 660_00,
+      convictedTransferLimitInPence = 33_00,
+      convictedSpendLimitInPence = 330_00,
 
       visitOrders = 2,
       privilegedVisitOrders = 1,
@@ -196,10 +196,10 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
     active = levelCode != "ENT",
     defaultOnAdmission = levelCode == "STD",
 
-    remandTransferLimitInPence = 6050,
-    remandSpendLimitInPence = 60500,
-    convictedTransferLimitInPence = 1980,
-    convictedSpendLimitInPence = 19800,
+    remandTransferLimitInPence = 60_50,
+    remandSpendLimitInPence = 605_00,
+    convictedTransferLimitInPence = 19_80,
+    convictedSpendLimitInPence = 198_00,
 
     visitOrders = 2,
     privilegedVisitOrders = 1,
