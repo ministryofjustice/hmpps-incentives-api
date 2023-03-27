@@ -16,7 +16,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonLocation
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocation
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerCaseNoteByTypeSubType
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerExtraInfo
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.ProvenAdjudication
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.ReferenceCode
 import uk.gov.justice.digital.hmpps.incentivesapi.util.CachedValue
 import java.time.Clock
@@ -81,13 +80,6 @@ class PrisonApiService(
           bookingFromDateSelection = prisonerByLastReviewDate.map { BookingFromDatePair(it.key, it.value) },
         ),
       )
-      .retrieve()
-      .bodyToFlow()
-
-  fun retrieveProvenAdjudications(bookingIds: List<Long>): Flow<ProvenAdjudication> =
-    prisonWebClient.post()
-      .uri("/api/bookings/proven-adjudications")
-      .bodyValue(bookingIds)
       .retrieve()
       .bodyToFlow()
 

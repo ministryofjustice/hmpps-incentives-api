@@ -66,11 +66,6 @@ data class BookingFromDatePair(
   val fromDate: LocalDateTime,
 )
 
-data class ProvenAdjudication(
-  val bookingId: Long,
-  val provenAdjudicationCount: Int,
-)
-
 // TODO: this does too many things, split into: • global level as defined in NOMIS reference data • per-prison configured level
 data class IepLevel(
   @Schema(description = "IEP Code for an IEP level", example = "STD")
