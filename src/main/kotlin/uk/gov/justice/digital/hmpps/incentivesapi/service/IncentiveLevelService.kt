@@ -106,7 +106,7 @@ class IncentiveLevelService(
 
   // TODO: Many DB queries are made: does this warrant NOT being in a transaction?
   private suspend fun enablePrisonIncentiveLevelEverywhere(levelCode: String) {
-    prisonIncentiveLevelRepository.findPrisonIdsOfActiveLevels().collect { prisonId ->
+    prisonIncentiveLevelRepository.findPrisonIdsWithActiveLevels().collect { prisonId ->
       prisonIncentiveLevelService.updatePrisonIncentiveLevel(
         prisonId,
         levelCode,

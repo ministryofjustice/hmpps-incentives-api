@@ -190,26 +190,27 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
     assertThat(savedEntity?.levelDescription).isEqualTo("Enhanced")
   }
 
+  private fun makeNewEntity(levelCode: String, prisonId: String) = PrisonIncentiveLevel(
+    levelCode = levelCode,
+    prisonId = prisonId,
+    active = levelCode != "ENT",
+    defaultOnAdmission = levelCode == "STD",
+
+    remandTransferLimitInPence = 6050,
+    remandSpendLimitInPence = 60500,
+    convictedTransferLimitInPence = 1980,
+    convictedSpendLimitInPence = 19800,
+
+    visitOrders = 2,
+    privilegedVisitOrders = 1,
+
+    new = true,
+  )
+
   private suspend fun generateDefaultData() {
     listOf("BAS", "STD", "ENH", "EN2", "ENT").forEach { levelCode ->
       listOf("BAI", "MDI", "WRI").forEach { prisonId ->
-        val entity = PrisonIncentiveLevel(
-          levelCode = levelCode,
-          prisonId = prisonId,
-          active = levelCode != "ENT",
-          defaultOnAdmission = levelCode == "STD",
-
-          remandTransferLimitInPence = 6050,
-          remandSpendLimitInPence = 60500,
-          convictedTransferLimitInPence = 1980,
-          convictedSpendLimitInPence = 19800,
-
-          visitOrders = 2,
-          privilegedVisitOrders = 1,
-
-          new = true,
-        )
-        repository.save(entity)
+        repository.save(makeNewEntity(levelCode, prisonId))
       }
     }
     assertThat(repository.count()).isEqualTo(15)
@@ -248,27 +249,11 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
     // Generate inactive prisons that will not be returned:
     listOf("BAS", "STD", "ENH", "EN2", "ENT").forEach { levelCode ->
       listOf("EXI", "LEI").forEach { prisonId ->
-        val entity = PrisonIncentiveLevel(
-          levelCode = levelCode,
-          prisonId = prisonId,
-          active = false,
-          defaultOnAdmission = levelCode == "STD",
-
-          remandTransferLimitInPence = 6050,
-          remandSpendLimitInPence = 60500,
-          convictedTransferLimitInPence = 1980,
-          convictedSpendLimitInPence = 19800,
-
-          visitOrders = 2,
-          privilegedVisitOrders = 1,
-
-          new = true,
-        )
-        repository.save(entity)
+        repository.save(makeNewEntity(levelCode, prisonId).copy(active = false))
       }
     }
 
-    val prisonIds = repository.findPrisonIdsOfActiveLevels().toSet()
+    val prisonIds = repository.findPrisonIdsWithActiveLevels().toSet()
     assertThat(prisonIds).isEqualTo(setOf("BAI", "MDI", "WRI"))
   }
 }

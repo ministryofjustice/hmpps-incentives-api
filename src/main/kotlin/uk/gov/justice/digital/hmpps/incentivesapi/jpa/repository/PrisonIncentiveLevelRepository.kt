@@ -113,5 +113,5 @@ interface PrisonIncentiveLevelRepository : CoroutineCrudRepository<PrisonIncenti
     WHERE active IS TRUE
     """,
   )
-  fun findPrisonIdsOfActiveLevels(): Flow<String>
+  fun findPrisonIdsWithActiveLevels(): Flow<String>
 }
