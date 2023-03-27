@@ -277,38 +277,6 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
     )
   }
 
-  fun stubProvenAdj() {
-    stubFor(
-      post("/api/bookings/proven-adjudications").willReturn(
-        aResponse()
-          .withHeader("Content-Type", "application/json")
-          .withBody(
-            // language=json
-            """
-              [
-                {
-                  "bookingId": 1234134,
-                  "provenAdjudicationCount": 3
-                },
-                {
-                  "bookingId": 1234135,
-                  "provenAdjudicationCount": 1
-                },
-                {
-                  "bookingId": 1234136,
-                  "provenAdjudicationCount": 4
-                },
-                {
-                  "bookingId": 1234137,
-                  "provenAdjudicationCount": 2
-                }
-              ]
-            """,
-          ),
-      ),
-    )
-  }
-
   fun stubAddIep(bookingId: Long) {
     stubFor(
       post("/api/bookings/$bookingId/iepLevels").willReturn(
