@@ -34,14 +34,4 @@ class OffenderSearchService(private val offenderSearchWebClient: WebClient) {
     } while (!pageOfData.last)
     return offenders
   }
-
-  /**
-   * Gets one offender record
-   * Requires ROLE_PRISONER_SEARCH or ROLE_VIEW_PRISONER_DATA role
-   */
-  suspend fun getOffender(prisonerNumber: String) =
-    offenderSearchWebClient.get()
-      .uri("/prisoner/$prisonerNumber")
-      .retrieve()
-      .awaitBody<OffenderSearchPrisoner>()
 }

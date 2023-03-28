@@ -127,41 +127,4 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
       ),
     )
   }
-
-  fun stubGetOffender(prisonId: String, prisonerNumber: String, bookingId: Long, withOpenAcct: Boolean = true) {
-    val alerts = if (withOpenAcct) {
-      listOf(
-        PrisonerAlert(
-          alertType = "H",
-          alertCode = "HA",
-          active = true,
-          expired = false,
-        ),
-      )
-    } else {
-      emptyList()
-    }
-
-    stubFor(
-      get("/prisoner/$prisonerNumber").willReturn(
-        aResponse()
-          .withHeader("Content-Type", "application/json")
-          .withBody(
-            mapper.writeValueAsBytes(
-              OffenderSearchPrisoner(
-                prisonerNumber = prisonerNumber,
-                bookingId = bookingId,
-                firstName = "JAMES",
-                middleNames = null,
-                lastName = "HALLS",
-                dateOfBirth = LocalDate.parse("1971-07-01"),
-                receptionDate = LocalDate.parse("2020-07-01"),
-                prisonId = prisonId,
-                alerts = alerts,
-              ),
-            ),
-          ),
-      ),
-    )
-  }
 }
