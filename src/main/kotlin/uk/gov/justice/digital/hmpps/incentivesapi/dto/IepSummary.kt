@@ -57,7 +57,7 @@ data class IepDetail(
   val id: Long,
   @Schema(description = "IEP Level", required = true, example = "Standard")
   val iepLevel: String,
-  @Schema(description = "IEP Code", required = false, example = "STD")
+  @Schema(description = "IEP Code", required = true, example = "STD")
   val iepCode: String,
   @Schema(description = "Review comments", required = false, example = "A review took place")
   val comments: String? = null,
