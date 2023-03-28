@@ -56,7 +56,7 @@ class PrisonerIepLevelReviewServiceTest {
     clock,
     nextReviewDateGetterService,
     nextReviewDateUpdaterService,
-    incentiveStoreService
+    incentiveStoreService,
   )
 
   @BeforeEach
@@ -183,7 +183,7 @@ class PrisonerIepLevelReviewServiceTest {
 
         // Given
         whenever(prisonerIepLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(bookingId)).thenReturn(
-          currentAndPreviousLevels
+          currentAndPreviousLevels,
         )
 
         // When
@@ -234,7 +234,7 @@ class PrisonerIepLevelReviewServiceTest {
             sequence = 1,
             default = true,
           ),
-        )
+        ),
       )
 
       // When
@@ -251,7 +251,7 @@ class PrisonerIepLevelReviewServiceTest {
         reviewedBy = "INCENTIVES_API",
         reviewTime = LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
         reviewType = expectedReviewType,
-        prisonerNumber = prisonerAtLocation().offenderNo
+        prisonerNumber = prisonerAtLocation().offenderNo,
       )
 
       verify(incentiveStoreService, times(1)).saveIncentiveReview(expectedPrisonerIepLevel)
@@ -341,7 +341,7 @@ class PrisonerIepLevelReviewServiceTest {
       val prisonMergeEvent = prisonMergeEvent()
       val prisonerAtLocation = prisonerAtLocation(
         bookingId = 1234567,
-        offenderNo = "A1244AB"
+        offenderNo = "A1244AB",
       )
       whenever(prisonApiService.getPrisonerInfo("A1244AB", true))
         .thenReturn(prisonerAtLocation)
@@ -355,7 +355,7 @@ class PrisonerIepLevelReviewServiceTest {
         reviewedBy = "TEST_STAFF1",
         iepCode = "BAS",
         current = true,
-        reviewTime = LocalDateTime.now().minusDays(2)
+        reviewTime = LocalDateTime.now().minusDays(2),
       )
       val oldReview1 = PrisonerIepLevel(
         id = 3L,
@@ -366,7 +366,7 @@ class PrisonerIepLevelReviewServiceTest {
         reviewedBy = "TEST_STAFF1",
         iepCode = "STD",
         current = true,
-        reviewTime = LocalDateTime.now().minusDays(100)
+        reviewTime = LocalDateTime.now().minusDays(100),
       )
 
       val oldReview2 = PrisonerIepLevel(
@@ -384,16 +384,16 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonerIepLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDesc("A8765SS"))
         .thenReturn(
           flowOf(
-            newReview
-          )
+            newReview,
+          ),
         )
 
       whenever(prisonerIepLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDesc("A1244AB"))
         .thenReturn(
           flowOf(
             oldReview2,
-            oldReview1
-          )
+            oldReview1,
+          ),
         )
       prisonerIepLevelReviewService.mergedPrisonerDetails(prisonMergeEvent)
 
@@ -401,9 +401,9 @@ class PrisonerIepLevelReviewServiceTest {
         listOf(
           newReview.copy(prisonerNumber = "A1244AB"),
           oldReview2.copy(bookingId = 1234567L, id = 0L, current = false),
-          oldReview1.copy(bookingId = 1234567L, id = 0L, current = false)
+          oldReview1.copy(bookingId = 1234567L, id = 0L, current = false),
         ),
-        1234567L
+        1234567L,
       )
 
       verify(auditService, times(1))
@@ -411,7 +411,7 @@ class PrisonerIepLevelReviewServiceTest {
           AuditType.PRISONER_NUMBER_MERGE,
           "A1244AB",
           "3 incentive records updated from merge A8765SS -> A1244AB. Updated to booking ID 1234567",
-          "INCENTIVES_API"
+          "INCENTIVES_API",
         )
     }
 
@@ -422,10 +422,10 @@ class PrisonerIepLevelReviewServiceTest {
         eventType = "prisoner-offender-search.prisoner.received",
         additionalInformation = AdditionalInformation(
           id = 123,
-          reason = "NEW_ADMISSION"
+          reason = "NEW_ADMISSION",
         ),
         occurredAt = Instant.now(),
-        description = "A prisoner has been received into a prison with reason: admission on new charges"
+        description = "A prisoner has been received into a prison with reason: admission on new charges",
       )
 
       // When
@@ -462,8 +462,8 @@ class PrisonerIepLevelReviewServiceTest {
           reviewedBy = migrationRequest.userId,
           reviewTime = migrationRequest.iepTime,
           reviewType = migrationRequest.reviewType,
-          prisonerNumber = prisonerAtLocation().offenderNo
-        )
+          prisonerNumber = prisonerAtLocation().offenderNo,
+        ),
       )
     }
 
@@ -489,8 +489,8 @@ class PrisonerIepLevelReviewServiceTest {
           reviewedBy = null,
           reviewTime = migrationRequestWithNullUserId.iepTime,
           reviewType = migrationRequestWithNullUserId.reviewType,
-          prisonerNumber = prisonerAtLocation().offenderNo
-        )
+          prisonerNumber = prisonerAtLocation().offenderNo,
+        ),
       )
     }
   }
@@ -537,7 +537,6 @@ class PrisonerIepLevelReviewServiceTest {
 
     @BeforeEach
     fun setUp(): Unit = runBlocking {
-
       // Mock find query
       whenever(prisonerIepLevelRepository.findById(id)).thenReturn(iepReview)
 
@@ -682,7 +681,6 @@ class PrisonerIepLevelReviewServiceTest {
 
     @BeforeEach
     fun setUp(): Unit = runBlocking {
-
       // Mock find query
       whenever(prisonerIepLevelRepository.findById(id)).thenReturn(iepReview)
 
@@ -750,7 +748,9 @@ class PrisonerIepLevelReviewServiceTest {
 
       // When
       prisonerIepLevelReviewService.handleSyncPatchIepReviewRequest(
-        bookingId, iepReview.id, syncPatchRequestNew
+        bookingId,
+        iepReview.id,
+        syncPatchRequestNew,
       )
 
       verify(incentiveStoreService, times(1))
@@ -847,7 +847,7 @@ class PrisonerIepLevelReviewServiceTest {
           id = iepReviewId,
           nomsNumber = prisonerAtLocation().offenderNo,
           reason = "USER_CREATED_NOMIS",
-        )
+        ),
       )
 
       // audit message is sent
@@ -862,7 +862,6 @@ class PrisonerIepLevelReviewServiceTest {
 
     @Test
     fun `If request has current true we update the previous IEP Level with current of true`(): Unit = runBlocking {
-
       // When
       prisonerIepLevelReviewService.handleSyncPostIepReviewRequest(bookingId, syncPostRequest.copy(current = true))
 
@@ -879,7 +878,7 @@ class PrisonerIepLevelReviewServiceTest {
     current = false,
     reviewedBy = "TEST_STAFF1",
     reviewTime = LocalDateTime.now().minusDays(2),
-    prisonerNumber = "A1234AB"
+    prisonerNumber = "A1234AB",
   )
 
   private val currentLevel = PrisonerIepLevel(
@@ -891,7 +890,7 @@ class PrisonerIepLevelReviewServiceTest {
     current = true,
     reviewedBy = "TEST_STAFF1",
     reviewTime = LocalDateTime.now(),
-    prisonerNumber = "A1234AB"
+    prisonerNumber = "A1234AB",
   )
 
   private val currentAndPreviousLevels = flowOf(previousLevel, currentLevel)
@@ -901,7 +900,7 @@ class PrisonerIepLevelReviewServiceTest {
     additionalInformation = AdditionalInformation(
       id = 123,
       nomsNumber = prisonerNumber,
-      reason = reason
+      reason = reason,
     ),
     occurredAt = Instant.now(),
     description = "A prisoner has been received into a prison with reason: " + when (reason) {
@@ -911,12 +910,12 @@ class PrisonerIepLevelReviewServiceTest {
       "RETURN_FROM_COURT" -> "returned back to prison from court"
       "TEMPORARY_ABSENCE_RETURN" -> "returned after a temporary absence"
       else -> throw NotImplementedError("No description set up for $reason event")
-    }
+    },
   )
 
   private fun prisonerAlertsUpdatedEvent(
     alertsAdded: List<String> = listOf(PrisonerAlert.ACCT_ALERT_CODE),
-    alertsRemoved: List<String> = emptyList()
+    alertsRemoved: List<String> = emptyList(),
   ) = HMPPSDomainEvent(
     eventType = "prisoner-offender-search.prisoner.alerts-updated",
     additionalInformation = AdditionalInformation(
@@ -926,7 +925,7 @@ class PrisonerIepLevelReviewServiceTest {
       alertsRemoved = alertsRemoved,
     ),
     occurredAt = Instant.now(),
-    description = "A prisoner record has been updated"
+    description = "A prisoner record has been updated",
   )
 
   private fun prisonMergeEvent() = HMPPSDomainEvent(
@@ -937,12 +936,10 @@ class PrisonerIepLevelReviewServiceTest {
       removedNomsNumber = "A8765SS",
     ),
     occurredAt = Instant.now(),
-    description = "A prisoner has been merged from A8765SS to A1244AB"
+    description = "A prisoner has been merged from A8765SS to A1244AB",
   )
 
-  private val location = Location(
-    agencyId = "MDI", locationId = 77777L, description = "Houseblock 1"
-  )
+  private val location = Location(agencyId = "MDI", locationId = 77777L, description = "Houseblock 1")
 
   private fun syncPostRequest(iepLevelCode: String = "STD", reviewType: ReviewType) = SyncPostRequest(
     iepTime = LocalDateTime.now(),
@@ -958,7 +955,7 @@ class PrisonerIepLevelReviewServiceTest {
     prisonerIepLevel: PrisonerIepLevel,
     iepDescription: String,
     iepCode: String,
-    id: Long = 0
+    id: Long = 0,
   ) =
     IepDetail(
       id = id,
@@ -983,4 +980,5 @@ val globalIncentiveLevels = listOf(
   IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3),
   IepLevel(iepLevel = "EN2", iepDescription = "Enhanced 2", sequence = 4),
 )
+
 val incentiveLevels = globalIncentiveLevels.associateBy { iep -> iep.iepLevel }

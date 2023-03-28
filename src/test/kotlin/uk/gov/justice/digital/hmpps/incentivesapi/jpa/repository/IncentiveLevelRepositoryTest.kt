@@ -1,7 +1,9 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository
 
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.reduce
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -32,6 +34,8 @@ class IncentiveLevelRepositoryTest : TestBase() {
       assertThat(level.sequence).isGreaterThan(previous.sequence)
       level
     }
+    val requiredLevels = repository.findAllByOrderBySequence().filter { it.required }.map { it.code }.toList()
+    assertThat(requiredLevels).isEqualTo(listOf("BAS", "STD", "ENH"))
   }
 
   private fun assertThatEntityCannotBeSaved(entity: IncentiveLevel) {
@@ -47,7 +51,7 @@ class IncentiveLevelRepositoryTest : TestBase() {
       description = "Standard",
       sequence = 10,
       new = true,
-    )
+    ),
   )
 
   @Test
@@ -57,7 +61,7 @@ class IncentiveLevelRepositoryTest : TestBase() {
       description = "Standard",
       sequence = 10,
       new = true,
-    )
+    ),
   )
 
   @Test
@@ -67,6 +71,18 @@ class IncentiveLevelRepositoryTest : TestBase() {
       description = "",
       sequence = 10,
       new = true,
-    )
+    ),
+  )
+
+  @Test
+  fun `level cannot be required if inactive`(): Unit = assertThatEntityCannotBeSaved(
+    IncentiveLevel(
+      code = "STD",
+      description = "Standard",
+      sequence = 10,
+      active = false,
+      required = true,
+      new = true,
+    ),
   )
 }

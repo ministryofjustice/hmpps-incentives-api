@@ -37,8 +37,8 @@ class HmppsIncentivesApiExceptionHandler {
         ErrorResponse(
           status = (BAD_REQUEST.value()),
           userMessage = "Validation failure: $message",
-          developerMessage = (e.message)
-        )
+          developerMessage = (e.message),
+        ),
       )
   }
 
@@ -51,8 +51,8 @@ class HmppsIncentivesApiExceptionHandler {
         ErrorResponse(
           status = FORBIDDEN,
           userMessage = "Forbidden: ${e.message}",
-          developerMessage = e.message
-        )
+          developerMessage = e.message,
+        ),
       )
   }
 
@@ -65,8 +65,8 @@ class HmppsIncentivesApiExceptionHandler {
         ErrorResponse(
           status = BAD_REQUEST,
           userMessage = "Validation failure: ${e.message}",
-          developerMessage = e.message
-        )
+          developerMessage = e.message,
+        ),
       )
   }
 
@@ -79,8 +79,8 @@ class HmppsIncentivesApiExceptionHandler {
         ErrorResponse(
           status = BAD_REQUEST,
           userMessage = e.message,
-          developerMessage = e.message
-        )
+          developerMessage = e.message,
+        ),
       )
   }
 
@@ -94,8 +94,8 @@ class HmppsIncentivesApiExceptionHandler {
         ErrorResponse(
           status = BAD_REQUEST,
           userMessage = "Validation failure: $message",
-          developerMessage = e.message
-        )
+          developerMessage = e.message,
+        ),
       )
   }
 
@@ -114,8 +114,8 @@ class HmppsIncentivesApiExceptionHandler {
         ErrorResponse(
           status = UNSUPPORTED_MEDIA_TYPE,
           userMessage = message,
-          developerMessage = message
-        )
+          developerMessage = message,
+        ),
       )
   }
 
@@ -128,8 +128,8 @@ class HmppsIncentivesApiExceptionHandler {
         ErrorResponse(
           status = NOT_FOUND,
           userMessage = "Not Found: ${e.message}",
-          developerMessage = e.message
-        )
+          developerMessage = e.message,
+        ),
       )
   }
 
@@ -142,8 +142,8 @@ class HmppsIncentivesApiExceptionHandler {
         ErrorResponse(
           status = NOT_FOUND,
           userMessage = "Not Found: ${e.message}",
-          developerMessage = e.message
-        )
+          developerMessage = e.message,
+        ),
       )
   }
 
@@ -156,8 +156,8 @@ class HmppsIncentivesApiExceptionHandler {
         ErrorResponse(
           status = NOT_FOUND,
           userMessage = "Not Found: ${e.message}",
-          developerMessage = e.message
-        )
+          developerMessage = e.message,
+        ),
       )
   }
 
@@ -170,8 +170,8 @@ class HmppsIncentivesApiExceptionHandler {
         ErrorResponse(
           status = NOT_FOUND,
           userMessage = "Not Found: ${e.message}",
-          developerMessage = e.message
-        )
+          developerMessage = e.message,
+        ),
       )
   }
 
@@ -184,8 +184,8 @@ class HmppsIncentivesApiExceptionHandler {
         ErrorResponse(
           status = NOT_FOUND,
           userMessage = e.message,
-          developerMessage = e.message
-        )
+          developerMessage = e.message,
+        ),
       )
   }
 
@@ -198,8 +198,8 @@ class HmppsIncentivesApiExceptionHandler {
         ErrorResponse(
           status = NOT_FOUND,
           userMessage = e.message,
-          developerMessage = e.message
-        )
+          developerMessage = e.message,
+        ),
       )
   }
 
@@ -212,8 +212,8 @@ class HmppsIncentivesApiExceptionHandler {
         ErrorResponse(
           status = INTERNAL_SERVER_ERROR,
           userMessage = "Data integrity exception: ${e.message}",
-          developerMessage = e.message
-        )
+          developerMessage = e.message,
+        ),
       )
   }
 
@@ -226,8 +226,8 @@ class HmppsIncentivesApiExceptionHandler {
         ErrorResponse(
           status = INTERNAL_SERVER_ERROR,
           userMessage = "Unexpected error: ${e.message}",
-          developerMessage = e.message
-        )
+          developerMessage = e.message,
+        ),
       )
   }
 
@@ -240,8 +240,8 @@ class HmppsIncentivesApiExceptionHandler {
         ErrorResponse(
           status = BAD_REQUEST,
           userMessage = "Parameter conversion failure: ${e.message}",
-          developerMessage = e.message
-        )
+          developerMessage = e.message,
+        ),
       )
   }
 
@@ -254,8 +254,8 @@ class HmppsIncentivesApiExceptionHandler {
         ErrorResponse(
           status = BAD_REQUEST,
           userMessage = "Parameter conversion failure: ${e.message}",
-          developerMessage = e.message
-        )
+          developerMessage = e.message,
+        ),
       )
   }
 
@@ -288,14 +288,14 @@ data class ErrorResponse(
   @Schema(description = "More detailed error message", example = "This is a stack trace", required = false)
   val developerMessage: String? = null,
   @Schema(description = "More information about the error", example = "More info", required = false)
-  val moreInfo: String? = null
+  val moreInfo: String? = null,
 ) {
   constructor(
     status: HttpStatus,
     errorCode: Int? = null,
     userMessage: String? = null,
     developerMessage: String? = null,
-    moreInfo: String? = null
+    moreInfo: String? = null,
   ) :
     this(status.value(), errorCode, userMessage, developerMessage, moreInfo)
 }

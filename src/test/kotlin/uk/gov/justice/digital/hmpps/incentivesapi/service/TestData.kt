@@ -35,16 +35,14 @@ fun prisonerExtraInfo(
 )
 
 fun prisonerAtLocation(bookingId: Long = 1234567, offenderNo: String = "A1234AA", agencyId: String = "MDI") =
-  PrisonerAtLocation(
-    bookingId, 1, "John", "Smith", offenderNo, agencyId, 1
-  )
+  PrisonerAtLocation(bookingId, 1, "John", "Smith", offenderNo, agencyId, 1)
 
 fun prisonerIepLevel(
   bookingId: Long,
   iepCode: String = "STD",
   reviewTime: LocalDateTime,
   current: Boolean = true,
-  reviewType: ReviewType = ReviewType.REVIEW
+  reviewType: ReviewType = ReviewType.REVIEW,
 ) =
   PrisonerIepLevel(
     iepCode = iepCode,
@@ -55,5 +53,5 @@ fun prisonerIepLevel(
     reviewedBy = "TEST_STAFF1",
     reviewTime = reviewTime,
     prisonerNumber = "A1234AB",
-    reviewType = reviewType
+    reviewType = reviewType,
   )

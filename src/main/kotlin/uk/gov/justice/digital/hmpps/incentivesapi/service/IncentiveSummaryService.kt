@@ -33,7 +33,7 @@ class IncentiveSummaryService(
     prisonId: String,
     locationId: String,
     sortBy: SortColumn = SortColumn.NAME,
-    sortDirection: Sort.Direction = Sort.Direction.ASC
+    sortDirection: Sort.Direction = Sort.Direction.ASC,
   ): BehaviourSummary = coroutineScope {
     val prisoners = offenderSearchService.findOffenders(prisonId, locationId)
 
@@ -76,7 +76,7 @@ class IncentiveSummaryService(
               incentiveWarnings = behaviourCaseNotesSinceLastReview[BookingTypeKey(p.bookingId, "NEG")]?.numSubTypeCount ?: 0,
               provenAdjudications = provenAdjudications.await()[p.bookingId]?.provenAdjudicationCount ?: 0,
             )
-          }.sortedWith(sortBy.applySorting(sortDirection))
+          }.sortedWith(sortBy.applySorting(sortDirection)),
         )
       }
 
@@ -86,11 +86,14 @@ class IncentiveSummaryService(
       prisonId = prisonId,
       locationId = locationId,
       locationDescription = location,
-      incentiveLevelSummary = addMissingLevels(prisonersByLevel, iepLevelsByCode)
+      incentiveLevelSummary = addMissingLevels(prisonersByLevel, iepLevelsByCode),
     )
   }
 
-  private fun lookupIepLevel(prisonerMap: Map.Entry<String, List<OffenderSearchPrisoner>>, levels: Map<String, IepLevel>) =
+  private fun lookupIepLevel(
+    prisonerMap: Map.Entry<String, List<OffenderSearchPrisoner>>,
+    levels: Map<String, IepLevel>,
+  ) =
     if (prisonerMap.key == missingLevel().iepLevel) {
       missingLevel()
     } else {
@@ -99,7 +102,7 @@ class IncentiveSummaryService(
 
   private fun getPrisonersByLevel(
     prisoners: List<OffenderSearchPrisoner>,
-    prisonerLevels: Map<Long, IepResult>
+    prisonerLevels: Map<Long, IepResult>,
   ): Map<String, List<OffenderSearchPrisoner>> =
     prisoners.groupBy {
       prisonerLevels[it.bookingId]?.iepLevel ?: missingLevel().iepLevel
@@ -107,7 +110,7 @@ class IncentiveSummaryService(
 
   private fun addMissingLevels(
     data: List<IncentiveLevelSummary>,
-    levelMap: Map<String, IepLevel>
+    levelMap: Map<String, IepLevel>,
   ): List<IncentiveLevelSummary> {
     val currentLevels = data.groupBy(IncentiveLevelSummary::level)
 
@@ -141,7 +144,7 @@ class IncentiveSummaryService(
           daysSinceReview = latestReview?.let {
             Duration.between(
               latestReview.reviewTime.toLocalDate().atStartOfDay(),
-              LocalDateTime.now(clock)
+              LocalDateTime.now(clock),
             ).toDays().toInt()
           },
           daysOnLevel = daysOnLevel(
@@ -156,10 +159,10 @@ class IncentiveSummaryService(
                   agencyId = iep.prisonId,
                   userId = iep.reviewedBy,
                   iepDate = iep.reviewTime.toLocalDate(),
-                  iepTime = iep.reviewTime
+                  iepTime = iep.reviewTime,
                 )
-              }.sortedByDescending { iep -> iep.iepTime }
-          )
+              }.sortedByDescending { iep -> iep.iepTime },
+          ),
         )
       }
   }
@@ -178,7 +181,7 @@ data class IepResult(
   val bookingId: Long,
   val iepLevel: String,
   val daysSinceReview: Int?,
-  val daysOnLevel: Int?
+  val daysOnLevel: Int?,
 )
 
 fun daysOnLevel(clock: Clock, iepDetails: List<IepDetail>): Int {
@@ -204,10 +207,10 @@ enum class SortColumn {
   DAYS_SINCE_LAST_REVIEW,
   INCENTIVE_WARNINGS,
   INCENTIVE_ENCOURAGEMENTS,
-  PROVEN_ADJUDICATIONS;
+  PROVEN_ADJUDICATIONS,
+  ;
 
   fun applySorting(sortDirection: Sort.Direction = Sort.Direction.ASC): Comparator<PrisonerIncentiveSummary> {
-
     val comparator = when (this) {
       NUMBER -> compareBy(PrisonerIncentiveSummary::prisonerNumber)
       NAME -> compareBy(PrisonerIncentiveSummary::lastName, PrisonerIncentiveSummary::firstName)

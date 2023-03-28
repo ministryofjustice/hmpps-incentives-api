@@ -19,17 +19,25 @@ class SnsService(hmppsQueueService: HmppsQueueService, private val objectMapper:
     val log: Logger = LoggerFactory.getLogger(this::class.java)
   }
 
-  private val domaineventsTopic by lazy { hmppsQueueService.findByTopicId("domainevents") ?: throw RuntimeException("Topic with name domainevents doesn't exist") }
+  private val domaineventsTopic by lazy {
+    hmppsQueueService.findByTopicId("domainevents")
+      ?: throw RuntimeException("Topic with name domainevents doesn't exist")
+  }
   private val domaineventsTopicClient by lazy { domaineventsTopic.snsClient }
 
-  fun publishDomainEvent(eventType: IncentivesDomainEventType, description: String, occurredAt: LocalDateTime, additionalInformation: AdditionalInformation) {
+  fun publishDomainEvent(
+    eventType: IncentivesDomainEventType,
+    description: String,
+    occurredAt: LocalDateTime,
+    additionalInformation: AdditionalInformation,
+  ) {
     publishToDomainEventsTopic(
       HMPPSDomainEvent(
         eventType.value,
         additionalInformation,
         occurredAt.atZone(ZoneId.systemDefault()).toInstant(),
         description,
-      )
+      ),
     )
   }
 
@@ -39,10 +47,10 @@ class SnsService(hmppsQueueService: HmppsQueueService, private val objectMapper:
       PublishRequest(domaineventsTopic.arn, objectMapper.writeValueAsString(payload))
         .withMessageAttributes(
           mapOf(
-            "eventType" to MessageAttributeValue().withDataType("String").withStringValue(payload.eventType)
-          )
+            "eventType" to MessageAttributeValue().withDataType("String").withStringValue(payload.eventType),
+          ),
         )
-        .also { log.info("Published event $payload to outbound topic") }
+        .also { log.info("Published event $payload to outbound topic") },
     )
   }
 }
@@ -63,19 +71,19 @@ data class HMPPSDomainEvent(
   val additionalInformation: AdditionalInformation,
   val version: String,
   val occurredAt: String,
-  val description: String
+  val description: String,
 ) {
   constructor(
     eventType: String,
     additionalInformation: AdditionalInformation,
     occurredAt: Instant,
-    description: String
+    description: String,
   ) : this(
     eventType,
     additionalInformation,
     "1.0",
     occurredAt.toOffsetDateFormat(),
-    description
+    description,
   )
 }
 

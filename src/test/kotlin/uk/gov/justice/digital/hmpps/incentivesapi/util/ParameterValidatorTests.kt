@@ -53,7 +53,7 @@ class ParameterValidatorTests {
           "`param1` must be at least 200",
           "`param2` must have length of at least 5",
           "`collection` must have size of at least 3",
-        )
+        ),
       )
   }
 }

@@ -42,7 +42,7 @@ class NextReviewDateRepositoryTest : TestBase() {
     val nextReviewDate = LocalDate.parse("2022-12-25")
 
     repository.save(
-      NextReviewDate(bookingId, nextReviewDate)
+      NextReviewDate(bookingId, nextReviewDate),
     )
 
     val result: NextReviewDate? = repository.findById(bookingId)
@@ -63,14 +63,14 @@ class NextReviewDateRepositoryTest : TestBase() {
     val bookingId = 1234567L
 
     repository.save(
-      NextReviewDate(bookingId, LocalDate.parse("2022-12-25"))
+      NextReviewDate(bookingId, LocalDate.parse("2022-12-25")),
     )
 
     assertThatThrownBy {
       runBlocking {
         // Save another record with same bookingId fails because it's primary key
         repository.save(
-          NextReviewDate(bookingId, LocalDate.parse("2030-01-31"))
+          NextReviewDate(bookingId, LocalDate.parse("2030-01-31")),
         )
       }
     }.isInstanceOf(DataIntegrityViolationException::class.java)
@@ -82,13 +82,13 @@ class NextReviewDateRepositoryTest : TestBase() {
     val updatedDate = LocalDate.parse("2030-01-31")
 
     repository.save(
-      NextReviewDate(bookingId, LocalDate.parse("2022-12-25"))
+      NextReviewDate(bookingId, LocalDate.parse("2022-12-25")),
     )
 
     // NOTE: Use value returned by `save()` yields unexpected results in conjunction with `copy()`
     val existingRecord = repository.findById(bookingId)
     repository.save(
-      existingRecord!!.copy(nextReviewDate = updatedDate)
+      existingRecord!!.copy(nextReviewDate = updatedDate),
     )
 
     val updatedRecord = repository.findById(bookingId)

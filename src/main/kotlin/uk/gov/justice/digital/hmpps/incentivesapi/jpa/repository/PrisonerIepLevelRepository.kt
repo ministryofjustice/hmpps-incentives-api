@@ -18,6 +18,7 @@ interface PrisonerIepLevelRepository : CoroutineCrudRepository<PrisonerIepLevel,
   @Modifying
   @Query("UPDATE prisoner_iep_level SET current = false WHERE booking_id = :bookingId AND current = true and id != :incentiveId")
   suspend fun updateIncentivesToNotCurrentForBookingAndIncentive(bookingId: Long, incentiveId: Long): Int
+
   @Modifying
   @Query("UPDATE prisoner_iep_level SET current = false WHERE booking_id = :bookingId AND current = true")
   suspend fun updateIncentivesToNotCurrentForBooking(bookingId: Long): Int

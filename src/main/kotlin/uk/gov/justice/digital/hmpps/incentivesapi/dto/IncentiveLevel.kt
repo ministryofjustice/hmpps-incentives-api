@@ -26,14 +26,14 @@ data class IncentiveLevel(
   // @JsonProperty(required = false, access = JsonProperty.Access.READ_ONLY)
   // val expiredOn: LocalDate,
 
-  // TODO: add `required` flag to indicate that all prisons must use it
-  // @Schema(description = "Indicates that all prisons must have this level active", example = "true", defaultValue = "false")
-  // @JsonProperty(required = false, defaultValue = "false")
-  // val required: Boolean = false,
+  @Schema(description = "Indicates that all prisons must have this level active", example = "true", defaultValue = "false")
+  @JsonProperty(required = false, defaultValue = "false")
+  val required: Boolean = false,
 ) {
   fun toUpdate() = IncentiveLevelUpdate(
     description = description,
     active = active,
+    required = required,
   )
 }
 
@@ -45,4 +45,6 @@ data class IncentiveLevelUpdate(
   val description: String? = null,
   @Schema(description = "Indicates that the incentive level is active; inactive levels are historic levels no longer in use", example = "true", required = false)
   val active: Boolean? = null,
+  @Schema(description = "Indicates that all prisons must have this level active", example = "true", required = false)
+  val required: Boolean? = null,
 )

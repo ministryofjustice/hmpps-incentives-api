@@ -45,28 +45,29 @@ class IepLevelResource(
     responses = [
       ApiResponse(
         responseCode = "200",
-        description = "IEP Level Information returned"
+        description = "IEP Level Information returned",
       ),
       ApiResponse(
         responseCode = "400",
         description = "Incorrect data specified to return IEP Level data",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "403",
         description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
-      )
-    ]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
   )
   suspend fun getPrisonIepLevels(
     @Schema(description = "Prison Id", example = "MDI", required = true, minLength = 3, maxLength = 5)
-    @PathVariable prisonId: String
+    @PathVariable
+    prisonId: String,
   ): List<IepLevel> {
     ensure {
       ("prisonId" to prisonId).hasLengthAtLeast(3).hasLengthAtMost(5)
@@ -81,30 +82,32 @@ class IepLevelResource(
     responses = [
       ApiResponse(
         responseCode = "200",
-        description = "IEP Level History Information returned"
+        description = "IEP Level History Information returned",
       ),
       ApiResponse(
         responseCode = "400",
         description = "Incorrect data specified to return IEP Level History",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "403",
         description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
-      )
-    ]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
   )
   suspend fun getPrisonerIepLevelHistory(
     @Schema(description = "Booking Id", example = "3000002", required = true, type = "integer", format = "int64", pattern = "^[0-9]{1,20}$")
-    @PathVariable bookingId: Long,
+    @PathVariable
+    bookingId: Long,
     @Schema(description = "Toggle to return IEP detail entries in response (or not)", example = "true", required = false, defaultValue = "true", type = "boolean", pattern = "^[true|false]$")
-    @RequestParam(defaultValue = "true", value = "with-details", required = false) withDetails: Boolean = true,
+    @RequestParam(defaultValue = "true", value = "with-details", required = false)
+    withDetails: Boolean = true,
   ): IepSummary =
     prisonerIepLevelReviewService.getPrisonerIepLevelHistory(bookingId, withDetails)
 
@@ -114,28 +117,29 @@ class IepLevelResource(
     responses = [
       ApiResponse(
         responseCode = "200",
-        description = "IEP Level Information returned"
+        description = "IEP Level Information returned",
       ),
       ApiResponse(
         responseCode = "400",
         description = "Incorrect data specified to return IEP Level History",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "403",
         description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
-      )
-    ]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
   )
   suspend fun getReviewById(
     @Schema(description = "Review ID (internal)", example = "1000", required = true, type = "integer", format = "int64", pattern = "^[0-9]{1,20}$")
-    @PathVariable(value = "id", required = true) id: Long
+    @PathVariable(value = "id", required = true)
+    id: Long,
   ): IepDetail =
     prisonerIepLevelReviewService.getReviewById(id)
 
@@ -145,28 +149,29 @@ class IepLevelResource(
     responses = [
       ApiResponse(
         responseCode = "200",
-        description = "IEP Level Information returned per prisoner"
+        description = "IEP Level Information returned per prisoner",
       ),
       ApiResponse(
         responseCode = "400",
         description = "Incorrect data specified to return IEP Level History",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "403",
         description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
-      )
-    ]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
   )
   suspend fun getCurrentIEPLevelForPrisoner(
     @ArraySchema(schema = Schema(description = "List of booking Ids", required = true, type = "array"), arraySchema = Schema(type = "integer", format = "int64", pattern = "^[0-9]{1,20}$", additionalProperties = Schema.AdditionalPropertiesValue.FALSE))
-    @RequestBody bookingIds: List<Long>
+    @RequestBody
+    bookingIds: List<Long>,
   ): List<CurrentIepLevel> {
     ensure {
       ("bookingIds" to bookingIds).isNotEmpty()
@@ -181,28 +186,29 @@ class IepLevelResource(
     responses = [
       ApiResponse(
         responseCode = "200",
-        description = "IEP Level History Information returned"
+        description = "IEP Level History Information returned",
       ),
       ApiResponse(
         responseCode = "400",
         description = "Incorrect data specified to return IEP Level History",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "403",
         description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
-      )
-    ]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
   )
   suspend fun getPrisonerIepLevelHistory(
     @Schema(description = "Prisoner Number", example = "A1234AB", required = true, pattern = "^[A-Z0-9]{7}$")
-    @PathVariable prisonerNumber: String
+    @PathVariable
+    prisonerNumber: String,
   ): IepSummary =
     prisonerIepLevelReviewService.getPrisonerIepLevelHistory(prisonerNumber)
 
@@ -215,34 +221,36 @@ class IepLevelResource(
     responses = [
       ApiResponse(
         responseCode = "201",
-        description = "IEP Review Added"
+        description = "IEP Review Added",
       ),
       ApiResponse(
         responseCode = "400",
         description = "Incorrect data specified to add new IEP review",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "403",
         description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
-      )
-    ]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
   )
   suspend fun addIepReview(
     @Schema(description = "Booking Id", example = "3000002", required = true, type = "integer", format = "int64", pattern = "^[0-9]{1,20}$")
-    @PathVariable bookingId: Long,
+    @PathVariable
+    bookingId: Long,
     @Schema(
       description = "IEP Review",
       required = true,
       implementation = IepReview::class,
     )
-    @RequestBody iepReview: IepReview,
+    @RequestBody
+    iepReview: IepReview,
   ): IepDetail = prisonerIepLevelReviewService.addIepReview(bookingId, iepReview)
 
   @PostMapping("/reviews/prisoner/{prisonerNumber}")
@@ -254,34 +262,36 @@ class IepLevelResource(
     responses = [
       ApiResponse(
         responseCode = "201",
-        description = "IEP Review Added"
+        description = "IEP Review Added",
       ),
       ApiResponse(
         responseCode = "400",
         description = "Incorrect data specified to add new IEP review",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "403",
         description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
-      )
-    ]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
   )
   suspend fun addIepReview(
     @Schema(description = "Prisoner Number", example = "A1234AB", required = true, pattern = "^[A-Z0-9]{1,20}$")
-    @PathVariable prisonerNumber: String,
+    @PathVariable
+    prisonerNumber: String,
     @Schema(
       description = "IEP Review",
       required = true,
       implementation = IepReview::class,
     )
-    @RequestBody iepReview: IepReview,
+    @RequestBody
+    iepReview: IepReview,
   ): IepDetail = prisonerIepLevelReviewService.addIepReview(prisonerNumber, iepReview)
 
   @PostMapping("/migration/booking/{bookingId}")
@@ -293,34 +303,36 @@ class IepLevelResource(
     responses = [
       ApiResponse(
         responseCode = "201",
-        description = "IEP Review Migrated"
+        description = "IEP Review Migrated",
       ),
       ApiResponse(
         responseCode = "400",
         description = "Incorrect data specified to add new IEP review",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "403",
         description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
-      )
-    ]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
   )
   suspend fun migrateIepReview(
     @Schema(description = "Booking Id", example = "3000002", required = true, type = "integer", format = "int64", pattern = "^[0-9]{1,20}$")
-    @PathVariable bookingId: Long,
+    @PathVariable
+    bookingId: Long,
     @Schema(
       description = "IEP Review",
       required = true,
       implementation = SyncPostRequest::class,
     )
-    @RequestBody syncPostRequest: SyncPostRequest,
+    @RequestBody
+    syncPostRequest: SyncPostRequest,
   ): IepDetail =
     prisonerIepLevelReviewService.persistSyncPostRequest(bookingId, syncPostRequest, false)
 
@@ -333,34 +345,36 @@ class IepLevelResource(
     responses = [
       ApiResponse(
         responseCode = "201",
-        description = "IEP Review Synchronised"
+        description = "IEP Review Synchronised",
       ),
       ApiResponse(
         responseCode = "400",
         description = "Incorrect data specified to add new IEP review",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "403",
         description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
-      )
-    ]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
   )
   suspend fun syncPostIepReview(
     @Schema(description = "Booking Id", example = "3000002", required = true, type = "integer", format = "int64", pattern = "^[0-9]{1,20}$")
-    @PathVariable bookingId: Long,
+    @PathVariable
+    bookingId: Long,
     @Schema(
       description = "IEP Review",
       required = true,
       implementation = SyncPostRequest::class,
     )
-    @RequestBody syncPostRequest: SyncPostRequest,
+    @RequestBody
+    syncPostRequest: SyncPostRequest,
   ): IepDetail = prisonerIepLevelReviewService.handleSyncPostIepReviewRequest(bookingId, syncPostRequest)
 
   @PatchMapping("/sync/booking/{bookingId}/id/{id}")
@@ -372,36 +386,39 @@ class IepLevelResource(
     responses = [
       ApiResponse(
         responseCode = "200",
-        description = "IEP Review updated"
+        description = "IEP Review updated",
       ),
       ApiResponse(
         responseCode = "400",
         description = "Incorrect data specified to update the IEP review",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "403",
         description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
-      )
-    ]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
   )
   suspend fun syncPatchIepReview(
     @Schema(description = "Booking Id", required = true, example = "1234567", type = "integer", format = "int64", pattern = "^[0-9]{1,20}$")
-    @PathVariable bookingId: Long,
+    @PathVariable
+    bookingId: Long,
     @Schema(description = "ID", required = true, example = "12345", type = "integer", format = "int64", pattern = "^[0-9]{1,20}$")
-    @PathVariable id: Long,
+    @PathVariable
+    id: Long,
     @Schema(
       description = "IEP Review changes",
       required = true,
       implementation = SyncPatchRequest::class,
     )
-    @RequestBody syncPatchRequest: SyncPatchRequest,
+    @RequestBody
+    syncPatchRequest: SyncPatchRequest,
   ): IepDetail = prisonerIepLevelReviewService.handleSyncPatchIepReviewRequest(bookingId, id, syncPatchRequest)
 
   @DeleteMapping("/sync/booking/{bookingId}/id/{id}")
@@ -413,29 +430,31 @@ class IepLevelResource(
     responses = [
       ApiResponse(
         responseCode = "204",
-        description = "IEP Review deleted"
+        description = "IEP Review deleted",
       ),
       ApiResponse(
         responseCode = "400",
         description = "Incorrect data specified to delete the IEP review",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
         responseCode = "403",
         description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
-      )
-    ]
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
   )
   suspend fun syncDeleteIepReview(
     @Schema(description = "Booking Id", required = true, example = "1234567", type = "integer", format = "int64", pattern = "^[0-9]{1,20}$")
-    @PathVariable bookingId: Long,
+    @PathVariable
+    bookingId: Long,
     @Schema(description = "ID", required = true, example = "12345", type = "integer", format = "int64", pattern = "^[0-9]{1,20}$")
-    @PathVariable id: Long,
+    @PathVariable
+    id: Long,
   ): Unit = prisonerIepLevelReviewService.handleSyncDeleteIepReviewRequest(bookingId, id)
 }

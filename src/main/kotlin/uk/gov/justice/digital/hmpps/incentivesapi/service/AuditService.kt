@@ -19,7 +19,7 @@ class AuditService(
   private val hmppsQueueService: HmppsQueueService,
   private val telemetryClient: TelemetryClient,
   private val objectMapper: ObjectMapper,
-  private val authenticationFacade: AuthenticationFacade
+  private val authenticationFacade: AuthenticationFacade,
 ) {
   private val auditQueue by lazy { hmppsQueueService.findByQueueId("audit") as HmppsQueue }
   private val auditSqsClient by lazy { auditQueue.sqsClient }
@@ -30,12 +30,11 @@ class AuditService(
   }
 
   suspend fun sendMessage(auditType: AuditType, id: String, details: Any, username: String? = null) {
-
     val auditEvent = AuditEvent(
       what = auditType.name,
       who = username ?: authenticationFacade.getUsername(),
       service = serviceName,
-      details = objectMapper.writeValueAsString(details)
+      details = objectMapper.writeValueAsString(details),
     )
     log.debug("Audit {} ", auditEvent)
 
@@ -43,14 +42,14 @@ class AuditService(
       auditSqsClient.sendMessage(
         SendMessageRequest(
           auditQueueUrl,
-          auditEvent.toJson()
-        )
+          auditEvent.toJson(),
+        ),
       )
 
     telemetryClient.trackEvent(
       auditEvent.what,
       mapOf("messageId" to result.messageId, "id" to id),
-      null
+      null,
     )
   }
 
@@ -64,9 +63,14 @@ data class AuditEvent(
   val service: String,
   val details: String? = null,
 )
+
 enum class AuditType {
   IEP_REVIEW_ADDED,
   IEP_REVIEW_UPDATED,
   IEP_REVIEW_DELETED,
   PRISONER_NUMBER_MERGE,
+  INCENTIVE_LEVEL_ADDED,
+  INCENTIVE_LEVEL_UPDATED,
+  INCENTIVE_LEVELS_REORDERED,
+  PRISON_INCENTIVE_LEVEL_UPDATED,
 }
