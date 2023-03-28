@@ -78,7 +78,7 @@ data class IepDetail(
   @Schema(description = "Type of IEP Level change", required = true, example = "REVIEW")
   override val reviewType: ReviewType,
   @Schema(description = "Internal audit field holding which system/screen recorded the review", required = true, example = SYSTEM_USERNAME)
-  val auditModuleName: String? = null,
+  val auditModuleName: String = SYSTEM_USERNAME,
 ) : IsRealReview
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
