@@ -26,6 +26,7 @@ class IepSummaryDateTest {
         iepTime = LocalDateTime.of(2022, 6, 2, 12, 45, 0),
         iepDetails = listOf(
           IepDetail(
+            id = 222,
             bookingId = 1L,
             agencyId = "MDI",
             iepLevel = "Enhanced",
@@ -36,6 +37,7 @@ class IepSummaryDateTest {
             auditModuleName = "PRISON_API",
           ),
           IepDetail(
+            id = 111,
             bookingId = 1L,
             agencyId = "LEI",
             iepLevel = "Standard",
@@ -61,6 +63,7 @@ class IepSummaryDateTest {
         iepTime = LocalDateTime.of(2022, 7, 29, 12, 45, 0),
         iepDetails = listOf(
           IepDetail(
+            id = 111,
             bookingId = 1L,
             agencyId = "MDI",
             iepLevel = "Basic",
@@ -87,6 +90,7 @@ class IepSummaryDateTest {
         iepTime = LocalDateTime.of(2022, 8, 1, 8, 30, 0),
         iepDetails = listOf(
           IepDetail(
+            id = 222,
             bookingId = 1L,
             agencyId = "MDI",
             iepLevel = "Standard",
@@ -98,6 +102,7 @@ class IepSummaryDateTest {
             auditModuleName = "PRISON_API",
           ),
           IepDetail(
+            id = 111,
             bookingId = 1L,
             agencyId = "MDI",
             iepLevel = "Basic",
@@ -124,6 +129,7 @@ class IepSummaryDateTest {
         iepTime = LocalDateTime.of(2022, 7, 31, 19, 0, 0),
         iepDetails = listOf(
           IepDetail(
+            id = 333,
             bookingId = 1L,
             agencyId = "MDI",
             iepLevel = "Basic",
@@ -135,6 +141,7 @@ class IepSummaryDateTest {
             auditModuleName = "PRISON_API",
           ),
           IepDetail(
+            id = 222,
             bookingId = 1L,
             agencyId = "MDI",
             iepLevel = "Basic",
@@ -146,6 +153,7 @@ class IepSummaryDateTest {
             auditModuleName = "OIDADMIS",
           ),
           IepDetail(
+            id = 111,
             bookingId = 1L,
             agencyId = "LEI",
             iepLevel = "Basic",
@@ -172,6 +180,7 @@ class IepSummaryDateTest {
         iepTime = LocalDateTime.of(2022, 8, 1, 8, 30, 0),
         iepDetails = listOf(
           IepDetail(
+            id = 222,
             bookingId = 1L,
             agencyId = "MDI",
             iepLevel = "Enhanced",
@@ -182,6 +191,7 @@ class IepSummaryDateTest {
             auditModuleName = "PRISON_API",
           ),
           IepDetail(
+            id = 111,
             bookingId = 1L,
             agencyId = "MDI",
             iepLevel = "Standard",
@@ -207,6 +217,7 @@ class IepSummaryDateTest {
         iepTime = LocalDateTime.of(2022, 7, 2, 12, 30, 0),
         iepDetails = listOf(
           IepDetail(
+            id = 333,
             bookingId = 1L,
             agencyId = "MDI",
             iepLevel = "Enhanced",
@@ -217,6 +228,7 @@ class IepSummaryDateTest {
             auditModuleName = "PRISON_API",
           ),
           IepDetail(
+            id = 222,
             bookingId = 1L,
             agencyId = "MDI",
             iepLevel = "Enhanced",
@@ -227,6 +239,7 @@ class IepSummaryDateTest {
             auditModuleName = "PRISON_API",
           ),
           IepDetail(
+            id = 111,
             bookingId = 1L,
             agencyId = "MDI",
             iepLevel = "Entry",
