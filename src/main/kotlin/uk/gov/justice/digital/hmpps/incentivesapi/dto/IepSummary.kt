@@ -14,14 +14,14 @@ import java.time.LocalDateTime
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "IEP Review Summary for Prisoner")
 data class IepSummary(
-  @Schema(description = "Unique ID for this review (new Incentives data model only)", required = false, example = "12345")
-  val id: Long? = null,
+  @Schema(description = "Unique ID for this review (new Incentives data model only)", required = true, example = "12345")
+  val id: Long,
   @Schema(description = "IEP Code", example = "STD", required = true)
   val iepCode: String,
   @Schema(description = "IEP Level", example = "Standard", required = true)
   val iepLevel: String,
-  @Schema(description = "Prisoner number (NOMS)", required = false, example = "A1234BC")
-  val prisonerNumber: String? = null,
+  @Schema(description = "Prisoner number (NOMS)", required = true, example = "A1234BC")
+  val prisonerNumber: String,
   @Schema(description = "Booking ID", required = true, example = "1234567")
   val bookingId: Long,
   @Schema(description = "Date when last review took place", required = true, example = "2021-12-31")
