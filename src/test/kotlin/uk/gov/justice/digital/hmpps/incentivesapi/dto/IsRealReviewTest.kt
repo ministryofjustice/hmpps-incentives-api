@@ -5,17 +5,11 @@ import org.junit.jupiter.api.Test
 
 class IsRealReviewTest {
 
-  inner class SomeReviewClass(override val reviewType: ReviewType?) : IsRealReview
+  inner class SomeReviewClass(override val reviewType: ReviewType) : IsRealReview
 
   @Test
   fun `when reviewType is REVIEW it is a real review`() {
     val review = SomeReviewClass(reviewType = ReviewType.REVIEW)
-    assertThat(review.isRealReview()).isTrue
-  }
-
-  @Test
-  fun `when reviewType is null review (eg data coming from NOMIS) is considered real`() {
-    val review = SomeReviewClass(reviewType = null)
     assertThat(review.isRealReview()).isTrue
   }
 
