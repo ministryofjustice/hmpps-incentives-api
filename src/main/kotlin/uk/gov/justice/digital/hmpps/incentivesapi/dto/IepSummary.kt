@@ -32,8 +32,8 @@ data class IepSummary(
   val locationId: String? = null,
   @Schema(description = "IEP Review History (descending in time)", required = true)
   var iepDetails: List<IepDetail>,
-  @Schema(description = "Date of next review", example = "2022-12-31", required = false)
-  var nextReviewDate: LocalDate? = null,
+  @Schema(description = "Date of next review", example = "2022-12-31", required = true)
+  val nextReviewDate: LocalDate,
 ) {
 
   @get:Schema(description = "Days since last review", example = "23", required = true)

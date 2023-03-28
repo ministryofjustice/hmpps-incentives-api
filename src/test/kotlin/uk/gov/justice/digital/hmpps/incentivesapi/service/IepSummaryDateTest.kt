@@ -27,6 +27,7 @@ class IepSummaryDateTest {
         iepLevel = "Enhanced",
         iepCode = "ENH",
         iepTime = LocalDateTime.of(2022, 6, 2, 12, 45, 0),
+        nextReviewDate = LocalDate.of(2022, 6, 2).plusYears(1),
         iepDetails = listOf(
           IepDetail(
             id = 222,
@@ -70,6 +71,7 @@ class IepSummaryDateTest {
         iepLevel = "Basic",
         iepCode = "BAS",
         iepTime = LocalDateTime.of(2022, 7, 29, 12, 45, 0),
+        nextReviewDate = LocalDate.of(2022, 7, 29).plusDays(7),
         iepDetails = listOf(
           IepDetail(
             id = 111,
@@ -101,6 +103,7 @@ class IepSummaryDateTest {
         iepLevel = "Standard",
         iepCode = "STD",
         iepTime = LocalDateTime.of(2022, 8, 1, 8, 30, 0),
+        nextReviewDate = LocalDate.of(2022, 8, 1).plusYears(1),
         iepDetails = listOf(
           IepDetail(
             id = 222,
@@ -146,6 +149,7 @@ class IepSummaryDateTest {
         iepLevel = "Basic",
         iepCode = "BAS",
         iepTime = LocalDateTime.of(2022, 7, 31, 19, 0, 0),
+        nextReviewDate = LocalDate.of(2022, 7, 31).plusDays(28),
         iepDetails = listOf(
           IepDetail(
             id = 333,
@@ -205,6 +209,7 @@ class IepSummaryDateTest {
         iepLevel = "Enhanced",
         iepCode = "ENH",
         iepTime = LocalDateTime.of(2022, 8, 1, 8, 30, 0),
+        nextReviewDate = LocalDate.of(2022, 8, 1).plusYears(1),
         iepDetails = listOf(
           IepDetail(
             id = 222,
@@ -248,6 +253,7 @@ class IepSummaryDateTest {
         iepLevel = "Enhanced",
         iepCode = "ENH",
         iepTime = LocalDateTime.of(2022, 7, 2, 12, 30, 0),
+        nextReviewDate = LocalDate.of(2022, 7, 2).plusYears(1),
         iepDetails = listOf(
           IepDetail(
             id = 333,
