@@ -29,6 +29,7 @@ class IepSummaryDateTest {
           IepDetail(
             id = 222,
             bookingId = 1L,
+            prisonerNumber = "A1234BC",
             agencyId = "MDI",
             iepLevel = "Enhanced",
             iepCode = "ENH",
@@ -41,6 +42,7 @@ class IepSummaryDateTest {
           IepDetail(
             id = 111,
             bookingId = 1L,
+            prisonerNumber = "A1234BC",
             agencyId = "LEI",
             iepLevel = "Standard",
             iepCode = "STD",
@@ -68,6 +70,7 @@ class IepSummaryDateTest {
           IepDetail(
             id = 111,
             bookingId = 1L,
+            prisonerNumber = "A1234BC",
             agencyId = "MDI",
             iepLevel = "Basic",
             iepCode = "BAS",
@@ -96,6 +99,7 @@ class IepSummaryDateTest {
           IepDetail(
             id = 222,
             bookingId = 1L,
+            prisonerNumber = "A1234BC",
             agencyId = "MDI",
             iepLevel = "Standard",
             iepCode = "STD",
@@ -109,6 +113,7 @@ class IepSummaryDateTest {
           IepDetail(
             id = 111,
             bookingId = 1L,
+            prisonerNumber = "A1234BC",
             agencyId = "MDI",
             iepLevel = "Basic",
             iepCode = "BAS",
@@ -137,6 +142,7 @@ class IepSummaryDateTest {
           IepDetail(
             id = 333,
             bookingId = 1L,
+            prisonerNumber = "A1234BC",
             agencyId = "MDI",
             iepLevel = "Basic",
             iepCode = "BAS",
@@ -150,6 +156,7 @@ class IepSummaryDateTest {
           IepDetail(
             id = 222,
             bookingId = 1L,
+            prisonerNumber = "A1234BC",
             agencyId = "MDI",
             iepLevel = "Basic",
             iepCode = "BAS",
@@ -163,6 +170,7 @@ class IepSummaryDateTest {
           IepDetail(
             id = 111,
             bookingId = 1L,
+            prisonerNumber = "A1234BC",
             agencyId = "LEI",
             iepLevel = "Basic",
             iepCode = "BAS",
@@ -191,6 +199,7 @@ class IepSummaryDateTest {
           IepDetail(
             id = 222,
             bookingId = 1L,
+            prisonerNumber = "A1234BC",
             agencyId = "MDI",
             iepLevel = "Enhanced",
             iepCode = "ENH",
@@ -203,6 +212,7 @@ class IepSummaryDateTest {
           IepDetail(
             id = 111,
             bookingId = 1L,
+            prisonerNumber = "A1234BC",
             agencyId = "MDI",
             iepLevel = "Standard",
             iepCode = "STD",
@@ -230,6 +240,7 @@ class IepSummaryDateTest {
           IepDetail(
             id = 333,
             bookingId = 1L,
+            prisonerNumber = "A1234BC",
             agencyId = "MDI",
             iepLevel = "Enhanced",
             iepCode = "ENH",
@@ -242,6 +253,7 @@ class IepSummaryDateTest {
           IepDetail(
             id = 222,
             bookingId = 1L,
+            prisonerNumber = "A1234BC",
             agencyId = "MDI",
             iepLevel = "Enhanced",
             iepCode = "ENH",
@@ -254,6 +266,7 @@ class IepSummaryDateTest {
           IepDetail(
             id = 111,
             bookingId = 1L,
+            prisonerNumber = "A1234BC",
             agencyId = "MDI",
             iepLevel = "Entry",
             iepCode = "ENT",
