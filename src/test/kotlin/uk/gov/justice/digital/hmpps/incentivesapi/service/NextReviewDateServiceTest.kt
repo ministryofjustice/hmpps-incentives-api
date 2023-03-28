@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.incentivesapi.SYSTEM_USERNAME
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import java.time.LocalDate
@@ -422,5 +423,6 @@ private fun review(
     agencyId = prisonId,
     bookingId = 1234567L,
     userId = null,
+    auditModuleName = SYSTEM_USERNAME,
   )
 }
