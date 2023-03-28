@@ -53,8 +53,8 @@ data class IepSummary(
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Detail IEP review details")
 data class IepDetail(
-  @Schema(description = "Unique ID for this review (new Incentives data model only)", required = false, example = "12345")
-  val id: Long? = null,
+  @Schema(description = "Unique ID for this review (new Incentives data model only)", required = true, example = "12345")
+  val id: Long,
   @Schema(description = "IEP Level", required = true, example = "Standard")
   val iepLevel: String,
   @Schema(description = "IEP Code", required = false, example = "STD")
