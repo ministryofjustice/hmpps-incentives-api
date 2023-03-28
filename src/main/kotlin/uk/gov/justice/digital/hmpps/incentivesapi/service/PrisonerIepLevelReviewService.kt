@@ -360,45 +360,37 @@ class PrisonerIepLevelReviewService(
     eventType: IncentivesDomainEventType,
     reason: IepReviewReason? = null,
   ) {
-    iepDetail.id?.let {
-      val description: String = when (eventType) {
-        IncentivesDomainEventType.IEP_REVIEW_INSERTED -> "An IEP review has been added"
-        IncentivesDomainEventType.IEP_REVIEW_UPDATED -> "An IEP review has been updated"
-        IncentivesDomainEventType.IEP_REVIEW_DELETED -> "An IEP review has been deleted"
-        else -> {
-          throw IllegalArgumentException("Tried to publish a review event with a non-review event type: $eventType")
-        }
+    val description: String = when (eventType) {
+      IncentivesDomainEventType.IEP_REVIEW_INSERTED -> "An IEP review has been added"
+      IncentivesDomainEventType.IEP_REVIEW_UPDATED -> "An IEP review has been updated"
+      IncentivesDomainEventType.IEP_REVIEW_DELETED -> "An IEP review has been deleted"
+      else -> {
+        throw IllegalArgumentException("Tried to publish a review event with a non-review event type: $eventType")
       }
-
-      snsService.publishDomainEvent(
-        eventType,
-        description,
-        occurredAt = iepDetail.iepTime,
-        AdditionalInformation(
-          id = iepDetail.id,
-          nomsNumber = iepDetail.prisonerNumber ?: "N/A",
-          reason = reason?.toString(),
-        ),
-      )
-    } ?: run {
-      log.warn("IepDetail has `null` id, domain event not published: $iepDetail")
     }
+
+    snsService.publishDomainEvent(
+      eventType,
+      description,
+      occurredAt = iepDetail.iepTime,
+      AdditionalInformation(
+        id = iepDetail.id,
+        nomsNumber = iepDetail.prisonerNumber,
+        reason = reason?.toString(),
+      ),
+    )
   }
 
   private suspend fun publishAuditEvent(
     iepDetail: IepDetail,
     auditType: AuditType,
   ) {
-    iepDetail.id?.let {
-      auditService.sendMessage(
-        auditType,
-        iepDetail.id.toString(),
-        iepDetail,
-        iepDetail.userId,
-      )
-    } ?: run {
-      log.warn("IepDetail has `null` id, audit event not published: $iepDetail")
-    }
+    auditService.sendMessage(
+      auditType,
+      iepDetail.id.toString(),
+      iepDetail,
+      iepDetail.userId,
+    )
   }
 
   @Transactional
