@@ -61,8 +61,8 @@ data class IepDetail(
   val iepCode: String,
   @Schema(description = "Review comments", required = false, example = "A review took place")
   val comments: String? = null,
-  @Schema(description = "Prisoner number (NOMS)", required = false, example = "A1234BC")
-  val prisonerNumber: String? = null,
+  @Schema(description = "Prisoner number (NOMS)", required = true, example = "A1234BC")
+  val prisonerNumber: String,
   @Schema(description = "Booking ID", required = true, example = "1234567")
   val bookingId: Long,
   @Schema(description = "Date when last review took place", required = true, example = "2021-12-31")
