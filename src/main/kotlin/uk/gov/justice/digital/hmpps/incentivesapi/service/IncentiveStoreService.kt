@@ -26,20 +26,7 @@ class IncentiveStoreService(
       prisonerIepLevelRepository.updateIncentivesToNotCurrentForBooking(incentiveLevel.bookingId)
     }
 
-    val review = prisonerIepLevelRepository.save(
-      PrisonerIepLevel(
-        bookingId = incentiveLevel.bookingId,
-        prisonerNumber = incentiveLevel.prisonerNumber,
-        locationId = incentiveLevel.locationId,
-        iepCode = incentiveLevel.iepCode,
-        commentText = incentiveLevel.commentText,
-        prisonId = incentiveLevel.prisonId,
-        current = incentiveLevel.current,
-        reviewedBy = incentiveLevel.reviewedBy,
-        reviewTime = incentiveLevel.reviewTime,
-        reviewType = incentiveLevel.reviewType,
-      ),
-    )
+    val review = prisonerIepLevelRepository.save(incentiveLevel)
     nextReviewDateUpdaterService.update(incentiveLevel.bookingId)
     return review
   }
