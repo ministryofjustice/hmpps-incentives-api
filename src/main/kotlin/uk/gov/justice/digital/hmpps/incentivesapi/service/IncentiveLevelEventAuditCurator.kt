@@ -9,7 +9,7 @@ import java.time.Clock
 import java.time.LocalDateTime
 
 @Service
-class IncentiveLevelCurator(
+class IncentiveLevelEventAuditCurator(
   private val incentiveLevelService: IncentiveLevelService,
   private val prisonIncentiveLevelService: PrisonIncentiveLevelService,
   private val auditService: AuditService,
@@ -79,7 +79,6 @@ class IncentiveLevelCurator(
         prisonId = prisonIncentiveLevel.prisonId,
       ),
     )
-
   }
 
   private suspend fun publishIncentiveLevelChangeEvent(

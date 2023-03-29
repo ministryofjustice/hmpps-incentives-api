@@ -19,7 +19,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataWithCodeFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevelUpdate
-import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveLevelCurator
+import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveLevelEventAuditCurator
 import uk.gov.justice.digital.hmpps.incentivesapi.service.PrisonIncentiveLevelService
 import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 
@@ -27,7 +27,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 @RequestMapping("/incentive/prison-levels", produces = [MediaType.APPLICATION_JSON_VALUE])
 @Tag(name = "Prison incentive levels", description = "Incentive levels and their per-prison associated information")
 class PrisonIncentiveLevelResource(
-  private val incentiveLevelCurator: IncentiveLevelCurator,
+  private val incentiveLevelEventAuditCurator: IncentiveLevelEventAuditCurator,
   private val prisonIncentiveLevelService: PrisonIncentiveLevelService,
 ) {
   @GetMapping("{prisonId}")
@@ -222,7 +222,7 @@ class PrisonIncentiveLevelResource(
       }
     }
 
-    return incentiveLevelCurator.updatePrisonIncentiveLevel(prisonId, levelCode, update)
+    return incentiveLevelEventAuditCurator.updatePrisonIncentiveLevel(prisonId, levelCode, update)
       ?: throw NoDataWithCodeFoundException("incentive level", levelCode)
   }
 
