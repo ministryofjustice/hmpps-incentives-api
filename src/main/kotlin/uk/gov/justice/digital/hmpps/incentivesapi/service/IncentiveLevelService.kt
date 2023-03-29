@@ -94,7 +94,7 @@ class IncentiveLevelService(
           prisonsAffected = enablePrisonIncentiveLevelEverywhere(savedLevel.code)
         }
 
-        return UpdatedIncentiveLevel(savedLevel, prisonsAffected, originalIncentiveLevel)
+        return UpdatedIncentiveLevel(savedLevel, prisonsAffected)
       }
   }
 
@@ -170,7 +170,6 @@ class IncentiveLevelService(
   data class UpdatedIncentiveLevel(
     var updatedLevel: IncentiveLevelDTO,
     var updatedPrisons: List<PrisonIncentiveLevel>,
-    var originalIncentiveLevel: IncentiveLevel? = null,
   )
 
   private suspend fun Flow<IncentiveLevel>.toListOfDTO(): List<IncentiveLevelDTO> = map { it.toDTO() }.toList()
