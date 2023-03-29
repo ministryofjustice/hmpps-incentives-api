@@ -184,9 +184,7 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
     )
     repository.save(entity)
 
-    var savedEntity = repository.findFirstByPrisonIdAndLevelCode("MDI", "ENH")
-    assertThat(savedEntity?.levelDescription).isEqualTo("Enhanced")
-    savedEntity = repository.findFirstByPrisonIdAndLevelCodeAndActiveIsTrue("MDI", "ENH")
+    val savedEntity = repository.findFirstByPrisonIdAndLevelCode("MDI", "ENH")
     assertThat(savedEntity?.levelDescription).isEqualTo("Enhanced")
   }
 

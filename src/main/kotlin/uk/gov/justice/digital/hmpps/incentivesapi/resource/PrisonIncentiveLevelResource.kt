@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataWithCodeFoundException
@@ -32,7 +33,7 @@ class PrisonIncentiveLevelResource(
 ) {
   @GetMapping("{prisonId}")
   @Operation(
-    summary = "Lists active incentive levels in this prison",
+    summary = "Lists incentive levels in this prison along with associated information, optionally including inactive ones",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -54,13 +55,21 @@ class PrisonIncentiveLevelResource(
     @Schema(description = "Prison id", example = "MDI", required = true, minLength = 3, maxLength = 6)
     @PathVariable
     prisonId: String,
+    @Schema(description = "Include inactive prison incentive levels", example = "true", required = false, defaultValue = "false", type = "boolean", pattern = "^[true|false]$")
+    @RequestParam(defaultValue = "false", value = "with-inactive", required = false)
+    withInactive: Boolean = false,
   ): List<PrisonIncentiveLevel> {
-    return prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)
+    return if (withInactive) {
+      prisonIncentiveLevelService.getAllPrisonIncentiveLevels(prisonId)
+    } else {
+      prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)
+    }
   }
 
   @GetMapping("{prisonId}/level/{levelCode}")
   @Operation(
-    summary = "Returns an active incentive level in this prison",
+    summary = "Returns an incentive level in this prison along with associated information",
+    description = "Note that it may be inactive in the prison",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -78,7 +87,7 @@ class PrisonIncentiveLevelResource(
       ),
       ApiResponse(
         responseCode = "404",
-        description = "Active prison incentive level not found",
+        description = "Prison incentive level not found",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
     ],
@@ -91,8 +100,8 @@ class PrisonIncentiveLevelResource(
     @PathVariable
     levelCode: String,
   ): PrisonIncentiveLevel {
-    return prisonIncentiveLevelService.getActivePrisonIncentiveLevel(prisonId, levelCode)
-      ?: throw NoDataWithCodeFoundException("active prison incentive level", levelCode)
+    return prisonIncentiveLevelService.getPrisonIncentiveLevel(prisonId, levelCode)
+      ?: throw NoDataWithCodeFoundException("prison incentive level", levelCode)
   }
 
   @PutMapping("{prisonId}/level/{levelCode}")
