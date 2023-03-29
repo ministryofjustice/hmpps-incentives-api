@@ -29,7 +29,7 @@ class SnsService(hmppsQueueService: HmppsQueueService, private val objectMapper:
     eventType: IncentivesDomainEventType,
     description: String,
     occurredAt: LocalDateTime,
-    additionalInformation: AdditionalInformation,
+    additionalInformation: AdditionalInformation? = null,
   ) {
     publishToDomainEventsTopic(
       HMPPSDomainEvent(
@@ -42,7 +42,7 @@ class SnsService(hmppsQueueService: HmppsQueueService, private val objectMapper:
   }
 
   private fun publishToDomainEventsTopic(payload: HMPPSDomainEvent) {
-    log.debug("Event {} for id {}", payload.eventType, payload.additionalInformation.id)
+    log.debug("Event {} for id {}", payload.eventType, payload.additionalInformation)
     domaineventsTopicClient.publish(
       PublishRequest(domaineventsTopic.arn, objectMapper.writeValueAsString(payload))
         .withMessageAttributes(
@@ -64,18 +64,21 @@ data class AdditionalInformation(
   val bookingId: Long? = null,
   val alertsAdded: List<String>? = null,
   val alertsRemoved: List<String>? = null,
+  val incentiveLevel: String? = null,
+  val prisonId: String? = null,
+
 )
 
 data class HMPPSDomainEvent(
   val eventType: String? = null,
-  val additionalInformation: AdditionalInformation,
+  val additionalInformation: AdditionalInformation?,
   val version: String,
   val occurredAt: String,
   val description: String,
 ) {
   constructor(
     eventType: String,
-    additionalInformation: AdditionalInformation,
+    additionalInformation: AdditionalInformation?,
     occurredAt: Instant,
     description: String,
   ) : this(
@@ -92,6 +95,11 @@ enum class IncentivesDomainEventType(val value: String) {
   IEP_REVIEW_UPDATED("incentives.iep-review.updated"),
   IEP_REVIEW_DELETED("incentives.iep-review.deleted"),
   PRISONER_NEXT_REVIEW_DATE_CHANGED("incentives.prisoner.next-review-date-changed"),
+
+  INCENTIVE_LEVEL_CHANGED("incentives.level.changed"),
+  INCENTIVE_LEVELS_REORDERED("incentives.levels.reordered"),
+  INCENTIVE_PRISON_LEVEL_CHANGED("incentives.prison-level.changed"),
+
 }
 
 enum class IepReviewReason {
