@@ -139,7 +139,7 @@ class PrisonerIepLevelReviewService(
       throw NoDataFoundException(bookingId)
     }
 
-    val iepDetail = incentiveStoreService.patchIncentiveReview(syncPatchRequest, bookingId, prisonerIepLevel)
+    val iepDetail = incentiveStoreService.patchIncentiveReview(syncPatchRequest, prisonerIepLevel)
       .toIepDetail(prisonApiService.getIncentiveLevels())
 
     publishReviewDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_UPDATED)
@@ -160,7 +160,7 @@ class PrisonerIepLevelReviewService(
       throw NoDataFoundException(bookingId)
     }
 
-    incentiveStoreService.deleteIncentiveReview(prisonerIepLevel, bookingId)
+    incentiveStoreService.deleteIncentiveReview(prisonerIepLevel)
 
     val iepDetail = prisonerIepLevel.toIepDetail(prisonApiService.getIncentiveLevels())
     publishReviewDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_DELETED)
