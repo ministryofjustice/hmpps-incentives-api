@@ -95,11 +95,9 @@ enum class IncentivesDomainEventType(val value: String) {
   IEP_REVIEW_UPDATED("incentives.iep-review.updated"),
   IEP_REVIEW_DELETED("incentives.iep-review.deleted"),
   PRISONER_NEXT_REVIEW_DATE_CHANGED("incentives.prisoner.next-review-date-changed"),
-
   INCENTIVE_LEVEL_CHANGED("incentives.level.changed"),
   INCENTIVE_LEVELS_REORDERED("incentives.levels.reordered"),
   INCENTIVE_PRISON_LEVEL_CHANGED("incentives.prison-level.changed"),
-
 }
 
 enum class IepReviewReason {

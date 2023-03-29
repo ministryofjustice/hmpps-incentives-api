@@ -1,8 +1,6 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
@@ -13,7 +11,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveLevelRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonIncentiveLevelRepository
-
 import uk.gov.justice.digital.hmpps.incentivesapi.util.flow.associateByTo
 import java.time.Clock
 import java.time.LocalDateTime
@@ -101,17 +98,16 @@ class IncentiveLevelService(
       }
   }
 
-  private suspend fun enablePrisonIncentiveLevelEverywhere(levelCode: String) : List<PrisonIncentiveLevel> =
+  private suspend fun enablePrisonIncentiveLevelEverywhere(levelCode: String): List<PrisonIncentiveLevel> =
     prisonIncentiveLevelRepository.findPrisonIdsWithActiveLevels().map { prisonId ->
       prisonIncentiveLevelService.updatePrisonIncentiveLevel(
-          prisonId,
-          levelCode,
-          PrisonIncentiveLevelUpdateDTO(active = true),
+        prisonId,
+        levelCode,
+        PrisonIncentiveLevelUpdateDTO(active = true),
       )
     }
       .mapNotNull { it }
       .toList()
-
 
   /**
    * Reorders incentive levels; will fail is not provided with all known codes
@@ -171,10 +167,10 @@ class IncentiveLevelService(
     whenUpdated = LocalDateTime.now(clock),
   )
 
-  data class UpdatedIncentiveLevel (
+  data class UpdatedIncentiveLevel(
     var updatedLevel: IncentiveLevelDTO,
     var updatedPrisons: List<PrisonIncentiveLevel>,
-    var originalIncentiveLevel: IncentiveLevel? = null
+    var originalIncentiveLevel: IncentiveLevel? = null,
   )
 
   private suspend fun Flow<IncentiveLevel>.toListOfDTO(): List<IncentiveLevelDTO> = map { it.toDTO() }.toList()
