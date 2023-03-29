@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataWithCodeFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevelUpdate
+import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveLevelEventAuditCurator
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveLevelService
 import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 
@@ -31,6 +32,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 @Tag(name = "Incentive levels", description = "Incentive levels and their global associated information")
 class IncentiveLevelResource(
   private val incentiveLevelService: IncentiveLevelService,
+  private val incentiveLevelEventAuditCurator: IncentiveLevelEventAuditCurator,
 ) {
   @GetMapping("levels")
   @Operation(
@@ -102,7 +104,7 @@ class IncentiveLevelResource(
         errors.add("A level must be active if it is required")
       }
     }
-    return incentiveLevelService.createIncentiveLevel(incentiveLevel)
+    return incentiveLevelEventAuditCurator.createIncentiveLevel(incentiveLevel)
   }
 
   @PatchMapping("level-order")
@@ -144,7 +146,7 @@ class IncentiveLevelResource(
       ("incentiveLevelCodes" to incentiveLevelCodes).hasSizeAtLeast(2)
     }
 
-    return incentiveLevelService.setOrderOfIncentiveLevels(incentiveLevelCodes)
+    return incentiveLevelEventAuditCurator.setOrderOfIncentiveLevels(incentiveLevelCodes)
   }
 
   @GetMapping("levels/{code}")
@@ -284,7 +286,7 @@ class IncentiveLevelResource(
         }
       }
     }
-    return incentiveLevelService.updateIncentiveLevel(code, update)
+    return incentiveLevelEventAuditCurator.updateIncentiveLevel(code, update)
       ?: throw NoDataWithCodeFoundException("incentive level", code)
   }
 

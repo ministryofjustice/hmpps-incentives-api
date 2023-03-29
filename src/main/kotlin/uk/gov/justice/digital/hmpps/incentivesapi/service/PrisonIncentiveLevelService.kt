@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonIncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveLevelRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonIncentiveLevelRepository
-import uk.gov.justice.digital.hmpps.incentivesapi.service.AuditType.PRISON_INCENTIVE_LEVEL_UPDATED
 import java.time.Clock
 import java.time.LocalDateTime
 import javax.validation.ValidationException
@@ -20,18 +19,18 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevelUpdate
  *
  * Conceptually, every incentive level exists in every prison and is inactive by default.
  * This means that PrisonIncentiveLevel do not need to be created, only updated.
- * Hence public methods only allow retrieving active prison incentive levels.
+ * Hence, public methods only allow retrieving active prison incentive levels.
  *
  * Business rules require every prison to have an active level that is the default for admission.
  *
  * NB: Conversions between PrisonIncentiveLevel entity and data transfer object are _only_ done in this service
  */
 @Service
+@Transactional(readOnly = true)
 class PrisonIncentiveLevelService(
   private val clock: Clock,
   private val incentiveLevelRepository: IncentiveLevelRepository,
   private val prisonIncentiveLevelRepository: PrisonIncentiveLevelRepository,
-  private val auditService: AuditService,
 ) {
   /**
    * Returns all active incentive levels for given prison, along with associated information, in globally-defined order
@@ -104,9 +103,6 @@ class PrisonIncentiveLevelService(
       prisonIncentiveLevelRepository.save(prisonIncentiveLevel)
         .copy(levelDescription = incentiveLevel.description)
         .toDTO()
-        .also {
-          auditService.sendMessage(PRISON_INCENTIVE_LEVEL_UPDATED, "${it.prisonId} - ${it.levelCode}", it)
-        }
     }
   }
 
