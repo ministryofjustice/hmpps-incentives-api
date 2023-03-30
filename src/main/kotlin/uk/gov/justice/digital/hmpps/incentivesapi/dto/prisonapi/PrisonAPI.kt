@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.swagger.v3.oas.annotations.media.Schema
 import org.springframework.format.annotation.DateTimeFormat
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.service.PrisonerInfoForNextReviewDate
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -86,6 +87,12 @@ data class IepLevel(
   @Schema(description = "Indicates that this IEP level is the active", example = "true")
   val active: Boolean = true,
   // TODO: the version for NOMIS reference data should include expired date?
+)
+
+fun IepLevel.toIncentivesServiceDto(): IncentiveLevel = IncentiveLevel(
+  code = iepLevel,
+  description = iepDescription,
+  active = active,
 )
 
 data class PrisonLocation(

@@ -8,6 +8,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 @Service
 class IepLevelService(
   private val prisonApiService: PrisonApiService,
+  private val incentiveLevelService: IncentiveLevelService,
 ) {
 
   suspend fun getIepLevelsForPrison(prisonId: String, useClientCredentials: Boolean = false): List<IepLevel> {
@@ -37,12 +38,11 @@ class IepLevelService(
     val levelCodesAvailableInPrison = prisonLevels.filter(IepLevel::active).map(IepLevel::iepLevel).toSet()
 
     data class KnownLevel(val code: String, val available: Boolean)
-    val allKnownLevels = prisonApiService.getIepLevels()
-      .sortedBy { it.sequence }
+    val allKnownLevels = incentiveLevelService.getAllIncentiveLevels()
       .map {
         KnownLevel(
-          code = it.iepLevel,
-          available = it.active && levelCodesAvailableInPrison.contains(it.iepLevel),
+          code = it.code,
+          available = it.active && levelCodesAvailableInPrison.contains(it.code),
         )
       }
 

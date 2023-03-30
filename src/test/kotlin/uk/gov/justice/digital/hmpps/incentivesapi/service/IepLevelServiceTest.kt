@@ -10,12 +10,14 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.incentivesapi.config.DataIntegrityException
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 
 class IepLevelServiceTest {
 
   private val prisonApiService: PrisonApiService = mock()
-  private val iepLevelService = IepLevelService(prisonApiService)
+  private val incentiveLevelService: IncentiveLevelService = mock()
+  private val iepLevelService = IepLevelService(prisonApiService, incentiveLevelService)
 
   @Test
   fun `prison has all 5 iep levels`() {
@@ -71,14 +73,14 @@ class IepLevelServiceTest {
 
     @BeforeEach
     fun setup(): Unit = runBlocking {
-      whenever(prisonApiService.getIepLevels()).thenReturn(
+      whenever(incentiveLevelService.getAllIncentiveLevels()).thenReturn(
         listOf(
-          IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1),
-          IepLevel(iepLevel = "ENT", iepDescription = "Entry", sequence = 2, active = false),
-          IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 3, default = true),
-          IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 4),
-          IepLevel(iepLevel = "EN2", iepDescription = "Enhanced 2", sequence = 5),
-          IepLevel(iepLevel = "EN3", iepDescription = "Enhanced 3", sequence = 6),
+          IncentiveLevel(code = "BAS", description = "Basic"),
+          IncentiveLevel(code = "ENT", description = "Entry", active = false),
+          IncentiveLevel(code = "STD", description = "Standard"),
+          IncentiveLevel(code = "ENH", description = "Enhanced"),
+          IncentiveLevel(code = "EN2", description = "Enhanced 2"),
+          IncentiveLevel(code = "EN3", description = "Enhanced 3"),
         ),
       )
     }

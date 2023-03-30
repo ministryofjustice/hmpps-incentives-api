@@ -6,8 +6,10 @@ import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.incentivesapi.config.FeatureFlagsService
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataWithCodeFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.toIncentivesServiceDto
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveLevelRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonIncentiveLevelRepository
@@ -31,12 +33,22 @@ class IncentiveLevelService(
   private val incentiveLevelRepository: IncentiveLevelRepository,
   private val prisonIncentiveLevelRepository: PrisonIncentiveLevelRepository,
   private val prisonIncentiveLevelService: PrisonIncentiveLevelService,
+  private val featureFlagsService: FeatureFlagsService,
+  private val prisonApiService: PrisonApiService,
 ) {
   /**
    * Returns all incentive levels, including inactive ones, in globally-defined order
    */
   suspend fun getAllIncentiveLevels(): List<IncentiveLevelDTO> {
-    return incentiveLevelRepository.findAllByOrderBySequence().toListOfDTO()
+    return if (featureFlagsService.isIncentiveReferenceDataMasteredOutsideNomisInIncentivesDatabase()) {
+      incentiveLevelRepository.findAllByOrderBySequence().toListOfDTO()
+    } else {
+      prisonApiService.getIepLevels().sortedBy { it.sequence }.map { it.toIncentivesServiceDto() }
+    }
+  }
+
+  suspend fun getIncentiveLevelsMapByCode(): Map<String, IncentiveLevelDTO> {
+    return getAllIncentiveLevels().associateBy(IncentiveLevelDTO::code)
   }
 
   /**

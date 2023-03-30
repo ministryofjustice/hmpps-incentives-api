@@ -26,6 +26,7 @@ class IncentiveSummaryService(
   private val iepLevelService: IepLevelService,
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository,
   private val behaviourService: BehaviourService,
+  private val incentiveLevelService: IncentiveLevelService,
   private val clock: Clock,
 ) {
 
@@ -130,7 +131,7 @@ class IncentiveSummaryService(
       .toList().associateBy(ProvenAdjudication::bookingId)
 
   private suspend fun getCurrentAndHistoricalReviews(reviews: List<PrisonerIepLevel>): List<IepResult> {
-    val incentiveLevels = prisonApiService.getIncentiveLevels()
+    val incentiveLevels = incentiveLevelService.getIncentiveLevelsMapByCode()
     return reviews
       .sortedByDescending { it.reviewTime }
       .groupBy { it.bookingId }
@@ -139,7 +140,7 @@ class IncentiveSummaryService(
         val latestReview = review.firstOrNull(PrisonerIepLevel::isRealReview) ?: review.firstOrNull()
         IepResult(
           bookingId = it.key,
-          iepLevel = latestReview?.let { incentiveLevels[latestReview.iepCode]?.iepDescription ?: invalidLevel().iepLevel }
+          iepLevel = latestReview?.let { incentiveLevels[latestReview.iepCode]?.description ?: invalidLevel().iepLevel }
             ?: missingLevel().iepLevel,
           daysSinceReview = latestReview?.let {
             Duration.between(
@@ -153,7 +154,7 @@ class IncentiveSummaryService(
               .map { iep ->
                 IepDetail(
                   iepCode = iep.iepCode,
-                  iepLevel = incentiveLevels[iep.iepCode]?.iepDescription ?: invalidLevel().iepDescription,
+                  iepLevel = incentiveLevels[iep.iepCode]?.description ?: invalidLevel().iepDescription,
                   reviewType = iep.reviewType,
                   bookingId = iep.bookingId,
                   agencyId = iep.prisonId,

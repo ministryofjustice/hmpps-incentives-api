@@ -49,3 +49,5 @@ hmpps.sqs:
     domainevents:
       arn: arn:aws:sns:eu-west-2:000000000000:11111111-2222-3333-4444-555555555555
 
+feature:
+  incentives-reference-data-source-of-truth: false

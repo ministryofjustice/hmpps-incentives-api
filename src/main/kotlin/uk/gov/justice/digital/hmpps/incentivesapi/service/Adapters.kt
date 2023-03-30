@@ -2,19 +2,19 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import uk.gov.justice.digital.hmpps.incentivesapi.SYSTEM_USERNAME
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.NextReviewDate
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import java.time.LocalDate
 
-fun PrisonerIepLevel.toIepDetail(incentiveLevels: Map<String, IepLevel>) =
+fun PrisonerIepLevel.toIepDetail(incentiveLevels: Map<String, IncentiveLevel>) =
   IepDetail(
     id = id,
     bookingId = bookingId,
     iepDate = reviewTime.toLocalDate(),
     iepTime = reviewTime,
     agencyId = prisonId,
-    iepLevel = incentiveLevels[iepCode]?.iepDescription ?: "Unmapped",
+    iepLevel = incentiveLevels[iepCode]?.description ?: "Unmapped",
     iepCode = iepCode,
     reviewType = reviewType,
     comments = commentText,
@@ -24,7 +24,7 @@ fun PrisonerIepLevel.toIepDetail(incentiveLevels: Map<String, IepLevel>) =
     auditModuleName = SYSTEM_USERNAME,
   )
 
-fun List<PrisonerIepLevel>.toIepDetails(iepLevels: Map<String, IepLevel>): List<IepDetail> {
+fun List<PrisonerIepLevel>.toIepDetails(iepLevels: Map<String, IncentiveLevel>): List<IepDetail> {
   return map { review -> review.toIepDetail(iepLevels) }
 }
 
