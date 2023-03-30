@@ -152,6 +152,7 @@ class IncentiveLevelResource(
   @GetMapping("levels/{code}")
   @Operation(
     summary = "Returns an incentive level by code",
+    description = "Note that it may be inactive",
     responses = [
       ApiResponse(
         responseCode = "200",

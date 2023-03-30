@@ -70,6 +70,43 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
     }
 
     @Test
+    fun `lists all prison levels without any role`() {
+      webTestClient.get()
+        .uri("/incentive/prison-levels/MDI?with-inactive=true")
+        .headers(setAuthorisation())
+        .exchange()
+        .expectStatus().isOk
+        .expectBody().json(
+          // language=json
+          """
+          [
+            {
+              "levelCode": "BAS", "levelDescription": "Basic", "prisonId": "MDI", "active": true, "defaultOnAdmission": false,
+              "remandTransferLimitInPence": 2750, "remandSpendLimitInPence": 27500, "convictedTransferLimitInPence": 550, "convictedSpendLimitInPence": 5500,
+              "visitOrders": 2, "privilegedVisitOrders": 1
+            },
+            {
+              "levelCode": "STD", "levelDescription": "Standard", "prisonId": "MDI", "active": true, "defaultOnAdmission": true,
+              "remandTransferLimitInPence": 6050, "remandSpendLimitInPence": 60500, "convictedTransferLimitInPence": 1980, "convictedSpendLimitInPence": 19800,
+              "visitOrders": 2, "privilegedVisitOrders": 1
+            },
+            {
+              "levelCode": "ENH", "levelDescription": "Enhanced", "prisonId": "MDI", "active": true, "defaultOnAdmission": false,
+              "remandTransferLimitInPence": 6600, "remandSpendLimitInPence": 66000, "convictedTransferLimitInPence": 3300, "convictedSpendLimitInPence": 33000,
+              "visitOrders": 2, "privilegedVisitOrders": 1
+            },
+            {
+              "levelCode": "ENT", "levelDescription": "Entry", "prisonId": "MDI", "active": false, "defaultOnAdmission": false,
+              "remandTransferLimitInPence": 6600, "remandSpendLimitInPence": 66000, "convictedTransferLimitInPence": 3300, "convictedSpendLimitInPence": 33000,
+              "visitOrders": 2, "privilegedVisitOrders": 1
+            }
+          ]
+          """,
+          true,
+        )
+    }
+
+    @Test
     fun `returns prison level details of active level`() {
       webTestClient.get()
         .uri("/incentive/prison-levels/WRI/level/ENH")
@@ -90,12 +127,22 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
     }
 
     @Test
-    fun `fails to return prison level details of inactive level`() {
+    fun `returns prison level details of inactive level`() {
       webTestClient.get()
         .uri("/incentive/prison-levels/MDI/level/ENT")
         .headers(setAuthorisation())
         .exchange()
-        .expectErrorResponse(HttpStatus.NOT_FOUND, "No active prison incentive level found for code `ENT`")
+        .expectBody().json(
+          // language=json
+          """
+          {
+            "levelCode": "ENT", "levelDescription": "Entry", "prisonId": "MDI", "active": false, "defaultOnAdmission": false,
+            "remandTransferLimitInPence": 6600, "remandSpendLimitInPence": 66000, "convictedTransferLimitInPence": 3300, "convictedSpendLimitInPence": 33000,
+            "visitOrders": 2, "privilegedVisitOrders": 1
+          }
+          """,
+          true,
+        )
     }
 
     @Test
@@ -104,7 +151,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .uri("/incentive/prison-levels/BAI/level/EN4")
         .headers(setAuthorisation())
         .exchange()
-        .expectErrorResponse(HttpStatus.NOT_FOUND, "No active prison incentive level found for code `EN4`")
+        .expectErrorResponse(HttpStatus.NOT_FOUND, "No prison incentive level found for code `EN4`")
     }
   }
 

@@ -4,7 +4,7 @@
 
 
 Date: 2023-03-05
-Updated: 2023-03-21
+Updated: 2023-03-29
 
 ## Status
 
@@ -270,8 +270,20 @@ Authorised requests do not require any roles.
 ]
 ```
 
+#### Get details of an incentive level globally
+NB: Inactive levels are also returned
 
-#### Get the details of all incentive levels for a specified prison
+`GET /incentive/levels/{code}` -
+```json
+{
+  "code": "BAS",
+  "description": "Basic",
+  "active": true,
+  "required": true
+}
+```
+
+#### Get the details of all active incentive levels for a specified prison
 This contains spend limits and visit allowances
 
 `GET /incentive/prison-levels/{prisondId}` -
@@ -296,8 +308,14 @@ e.g. **/incentive/prison-levels/MDI** returns
 ]
 ```
 
+#### Get the details of all active incentive levels for a specified prison
+This response is the same as above but includes `"active": false`
+
+`GET /incentive/prison-levels/{prisondId}?with-inactive=true`
+
 #### Get the details of an incentive level for a specified prison
-This contains spend limits and visit allowances
+This contains spend limits and visit allowances.
+NB: Inactive levels are also returned
 
 `GET /incentive/prison-levels/{prisondId}/level/{level}` -
 
@@ -324,7 +342,7 @@ e.g. **/incentive/prison-levels/MDI/level/STD** returns
 Authorised requests will require roles with write scope.
 
 #### Add a new incentive level
-`POST /incentive/levels/{code}` -
+`POST /incentive/levels` -
 ```json
 {
   "code": "EN4",

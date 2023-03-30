@@ -33,6 +33,13 @@ class PrisonIncentiveLevelService(
   private val prisonIncentiveLevelRepository: PrisonIncentiveLevelRepository,
 ) {
   /**
+   * Returns all incentive levels for given prison, including inactive ones, along with associated information, in globally-defined order
+   */
+  suspend fun getAllPrisonIncentiveLevels(prisonId: String): List<PrisonIncentiveLevelDTO> {
+    return prisonIncentiveLevelRepository.findAllByPrisonId(prisonId).toListOfDTO()
+  }
+
+  /**
    * Returns all active incentive levels for given prison, along with associated information, in globally-defined order
    */
   suspend fun getActivePrisonIncentiveLevels(prisonId: String): List<PrisonIncentiveLevelDTO> {
@@ -40,10 +47,10 @@ class PrisonIncentiveLevelService(
   }
 
   /**
-   * Returns an active incentive level for given prison and level code, along with associated information
+   * Returns a incentive level, whether it's active or not, for given prison and level code, along with associated information
    */
-  suspend fun getActivePrisonIncentiveLevel(prisonId: String, levelCode: String): PrisonIncentiveLevelDTO? {
-    return prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCodeAndActiveIsTrue(prisonId, levelCode)?.toDTO()
+  suspend fun getPrisonIncentiveLevel(prisonId: String, levelCode: String): PrisonIncentiveLevelDTO? {
+    return prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode(prisonId, levelCode)?.toDTO()
   }
 
   /**
