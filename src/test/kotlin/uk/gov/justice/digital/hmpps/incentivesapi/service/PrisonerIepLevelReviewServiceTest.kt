@@ -17,6 +17,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.incentivesapi.config.AuthenticationFacade
+import uk.gov.justice.digital.hmpps.incentivesapi.config.FeatureFlagsService
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
@@ -46,8 +47,10 @@ class PrisonerIepLevelReviewServiceTest {
   private val nextReviewDateUpdaterService: NextReviewDateUpdaterService = mock()
   private val incentiveStoreService: IncentiveStoreService = mock()
   private val incentiveLevelService: IncentiveLevelService = mock()
+  private val prisonIncentiveLevelService: PrisonIncentiveLevelService = mock()
+  private val featureFlagsService: FeatureFlagsService = mock()
 
-  private val iepLevelService = IepLevelService(prisonApiService, incentiveLevelService)
+  private val iepLevelService = IepLevelService(prisonApiService, incentiveLevelService, prisonIncentiveLevelService, featureFlagsService)
 
   private val prisonerIepLevelReviewService = PrisonerIepLevelReviewService(
     prisonApiService,
