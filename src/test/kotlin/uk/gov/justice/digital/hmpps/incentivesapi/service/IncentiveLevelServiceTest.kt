@@ -51,7 +51,7 @@ class IncentiveLevelServiceTest {
     )
 
     // When
-    incentiveReviewsService.getIncentiveLevelsMapByCode()
+    incentiveReviewsService.getAllIncentiveLevelsMapByCode()
 
     // Then
     verify(incentiveLevelRepository, times(1)).findAllByOrderBySequence()
@@ -71,7 +71,7 @@ class IncentiveLevelServiceTest {
     )
 
     // When
-    val activeIncentiveLevelsByCode = incentiveReviewsService.getIncentiveLevelsMapByCode()
+    val activeIncentiveLevelsByCode = incentiveReviewsService.getAllIncentiveLevelsMapByCode()
 
     // Then
     assertThat(activeIncentiveLevelsByCode).isEqualTo(

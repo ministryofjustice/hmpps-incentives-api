@@ -131,7 +131,7 @@ class IncentiveSummaryService(
       .toList().associateBy(ProvenAdjudication::bookingId)
 
   private suspend fun getCurrentAndHistoricalReviews(reviews: List<PrisonerIepLevel>): List<IepResult> {
-    val incentiveLevels = incentiveLevelService.getIncentiveLevelsMapByCode()
+    val incentiveLevels = incentiveLevelService.getAllIncentiveLevelsMapByCode()
     return reviews
       .sortedByDescending { it.reviewTime }
       .groupBy { it.bookingId }

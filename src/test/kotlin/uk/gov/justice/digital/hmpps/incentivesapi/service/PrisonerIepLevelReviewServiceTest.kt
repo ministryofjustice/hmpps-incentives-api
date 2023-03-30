@@ -70,7 +70,7 @@ class PrisonerIepLevelReviewServiceTest {
     whenever(prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(any()))
       .thenReturn(emptyFlow())
 
-    whenever(incentiveLevelService.getIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
+    whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
   }
 
   @Nested
@@ -107,7 +107,7 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId)).thenReturn(location)
       whenever(authenticationFacade.getUsername()).thenReturn(reviewerUserName)
       whenever(incentiveStoreService.saveIncentiveReview(any())).thenReturn(prisonerIepLevel.copy(id = 42))
-      whenever(incentiveLevelService.getIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
+      whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
     }
 
     @Test
@@ -182,7 +182,7 @@ class PrisonerIepLevelReviewServiceTest {
         val bookingId = currentLevel.bookingId
         val expectedNextReviewDate = currentAndPreviousLevels.first().reviewTime.plusYears(1).toLocalDate()
 
-        whenever(incentiveLevelService.getIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
+        whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
         whenever(nextReviewDateGetterService.get(bookingId)).thenReturn(expectedNextReviewDate)
 
         // Given
@@ -207,7 +207,7 @@ class PrisonerIepLevelReviewServiceTest {
     fun setUp(): Unit = runBlocking {
       // This ensures save works and an id is set on the PrisonerIepLevel
       whenever(incentiveStoreService.saveIncentiveReview(any())).thenAnswer { i -> i.arguments[0] }
-      whenever(incentiveLevelService.getIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
+      whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
     }
 
     @ParameterizedTest
@@ -547,7 +547,7 @@ class PrisonerIepLevelReviewServiceTest {
       // Mock PrisonerIepLevel being updated
       whenever(prisonerIepLevelRepository.delete(iepReview)).thenReturn(Unit)
 
-      whenever(incentiveLevelService.getIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
+      whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
     }
 
     @Test
@@ -692,7 +692,7 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(incentiveStoreService.patchIncentiveReview(syncPatchRequest, bookingId, iepReview))
         .thenReturn(expectedIepReview)
 
-      whenever(incentiveLevelService.getIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
+      whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
     }
 
     @Test
@@ -815,7 +815,7 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(incentiveStoreService.saveIncentiveReview(iepReview))
         .thenReturn(iepReview.copy(id = iepReviewId))
 
-      whenever(incentiveLevelService.getIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
+      whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
     }
 
     @Test

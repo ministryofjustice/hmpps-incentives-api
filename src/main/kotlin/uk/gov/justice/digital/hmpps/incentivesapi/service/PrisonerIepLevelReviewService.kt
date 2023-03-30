@@ -58,7 +58,7 @@ class PrisonerIepLevelReviewService(
   ): IepSummary {
     val reviews = prisonerIepLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(bookingId)
     if (reviews.count() == 0) throw IncentiveReviewNotFoundException("No Incentive Reviews for booking ID $bookingId")
-    return buildIepSummary(reviews, incentiveLevelService.getIncentiveLevelsMapByCode(), withDetails)
+    return buildIepSummary(reviews, incentiveLevelService.getAllIncentiveLevelsMapByCode(), withDetails)
   }
 
   suspend fun getPrisonerIepLevelHistory(prisonerNumber: String): IepSummary {
@@ -66,7 +66,7 @@ class PrisonerIepLevelReviewService(
     if (reviews.count() == 0) {
       throw IncentiveReviewNotFoundException("No Incentive Reviews for prisoner number $prisonerNumber")
     }
-    return buildIepSummary(reviews, incentiveLevelService.getIncentiveLevelsMapByCode())
+    return buildIepSummary(reviews, incentiveLevelService.getAllIncentiveLevelsMapByCode())
   }
 
   suspend fun addIepReview(prisonerNumber: String, iepReview: IepReview): IepDetail {
@@ -105,7 +105,7 @@ class PrisonerIepLevelReviewService(
       ),
     )
 
-    return review.toIepDetail(incentiveLevelService.getIncentiveLevelsMapByCode())
+    return review.toIepDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
   }
 
   suspend fun handleSyncPostIepReviewRequest(bookingId: Long, syncPostRequest: SyncPostRequest): IepDetail {
@@ -141,7 +141,7 @@ class PrisonerIepLevelReviewService(
     }
 
     val iepDetail = incentiveStoreService.patchIncentiveReview(syncPatchRequest, bookingId, prisonerIepLevel)
-      .toIepDetail(incentiveLevelService.getIncentiveLevelsMapByCode())
+      .toIepDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
 
     publishReviewDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_UPDATED)
     publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_UPDATED)
@@ -163,13 +163,13 @@ class PrisonerIepLevelReviewService(
 
     incentiveStoreService.deleteIncentiveReview(prisonerIepLevel, bookingId)
 
-    val iepDetail = prisonerIepLevel.toIepDetail(incentiveLevelService.getIncentiveLevelsMapByCode())
+    val iepDetail = prisonerIepLevel.toIepDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
     publishReviewDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_DELETED)
     publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_DELETED)
   }
 
   suspend fun getCurrentIEPLevelForPrisoners(bookingIds: List<Long>): List<CurrentIepLevel> {
-    val incentiveLevels = incentiveLevelService.getIncentiveLevelsMapByCode()
+    val incentiveLevels = incentiveLevelService.getAllIncentiveLevelsMapByCode()
     return prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(bookingIds)
       .map {
         CurrentIepLevel(
@@ -180,7 +180,7 @@ class PrisonerIepLevelReviewService(
   }
 
   suspend fun getReviewById(id: Long): IepDetail =
-    prisonerIepLevelRepository.findById(id)?.toIepDetail(incentiveLevelService.getIncentiveLevelsMapByCode()) ?: throw NoDataFoundException(id)
+    prisonerIepLevelRepository.findById(id)?.toIepDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode()) ?: throw NoDataFoundException(id)
 
   suspend fun processOffenderEvent(prisonOffenderEvent: HMPPSDomainEvent) =
     when (prisonOffenderEvent.additionalInformation?.reason) {
@@ -246,7 +246,7 @@ class PrisonerIepLevelReviewService(
         ),
       )
 
-      val iepDetail = prisonerIepLevel.toIepDetail(incentiveLevelService.getIncentiveLevelsMapByCode())
+      val iepDetail = prisonerIepLevel.toIepDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
       publishReviewDomainEvent(
         iepDetail,
         IncentivesDomainEventType.IEP_REVIEW_INSERTED,
@@ -346,7 +346,7 @@ class PrisonerIepLevelReviewService(
         reviewType = iepReview.reviewType ?: ReviewType.REVIEW,
         prisonerNumber = prisonerInfo.offenderNo,
       ),
-    ).toIepDetail(incentiveLevelService.getIncentiveLevelsMapByCode())
+    ).toIepDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
 
     // Propagate new IEP review to other services
     publishReviewDomainEvent(newIepReview, IncentivesDomainEventType.IEP_REVIEW_INSERTED)

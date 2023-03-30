@@ -49,7 +49,7 @@ class NextReviewDateUpdaterServiceTest {
 
   @BeforeEach
   fun setUp(): Unit = runBlocking {
-    whenever(incentiveLevelService.getIncentiveLevelsMapByCode())
+    whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode())
       .thenReturn(iepLevels)
   }
 
@@ -62,7 +62,7 @@ class NextReviewDateUpdaterServiceTest {
 
     @BeforeEach
     fun setUp(): Unit = runBlocking {
-      whenever(incentiveLevelService.getIncentiveLevelsMapByCode())
+      whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode())
         .thenReturn(iepLevels)
     }
 

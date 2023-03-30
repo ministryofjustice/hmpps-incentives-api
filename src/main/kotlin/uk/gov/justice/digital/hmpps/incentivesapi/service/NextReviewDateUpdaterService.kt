@@ -56,7 +56,7 @@ class NextReviewDateUpdaterService(
 
     val nextReviewDatesBeforeUpdate: Map<Long, LocalDate> = nextReviewDateRepository.findAllById(bookingIds).toList().toMapByBookingId()
 
-    val iepLevels: Map<String, IncentiveLevel> = incentiveLevelService.getIncentiveLevelsMapByCode()
+    val iepLevels: Map<String, IncentiveLevel> = incentiveLevelService.getAllIncentiveLevelsMapByCode()
 
     // NOTE: This is to account for bookingIds potentially without any review record
     val bookingIdsNoReviews = bookingIds.associateWith { emptyList<PrisonerIepLevel>() }
