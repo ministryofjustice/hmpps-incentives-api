@@ -34,6 +34,7 @@ class PrisonIncentiveLevelResource(
   @GetMapping("{prisonId}")
   @Operation(
     summary = "Lists incentive levels in this prison along with associated information, optionally including inactive ones",
+    description = "Inactive incentive levels in the prison were previously active at some point. Not all global inactive incentive levels are necessarily included. For the majority of use cases, inactive levels in a prison should be ignored.",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -69,7 +70,7 @@ class PrisonIncentiveLevelResource(
   @GetMapping("{prisonId}/level/{levelCode}")
   @Operation(
     summary = "Returns an incentive level in this prison along with associated information",
-    description = "Note that it may be inactive in the prison",
+    description = "Note that it may be inactive in the prison. For the majority of use cases, inactive levels in a prison should be ignored.",
     responses = [
       ApiResponse(
         responseCode = "200",

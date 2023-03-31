@@ -37,6 +37,7 @@ class IncentiveLevelResource(
   @GetMapping("levels")
   @Operation(
     summary = "Lists all incentive levels, optionally including inactive ones",
+    description = "For the majority of use cases, inactive levels in a prison should be ignored.",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -71,6 +72,7 @@ class IncentiveLevelResource(
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new incentive level",
+    description = "New incentive levels are added to the end of the list",
     responses = [
       ApiResponse(
         responseCode = "201",
@@ -152,7 +154,7 @@ class IncentiveLevelResource(
   @GetMapping("levels/{code}")
   @Operation(
     summary = "Returns an incentive level by code",
-    description = "Note that it may be inactive",
+    description = "Note that it may be inactive. For the majority of use cases, inactive levels in a prison should be ignored.",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -188,7 +190,7 @@ class IncentiveLevelResource(
   @PreAuthorize("hasRole('MAINTAIN_INCENTIVE_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
     summary = "Updates an incentive level",
-    description = "Payload must include all required fields. A level marked as required must also be active.",
+    description = "Payload must include all required fields. A level marked as required must also be active. Deactivated incentive levels remain in the same position with respect to the others.",
     // TODO: decide and explain what happens to associated per-prison data when activating/deactivating;
     //       especially if level is active and/or occupied in some prison
     responses = [
@@ -237,7 +239,7 @@ class IncentiveLevelResource(
   @PreAuthorize("hasRole('MAINTAIN_INCENTIVE_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
     summary = "Updates an incentive level",
-    description = "Partial updates are allowed. A level marked as required must also be active.",
+    description = "Partial updates are allowed. A level marked as required must also be active. Deactivated incentive levels remain in the same position with respect to the others.",
     // TODO: decide and explain what happens to associated per-prison data when activating/deactivating;
     //       especially if level is active and/or occupied in some prison
     responses = [
@@ -295,7 +297,7 @@ class IncentiveLevelResource(
   @PreAuthorize("hasRole('MAINTAIN_INCENTIVE_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
     summary = "Deactivates an incentive level",
-    description = "A required level cannot be deactivated, needs to be updated first to be not required.",
+    description = "A required level cannot be deactivated, needs to be updated first to be not required. Deactivated incentive levels remain in the same position with respect to the others.",
     // TODO: decide and explain what happens to associated per-prison data;
     //       especially if level is active and/or occupied in some prison
     responses = [
