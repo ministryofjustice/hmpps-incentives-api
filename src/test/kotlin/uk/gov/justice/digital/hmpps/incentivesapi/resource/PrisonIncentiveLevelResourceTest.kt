@@ -210,6 +210,11 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(prisonIncentiveLevel?.whenUpdated).isEqualTo(now)
       }
 
+      assertDomainEventSent("incentives.prison-level.changed").let {
+        assertThat(it.description).isEqualTo("Incentive level (STD) in prison MDI has been updated")
+        assertThat(it.additionalInformation?.incentiveLevel).isEqualTo("STD")
+        assertThat(it.additionalInformation?.prisonId).isEqualTo("MDI")
+      }
       assertAuditMessageSentWithMap("PRISON_INCENTIVE_LEVEL_UPDATED").let {
         assertThat(it).containsAllEntriesOf(
           mapOf(
@@ -273,6 +278,11 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(defaultLevelCodes).isEqualTo(listOf("WRI" to "ENH"))
       }
 
+      assertDomainEventSent("incentives.prison-level.changed").let {
+        assertThat(it.description).isEqualTo("Incentive level (ENH) in prison WRI has been updated")
+        assertThat(it.additionalInformation?.incentiveLevel).isEqualTo("ENH")
+        assertThat(it.additionalInformation?.prisonId).isEqualTo("WRI")
+      }
       assertAuditMessageSentWithMap("PRISON_INCENTIVE_LEVEL_UPDATED").let {
         assertThat(it).containsAllEntriesOf(
           mapOf(
@@ -313,6 +323,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -339,6 +350,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -365,6 +377,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -391,6 +404,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -415,6 +429,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -441,6 +456,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -470,6 +486,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -503,6 +520,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -538,6 +556,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -564,6 +583,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -612,6 +632,11 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(prisonIncentiveLevel?.whenUpdated).isEqualTo(now)
       }
 
+      assertDomainEventSent("incentives.prison-level.changed").let {
+        assertThat(it.description).isEqualTo("Incentive level (BAS) in prison BAI has been updated")
+        assertThat(it.additionalInformation?.incentiveLevel).isEqualTo("BAS")
+        assertThat(it.additionalInformation?.prisonId).isEqualTo("BAI")
+      }
       assertAuditMessageSentWithMap("PRISON_INCENTIVE_LEVEL_UPDATED").let {
         assertThat(it).containsAllEntriesOf(
           mapOf(
@@ -674,6 +699,11 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(defaultLevelCodes).isEqualTo(listOf("WRI" to "ENH"))
       }
 
+      assertDomainEventSent("incentives.prison-level.changed").let {
+        assertThat(it.description).isEqualTo("Incentive level (ENH) in prison WRI has been updated")
+        assertThat(it.additionalInformation?.incentiveLevel).isEqualTo("ENH")
+        assertThat(it.additionalInformation?.prisonId).isEqualTo("WRI")
+      }
       assertAuditMessageSentWithMap("PRISON_INCENTIVE_LEVEL_UPDATED").let {
         assertThat(it).containsAllEntriesOf(
           mapOf(
@@ -711,6 +741,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(prisonIncentiveLevel?.remandSpendLimitInPence).isEqualTo(275_00)
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -735,6 +766,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -764,6 +796,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -796,6 +829,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -830,6 +864,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -861,6 +896,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -893,6 +929,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -921,6 +958,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -962,6 +1000,11 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(prisonIncentiveLevel?.whenUpdated).isEqualTo(now)
       }
 
+      assertDomainEventSent("incentives.prison-level.changed").let {
+        assertThat(it.description).isEqualTo("Incentive level (EN2) in prison WRI has been updated")
+        assertThat(it.additionalInformation?.incentiveLevel).isEqualTo("EN2")
+        assertThat(it.additionalInformation?.prisonId).isEqualTo("WRI")
+      }
       assertAuditMessageSentWithMap("PRISON_INCENTIVE_LEVEL_UPDATED").let {
         assertThat(it).containsAllEntriesOf(
           mapOf(
@@ -990,6 +1033,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(prisonIncentiveLevel?.active).isTrue
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -1006,6 +1050,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -1035,6 +1080,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -1058,6 +1104,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
   }

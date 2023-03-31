@@ -185,6 +185,10 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(prisonIncentiveLevelRepository.count()).isEqualTo(0)
       }
 
+      assertDomainEventSent("incentives.level.changed").let {
+        assertThat(it.description).isEqualTo("An incentive level has been changed: EN4")
+        assertThat(it.additionalInformation?.incentiveLevel).isEqualTo("EN4")
+      }
       assertAuditMessageSentWithMap("INCENTIVE_LEVEL_ADDED").let {
         assertThat(it["code"]).isEqualTo("EN4")
       }
@@ -245,6 +249,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevelRepository.count()).isEqualTo(6)
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -278,6 +283,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevel?.active).isTrue
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -306,6 +312,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -335,6 +342,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevelRepository.count()).isEqualTo(6)
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -372,6 +380,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevelRepository.count()).isEqualTo(6)
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -413,6 +422,10 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         }
       }
 
+      assertDomainEventSent("incentives.levels.reordered").let {
+        assertThat(it.description).isEqualTo("Incentive levels have been re-ordered")
+        assertThat(it.additionalInformation).isNull()
+      }
       assertAuditMessageSentWithList<String>("INCENTIVE_LEVELS_REORDERED").let {
         assertThat(it).isEqualTo(listOf("EN3", "EN2", "ENT", "ENH", "STD", "BAS"))
       }
@@ -438,6 +451,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevelCodes).isEqualTo(listOf("BAS", "STD", "ENH", "EN2", "EN3", "ENT"))
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -465,6 +479,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         }
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -489,6 +504,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevels.map { it.sequence }).isEqualTo(listOf(1, 2, 3, 4, 5, 99))
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -513,6 +529,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevels.map { it.sequence }).isEqualTo(listOf(1, 2, 3, 4, 5, 99))
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -544,6 +561,10 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevel?.whenUpdated).isEqualTo(now)
       }
 
+      assertDomainEventSent("incentives.level.changed").let {
+        assertThat(it.description).isEqualTo("An incentive level has been changed: STD")
+        assertThat(it.additionalInformation?.incentiveLevel).isEqualTo("STD")
+      }
       assertAuditMessageSentWithMap("INCENTIVE_LEVEL_UPDATED").let {
         assertThat(it["description"]).isEqualTo("Silver")
       }
@@ -606,6 +627,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevel?.description).isNotEqualTo("Silver")
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -632,6 +654,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -659,6 +682,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevel?.active).isTrue
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -694,6 +718,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevel?.active).isTrue
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -727,6 +752,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevel).isNull()
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -758,6 +784,10 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevel?.whenUpdated).isEqualTo(now)
       }
 
+      assertDomainEventSent("incentives.level.changed").let {
+        assertThat(it.description).isEqualTo("An incentive level has been changed: STD")
+        assertThat(it.additionalInformation?.incentiveLevel).isEqualTo("STD")
+      }
       assertAuditMessageSentWithMap("INCENTIVE_LEVEL_UPDATED").let {
         assertThat(it["description"]).isEqualTo("Silver")
       }
@@ -820,6 +850,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevel?.description).isNotEqualTo("Silver")
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -846,6 +877,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -884,6 +916,10 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
 
+      assertDomainEventSent("incentives.level.changed").let {
+        assertThat(it.description).isEqualTo("An incentive level has been changed: ENH")
+        assertThat(it.additionalInformation?.incentiveLevel).isEqualTo("ENH")
+      }
       assertAuditMessageSentWithMap("INCENTIVE_LEVEL_UPDATED").let {
         assertThat(it["code"]).isEqualTo("ENH")
         assertThat(it["description"]).isEqualTo("Gold")
@@ -918,6 +954,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevel?.active).isTrue
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -942,6 +979,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevel?.required).isFalse
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -967,6 +1005,10 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevel?.whenUpdated).isEqualTo(now)
       }
 
+      assertDomainEventSent("incentives.level.changed").let {
+        assertThat(it.description).isEqualTo("An incentive level has been changed: EN2")
+        assertThat(it.additionalInformation?.incentiveLevel).isEqualTo("EN2")
+      }
       assertAuditMessageSentWithMap("INCENTIVE_LEVEL_UPDATED").let {
         assertThat(it["code"]).isEqualTo("EN2")
         assertThat(it["active"]).isEqualTo(false)
@@ -995,6 +1037,10 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevel?.whenUpdated).isEqualTo(now)
       }
 
+      assertDomainEventSent("incentives.level.changed").let {
+        assertThat(it.description).isEqualTo("An incentive level has been changed: ENT")
+        assertThat(it.additionalInformation?.incentiveLevel).isEqualTo("ENT")
+      }
       assertAuditMessageSentWithMap("INCENTIVE_LEVEL_UPDATED").let {
         assertThat(it["code"]).isEqualTo("ENT")
         assertThat(it["active"]).isEqualTo(false)
@@ -1014,6 +1060,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevel?.active).isTrue
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -1033,6 +1080,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
 
@@ -1051,6 +1099,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
 
+      assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
   }
