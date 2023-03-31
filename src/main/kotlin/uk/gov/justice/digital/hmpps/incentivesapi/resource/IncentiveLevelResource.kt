@@ -56,7 +56,7 @@ class IncentiveLevelResource(
     ],
   )
   suspend fun getIncentiveLevels(
-    @Schema(description = "Include inactive incentive levels", example = "true", required = false, defaultValue = "false", type = "boolean", pattern = "^[true|false]$")
+    @Schema(description = "Include inactive incentive levels", example = "true", required = false, defaultValue = "false", type = "boolean", pattern = "^true|false$")
     @RequestParam(defaultValue = "false", value = "with-inactive", required = false)
     withInactive: Boolean = false,
   ): List<IncentiveLevel> {

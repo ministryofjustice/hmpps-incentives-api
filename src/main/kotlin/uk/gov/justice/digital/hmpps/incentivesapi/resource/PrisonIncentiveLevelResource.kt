@@ -56,7 +56,7 @@ class PrisonIncentiveLevelResource(
     @Schema(description = "Prison id", example = "MDI", required = true, minLength = 3, maxLength = 6)
     @PathVariable
     prisonId: String,
-    @Schema(description = "Include inactive prison incentive levels", example = "true", required = false, defaultValue = "false", type = "boolean", pattern = "^[true|false]$")
+    @Schema(description = "Include inactive prison incentive levels", example = "true", required = false, defaultValue = "false", type = "boolean", pattern = "^true|false$")
     @RequestParam(defaultValue = "false", value = "with-inactive", required = false)
     withInactive: Boolean = false,
   ): List<PrisonIncentiveLevel> {
