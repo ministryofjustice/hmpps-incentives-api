@@ -2,24 +2,26 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveLevelRepository
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonIncentiveLevelRepository
 import java.time.Clock
 import java.time.LocalDateTime
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel as IncentiveLevelDTO
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevelUpdate as IncentiveLevelUpdateDTO
 
+/**
+ * Audited facade for IncentiveLevelService
+ *
+ * Publishes HMPPS domain events and audit messages when modifications are made
+ */
 @Service
 class IncentiveLevelAuditedService(
   private val clock: Clock,
   private val auditService: AuditService,
   private val snsService: SnsService,
   incentiveLevelRepository: IncentiveLevelRepository,
-  prisonIncentiveLevelRepository: PrisonIncentiveLevelRepository,
   prisonIncentiveLevelAuditedService: PrisonIncentiveLevelAuditedService,
 ) : IncentiveLevelService(
   clock = clock,
   incentiveLevelRepository = incentiveLevelRepository,
-  prisonIncentiveLevelRepository = prisonIncentiveLevelRepository,
   prisonIncentiveLevelService = prisonIncentiveLevelAuditedService,
 ) {
   override suspend fun createIncentiveLevel(dto: IncentiveLevelDTO): IncentiveLevelDTO {

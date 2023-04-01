@@ -8,14 +8,12 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataWithCodeFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveLevelRepository
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonIncentiveLevelRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.util.flow.associateByTo
 import java.time.Clock
 import java.time.LocalDateTime
 import javax.validation.ValidationException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel as IncentiveLevelDTO
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevelUpdate as IncentiveLevelUpdateDTO
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevelUpdate as PrisonIncentiveLevelUpdateDTO
 
 /**
  * Manages globally-defined incentive levels.
@@ -27,7 +25,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevelUpdate
 class IncentiveLevelService(
   private val clock: Clock,
   private val incentiveLevelRepository: IncentiveLevelRepository,
-  private val prisonIncentiveLevelRepository: PrisonIncentiveLevelRepository,
   private val prisonIncentiveLevelService: PrisonIncentiveLevelService,
 ) {
   /**
@@ -69,7 +66,7 @@ class IncentiveLevelService(
       .toDTO()
       .also {
         if (it.required) {
-          enablePrisonIncentiveLevelEverywhere(it.code)
+          prisonIncentiveLevelService.activatePrisonIncentiveLevelInActivePrisons(it.code)
         }
       }
   }
@@ -91,20 +88,10 @@ class IncentiveLevelService(
           .toDTO()
           .also {
             if (it.required && !originalIncentiveLevel.required) {
-              enablePrisonIncentiveLevelEverywhere(it.code)
+              prisonIncentiveLevelService.activatePrisonIncentiveLevelInActivePrisons(it.code)
             }
           }
       }
-  }
-
-  private suspend fun enablePrisonIncentiveLevelEverywhere(levelCode: String) {
-    prisonIncentiveLevelRepository.findPrisonIdsWithActiveLevels().collect { prisonId ->
-      prisonIncentiveLevelService.updatePrisonIncentiveLevel(
-        prisonId,
-        levelCode,
-        PrisonIncentiveLevelUpdateDTO(active = true),
-      )
-    }
   }
 
   /**

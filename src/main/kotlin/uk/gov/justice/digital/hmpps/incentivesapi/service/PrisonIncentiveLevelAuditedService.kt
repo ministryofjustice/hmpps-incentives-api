@@ -8,6 +8,11 @@ import java.time.LocalDateTime
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel as PrisonIncentiveLevelDTO
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevelUpdate as PrisonIncentiveLevelUpdateDTO
 
+/**
+ * Audited facade for PrisonIncentiveLevelAuditedService
+ *
+ * Publishes HMPPS domain events and audit messages when modifications are made
+ */
 @Service
 class PrisonIncentiveLevelAuditedService(
   private val clock: Clock,
