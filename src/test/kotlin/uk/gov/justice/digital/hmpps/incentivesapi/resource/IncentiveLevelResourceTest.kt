@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.http.HttpStatus
 import org.springframework.test.web.reactive.server.WebTestClient
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.helper.expectErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.IncentiveLevelResourceTestBase
 import java.time.Clock
@@ -224,6 +225,14 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           assertThat(prisonIncentiveLevel).isNull()
         }
       }
+
+      val auditMessages = getSentAuditMessages()
+      val incentiveLevelsCreatedCount = auditMessages.count { it.what == "INCENTIVE_LEVEL_ADDED" }
+      assertThat(incentiveLevelsCreatedCount).isEqualTo(1)
+      val prisonIncentiveLevelsUpdated = auditMessages.filter { it.what == "PRISON_INCENTIVE_LEVEL_UPDATED" }
+        .map { objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java).prisonId }
+        .toSet()
+      assertThat(prisonIncentiveLevelsUpdated).isEqualTo(setOf("MDI", "WRI"))
     }
 
     @Test
@@ -584,6 +593,14 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           assertThat(prisonIncentiveLevel?.active).isFalse
         }
       }
+
+      val auditMessages = getSentAuditMessages()
+      val incentiveLevelsCreatedCount = auditMessages.count { it.what == "INCENTIVE_LEVEL_UPDATED" }
+      assertThat(incentiveLevelsCreatedCount).isEqualTo(1)
+      val prisonIncentiveLevelsUpdated = auditMessages.filter { it.what == "PRISON_INCENTIVE_LEVEL_UPDATED" }
+        .map { objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java).prisonId }
+        .toSet()
+      assertThat(prisonIncentiveLevelsUpdated).isEqualTo(setOf("MDI", "WRI"))
     }
 
     @Test
@@ -764,7 +781,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
     }
 
     @Test
-    fun `partially updates a required level and activates it in all prisons`() {
+    fun `partially updates a required level and activates it in all prisons with defaults`() {
       runBlocking {
         // 2 prisons with active levels and 1 without
         makePrisonIncentiveLevel("MDI", "STD")
@@ -798,6 +815,14 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           assertThat(prisonIncentiveLevel?.active).isFalse
         }
       }
+
+      val auditMessages = getSentAuditMessages()
+      val incentiveLevelsCreatedCount = auditMessages.count { it.what == "INCENTIVE_LEVEL_UPDATED" }
+      assertThat(incentiveLevelsCreatedCount).isEqualTo(1)
+      val prisonIncentiveLevelsUpdated = auditMessages.filter { it.what == "PRISON_INCENTIVE_LEVEL_UPDATED" }
+        .map { objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java).prisonId }
+        .toSet()
+      assertThat(prisonIncentiveLevelsUpdated).isEqualTo(setOf("MDI", "WRI"))
     }
 
     @Test
