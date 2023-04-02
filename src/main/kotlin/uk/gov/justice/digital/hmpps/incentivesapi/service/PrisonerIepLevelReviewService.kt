@@ -182,42 +182,47 @@ class PrisonerIepLevelReviewService(
   suspend fun getReviewById(id: Long): IepDetail =
     prisonerIepLevelRepository.findById(id)?.toIepDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode()) ?: throw NoDataFoundException(id)
 
-  suspend fun processOffenderEvent(prisonOffenderEvent: HMPPSDomainEvent) =
-    when (prisonOffenderEvent.additionalInformation?.reason) {
+  suspend fun processOffenderEvent(prisonOffenderEvent: HMPPSDomainEvent<AdditionalInformation>) =
+    when (prisonOffenderEvent.additionalInformation.reason) {
       "NEW_ADMISSION" -> createIepForReceivedPrisoner(prisonOffenderEvent, ReviewType.INITIAL)
       // NOTE: This may NOT be a recall. Someone could be readmitted back to prison for a number of other reasons (e.g. remands)
       "READMISSION" -> createIepForReceivedPrisoner(prisonOffenderEvent, ReviewType.READMISSION)
       "TRANSFERRED" -> createIepForReceivedPrisoner(prisonOffenderEvent, ReviewType.TRANSFER)
       "MERGE" -> mergedPrisonerDetails(prisonOffenderEvent)
       else -> {
-        log.debug("Ignoring prisonOffenderEvent with reason ${prisonOffenderEvent.additionalInformation?.reason}")
+        log.debug("Ignoring prisonOffenderEvent with reason ${prisonOffenderEvent.additionalInformation.reason}")
       }
     }
 
   @Transactional
-  suspend fun processPrisonerAlertsUpdatedEvent(prisonOffenderEvent: HMPPSDomainEvent) {
-    val acctAdded: Boolean = prisonOffenderEvent.additionalInformation?.alertsAdded
+  suspend fun processPrisonerAlertsUpdatedEvent(prisonOffenderEvent: HMPPSDomainEvent<AdditionalInformation>) {
+    val acctAdded: Boolean = prisonOffenderEvent.additionalInformation.alertsAdded
       ?.contains(PrisonerAlert.ACCT_ALERT_CODE) == true
-    val acctRemoved: Boolean = prisonOffenderEvent.additionalInformation?.alertsRemoved
+    val acctRemoved: Boolean = prisonOffenderEvent.additionalInformation.alertsRemoved
       ?.contains(PrisonerAlert.ACCT_ALERT_CODE) == true
 
     if (acctAdded || acctRemoved) {
       updateNextReviewDate(prisonOffenderEvent)
     } else {
-      log.debug("Ignoring 'prisoner-offender-search.prisoner.alerts-updated' event, No ACCT alerts added/removed: prisonerNumber = ${prisonOffenderEvent.additionalInformation?.nomsNumber}, alertsAdded = ${prisonOffenderEvent.additionalInformation?.alertsAdded}, alertsRemoved = ${prisonOffenderEvent.additionalInformation?.alertsRemoved}")
+      log.debug(
+        "Ignoring 'prisoner-offender-search.prisoner.alerts-updated' event, " +
+          "No ACCT alerts added/removed: prisonerNumber = ${prisonOffenderEvent.additionalInformation.nomsNumber}, " +
+          "alertsAdded = ${prisonOffenderEvent.additionalInformation.alertsAdded}, " +
+          "alertsRemoved = ${prisonOffenderEvent.additionalInformation.alertsRemoved}",
+      )
     }
   }
 
-  private suspend fun updateNextReviewDate(prisonOffenderEvent: HMPPSDomainEvent) {
-    prisonOffenderEvent.additionalInformation?.bookingId?.let { bookingId ->
+  private suspend fun updateNextReviewDate(prisonOffenderEvent: HMPPSDomainEvent<AdditionalInformation>) {
+    prisonOffenderEvent.additionalInformation.bookingId?.let { bookingId ->
       nextReviewDateUpdaterService.update(bookingId)
     } ?: run {
       log.error("Could not update next review date: bookingId null for prisonOffenderEvent: $prisonOffenderEvent")
     }
   }
 
-  private suspend fun createIepForReceivedPrisoner(prisonOffenderEvent: HMPPSDomainEvent, reviewType: ReviewType) {
-    prisonOffenderEvent.additionalInformation?.nomsNumber?.let {
+  private suspend fun createIepForReceivedPrisoner(prisonOffenderEvent: HMPPSDomainEvent<AdditionalInformation>, reviewType: ReviewType) {
+    prisonOffenderEvent.additionalInformation.nomsNumber?.let {
       val prisonerInfo = prisonApiService.getPrisonerInfo(it, true)
       val iepLevel = getIepLevelForReviewType(prisonerInfo, reviewType)
       val comment = getReviewCommentForEvent(prisonOffenderEvent)
@@ -289,7 +294,7 @@ class PrisonerIepLevelReviewService(
     }
   }
 
-  private fun getReviewCommentForEvent(prisonOffenderEvent: HMPPSDomainEvent) = when (prisonOffenderEvent.additionalInformation?.reason) {
+  private fun getReviewCommentForEvent(prisonOffenderEvent: HMPPSDomainEvent<AdditionalInformation>) = when (prisonOffenderEvent.additionalInformation.reason) {
     "NEW_ADMISSION", "READMISSION" -> "Default level assigned on arrival"
     "TRANSFERRED" -> "Level transferred from previous establishment"
     else -> prisonOffenderEvent.description
@@ -395,8 +400,8 @@ class PrisonerIepLevelReviewService(
   }
 
   @Transactional
-  suspend fun mergedPrisonerDetails(prisonerMergeEvent: HMPPSDomainEvent) {
-    val removedPrisonerNumber = prisonerMergeEvent.additionalInformation?.removedNomsNumber!!
+  suspend fun mergedPrisonerDetails(prisonerMergeEvent: HMPPSDomainEvent<AdditionalInformation>) {
+    val removedPrisonerNumber = prisonerMergeEvent.additionalInformation.removedNomsNumber!!
     val remainingPrisonerNumber = prisonerMergeEvent.additionalInformation.nomsNumber!!
     log.info("Processing merge event: Prisoner Number Merge $removedPrisonerNumber -> $remainingPrisonerNumber")
 

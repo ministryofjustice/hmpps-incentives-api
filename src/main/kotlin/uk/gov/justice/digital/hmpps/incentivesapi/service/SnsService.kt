@@ -25,11 +25,11 @@ class SnsService(hmppsQueueService: HmppsQueueService, private val objectMapper:
   }
   private val domaineventsTopicClient by lazy { domaineventsTopic.snsClient }
 
-  fun publishDomainEvent(
+  fun <T> publishDomainEvent(
     eventType: IncentivesDomainEventType,
     description: String,
     occurredAt: LocalDateTime,
-    additionalInformation: AdditionalInformation? = null,
+    additionalInformation: T? = null,
   ) {
     publishToDomainEventsTopic(
       HMPPSDomainEvent(
@@ -41,7 +41,7 @@ class SnsService(hmppsQueueService: HmppsQueueService, private val objectMapper:
     )
   }
 
-  private fun publishToDomainEventsTopic(payload: HMPPSDomainEvent) {
+  private fun <T> publishToDomainEventsTopic(payload: HMPPSDomainEvent<T>) {
     log.debug("Event {} for id {}", payload.eventType, payload.additionalInformation)
     domaineventsTopicClient.publish(
       PublishRequest(domaineventsTopic.arn, objectMapper.writeValueAsString(payload))
@@ -68,16 +68,16 @@ data class AdditionalInformation(
   val prisonId: String? = null,
 )
 
-data class HMPPSDomainEvent(
+data class HMPPSDomainEvent<T>(
   val eventType: String? = null,
-  val additionalInformation: AdditionalInformation?,
+  val additionalInformation: T,
   val version: String,
   val occurredAt: String,
   val description: String,
 ) {
   constructor(
     eventType: String,
-    additionalInformation: AdditionalInformation?,
+    additionalInformation: T,
     occurredAt: Instant,
     description: String,
   ) : this(

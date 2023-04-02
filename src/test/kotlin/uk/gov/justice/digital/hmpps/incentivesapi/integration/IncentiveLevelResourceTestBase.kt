@@ -76,7 +76,7 @@ class IncentiveLevelResourceTestBase : SqsIntegrationTestBase() {
     assertThat(queueSize).isEqualTo(0)
   }
 
-  protected fun assertDomainEventSent(eventType: String): HMPPSDomainEvent {
+  protected fun assertDomainEventSent(eventType: String): HMPPSDomainEvent<Map<String, *>?> {
     val sqsClient = incentivesQueue.sqsClient
     val queueSize = sqsClient.getApproxQueueSize(testDomainEventQueueUrl!!)
     assertThat(queueSize).isEqualTo(1)
@@ -84,19 +84,19 @@ class IncentiveLevelResourceTestBase : SqsIntegrationTestBase() {
     val body = sqsClient.receiveMessage(testDomainEventQueueUrl).messages[0].body
     val (message, attributes) = objectMapper.readValue(body, HMPPSMessage::class.java)
     assertThat(attributes.eventType.Value).isEqualTo(eventType)
-    val domainEvent = objectMapper.readValue(message, HMPPSDomainEvent::class.java)
+    val domainEvent = objectMapper.readValue(message, object : TypeReference<HMPPSDomainEvent<Map<String, *>?>>() {})
     assertThat(domainEvent.eventType).isEqualTo(eventType)
 
     return domainEvent
   }
 
-  protected fun getPublishedDomainEvents(): List<HMPPSDomainEvent> {
+  protected fun getPublishedDomainEvents(): List<HMPPSDomainEvent<Map<String, *>>> {
     val sqsClient = incentivesQueue.sqsClient
     val request = ReceiveMessageRequest(testDomainEventQueueUrl).withMaxNumberOfMessages(10)
     return sqsClient.receiveMessage(request).messages
       .map {
         val (message) = objectMapper.readValue(it.body, HMPPSMessage::class.java)
-        objectMapper.readValue(message, HMPPSDomainEvent::class.java)
+        objectMapper.readValue(message, object : TypeReference<HMPPSDomainEvent<Map<String, *>>>() {})
       }
   }
 

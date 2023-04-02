@@ -73,6 +73,7 @@ class IncentiveLevelAuditedService(
       IncentivesDomainEventType.INCENTIVE_LEVELS_REORDERED,
       "Incentive levels have been re-ordered",
       occurredAt = LocalDateTime.now(clock),
+      additionalInformation = null,
     )
   }
 }
