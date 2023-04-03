@@ -64,9 +64,7 @@ class NextReviewDateUpdaterService(
       .toList()
       .groupBy(PrisonerIepLevel::bookingId)
 
-    val nextReviewDateRecords = reviewsMap.map {
-      val bookingId = it.key
-      val iepDetails = it.value.toIepDetails(iepLevels)
+    val nextReviewDateRecords = reviewsMap.map { (bookingId, incentiveRecords) ->
       val offender = offendersMap[bookingId]!!
 
       val nextReviewDate = NextReviewDateService(
@@ -74,7 +72,7 @@ class NextReviewDateUpdaterService(
           dateOfBirth = offender.dateOfBirth,
           receptionDate = offender.receptionDate,
           hasAcctOpen = offender.hasAcctOpen,
-          iepDetails = iepDetails,
+          incentiveRecords = incentiveRecords,
         ),
       ).calculate()
 

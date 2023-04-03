@@ -80,7 +80,7 @@ class NextReviewDateUpdaterServiceTest {
           dateOfBirth = offender1.dateOfBirth,
           receptionDate = offender1.receptionDate,
           hasAcctOpen = offender1.hasAcctOpen,
-          iepDetails = emptyList(),
+          incentiveRecords = emptyList(),
         ),
       ).calculate()
       val expectedDate2 = NextReviewDateService(
@@ -88,7 +88,7 @@ class NextReviewDateUpdaterServiceTest {
           dateOfBirth = offender2.dateOfBirth,
           receptionDate = offender2.receptionDate,
           hasAcctOpen = offender2.hasAcctOpen,
-          iepDetails = emptyList(),
+          incentiveRecords = emptyList(),
         ),
       ).calculate()
 
@@ -150,7 +150,7 @@ class NextReviewDateUpdaterServiceTest {
           dateOfBirth = offender1.dateOfBirth,
           receptionDate = offender1.receptionDate,
           hasAcctOpen = offender1.hasAcctOpen,
-          iepDetails = emptyList(),
+          incentiveRecords = emptyList(),
         ),
       ).calculate()
       val expectedDate2 = NextReviewDateService(
@@ -158,7 +158,7 @@ class NextReviewDateUpdaterServiceTest {
           dateOfBirth = offender2.dateOfBirth,
           receptionDate = offender2.receptionDate,
           hasAcctOpen = offender2.hasAcctOpen,
-          iepDetails = offender2Reviews.toList().toIepDetails(iepLevels),
+          incentiveRecords = offender2Reviews.toList(),
         ),
       ).calculate()
 
@@ -231,7 +231,7 @@ class NextReviewDateUpdaterServiceTest {
         dateOfBirth = prisonerExtraInfo.dateOfBirth,
         receptionDate = prisonerExtraInfo.receptionDate,
         hasAcctOpen = prisonerExtraInfo.hasAcctOpen,
-        iepDetails = reviews.toList().toIepDetails(iepLevels),
+        incentiveRecords = reviews.toList(),
       ),
     ).calculate()
 
