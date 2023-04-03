@@ -168,6 +168,7 @@ class IncentiveSummaryMasteredResourceTest : IncentiveLevelResourceTestBase() {
   override fun tearDown(): Unit = runBlocking {
     prisonerIepLevelRepository.deleteAll()
     nextReviewDateRepository.deleteAll()
+    super.tearDown()
   }
 
   @Test
@@ -176,6 +177,12 @@ class IncentiveSummaryMasteredResourceTest : IncentiveLevelResourceTestBase() {
     prisonApiMockServer.stubCaseNoteSummary()
     prisonApiMockServer.stubProvenAdj()
     prisonApiMockServer.stubLocation("MDI-1")
+
+    listOf("BAS", "STD", "ENH", "ENT").forEach { levelCode ->
+      listOf("MDI").forEach { prisonId ->
+        makePrisonIncentiveLevel(prisonId, levelCode)
+      }
+    }
 
     webTestClient.get().uri("incentives-summary/prison/MDI/location/MDI-1?sortBy=DAYS_ON_LEVEL&sortDirection=DESC")
       .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))

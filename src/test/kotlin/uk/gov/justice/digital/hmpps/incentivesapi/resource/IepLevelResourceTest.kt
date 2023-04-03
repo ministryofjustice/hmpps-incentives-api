@@ -33,6 +33,7 @@ class IepLevelResourceTest : IncentiveLevelResourceTestBase() {
   override fun tearDown(): Unit = runBlocking {
     prisonApiMockServer.resetRequests()
     repository.deleteAll()
+    super.tearDown()
   }
 
   @Test
@@ -59,6 +60,11 @@ class IepLevelResourceTest : IncentiveLevelResourceTestBase() {
   @Test
   fun `get IEP Levels for a prison`() {
     val prisonId = "MDI"
+    listOf("BAS", "STD", "ENH", "ENT").forEach { levelCode ->
+      listOf("MDI").forEach { prisonId ->
+        makePrisonIncentiveLevel(prisonId, levelCode)
+      }
+    }
 
     webTestClient.get().uri("/iep/levels/$prisonId")
       .headers(setAuthorisation())

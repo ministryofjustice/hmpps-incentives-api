@@ -71,6 +71,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
     prisonApiMockServer.resetRequests()
     prisonerIepLevelRepository.deleteAll()
     nextReviewDateRepository.deleteAll()
+    super.tearDown()
   }
 
   @Test
@@ -169,8 +170,12 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
     offenderSearchMockServer.stubFindOffenders("MDI")
     prisonApiMockServer.stubLocation("MDI-1")
     prisonApiMockServer.stubCaseNoteSummary()
-    prisonApiMockServer.stubIepLevels()
-    prisonApiMockServer.stubAgenciesIepLevels("MDI")
+
+    listOf("BAS", "STD", "ENH", "ENT").forEach { levelCode ->
+      listOf("MDI").forEach { prisonId ->
+        makePrisonIncentiveLevel(prisonId, levelCode)
+      }
+    }
 
     webTestClient.get()
       .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD")
@@ -254,6 +259,11 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
     offenderSearchMockServer.stubFindOffenders("MDI")
     prisonApiMockServer.stubApi404for("/api/locations/code/MDI-1")
     prisonApiMockServer.stubCaseNoteSummary()
+    listOf("BAS", "STD", "ENH", "ENT").forEach { levelCode ->
+      listOf("MDI").forEach { prisonId ->
+        makePrisonIncentiveLevel(prisonId, levelCode)
+      }
+    }
 
     webTestClient.get()
       .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD")
