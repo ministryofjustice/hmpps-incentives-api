@@ -230,13 +230,24 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         }
       }
 
+      val domainEvents = getPublishedDomainEvents()
       val auditMessages = getSentAuditMessages()
-      val incentiveLevelsCreatedCount = auditMessages.count { it.what == "INCENTIVE_LEVEL_ADDED" }
-      assertThat(incentiveLevelsCreatedCount).isEqualTo(1)
-      val prisonIncentiveLevelsUpdated = auditMessages.filter { it.what == "PRISON_INCENTIVE_LEVEL_UPDATED" }
-        .map { objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java).prisonId }
-        .toSet()
-      assertThat(prisonIncentiveLevelsUpdated).isEqualTo(setOf("MDI", "WRI"))
+
+      val expectedIncentiveLevelCreateCount = 1
+      assertThat(domainEvents.count { it.eventType == "incentives.level.changed" }).isEqualTo(expectedIncentiveLevelCreateCount)
+      assertThat(auditMessages.count { it.what == "INCENTIVE_LEVEL_ADDED" }).isEqualTo(expectedIncentiveLevelCreateCount)
+
+      val expectedPrisonIncentiveLevelIdsAffected = setOf("MDI", "WRI")
+      assertThat(
+        domainEvents.filter { it.eventType == "incentives.prison-level.changed" }
+          .map { it.additionalInformation?.prisonId }
+          .toSet(),
+      ).isEqualTo(expectedPrisonIncentiveLevelIdsAffected)
+      assertThat(
+        auditMessages.filter { it.what == "PRISON_INCENTIVE_LEVEL_UPDATED" }
+          .map { objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java).prisonId }
+          .toSet(),
+      ).isEqualTo(expectedPrisonIncentiveLevelIdsAffected)
     }
 
     @Test
@@ -615,13 +626,24 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         }
       }
 
+      val domainEvents = getPublishedDomainEvents()
       val auditMessages = getSentAuditMessages()
-      val incentiveLevelsCreatedCount = auditMessages.count { it.what == "INCENTIVE_LEVEL_UPDATED" }
-      assertThat(incentiveLevelsCreatedCount).isEqualTo(1)
-      val prisonIncentiveLevelsUpdated = auditMessages.filter { it.what == "PRISON_INCENTIVE_LEVEL_UPDATED" }
-        .map { objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java).prisonId }
-        .toSet()
-      assertThat(prisonIncentiveLevelsUpdated).isEqualTo(setOf("MDI", "WRI"))
+
+      val expectedIncentiveLevelCreateCount = 1
+      assertThat(domainEvents.count { it.eventType == "incentives.level.changed" }).isEqualTo(expectedIncentiveLevelCreateCount)
+      assertThat(auditMessages.count { it.what == "INCENTIVE_LEVEL_UPDATED" }).isEqualTo(expectedIncentiveLevelCreateCount)
+
+      val expectedPrisonIncentiveLevelIdsAffected = setOf("MDI", "WRI")
+      assertThat(
+        domainEvents.filter { it.eventType == "incentives.prison-level.changed" }
+          .map { it.additionalInformation?.prisonId }
+          .toSet(),
+      ).isEqualTo(expectedPrisonIncentiveLevelIdsAffected)
+      assertThat(
+        auditMessages.filter { it.what == "PRISON_INCENTIVE_LEVEL_UPDATED" }
+          .map { objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java).prisonId }
+          .toSet(),
+      ).isEqualTo(expectedPrisonIncentiveLevelIdsAffected)
     }
 
     @Test
@@ -846,13 +868,24 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         }
       }
 
+      val domainEvents = getPublishedDomainEvents()
       val auditMessages = getSentAuditMessages()
-      val incentiveLevelsCreatedCount = auditMessages.count { it.what == "INCENTIVE_LEVEL_UPDATED" }
-      assertThat(incentiveLevelsCreatedCount).isEqualTo(1)
-      val prisonIncentiveLevelsUpdated = auditMessages.filter { it.what == "PRISON_INCENTIVE_LEVEL_UPDATED" }
-        .map { objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java).prisonId }
-        .toSet()
-      assertThat(prisonIncentiveLevelsUpdated).isEqualTo(setOf("MDI", "WRI"))
+
+      val expectedIncentiveLevelCreateCount = 1
+      assertThat(domainEvents.count { it.eventType == "incentives.level.changed" }).isEqualTo(expectedIncentiveLevelCreateCount)
+      assertThat(auditMessages.count { it.what == "INCENTIVE_LEVEL_UPDATED" }).isEqualTo(expectedIncentiveLevelCreateCount)
+
+      val expectedPrisonIncentiveLevelIdsAffected = setOf("MDI", "WRI")
+      assertThat(
+        domainEvents.filter { it.eventType == "incentives.prison-level.changed" }
+          .map { it.additionalInformation?.prisonId }
+          .toSet(),
+      ).isEqualTo(expectedPrisonIncentiveLevelIdsAffected)
+      assertThat(
+        auditMessages.filter { it.what == "PRISON_INCENTIVE_LEVEL_UPDATED" }
+          .map { objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java).prisonId }
+          .toSet(),
+      ).isEqualTo(expectedPrisonIncentiveLevelIdsAffected)
     }
 
     @Test

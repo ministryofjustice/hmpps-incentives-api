@@ -90,6 +90,16 @@ class IncentiveLevelResourceTestBase : SqsIntegrationTestBase() {
     return domainEvent
   }
 
+  protected fun getPublishedDomainEvents(): List<HMPPSDomainEvent> {
+    val sqsClient = incentivesQueue.sqsClient
+    val request = ReceiveMessageRequest(testDomainEventQueueUrl).withMaxNumberOfMessages(10)
+    return sqsClient.receiveMessage(request).messages
+      .map {
+        val (message) = objectMapper.readValue(it.body, HMPPSMessage::class.java)
+        objectMapper.readValue(message, HMPPSDomainEvent::class.java)
+      }
+  }
+
   protected fun assertNoAuditMessageSent() {
     val queueSize = auditQueue.sqsClient.getApproxQueueSize(auditQueue.queueUrl)
     assertThat(queueSize).isEqualTo(0)
