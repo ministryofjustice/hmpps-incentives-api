@@ -105,7 +105,7 @@ class IepLevelResource(
     @Schema(description = "Booking Id", example = "3000002", required = true, type = "integer", format = "int64", pattern = "^[0-9]{1,20}$")
     @PathVariable
     bookingId: Long,
-    @Schema(description = "Toggle to return IEP detail entries in response (or not)", example = "true", required = false, defaultValue = "true", type = "boolean", pattern = "^[true|false]$")
+    @Schema(description = "Toggle to return IEP detail entries in response (or not)", example = "true", required = false, defaultValue = "true", type = "boolean", pattern = "^true|false$")
     @RequestParam(defaultValue = "true", value = "with-details", required = false)
     withDetails: Boolean = true,
   ): IepSummary =
