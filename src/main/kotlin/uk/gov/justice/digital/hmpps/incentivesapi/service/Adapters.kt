@@ -24,10 +24,6 @@ fun PrisonerIepLevel.toIepDetail(incentiveLevels: Map<String, IncentiveLevel>) =
     auditModuleName = SYSTEM_USERNAME,
   )
 
-fun List<PrisonerIepLevel>.toIepDetails(iepLevels: Map<String, IncentiveLevel>): List<IepDetail> {
-  return map { review -> review.toIepDetail(iepLevels) }
-}
-
 fun List<NextReviewDate>.toMapByBookingId(): Map<Long, LocalDate> {
   return associate { it.bookingId to it.nextReviewDate }
 }

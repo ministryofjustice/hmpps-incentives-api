@@ -4,7 +4,6 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.NextReviewDate
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.NextReviewDateRepository
@@ -55,8 +54,6 @@ class NextReviewDateUpdaterService(
     val bookingIds = offendersMap.keys.toList()
 
     val nextReviewDatesBeforeUpdate: Map<Long, LocalDate> = nextReviewDateRepository.findAllById(bookingIds).toList().toMapByBookingId()
-
-    val iepLevels: Map<String, IncentiveLevel> = incentiveLevelService.getAllIncentiveLevelsMapByCode()
 
     // NOTE: This is to account for bookingIds potentially without any review record
     val bookingIdsNoReviews = bookingIds.associateWith { emptyList<PrisonerIepLevel>() }

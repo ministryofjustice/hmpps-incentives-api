@@ -6,7 +6,6 @@ import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -14,7 +13,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.NextReviewDate
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.NextReviewDateRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
@@ -40,31 +38,12 @@ class NextReviewDateUpdaterServiceTest {
     snsService,
   )
 
-  private val iepLevels = mapOf(
-    "BAS" to IncentiveLevel(code = "BAS", description = "Basic"),
-    "STD" to IncentiveLevel(code = "STD", description = "Standard"),
-    "ENH" to IncentiveLevel(code = "ENH", description = "Enhanced"),
-    "EN2" to IncentiveLevel(code = "EN2", description = "Enhanced 2"),
-  )
-
-  @BeforeEach
-  fun setUp(): Unit = runBlocking {
-    whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode())
-      .thenReturn(iepLevels)
-  }
-
   @Nested
   inner class UpdateAllTest {
     private val offender1 = offenderSearchPrisoner("AB123C", 123L)
     private val offender2 = offenderSearchPrisoner("XY456Z", 456L)
 
     private val offenders = listOf(offender1, offender2)
-
-    @BeforeEach
-    fun setUp(): Unit = runBlocking {
-      whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode())
-        .thenReturn(iepLevels)
-    }
 
     @Test
     fun `updateMany() when no reviews in database`(): Unit = runBlocking {
