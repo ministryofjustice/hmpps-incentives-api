@@ -1,11 +1,11 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
@@ -20,27 +20,36 @@ class IepSummaryDateTest {
     @Test
     fun `calc days on level when level added 60 days ago`() {
       val iepSummary = IepSummary(
+        id = 222,
         bookingId = 1L,
+        prisonerNumber = "A1234BC",
         iepDate = LocalDate.of(2022, 6, 2),
         iepLevel = "Enhanced",
         iepCode = "ENH",
         iepTime = LocalDateTime.of(2022, 6, 2, 12, 45, 0),
+        nextReviewDate = LocalDate.of(2022, 6, 2).plusYears(1),
         iepDetails = listOf(
           IepDetail(
+            id = 222,
             bookingId = 1L,
+            prisonerNumber = "A1234BC",
             agencyId = "MDI",
             iepLevel = "Enhanced",
             iepCode = "ENH",
+            reviewType = ReviewType.REVIEW,
             iepDate = LocalDate.of(2022, 6, 2),
             iepTime = LocalDateTime.of(2022, 6, 2, 12, 45, 0),
             userId = "TEST_USER",
             auditModuleName = "PRISON_API",
           ),
           IepDetail(
+            id = 111,
             bookingId = 1L,
+            prisonerNumber = "A1234BC",
             agencyId = "LEI",
             iepLevel = "Standard",
             iepCode = "STD",
+            reviewType = ReviewType.REVIEW,
             iepDate = LocalDate.of(2022, 4, 23),
             iepTime = LocalDateTime.of(2022, 4, 23, 12, 45, 0),
             userId = "TEST_USER",
@@ -50,23 +59,28 @@ class IepSummaryDateTest {
       )
 
       assertThat(iepSummary.daysSinceReviewCalc(clock)).isEqualTo(60)
-      assertThat(daysOnLevel(clock, iepSummary.iepDetails)).isEqualTo(60)
     }
 
     @Test
     fun `calc days on level when initial entry into prison`() {
       val iepSummary = IepSummary(
+        id = 111,
         bookingId = 1L,
+        prisonerNumber = "A1234BC",
         iepDate = LocalDate.of(2022, 7, 29),
         iepLevel = "Basic",
         iepCode = "BAS",
         iepTime = LocalDateTime.of(2022, 7, 29, 12, 45, 0),
+        nextReviewDate = LocalDate.of(2022, 7, 29).plusDays(7),
         iepDetails = listOf(
           IepDetail(
+            id = 111,
             bookingId = 1L,
+            prisonerNumber = "A1234BC",
             agencyId = "MDI",
             iepLevel = "Basic",
             iepCode = "BAS",
+            reviewType = ReviewType.REVIEW,
             iepDate = LocalDate.of(2022, 7, 29),
             iepTime = LocalDateTime.of(2022, 7, 29, 12, 45, 0),
             comments = "Default IEP",
@@ -77,23 +91,28 @@ class IepSummaryDateTest {
       )
 
       assertThat(iepSummary.daysSinceReviewCalc(clock)).isEqualTo(3)
-      assertThat(daysOnLevel(clock, iepSummary.iepDetails)).isEqualTo(3)
     }
 
     @Test
     fun `calc days on level when initial entry into prison and review 3 days later but up a level`() {
       val iepSummary = IepSummary(
+        id = 222,
         bookingId = 1L,
+        prisonerNumber = "A1234BC",
         iepDate = LocalDate.of(2022, 8, 1),
         iepLevel = "Standard",
         iepCode = "STD",
         iepTime = LocalDateTime.of(2022, 8, 1, 8, 30, 0),
+        nextReviewDate = LocalDate.of(2022, 8, 1).plusYears(1),
         iepDetails = listOf(
           IepDetail(
+            id = 222,
             bookingId = 1L,
+            prisonerNumber = "A1234BC",
             agencyId = "MDI",
             iepLevel = "Standard",
             iepCode = "STD",
+            reviewType = ReviewType.REVIEW,
             iepDate = LocalDate.of(2022, 8, 1),
             iepTime = LocalDateTime.of(2022, 8, 1, 8, 30, 0),
             comments = "First Review",
@@ -101,10 +120,13 @@ class IepSummaryDateTest {
             auditModuleName = "PRISON_API",
           ),
           IepDetail(
+            id = 111,
             bookingId = 1L,
+            prisonerNumber = "A1234BC",
             agencyId = "MDI",
             iepLevel = "Basic",
             iepCode = "BAS",
+            reviewType = ReviewType.REVIEW,
             iepDate = LocalDate.of(2022, 7, 29),
             iepTime = LocalDateTime.of(2022, 7, 29, 12, 45, 0),
             comments = "corrected back to Enhanced",
@@ -115,23 +137,28 @@ class IepSummaryDateTest {
       )
 
       assertThat(iepSummary.daysSinceReviewCalc(clock)).isEqualTo(0)
-      assertThat(daysOnLevel(clock, iepSummary.iepDetails)).isEqualTo(0)
     }
 
     @Test
     fun `calc days on level when entry into a new prison and review 3 days later but same level`() {
       val iepSummary = IepSummary(
+        id = 333,
         bookingId = 1L,
+        prisonerNumber = "A1234BC",
         iepDate = LocalDate.of(2022, 7, 31),
         iepLevel = "Basic",
         iepCode = "BAS",
         iepTime = LocalDateTime.of(2022, 7, 31, 19, 0, 0),
+        nextReviewDate = LocalDate.of(2022, 7, 31).plusDays(28),
         iepDetails = listOf(
           IepDetail(
+            id = 333,
             bookingId = 1L,
+            prisonerNumber = "A1234BC",
             agencyId = "MDI",
             iepLevel = "Basic",
             iepCode = "BAS",
+            reviewType = ReviewType.REVIEW,
             iepDate = LocalDate.of(2022, 7, 31),
             iepTime = LocalDateTime.of(2022, 7, 31, 19, 0, 0),
             comments = "New Review",
@@ -139,10 +166,13 @@ class IepSummaryDateTest {
             auditModuleName = "PRISON_API",
           ),
           IepDetail(
+            id = 222,
             bookingId = 1L,
+            prisonerNumber = "A1234BC",
             agencyId = "MDI",
             iepLevel = "Basic",
             iepCode = "BAS",
+            reviewType = ReviewType.REVIEW,
             iepDate = LocalDate.of(2022, 7, 28),
             iepTime = LocalDateTime.of(2022, 7, 28, 15, 10, 0),
             comments = "Admitted into MDI",
@@ -150,10 +180,13 @@ class IepSummaryDateTest {
             auditModuleName = "OIDADMIS",
           ),
           IepDetail(
+            id = 111,
             bookingId = 1L,
+            prisonerNumber = "A1234BC",
             agencyId = "LEI",
             iepLevel = "Basic",
             iepCode = "BAS",
+            reviewType = ReviewType.REVIEW,
             iepDate = LocalDate.of(2022, 7, 22),
             iepTime = LocalDateTime.of(2022, 7, 22, 10, 0, 0),
             comments = "Initial review",
@@ -164,33 +197,41 @@ class IepSummaryDateTest {
       )
 
       assertThat(iepSummary.daysSinceReviewCalc(clock)).isEqualTo(1)
-      assertThat(daysOnLevel(clock, iepSummary.iepDetails)).isEqualTo(10)
     }
 
     @Test
     fun `calc days on level when new level added today`() {
       val iepSummary = IepSummary(
+        id = 222,
         bookingId = 1L,
+        prisonerNumber = "A1234BC",
         iepDate = LocalDate.of(2022, 8, 1),
         iepLevel = "Enhanced",
         iepCode = "ENH",
         iepTime = LocalDateTime.of(2022, 8, 1, 8, 30, 0),
+        nextReviewDate = LocalDate.of(2022, 8, 1).plusYears(1),
         iepDetails = listOf(
           IepDetail(
+            id = 222,
             bookingId = 1L,
+            prisonerNumber = "A1234BC",
             agencyId = "MDI",
             iepLevel = "Enhanced",
             iepCode = "ENH",
+            reviewType = ReviewType.REVIEW,
             iepDate = LocalDate.of(2022, 8, 1),
             iepTime = LocalDateTime.of(2022, 8, 1, 8, 30, 0),
             userId = "TEST_USER",
             auditModuleName = "PRISON_API",
           ),
           IepDetail(
+            id = 111,
             bookingId = 1L,
+            prisonerNumber = "A1234BC",
             agencyId = "MDI",
             iepLevel = "Standard",
             iepCode = "STD",
+            reviewType = ReviewType.REVIEW,
             iepDate = LocalDate.of(2022, 6, 2),
             iepTime = LocalDateTime.of(2022, 6, 2, 11, 25, 0),
             userId = "TEST_USER",
@@ -200,43 +241,54 @@ class IepSummaryDateTest {
       )
 
       assertThat(iepSummary.daysSinceReviewCalc(clock)).isEqualTo(0)
-      assertThat(daysOnLevel(clock, iepSummary.iepDetails)).isEqualTo(0)
     }
 
     @Test
     fun `calc days on level when multiple reviews resulting in same level`() {
       val iepSummary = IepSummary(
+        id = 333,
         bookingId = 1L,
+        prisonerNumber = "A1234BC",
         iepDate = LocalDate.of(2022, 7, 2),
         iepLevel = "Enhanced",
         iepCode = "ENH",
         iepTime = LocalDateTime.of(2022, 7, 2, 12, 30, 0),
+        nextReviewDate = LocalDate.of(2022, 7, 2).plusYears(1),
         iepDetails = listOf(
           IepDetail(
+            id = 333,
             bookingId = 1L,
+            prisonerNumber = "A1234BC",
             agencyId = "MDI",
             iepLevel = "Enhanced",
             iepCode = "ENH",
+            reviewType = ReviewType.REVIEW,
             iepDate = LocalDate.of(2022, 7, 2),
             iepTime = LocalDateTime.of(2022, 7, 2, 12, 30, 0),
             userId = "TEST_USER",
             auditModuleName = "PRISON_API",
           ),
           IepDetail(
+            id = 222,
             bookingId = 1L,
+            prisonerNumber = "A1234BC",
             agencyId = "MDI",
             iepLevel = "Enhanced",
             iepCode = "ENH",
+            reviewType = ReviewType.REVIEW,
             iepDate = LocalDate.of(2022, 5, 3),
             iepTime = LocalDateTime.of(2022, 5, 3, 11, 25, 0),
             userId = "TEST_USER",
             auditModuleName = "PRISON_API",
           ),
           IepDetail(
+            id = 111,
             bookingId = 1L,
+            prisonerNumber = "A1234BC",
             agencyId = "MDI",
             iepLevel = "Entry",
             iepCode = "ENT",
+            reviewType = ReviewType.REVIEW,
             iepDate = LocalDate.of(2022, 4, 4),
             iepTime = LocalDateTime.of(2022, 4, 4, 10, 30, 0),
             userId = "TEST_USER",
@@ -246,24 +298,6 @@ class IepSummaryDateTest {
       )
 
       assertThat(iepSummary.daysSinceReviewCalc(clock)).isEqualTo(30)
-      assertThat(daysOnLevel(clock, iepSummary.iepDetails)).isEqualTo(90)
-    }
-
-    @Test
-    fun `days on level cannot be calculated when iepDetail history is missing`() {
-      val iepSummary = IepSummary(
-        bookingId = 1L,
-        iepDate = LocalDate.of(2022, 7, 29),
-        iepLevel = "Basic",
-        iepCode = "BAS",
-        iepTime = LocalDateTime.of(2022, 7, 29, 12, 45, 0),
-        iepDetails = emptyList(),
-      )
-
-      assertThat(iepSummary.daysSinceReviewCalc(clock)).isEqualTo(3)
-      assertThatThrownBy { daysOnLevel(clock, iepSummary.iepDetails) }
-        .isInstanceOf(UnsupportedOperationException::class.java)
-        .hasMessageContaining("Empty collection")
     }
   }
 }

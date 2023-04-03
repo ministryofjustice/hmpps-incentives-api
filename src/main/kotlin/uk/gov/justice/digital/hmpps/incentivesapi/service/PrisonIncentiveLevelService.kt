@@ -47,7 +47,7 @@ class PrisonIncentiveLevelService(
   }
 
   /**
-   * Returns a incentive level, whether it's active or not, for given prison and level code, along with associated information
+   * Returns an incentive level, whether it's active or not, for given prison and level code, along with associated information
    */
   suspend fun getPrisonIncentiveLevel(prisonId: String, levelCode: String): PrisonIncentiveLevelDTO? {
     return prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode(prisonId, levelCode)?.toDTO()
@@ -55,7 +55,7 @@ class PrisonIncentiveLevelService(
 
   /**
    * Updates an incentive level for given prison and level code; will fail if data integrity is not maintained.
-   * Conceptually, every incetive level exists in every prison but is considered inactive if it does not exist in the database.
+   * Conceptually, every incentive level exists in every prison but is considered inactive if it does not exist in the database.
    * NB: Default values may be used for associated information if not fully specified and not already in database.
    */
   @Transactional

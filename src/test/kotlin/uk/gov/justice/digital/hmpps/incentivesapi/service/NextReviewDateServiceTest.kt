@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import uk.gov.justice.digital.hmpps.incentivesapi.SYSTEM_USERNAME
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import java.time.LocalDate
@@ -33,10 +34,10 @@ class NextReviewDateServiceTest {
   fun `when IEP level is not Basic, returns +1 year (data from NOMIS)`() {
     val input = NextReviewDateInput(
       iepDetails = listOf(
-        review("2015-08-01", "ACI", iepCode = "STD", iepLevel = "Standard", reviewType = null),
-        review("2015-07-01", "ACI", iepCode = "BAS", iepLevel = "Basic", reviewType = null),
-        review("2010-07-01", "MDI", iepCode = "ENH", iepLevel = "Enhanced", reviewType = null),
-        review("2000-07-01", "MDI", iepCode = "STD", iepLevel = "Standard", reviewType = null),
+        review("2015-08-01", "ACI", iepCode = "STD", iepLevel = "Standard", reviewType = ReviewType.MIGRATED),
+        review("2015-07-01", "ACI", iepCode = "BAS", iepLevel = "Basic", reviewType = ReviewType.MIGRATED),
+        review("2010-07-01", "MDI", iepCode = "ENH", iepLevel = "Enhanced", reviewType = ReviewType.MIGRATED),
+        review("2000-07-01", "MDI", iepCode = "STD", iepLevel = "Standard", reviewType = ReviewType.MIGRATED),
       ),
       hasAcctOpen = false,
       dateOfBirth = LocalDate.parse("1971-07-01"),
@@ -73,7 +74,7 @@ class NextReviewDateServiceTest {
     fun `when IEP level is Basic and there is no previous review, returns +7 days (data from NOMIS)`() {
       val input = NextReviewDateInput(
         iepDetails = listOf(
-          review("2000-07-01", "MDI", iepCode = "BAS", iepLevel = "Basic", reviewType = null),
+          review("2000-07-01", "MDI", iepCode = "BAS", iepLevel = "Basic", reviewType = ReviewType.MIGRATED),
         ),
         hasAcctOpen = false,
         dateOfBirth = LocalDate.parse("1971-07-01"),
@@ -222,8 +223,8 @@ class NextReviewDateServiceTest {
     fun `when IEP level is Basic, previous review is at different level but has open ACCT, returns +7 days (data from NOMIS)`() {
       val input = NextReviewDateInput(
         iepDetails = listOf(
-          review("2023-01-07", "MDI", iepCode = "BAS", iepLevel = "Basic", reviewType = null),
-          review("2000-07-01", "MDI", iepCode = "STD", iepLevel = "Standard", reviewType = null),
+          review("2023-01-07", "MDI", iepCode = "BAS", iepLevel = "Basic", reviewType = ReviewType.MIGRATED),
+          review("2000-07-01", "MDI", iepCode = "STD", iepLevel = "Standard", reviewType = ReviewType.MIGRATED),
         ),
         hasAcctOpen = true,
         dateOfBirth = LocalDate.parse("1971-07-01"),
@@ -408,10 +409,12 @@ private fun review(
   prisonId: String,
   iepCode: String = "STD",
   iepLevel: String = "Standard",
-  reviewType: ReviewType?,
+  reviewType: ReviewType = ReviewType.REVIEW,
 ): IepDetail {
   val iepDate = LocalDate.parse(iepDateString)
   return IepDetail(
+    id = 111,
+    prisonerNumber = "A1234BC",
     iepLevel = iepLevel,
     iepCode = iepCode,
     iepTime = iepDate.atTime(10, 0),
@@ -420,5 +423,6 @@ private fun review(
     agencyId = prisonId,
     bookingId = 1234567L,
     userId = null,
+    auditModuleName = SYSTEM_USERNAME,
   )
 }

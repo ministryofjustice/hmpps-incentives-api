@@ -560,7 +560,7 @@ class PrisonerIepLevelReviewServiceTest {
 
       // Then check it's saved
       verify(incentiveStoreService, times(1))
-        .deleteIncentiveReview(iepReview, bookingId)
+        .deleteIncentiveReview(iepReview)
     }
 
     @Test
@@ -614,7 +614,7 @@ class PrisonerIepLevelReviewServiceTest {
 
         // Then desired IEP review is deletes as usual
         verify(incentiveStoreService, times(1))
-          .deleteIncentiveReview(currentIepReview, bookingId)
+          .deleteIncentiveReview(currentIepReview)
       }
 
     @Test
@@ -636,7 +636,7 @@ class PrisonerIepLevelReviewServiceTest {
 
         // Then desired IEP review is deletes as usual
         verify(incentiveStoreService, times(1))
-          .deleteIncentiveReview(currentIepReview, bookingId)
+          .deleteIncentiveReview(currentIepReview)
       }
   }
 
@@ -692,7 +692,7 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonerIepLevelRepository.findById(id)).thenReturn(iepReview)
 
       // Mock PrisonerIepLevel being updated
-      whenever(incentiveStoreService.patchIncentiveReview(syncPatchRequest, bookingId, iepReview))
+      whenever(incentiveStoreService.patchIncentiveReview(syncPatchRequest, iepReview))
         .thenReturn(expectedIepReview)
 
       whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
@@ -750,7 +750,7 @@ class PrisonerIepLevelReviewServiceTest {
         current = true,
       )
 
-      whenever(incentiveStoreService.patchIncentiveReview(syncPatchRequestNew, bookingId, iepReview))
+      whenever(incentiveStoreService.patchIncentiveReview(syncPatchRequestNew, iepReview))
         .thenReturn(iepReviewUpdatedWithSyncPatch)
 
       // When
@@ -761,7 +761,7 @@ class PrisonerIepLevelReviewServiceTest {
       )
 
       verify(incentiveStoreService, times(1))
-        .patchIncentiveReview(syncPatchRequestNew, bookingId, iepReview)
+        .patchIncentiveReview(syncPatchRequestNew, iepReview)
     }
   }
 
