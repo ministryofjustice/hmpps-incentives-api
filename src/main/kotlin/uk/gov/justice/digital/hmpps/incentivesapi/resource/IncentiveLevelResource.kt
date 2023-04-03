@@ -23,16 +23,14 @@ import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataWithCodeFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevelUpdate
-import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveLevelEventAuditCurator
-import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveLevelService
+import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveLevelAuditedService
 import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 
 @RestController
 @RequestMapping("/incentive", produces = [MediaType.APPLICATION_JSON_VALUE])
 @Tag(name = "Incentive levels", description = "Incentive levels and their global associated information")
 class IncentiveLevelResource(
-  private val incentiveLevelService: IncentiveLevelService,
-  private val incentiveLevelEventAuditCurator: IncentiveLevelEventAuditCurator,
+  private val incentiveLevelService: IncentiveLevelAuditedService,
 ) {
   @GetMapping("levels")
   @Operation(
@@ -108,7 +106,7 @@ class IncentiveLevelResource(
         errors.add("A level must be active if it is required")
       }
     }
-    return incentiveLevelEventAuditCurator.createIncentiveLevel(incentiveLevel)
+    return incentiveLevelService.createIncentiveLevel(incentiveLevel)
   }
 
   @PatchMapping("level-order")
@@ -152,7 +150,7 @@ class IncentiveLevelResource(
       ("incentiveLevelCodes" to incentiveLevelCodes).hasSizeAtLeast(2)
     }
 
-    return incentiveLevelEventAuditCurator.setOrderOfIncentiveLevels(incentiveLevelCodes)
+    return incentiveLevelService.setOrderOfIncentiveLevels(incentiveLevelCodes)
   }
 
   @GetMapping("levels/{code}")
@@ -297,7 +295,7 @@ class IncentiveLevelResource(
         }
       }
     }
-    return incentiveLevelEventAuditCurator.updateIncentiveLevel(code, update)
+    return incentiveLevelService.updateIncentiveLevel(code, update)
       ?: throw NoDataWithCodeFoundException("incentive level", code)
   }
 

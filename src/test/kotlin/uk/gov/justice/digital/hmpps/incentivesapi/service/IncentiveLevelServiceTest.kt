@@ -13,7 +13,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.config.FeatureFlagsService
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveLevelRepository
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonIncentiveLevelRepository
 import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
@@ -22,14 +21,12 @@ class IncentiveLevelServiceTest {
 
   private var clock: Clock = Clock.fixed(Instant.parse("2022-08-01T12:45:00.00Z"), ZoneId.of("Europe/London"))
   private val incentiveLevelRepository: IncentiveLevelRepository = mock()
-  private val prisonIncentiveLevelRepository: PrisonIncentiveLevelRepository = mock()
   private val prisonIncentiveLevelService: PrisonIncentiveLevelService = mock()
   private val featureFlagsService: FeatureFlagsService = mock()
   private val prisonApiService: PrisonApiService = mock()
   private val incentiveReviewsService = IncentiveLevelService(
     clock,
     incentiveLevelRepository,
-    prisonIncentiveLevelRepository,
     prisonIncentiveLevelService,
     featureFlagsService,
     prisonApiService,
