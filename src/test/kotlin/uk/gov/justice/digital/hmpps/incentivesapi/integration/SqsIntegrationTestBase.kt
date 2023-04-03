@@ -29,7 +29,7 @@ class SqsIntegrationTestBase : IntegrationTestBase() {
   @Autowired
   protected lateinit var objectMapper: ObjectMapper
 
-  private val domainEventsTopic by lazy {
+  protected val domainEventsTopic by lazy {
     hmppsQueueService.findByTopicId("domainevents")
       ?: throw MissingQueueException("HmppsTopic domainevents not found")
   }

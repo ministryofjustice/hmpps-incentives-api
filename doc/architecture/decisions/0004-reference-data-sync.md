@@ -144,8 +144,8 @@ In production there are only 12 records across all prisons for 1 privilege (Play
 
 ## Domain Events
 
-### Reference Data Changes
-When a change is made to reference data, one of four events can be fired. The sequence of events for syncing back to NOMIS is show below:
+### Incentive Level Changes
+When a change is made to a global incentive level one of two events can be fired.
 
 ```mermaid
 sequenceDiagram
@@ -159,17 +159,17 @@ sequenceDiagram
     participant HMPPS NOMIS Prisoner API
     participant NOMIS DB
 
-    Prison Staff ->> DPS: Add Incentive Reference data
+    Prison Staff ->> DPS: Update Incentive Level data
 
     DPS ->> Incentives API: Call API with changes
     activate Incentives API
     Incentives API->>Incentives Database: update DB
     Incentives API->>Domain Events: domain event raised
-    Note over Incentives API,Domain Events: INCENTIVE_LEVEL_REFERENCE_DATA_[INSERTED/UPDATED]
+    Note over Incentives API,Domain Events: `incentives.level.changed`
     Incentives API-->>DPS: Reference Data updated returned
     deactivate Incentives API
 
-    Domain Events-->>HMPPS Prisoner to NOMIS update: Receives INCENTIVE_LEVEL_REFERENCE_DATA_* domain event
+    Domain Events-->>HMPPS Prisoner to NOMIS update: Receives `incentives.level.changed` domain event
     activate HMPPS Prisoner to NOMIS update
     HMPPS Prisoner to NOMIS update->>HMPPS NOMIS Prisoner API: Update NOMIS with reference data
     HMPPS NOMIS Prisoner API ->> NOMIS DB: Persist data into the IEP_LEVELS, VISIT_ALLOWANCE_LEVELS tables
@@ -178,45 +178,70 @@ sequenceDiagram
 ```
 
 #### Event Types:
-In both instances the domain event will contain the code of the reference data.
-- INCENTIVE_LEVEL_REFERENCE_DATA_INSERTED
-- INCENTIVE_LEVEL_REFERENCE_DATA_UPDATED
 
-Note these should be the standard way of notifying about reference data changes for all NOMIS related reference data.
-**Example:**
-```json
+- `incentives.level.changed` 
+Occurs when a specific incentive level is added or amended.  It will contain the incentiveLevel as an attribute.
+
+##### Callback:
+
+`GET /incentive/levels/{incentiveLevel}`
+
+#### Example:
+```json5
 {
-  "eventType": "INCENTIVE_LEVEL_REFERENCE_DATA_INSERTED",
+  "eventType": "incentives.level.changed",
   "occurredAt": "2023-03-07T14:45:00",
   "version": "1.0",
-  "description": "Reference data Incentive Level added : EN4",
+  "description": "An incentive level has been changed : EN4",
   "additionalInformation": {
-    "code": "EN4"
+    "incentiveLevel": "EN4"
   }
 }
 ```
 
+- `incentives.levels.reordered` Occurs when the incentive levels are reordered.  No level issued as all levels affected.
+
+#### Callback:
+
+`GET /incentive/levels`
+
+##### Example:
+
+```json5
+{
+  "eventType": "incentives.level.reordered",
+  "occurredAt": "2023-03-07T14:45:00",
+  "version": "1.0",
+  "description": "Incentive levels have been re-ordered"
+}
+```
+
 ### Prison Incentive Level Changes
+
 These events are raised when changes are made to add or update incentive levels and associated data for a prison
 
 #### Event Types:
-- INCENTIVE_PRISON_LEVEL_INSERTED
-- INCENTIVE_PRISON_LEVEL_UPDATED
 
-**Example:**
-```json
+incentives.prison-level.changed
+
+##### Callback:
+
+`GET /incentive/prison-levels/{prisonId}/level/{incentiveLevel}`
+
+##### Example:
+
+```json5
 {
-  "eventType": "INCENTIVE_PRISON_LEVEL_INSERTED",
+  "eventType": "incentives.prison-level.changed",
   "occurredAt": "2023-03-07T15:45:00",
   "version": "1.0",
-  "description": "Added EN4 to prison MDI",
+  "description": "Incentive level EN4 in prison MDI has been updated",
   "additionalInformation": {
     "prisonId": "MDI",
     "incentiveLevel": "EN4"
   }
 }
 ```
-
 
 ## API endpoints
 
