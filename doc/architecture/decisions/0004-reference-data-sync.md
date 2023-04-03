@@ -179,7 +179,7 @@ sequenceDiagram
 
 #### Event Types:
 
-- `incentives.level.changed` 
+- `incentives.level.changed`
 Occurs when a specific incentive level is added or amended.  It will contain the incentiveLevel as an attribute.
 
 ##### Callback:
@@ -203,7 +203,7 @@ Occurs when a specific incentive level is added or amended.  It will contain the
 
 #### Callback:
 
-`GET /incentive/levels`
+`GET /incentive/levels?with-inactive=true`
 
 ##### Example:
 
