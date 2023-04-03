@@ -56,7 +56,11 @@ class IncentiveLevelService(
    * Returns all active incentive levels, in globally-defined order
    */
   suspend fun getActiveIncentiveLevels(): List<IncentiveLevelDTO> {
-    return incentiveLevelRepository.findAllByActiveIsTrueOrderBySequence().toListOfDTO()
+    return if (featureFlagsService.isIncentiveReferenceDataMasteredOutsideNomisInIncentivesDatabase()) {
+      incentiveLevelRepository.findAllByActiveIsTrueOrderBySequence().toListOfDTO()
+    } else {
+      prisonApiService.getIepLevels().filter(IepLevel::active).sortedBy(IepLevel::sequence).map { it.toIncentivesServiceDto() }
+    }
   }
 
   /**
