@@ -32,6 +32,7 @@ class PrisonIncentiveLevelResource(
   @GetMapping("{prisonId}")
   @Operation(
     summary = "Lists incentive levels in this prison along with associated information, optionally including inactive ones",
+    description = "Inactive incentive levels in the prison were previously active at some point. Not all global inactive incentive levels are necessarily included. For the majority of use cases, inactive levels in a prison should be ignored.",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -53,7 +54,7 @@ class PrisonIncentiveLevelResource(
     @Schema(description = "Prison id", example = "MDI", required = true, minLength = 3, maxLength = 6)
     @PathVariable
     prisonId: String,
-    @Schema(description = "Include inactive prison incentive levels", example = "true", required = false, defaultValue = "false", type = "boolean", pattern = "^[true|false]$")
+    @Schema(description = "Include inactive prison incentive levels", example = "true", required = false, defaultValue = "false", type = "boolean", pattern = "^true|false$")
     @RequestParam(defaultValue = "false", value = "with-inactive", required = false)
     withInactive: Boolean = false,
   ): List<PrisonIncentiveLevel> {
@@ -67,7 +68,7 @@ class PrisonIncentiveLevelResource(
   @GetMapping("{prisonId}/level/{levelCode}")
   @Operation(
     summary = "Returns an incentive level in this prison along with associated information",
-    description = "Note that it may be inactive in the prison",
+    description = "Note that it may be inactive in the prison. For the majority of use cases, inactive levels in a prison should be ignored.",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -106,7 +107,9 @@ class PrisonIncentiveLevelResource(
   @PreAuthorize("hasRole('MAINTAIN_PRISON_IEP_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
     summary = "Updates prison incentive level information",
-    description = "Payload must include all required fields",
+    description = "Payload must include all required fields." +
+      "\n\nRequires role: MAINTAIN_PRISON_IEP_LEVELS with write scope" +
+      "\nRaises HMPPS domain event: \"incentives.prison-level.changed\"",
     // TODO: decide and explain what happens to prisoners if level is deactivated
     responses = [
       ApiResponse(
@@ -160,7 +163,9 @@ class PrisonIncentiveLevelResource(
   @PreAuthorize("hasRole('MAINTAIN_PRISON_IEP_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
     summary = "Updates prison incentive level information",
-    description = "Partial updates are allowed",
+    description = "Partial updates are allowed." +
+      "\n\nRequires role: MAINTAIN_PRISON_IEP_LEVELS with write scope" +
+      "\nRaises HMPPS domain event: \"incentives.prison-level.changed\"",
     // TODO: decide and explain what happens to prisoners if level is deactivated
     responses = [
       ApiResponse(
@@ -236,7 +241,9 @@ class PrisonIncentiveLevelResource(
   @DeleteMapping("{prisonId}/level/{levelCode}")
   @PreAuthorize("hasRole('MAINTAIN_PRISON_IEP_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
-    summary = "Deactivate an incentive level for a prison",
+    summary = "Deactivate an incentive level for a prison." +
+      "\n\nRequires role: MAINTAIN_PRISON_IEP_LEVELS with write scope" +
+      "\nRaises HMPPS domain event: \"incentives.prison-level.changed\"",
     // TODO: decide and explain what happens to prisoners if level is deactivated
     responses = [
       ApiResponse(

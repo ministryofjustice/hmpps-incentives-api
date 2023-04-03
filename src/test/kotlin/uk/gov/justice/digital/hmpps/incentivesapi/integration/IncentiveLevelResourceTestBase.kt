@@ -1,17 +1,22 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.integration
 
+import com.amazonaws.services.sqs.AmazonSQS
+import com.amazonaws.services.sqs.model.PurgeQueueRequest
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest
 import com.fasterxml.jackson.core.type.TypeReference
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonIncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveLevelRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonIncentiveLevelRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.service.AuditEvent
+import uk.gov.justice.digital.hmpps.incentivesapi.service.HMPPSDomainEvent
+import uk.gov.justice.digital.hmpps.incentivesapi.service.HMPPSMessage
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDateTime
@@ -24,6 +29,8 @@ class IncentiveLevelResourceTestBase : SqsIntegrationTestBase() {
       ZoneId.of("Europe/London"),
     )
     val now: LocalDateTime = LocalDateTime.now(clock)
+
+    var testDomainEventQueueUrl: String? = null
   }
 
   @Autowired
@@ -31,6 +38,17 @@ class IncentiveLevelResourceTestBase : SqsIntegrationTestBase() {
 
   @Autowired
   protected lateinit var prisonIncentiveLevelRepository: PrisonIncentiveLevelRepository
+
+  @BeforeEach
+  fun subscribeToDomainEvents() {
+    val sqsClient = incentivesQueue.sqsClient
+    if (testDomainEventQueueUrl == null) {
+      testDomainEventQueueUrl = sqsClient.createQueue("test-domain-events").queueUrl
+      val snsClient = domainEventsTopic.snsClient
+      snsClient.subscribe(domainEventsTopicArn, "sqs", testDomainEventQueueUrl)
+    }
+    sqsClient.purgeQueue(PurgeQueueRequest(testDomainEventQueueUrl))
+  }
 
   @AfterEach
   fun tearDown(): Unit = runBlocking {
@@ -48,15 +66,37 @@ class IncentiveLevelResourceTestBase : SqsIntegrationTestBase() {
     ).collect()
   }
 
-  protected fun assertNoAuditMessageSent() {
-    val queueSize = auditQueue.sqsClient.getQueueAttributes(auditQueue.queueUrl, listOf("ApproximateNumberOfMessages"))
+  private fun AmazonSQS.getApproxQueueSize(queueUrl: String): Int? =
+    getQueueAttributes(queueUrl, listOf("ApproximateNumberOfMessages"))
       .attributes["ApproximateNumberOfMessages"]?.toInt()
+
+  protected fun assertNoDomainEventSent() {
+    val sqsClient = incentivesQueue.sqsClient
+    val queueSize = sqsClient.getApproxQueueSize(testDomainEventQueueUrl!!)
+    assertThat(queueSize).isEqualTo(0)
+  }
+
+  protected fun assertDomainEventSent(eventType: String): HMPPSDomainEvent {
+    val sqsClient = incentivesQueue.sqsClient
+    val queueSize = sqsClient.getApproxQueueSize(testDomainEventQueueUrl!!)
+    assertThat(queueSize).isEqualTo(1)
+
+    val body = sqsClient.receiveMessage(testDomainEventQueueUrl).messages[0].body
+    val (message, attributes) = objectMapper.readValue(body, HMPPSMessage::class.java)
+    assertThat(attributes.eventType.Value).isEqualTo(eventType)
+    val domainEvent = objectMapper.readValue(message, HMPPSDomainEvent::class.java)
+    assertThat(domainEvent.eventType).isEqualTo(eventType)
+
+    return domainEvent
+  }
+
+  protected fun assertNoAuditMessageSent() {
+    val queueSize = auditQueue.sqsClient.getApproxQueueSize(auditQueue.queueUrl)
     assertThat(queueSize).isEqualTo(0)
   }
 
   private fun assertAuditMessageSent(eventType: String): AuditEvent {
-    val queueSize = auditQueue.sqsClient.getQueueAttributes(auditQueue.queueUrl, listOf("ApproximateNumberOfMessages"))
-      .attributes["ApproximateNumberOfMessages"]?.toInt()
+    val queueSize = auditQueue.sqsClient.getApproxQueueSize(auditQueue.queueUrl)
     assertThat(queueSize).isEqualTo(1)
 
     val message = auditQueue.sqsClient.receiveMessage(auditQueue.queueUrl).messages[0].body
