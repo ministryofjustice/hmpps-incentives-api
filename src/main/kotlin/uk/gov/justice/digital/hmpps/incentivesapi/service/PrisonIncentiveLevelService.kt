@@ -113,6 +113,19 @@ class PrisonIncentiveLevelService(
     }
   }
 
+  /**
+   * Updates prison incentive levels to be active if there is some level that’s active in the prison
+   */
+  suspend fun activatePrisonIncentiveLevelInActivePrisons(levelCode: String) {
+    prisonIncentiveLevelRepository.findPrisonIdsWithActiveLevels().collect { prisonId ->
+      updatePrisonIncentiveLevel(
+        prisonId,
+        levelCode,
+        PrisonIncentiveLevelUpdateDTO(active = true),
+      )
+    }
+  }
+
   private fun PrisonIncentiveLevel.withUpdate(update: PrisonIncentiveLevelUpdateDTO): PrisonIncentiveLevel = copy(
     active = update.active ?: active,
     defaultOnAdmission = update.defaultOnAdmission ?: defaultOnAdmission,
