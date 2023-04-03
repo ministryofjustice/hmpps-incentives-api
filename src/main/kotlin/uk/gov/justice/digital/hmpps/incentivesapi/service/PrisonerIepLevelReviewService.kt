@@ -140,7 +140,7 @@ class PrisonerIepLevelReviewService(
       throw NoDataFoundException(bookingId)
     }
 
-    val iepDetail = incentiveStoreService.patchIncentiveReview(syncPatchRequest, bookingId, prisonerIepLevel)
+    val iepDetail = incentiveStoreService.patchIncentiveReview(syncPatchRequest, prisonerIepLevel)
       .toIepDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
 
     publishReviewDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_UPDATED)
