@@ -9,7 +9,7 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
-import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
+import uk.gov.justice.digital.hmpps.incentivesapi.integration.IncentiveLevelResourceTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.NextReviewDateRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
@@ -19,7 +19,7 @@ import java.time.LocalDateTime
 import java.time.LocalDateTime.now
 import java.time.ZoneId
 
-class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
+class IncentiveSummaryMasteredResourceTest : IncentiveLevelResourceTestBase() {
 
   @TestConfiguration
   class FixedClockConfig {
@@ -165,19 +165,24 @@ class IncentiveSummaryMasteredResourceTest : SqsIntegrationTestBase() {
   )
 
   @AfterEach
-  fun tearDown(): Unit = runBlocking {
+  override fun tearDown(): Unit = runBlocking {
     prisonerIepLevelRepository.deleteAll()
     nextReviewDateRepository.deleteAll()
+    super.tearDown()
   }
 
   @Test
   fun `get behaviour summary for wing`() {
-    prisonApiMockServer.stubIepLevels()
-    prisonApiMockServer.stubAgenciesIepLevels("MDI")
     offenderSearchMockServer.stubFindOffenders("MDI", includeInvalid = true)
     prisonApiMockServer.stubCaseNoteSummary()
     prisonApiMockServer.stubProvenAdj()
     prisonApiMockServer.stubLocation("MDI-1")
+
+    listOf("BAS", "STD", "ENH", "ENT").forEach { levelCode ->
+      listOf("MDI").forEach { prisonId ->
+        makePrisonIncentiveLevel(prisonId, levelCode)
+      }
+    }
 
     webTestClient.get().uri("incentives-summary/prison/MDI/location/MDI-1?sortBy=DAYS_ON_LEVEL&sortDirection=DESC")
       .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))

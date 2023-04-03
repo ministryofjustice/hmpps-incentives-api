@@ -3,17 +3,35 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.incentivesapi.config.DataIntegrityException
+import uk.gov.justice.digital.hmpps.incentivesapi.config.FeatureFlagsService
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 
 @Service
 class IepLevelService(
   private val prisonApiService: PrisonApiService,
+  private val incentiveLevelService: IncentiveLevelService,
+  private val prisonIncentiveLevelService: PrisonIncentiveLevelService,
+  private val featureFlagsService: FeatureFlagsService,
 ) {
 
   suspend fun getIepLevelsForPrison(prisonId: String, useClientCredentials: Boolean = false): List<IepLevel> {
-    return prisonApiService.getIepLevelsForPrison(prisonId, useClientCredentials)
-      .toList()
-      .sortedWith(compareBy(IepLevel::sequence))
+    return if (featureFlagsService.isIncentiveReferenceDataMasteredOutsideNomisInIncentivesDatabase()) {
+      var i = 1
+      prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)
+        .map {
+          IepLevel(
+            iepLevel = it.levelCode,
+            iepDescription = it.levelDescription,
+            sequence = i++,
+            default = it.defaultOnAdmission,
+            active = it.active,
+          )
+        }
+    } else {
+      prisonApiService.getIepLevelsForPrison(prisonId, useClientCredentials)
+        .toList()
+        .sortedWith(compareBy(IepLevel::sequence))
+    }
   }
 
   fun chooseDefaultLevel(prisonId: String, prisonLevels: List<IepLevel>): String {
@@ -37,12 +55,11 @@ class IepLevelService(
     val levelCodesAvailableInPrison = prisonLevels.filter(IepLevel::active).map(IepLevel::iepLevel).toSet()
 
     data class KnownLevel(val code: String, val available: Boolean)
-    val allKnownLevels = prisonApiService.getIepLevels()
-      .sortedBy { it.sequence }
+    val allKnownLevels = incentiveLevelService.getAllIncentiveLevels()
       .map {
         KnownLevel(
-          code = it.iepLevel,
-          available = it.active && levelCodesAvailableInPrison.contains(it.iepLevel),
+          code = it.code,
+          available = it.active && levelCodesAvailableInPrison.contains(it.code),
         )
       }
 

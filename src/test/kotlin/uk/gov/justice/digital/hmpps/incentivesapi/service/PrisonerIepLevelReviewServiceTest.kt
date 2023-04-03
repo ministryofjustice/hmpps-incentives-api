@@ -17,8 +17,10 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.incentivesapi.config.AuthenticationFacade
+import uk.gov.justice.digital.hmpps.incentivesapi.config.FeatureFlagsService
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPatchRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
@@ -37,7 +39,6 @@ class PrisonerIepLevelReviewServiceTest {
 
   private val prisonApiService: PrisonApiService = mock()
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository = mock()
-  private val iepLevelService = IepLevelService(prisonApiService)
   private val authenticationFacade: AuthenticationFacade = mock()
   private var clock: Clock = Clock.fixed(Instant.ofEpochMilli(0), ZoneId.of("Europe/London"))
   private val snsService: SnsService = mock()
@@ -45,6 +46,11 @@ class PrisonerIepLevelReviewServiceTest {
   private val nextReviewDateGetterService: NextReviewDateGetterService = mock()
   private val nextReviewDateUpdaterService: NextReviewDateUpdaterService = mock()
   private val incentiveStoreService: IncentiveStoreService = mock()
+  private val incentiveLevelService: IncentiveLevelService = mock()
+  private val prisonIncentiveLevelService: PrisonIncentiveLevelService = mock()
+  private val featureFlagsService: FeatureFlagsService = mock()
+
+  private val iepLevelService = IepLevelService(prisonApiService, incentiveLevelService, prisonIncentiveLevelService, featureFlagsService)
 
   private val prisonerIepLevelReviewService = PrisonerIepLevelReviewService(
     prisonApiService,
@@ -57,6 +63,7 @@ class PrisonerIepLevelReviewServiceTest {
     nextReviewDateGetterService,
     nextReviewDateUpdaterService,
     incentiveStoreService,
+    incentiveLevelService,
   )
 
   @BeforeEach
@@ -66,7 +73,7 @@ class PrisonerIepLevelReviewServiceTest {
     whenever(prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(any()))
       .thenReturn(emptyFlow())
 
-    whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
+    whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
   }
 
   @Nested
@@ -103,7 +110,7 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId)).thenReturn(location)
       whenever(authenticationFacade.getUsername()).thenReturn(reviewerUserName)
       whenever(incentiveStoreService.saveIncentiveReview(any())).thenReturn(prisonerIepLevel.copy(id = 42))
-      whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
+      whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
     }
 
     @Test
@@ -178,7 +185,7 @@ class PrisonerIepLevelReviewServiceTest {
         val bookingId = currentLevel.bookingId
         val expectedNextReviewDate = currentAndPreviousLevels.first().reviewTime.plusYears(1).toLocalDate()
 
-        whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
+        whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
         whenever(nextReviewDateGetterService.get(bookingId)).thenReturn(expectedNextReviewDate)
 
         // Given
@@ -203,7 +210,7 @@ class PrisonerIepLevelReviewServiceTest {
     fun setUp(): Unit = runBlocking {
       // This ensures save works and an id is set on the PrisonerIepLevel
       whenever(incentiveStoreService.saveIncentiveReview(any())).thenAnswer { i -> i.arguments[0] }
-      whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
+      whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
     }
 
     @ParameterizedTest
@@ -543,7 +550,7 @@ class PrisonerIepLevelReviewServiceTest {
       // Mock PrisonerIepLevel being updated
       whenever(prisonerIepLevelRepository.delete(iepReview)).thenReturn(Unit)
 
-      whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
+      whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
     }
 
     @Test
@@ -688,7 +695,7 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(incentiveStoreService.patchIncentiveReview(syncPatchRequest, bookingId, iepReview))
         .thenReturn(expectedIepReview)
 
-      whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
+      whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
     }
 
     @Test
@@ -811,7 +818,7 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(incentiveStoreService.saveIncentiveReview(iepReview))
         .thenReturn(iepReview.copy(id = iepReviewId))
 
-      whenever(prisonApiService.getIncentiveLevels()).thenReturn(incentiveLevels)
+      whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
     }
 
     @Test
@@ -975,10 +982,10 @@ class PrisonerIepLevelReviewServiceTest {
 }
 
 val globalIncentiveLevels = listOf(
-  IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1),
-  IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2),
-  IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3),
-  IepLevel(iepLevel = "EN2", iepDescription = "Enhanced 2", sequence = 4),
+  IncentiveLevel(code = "BAS", description = "Basic"),
+  IncentiveLevel(code = "STD", description = "Standard"),
+  IncentiveLevel(code = "ENH", description = "Enhanced"),
+  IncentiveLevel(code = "EN2", description = "Enhanced 2"),
 )
 
-val incentiveLevels = globalIncentiveLevels.associateBy { iep -> iep.iepLevel }
+val incentiveLevels = globalIncentiveLevels.associateBy { iep -> iep.code }

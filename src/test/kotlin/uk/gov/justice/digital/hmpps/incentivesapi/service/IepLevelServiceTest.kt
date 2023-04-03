@@ -8,60 +8,147 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.incentivesapi.config.DataIntegrityException
+import uk.gov.justice.digital.hmpps.incentivesapi.config.FeatureFlagsService
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 
 class IepLevelServiceTest {
 
   private val prisonApiService: PrisonApiService = mock()
-  private val iepLevelService = IepLevelService(prisonApiService)
+  private val incentiveLevelService: IncentiveLevelService = mock()
+  private val prisonIncentiveLevelService: PrisonIncentiveLevelService = mock()
+  private val featureFlagsService: FeatureFlagsService = mock()
+  private val iepLevelService =
+    IepLevelService(prisonApiService, incentiveLevelService, prisonIncentiveLevelService, featureFlagsService)
 
-  @Test
-  fun `prison has all 5 iep levels`() {
-    runBlocking {
-      // Given
-      val prisonId = "XXX"
-      whenever(prisonApiService.getIepLevelsForPrison(prisonId)).thenReturn(
-        flowOf(
-          IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1, default = true),
-          IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2),
-          IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3),
-          IepLevel(iepLevel = "ENH2", iepDescription = "Enhanced 2", sequence = 4),
-          IepLevel(iepLevel = "ENH3", iepDescription = "Enhanced 3", sequence = 5),
-        ),
-      )
+  @Nested
+  inner class getIepLevelsForPrison {
+    val prisonId = "XXX"
 
-      // When
-      val iepLevelsForPrison = iepLevelService.getIepLevelsForPrison(prisonId)
+    @Test
+    fun `prison has all 5 iep levels`() {
+      runBlocking {
+        // Given
+        whenever(prisonApiService.getIepLevelsForPrison(prisonId)).thenReturn(
+          flowOf(
+            IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1, default = true),
+            IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2),
+            IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3),
+            IepLevel(iepLevel = "ENH2", iepDescription = "Enhanced 2", sequence = 4),
+            IepLevel(iepLevel = "ENH3", iepDescription = "Enhanced 3", sequence = 5),
+          ),
+        )
 
-      // Then - all configured IepLevel record are returned
-      assertThat(iepLevelsForPrison).hasSize(5)
-      assertThat(iepLevelsForPrison.first().default).isTrue
-      assertThat(iepLevelsForPrison.last().iepLevel).isEqualTo("ENH3")
+        // When
+        val iepLevelsForPrison = iepLevelService.getIepLevelsForPrison(prisonId)
+
+        // Then - all configured IepLevel record are returned
+        assertThat(iepLevelsForPrison).hasSize(5)
+        assertThat(iepLevelsForPrison.first().default).isTrue
+        assertThat(iepLevelsForPrison.last().iepLevel).isEqualTo("ENH3")
+      }
     }
-  }
 
-  @Test
-  fun `prison has up to ENH only`() {
-    runBlocking {
-      // Given
-      val prisonId = "XXX"
-      whenever(prisonApiService.getIepLevelsForPrison(prisonId)).thenReturn(
-        flowOf(
-          IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1, default = true),
-          IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2),
-          IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3),
-        ),
-      )
+    @Test
+    fun `prison has up to ENH only`() {
+      runBlocking {
+        // Given
+        whenever(prisonApiService.getIepLevelsForPrison(prisonId)).thenReturn(
+          flowOf(
+            IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1, default = true),
+            IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2),
+            IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3),
+          ),
+        )
 
-      // When
-      val iepLevelsForPrison = iepLevelService.getIepLevelsForPrison(prisonId)
+        // When
+        val iepLevelsForPrison = iepLevelService.getIepLevelsForPrison(prisonId)
 
-      // Then - do not include ENH2 or ENH3
-      assertThat(iepLevelsForPrison).hasSize(3)
-      assertThat(iepLevelsForPrison.first().default).isTrue
-      assertThat(iepLevelsForPrison.last().iepLevel).isEqualTo("ENH")
+        // Then - do not include ENH2 or ENH3
+        assertThat(iepLevelsForPrison).hasSize(3)
+        assertThat(iepLevelsForPrison.first().default).isTrue
+        assertThat(iepLevelsForPrison.last().iepLevel).isEqualTo("ENH")
+      }
+    }
+
+    @Test
+    fun `query database if feature flag is true`() {
+      runBlocking {
+        // Given
+        whenever(featureFlagsService.isIncentiveReferenceDataMasteredOutsideNomisInIncentivesDatabase()).thenReturn(true)
+
+        whenever(prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)).thenReturn(
+          listOf(
+            PrisonIncentiveLevel(
+              levelCode = "BAS",
+              levelDescription = "Basic",
+              prisonId = prisonId,
+              defaultOnAdmission = true,
+              remandTransferLimitInPence = 0,
+              remandSpendLimitInPence = 0,
+              convictedTransferLimitInPence = 0,
+              convictedSpendLimitInPence = 0,
+              visitOrders = 0,
+              privilegedVisitOrders = 0,
+            ),
+            PrisonIncentiveLevel(
+              levelCode = "STD", levelDescription = "Standard",
+              prisonId = prisonId,
+              defaultOnAdmission = true,
+              remandTransferLimitInPence = 0,
+              remandSpendLimitInPence = 0,
+              convictedTransferLimitInPence = 0,
+              convictedSpendLimitInPence = 0,
+              visitOrders = 0,
+              privilegedVisitOrders = 0,
+            ),
+            PrisonIncentiveLevel(
+              levelCode = "ENH", levelDescription = "Enhanced",
+              prisonId = prisonId,
+              remandTransferLimitInPence = 0,
+              remandSpendLimitInPence = 0,
+              convictedTransferLimitInPence = 0,
+              convictedSpendLimitInPence = 0,
+              visitOrders = 0,
+              privilegedVisitOrders = 0,
+            ),
+            PrisonIncentiveLevel(
+              levelCode = "ENH2", levelDescription = "Enhanced 2",
+              prisonId = prisonId,
+              remandTransferLimitInPence = 0,
+              remandSpendLimitInPence = 0,
+              convictedTransferLimitInPence = 0,
+              convictedSpendLimitInPence = 0,
+              visitOrders = 0,
+              privilegedVisitOrders = 0,
+            ),
+            PrisonIncentiveLevel(
+              levelCode = "ENH3", levelDescription = "Enhanced 3",
+              prisonId = prisonId,
+              remandTransferLimitInPence = 0,
+              remandSpendLimitInPence = 0,
+              convictedTransferLimitInPence = 0,
+              convictedSpendLimitInPence = 0,
+              visitOrders = 0,
+              privilegedVisitOrders = 0,
+            ),
+          ),
+        )
+
+        // When
+        val iepLevelsForPrison = iepLevelService.getIepLevelsForPrison(prisonId)
+
+        // Then - all configured IepLevel record are returned
+        verifyNoInteractions(prisonApiService)
+        assertThat(iepLevelsForPrison).hasSize(5)
+        assertThat(iepLevelsForPrison.first().default).isTrue
+        assertThat(iepLevelsForPrison.last().iepLevel).isEqualTo("ENH3")
+        assertThat(iepLevelsForPrison.last().sequence).isEqualTo(5)
+      }
     }
   }
 
@@ -71,14 +158,14 @@ class IepLevelServiceTest {
 
     @BeforeEach
     fun setup(): Unit = runBlocking {
-      whenever(prisonApiService.getIepLevels()).thenReturn(
+      whenever(incentiveLevelService.getAllIncentiveLevels()).thenReturn(
         listOf(
-          IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1),
-          IepLevel(iepLevel = "ENT", iepDescription = "Entry", sequence = 2, active = false),
-          IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 3, default = true),
-          IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 4),
-          IepLevel(iepLevel = "EN2", iepDescription = "Enhanced 2", sequence = 5),
-          IepLevel(iepLevel = "EN3", iepDescription = "Enhanced 3", sequence = 6),
+          IncentiveLevel(code = "BAS", description = "Basic"),
+          IncentiveLevel(code = "ENT", description = "Entry", active = false),
+          IncentiveLevel(code = "STD", description = "Standard"),
+          IncentiveLevel(code = "ENH", description = "Enhanced"),
+          IncentiveLevel(code = "EN2", description = "Enhanced 2"),
+          IncentiveLevel(code = "EN3", description = "Enhanced 3"),
         ),
       )
     }
