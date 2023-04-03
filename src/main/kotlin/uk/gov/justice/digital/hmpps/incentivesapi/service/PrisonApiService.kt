@@ -45,10 +45,6 @@ class PrisonApiService(
       .retrieve().bodyToFlow()
   }
 
-  suspend fun getIncentiveLevels(): Map<String, IepLevel> {
-    return getIepLevels().associateBy { iep -> iep.iepLevel }
-  }
-
   suspend fun getIepLevels(): List<IepLevel> = allIncentiveLevelsCache.get() ?: run {
     log.debug("Getting all incentive levels using GET /api/reference-domains/domains/IEP_LEVEL/codes...")
     val newValue = getClient(true)

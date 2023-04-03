@@ -12,14 +12,14 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.helper.expectErrorResponse
-import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
+import uk.gov.justice.digital.hmpps.incentivesapi.integration.IncentiveLevelResourceTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import java.time.LocalDate.now
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-class IepLevelResourceTest : SqsIntegrationTestBase() {
+class IepLevelResourceTest : IncentiveLevelResourceTestBase() {
   @Autowired
   private lateinit var repository: PrisonerIepLevelRepository
 
@@ -30,9 +30,10 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
   }
 
   @AfterEach
-  fun tearDown(): Unit = runBlocking {
+  override fun tearDown(): Unit = runBlocking {
     prisonApiMockServer.resetRequests()
     repository.deleteAll()
+    super.tearDown()
   }
 
   @Test
@@ -59,9 +60,11 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
   @Test
   fun `get IEP Levels for a prison`() {
     val prisonId = "MDI"
-
-    prisonApiMockServer.stubIepLevels()
-    prisonApiMockServer.stubAgenciesIepLevels(prisonId)
+    listOf("BAS", "STD", "ENH", "ENT").forEach { levelCode ->
+      listOf("MDI").forEach { prisonId ->
+        makePrisonIncentiveLevel(prisonId, levelCode)
+      }
+    }
 
     webTestClient.get().uri("/iep/levels/$prisonId")
       .headers(setAuthorisation())
@@ -80,13 +83,13 @@ class IepLevelResourceTest : SqsIntegrationTestBase() {
             {
                 "iepLevel": "STD",
                 "iepDescription": "Standard",
-                "sequence": 3,
+                "sequence": 2,
                 "default": true
             },
             {
                 "iepLevel": "ENH",
                 "iepDescription": "Enhanced",
-                "sequence": 4,
+                "sequence": 3,
                 "default": false
             }
         ]

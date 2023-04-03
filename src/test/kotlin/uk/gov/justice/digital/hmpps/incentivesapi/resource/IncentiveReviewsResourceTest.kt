@@ -13,14 +13,14 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.helper.expectErrorResponse
-import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
+import uk.gov.justice.digital.hmpps.incentivesapi.integration.IncentiveLevelResourceTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.NextReviewDateRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveReviewSort
 import java.time.LocalDateTime
 
-class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
+class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
   @Autowired
   private lateinit var prisonerIepLevelRepository: PrisonerIepLevelRepository
 
@@ -67,10 +67,11 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
   )
 
   @AfterEach
-  fun tearDown(): Unit = runBlocking {
+  override fun tearDown(): Unit = runBlocking {
     prisonApiMockServer.resetRequests()
     prisonerIepLevelRepository.deleteAll()
     nextReviewDateRepository.deleteAll()
+    super.tearDown()
   }
 
   @Test
@@ -169,8 +170,12 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
     offenderSearchMockServer.stubFindOffenders("MDI")
     prisonApiMockServer.stubLocation("MDI-1")
     prisonApiMockServer.stubCaseNoteSummary()
-    prisonApiMockServer.stubIepLevels()
-    prisonApiMockServer.stubAgenciesIepLevels("MDI")
+
+    listOf("BAS", "STD", "ENH", "ENT").forEach { levelCode ->
+      listOf("MDI").forEach { prisonId ->
+        makePrisonIncentiveLevel(prisonId, levelCode)
+      }
+    }
 
     webTestClient.get()
       .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD")
@@ -254,8 +259,11 @@ class IncentiveReviewsResourceTest : SqsIntegrationTestBase() {
     offenderSearchMockServer.stubFindOffenders("MDI")
     prisonApiMockServer.stubApi404for("/api/locations/code/MDI-1")
     prisonApiMockServer.stubCaseNoteSummary()
-    prisonApiMockServer.stubIepLevels()
-    prisonApiMockServer.stubAgenciesIepLevels("MDI")
+    listOf("BAS", "STD", "ENH", "ENT").forEach { levelCode ->
+      listOf("MDI").forEach { prisonId ->
+        makePrisonIncentiveLevel(prisonId, levelCode)
+      }
+    }
 
     webTestClient.get()
       .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD")

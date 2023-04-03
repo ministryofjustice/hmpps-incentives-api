@@ -14,7 +14,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.NextReviewDate
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.NextReviewDateRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
@@ -28,6 +28,7 @@ class NextReviewDateUpdaterServiceTest {
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository = mock()
   private val nextReviewDateRepository: NextReviewDateRepository = mock()
   private val prisonApiService: PrisonApiService = mock()
+  private val incentiveLevelService: IncentiveLevelService = mock()
   private val snsService: SnsService = mock()
 
   private val nextReviewDateUpdaterService = NextReviewDateUpdaterService(
@@ -35,19 +36,20 @@ class NextReviewDateUpdaterServiceTest {
     prisonerIepLevelRepository,
     nextReviewDateRepository,
     prisonApiService,
+    incentiveLevelService,
     snsService,
   )
 
   private val iepLevels = mapOf(
-    "BAS" to IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1),
-    "STD" to IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2),
-    "ENH" to IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3),
-    "EN2" to IepLevel(iepLevel = "EN2", iepDescription = "Enhanced 2", sequence = 4),
+    "BAS" to IncentiveLevel(code = "BAS", description = "Basic"),
+    "STD" to IncentiveLevel(code = "STD", description = "Standard"),
+    "ENH" to IncentiveLevel(code = "ENH", description = "Enhanced"),
+    "EN2" to IncentiveLevel(code = "EN2", description = "Enhanced 2"),
   )
 
   @BeforeEach
   fun setUp(): Unit = runBlocking {
-    whenever(prisonApiService.getIncentiveLevels())
+    whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode())
       .thenReturn(iepLevels)
   }
 
@@ -60,7 +62,7 @@ class NextReviewDateUpdaterServiceTest {
 
     @BeforeEach
     fun setUp(): Unit = runBlocking {
-      whenever(prisonApiService.getIncentiveLevels())
+      whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode())
         .thenReturn(iepLevels)
     }
 

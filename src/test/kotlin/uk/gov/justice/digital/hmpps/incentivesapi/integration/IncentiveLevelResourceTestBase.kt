@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.integration
 
 import com.amazonaws.services.sqs.AmazonSQS
 import com.amazonaws.services.sqs.model.PurgeQueueRequest
+import com.amazonaws.services.sqs.model.ReceiveMessageRequest
 import com.fasterxml.jackson.core.type.TypeReference
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.runBlocking
@@ -89,6 +90,16 @@ class IncentiveLevelResourceTestBase : SqsIntegrationTestBase() {
     return domainEvent
   }
 
+  protected fun getPublishedDomainEvents(): List<HMPPSDomainEvent> {
+    val sqsClient = incentivesQueue.sqsClient
+    val request = ReceiveMessageRequest(testDomainEventQueueUrl).withMaxNumberOfMessages(10)
+    return sqsClient.receiveMessage(request).messages
+      .map {
+        val (message) = objectMapper.readValue(it.body, HMPPSMessage::class.java)
+        objectMapper.readValue(message, HMPPSDomainEvent::class.java)
+      }
+  }
+
   protected fun assertNoAuditMessageSent() {
     val queueSize = auditQueue.sqsClient.getApproxQueueSize(auditQueue.queueUrl)
     assertThat(queueSize).isEqualTo(0)
@@ -115,6 +126,12 @@ class IncentiveLevelResourceTestBase : SqsIntegrationTestBase() {
   protected fun assertAuditMessageSentWithMap(eventType: String): Map<String, Any> {
     val event = assertAuditMessageSent(eventType)
     return objectMapper.readValue(event.details, object : TypeReference<Map<String, Any>>() {})
+  }
+
+  protected fun getSentAuditMessages(): List<AuditEvent> {
+    val request = ReceiveMessageRequest(auditQueue.queueUrl).withMaxNumberOfMessages(10)
+    return auditQueue.sqsClient.receiveMessage(request).messages
+      .map { objectMapper.readValue(it.body, AuditEvent::class.java) }
   }
 
   protected fun makePrisonIncentiveLevel(prisonId: String, levelCode: String) = runBlocking {
