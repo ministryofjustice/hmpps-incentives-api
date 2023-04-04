@@ -62,7 +62,7 @@ class IncentiveLevelAuditedService(
       IncentivesDomainEventType.INCENTIVE_LEVEL_CHANGED,
       "An incentive level has been changed: $levelCode",
       occurredAt = LocalDateTime.now(clock),
-      AdditionalInformation(
+      IncentiveLevelRef(
         incentiveLevel = levelCode,
       ),
     )
@@ -73,6 +73,9 @@ class IncentiveLevelAuditedService(
       IncentivesDomainEventType.INCENTIVE_LEVELS_REORDERED,
       "Incentive levels have been re-ordered",
       occurredAt = LocalDateTime.now(clock),
+      additionalInformation = null,
     )
   }
 }
+
+data class IncentiveLevelRef(val incentiveLevel: String)

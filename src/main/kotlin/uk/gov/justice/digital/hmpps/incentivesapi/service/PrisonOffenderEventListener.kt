@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
@@ -22,7 +23,7 @@ class PrisonOffenderEventListener(
     val eventType = messageAttributes.eventType.Value
     log.info("Received message $message, type $eventType")
 
-    val hmppsDomainEvent = mapper.readValue(message, HMPPSDomainEvent::class.java)
+    val hmppsDomainEvent = mapper.readValue(message, object : TypeReference<HMPPSDomainEvent<AdditionalInformation>>() {})
     when (eventType) {
       "prisoner-offender-search.prisoner.received", "prison-offender-events.prisoner.merged" -> {
         prisonerIepLevelReviewService.processOffenderEvent(hmppsDomainEvent)

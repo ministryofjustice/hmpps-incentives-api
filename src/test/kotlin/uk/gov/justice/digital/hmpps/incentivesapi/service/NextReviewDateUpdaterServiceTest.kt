@@ -97,7 +97,7 @@ class NextReviewDateUpdaterServiceTest {
 
       // Doesn't publish 'next-review-date-changed' event for new records
       verify(snsService, times(0))
-        .publishDomainEvent(any(), any(), any(), any())
+        .publishDomainEvent<AdditionalInformation>(any(), any(), any(), any())
     }
 
     @Test
@@ -231,6 +231,6 @@ class NextReviewDateUpdaterServiceTest {
 
     // Doesn't publish 'next-review-date-changed' event for new records
     verify(snsService, times(0))
-      .publishDomainEvent(any(), any(), any(), any())
+      .publishDomainEvent<AdditionalInformation>(any(), any(), any(), any())
   }
 }
