@@ -17,6 +17,8 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonIncentive
 import uk.gov.justice.digital.hmpps.incentivesapi.service.AuditEvent
 import uk.gov.justice.digital.hmpps.incentivesapi.service.HMPPSDomainEvent
 import uk.gov.justice.digital.hmpps.incentivesapi.service.HMPPSMessage
+import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveLevelRef
+import uk.gov.justice.digital.hmpps.incentivesapi.service.PrisonIncentiveLevelRef
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDateTime
@@ -76,7 +78,11 @@ class IncentiveLevelResourceTestBase : SqsIntegrationTestBase() {
     assertThat(queueSize).isEqualTo(0)
   }
 
-  protected fun assertDomainEventSent(eventType: String): HMPPSDomainEvent<Map<String, *>?> {
+  protected val anyDomainEvent = object : TypeReference<HMPPSDomainEvent<Any?>>() {}
+  protected val incentiveLevelDomainEvent = object : TypeReference<HMPPSDomainEvent<IncentiveLevelRef>>() {}
+  protected val prisonIncentiveLevelDomainEvent = object : TypeReference<HMPPSDomainEvent<PrisonIncentiveLevelRef>>() {}
+
+  protected fun <T> assertDomainEventSent(eventType: String, typeReference: TypeReference<HMPPSDomainEvent<T>>): HMPPSDomainEvent<T> {
     val sqsClient = incentivesQueue.sqsClient
     val queueSize = sqsClient.getApproxQueueSize(testDomainEventQueueUrl!!)
     assertThat(queueSize).isEqualTo(1)
@@ -84,7 +90,7 @@ class IncentiveLevelResourceTestBase : SqsIntegrationTestBase() {
     val body = sqsClient.receiveMessage(testDomainEventQueueUrl).messages[0].body
     val (message, attributes) = objectMapper.readValue(body, HMPPSMessage::class.java)
     assertThat(attributes.eventType.Value).isEqualTo(eventType)
-    val domainEvent = objectMapper.readValue(message, object : TypeReference<HMPPSDomainEvent<Map<String, *>?>>() {})
+    val domainEvent = objectMapper.readValue(message, typeReference)
     assertThat(domainEvent.eventType).isEqualTo(eventType)
 
     return domainEvent

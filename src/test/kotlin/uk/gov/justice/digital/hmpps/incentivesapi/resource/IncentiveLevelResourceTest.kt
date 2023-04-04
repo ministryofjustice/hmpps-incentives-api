@@ -186,9 +186,9 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(prisonIncentiveLevelRepository.count()).isEqualTo(0)
       }
 
-      assertDomainEventSent("incentives.level.changed").let {
+      assertDomainEventSent("incentives.level.changed", incentiveLevelDomainEvent).let {
         assertThat(it.description).isEqualTo("An incentive level has been changed: EN4")
-        assertThat(it.additionalInformation?.get("incentiveLevel")).isEqualTo("EN4")
+        assertThat(it.additionalInformation.incentiveLevel).isEqualTo("EN4")
       }
       assertAuditMessageSentWithMap("INCENTIVE_LEVEL_ADDED").let {
         assertThat(it["code"]).isEqualTo("EN4")
@@ -442,7 +442,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         }
       }
 
-      assertDomainEventSent("incentives.levels.reordered").let {
+      assertDomainEventSent("incentives.levels.reordered", anyDomainEvent).let {
         assertThat(it.description).isEqualTo("Incentive levels have been re-ordered")
         assertThat(it.additionalInformation).isNull()
       }
@@ -581,9 +581,9 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevel?.whenUpdated).isEqualTo(now)
       }
 
-      assertDomainEventSent("incentives.level.changed").let {
+      assertDomainEventSent("incentives.level.changed", incentiveLevelDomainEvent).let {
         assertThat(it.description).isEqualTo("An incentive level has been changed: STD")
-        assertThat(it.additionalInformation?.get("incentiveLevel")).isEqualTo("STD")
+        assertThat(it.additionalInformation.incentiveLevel).isEqualTo("STD")
       }
       assertAuditMessageSentWithMap("INCENTIVE_LEVEL_UPDATED").let {
         assertThat(it["description"]).isEqualTo("Silver")
@@ -823,9 +823,9 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevel?.whenUpdated).isEqualTo(now)
       }
 
-      assertDomainEventSent("incentives.level.changed").let {
+      assertDomainEventSent("incentives.level.changed", incentiveLevelDomainEvent).let {
         assertThat(it.description).isEqualTo("An incentive level has been changed: STD")
-        assertThat(it.additionalInformation?.get("incentiveLevel")).isEqualTo("STD")
+        assertThat(it.additionalInformation.incentiveLevel).isEqualTo("STD")
       }
       assertAuditMessageSentWithMap("INCENTIVE_LEVEL_UPDATED").let {
         assertThat(it["description"]).isEqualTo("Silver")
@@ -974,9 +974,9 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
 
-      assertDomainEventSent("incentives.level.changed").let {
+      assertDomainEventSent("incentives.level.changed", incentiveLevelDomainEvent).let {
         assertThat(it.description).isEqualTo("An incentive level has been changed: ENH")
-        assertThat(it.additionalInformation?.get("incentiveLevel")).isEqualTo("ENH")
+        assertThat(it.additionalInformation.incentiveLevel).isEqualTo("ENH")
       }
       assertAuditMessageSentWithMap("INCENTIVE_LEVEL_UPDATED").let {
         assertThat(it["code"]).isEqualTo("ENH")
@@ -1063,9 +1063,9 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevel?.whenUpdated).isEqualTo(now)
       }
 
-      assertDomainEventSent("incentives.level.changed").let {
+      assertDomainEventSent("incentives.level.changed", incentiveLevelDomainEvent).let {
         assertThat(it.description).isEqualTo("An incentive level has been changed: EN2")
-        assertThat(it.additionalInformation?.get("incentiveLevel")).isEqualTo("EN2")
+        assertThat(it.additionalInformation.incentiveLevel).isEqualTo("EN2")
       }
       assertAuditMessageSentWithMap("INCENTIVE_LEVEL_UPDATED").let {
         assertThat(it["code"]).isEqualTo("EN2")
@@ -1095,9 +1095,9 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(incentiveLevel?.whenUpdated).isEqualTo(now)
       }
 
-      assertDomainEventSent("incentives.level.changed").let {
+      assertDomainEventSent("incentives.level.changed", incentiveLevelDomainEvent).let {
         assertThat(it.description).isEqualTo("An incentive level has been changed: ENT")
-        assertThat(it.additionalInformation?.get("incentiveLevel")).isEqualTo("ENT")
+        assertThat(it.additionalInformation.incentiveLevel).isEqualTo("ENT")
       }
       assertAuditMessageSentWithMap("INCENTIVE_LEVEL_UPDATED").let {
         assertThat(it["code"]).isEqualTo("ENT")

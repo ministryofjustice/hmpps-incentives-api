@@ -47,10 +47,12 @@ class PrisonIncentiveLevelAuditedService(
       IncentivesDomainEventType.INCENTIVE_PRISON_LEVEL_CHANGED,
       "Incentive level (${prisonIncentiveLevel.levelCode}) in prison ${prisonIncentiveLevel.prisonId} has been updated",
       occurredAt = LocalDateTime.now(clock),
-      AdditionalInformation(
+      PrisonIncentiveLevelRef(
         incentiveLevel = prisonIncentiveLevel.levelCode,
         prisonId = prisonIncentiveLevel.prisonId,
       ),
     )
   }
 }
+
+data class PrisonIncentiveLevelRef(val incentiveLevel: String, val prisonId: String)

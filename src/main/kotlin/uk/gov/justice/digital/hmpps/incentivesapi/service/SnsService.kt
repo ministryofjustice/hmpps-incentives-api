@@ -64,8 +64,6 @@ data class AdditionalInformation(
   val bookingId: Long? = null,
   val alertsAdded: List<String>? = null,
   val alertsRemoved: List<String>? = null,
-  val incentiveLevel: String? = null,
-  val prisonId: String? = null,
 )
 
 data class HMPPSDomainEvent<T>(
