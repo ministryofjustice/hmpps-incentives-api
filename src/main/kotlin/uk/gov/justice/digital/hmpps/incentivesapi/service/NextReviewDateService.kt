@@ -1,11 +1,10 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import java.time.LocalDate
 import java.time.Period
-
-private const val BASIC = "BAS"
 
 data class NextReviewDateInput(
   val hasAcctOpen: Boolean,
@@ -76,7 +75,7 @@ class NextReviewDateService(private val input: NextReviewDateInput) {
   }
 
   private fun isOnBasic(): Boolean {
-    return lastReview()?.iepCode == BASIC
+    return lastReview()?.iepCode == IncentiveLevel.BasicCode
   }
 
   private fun lastReviewDate(): LocalDate {
@@ -86,7 +85,7 @@ class NextReviewDateService(private val input: NextReviewDateInput) {
   private fun wasConfirmedBasic(): Boolean {
     val reviews = reviews()
 
-    return isOnBasic() && reviews.size >= 2 && reviews[1].iepCode == BASIC
+    return isOnBasic() && reviews.size >= 2 && reviews[1].iepCode == IncentiveLevel.BasicCode
   }
 
   private fun isNewPrisoner(): Boolean {
