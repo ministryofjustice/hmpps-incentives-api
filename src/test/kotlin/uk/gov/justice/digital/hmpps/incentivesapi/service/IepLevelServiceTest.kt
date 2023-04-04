@@ -160,12 +160,12 @@ class IepLevelServiceTest {
     fun setup(): Unit = runBlocking {
       whenever(incentiveLevelService.getAllIncentiveLevels()).thenReturn(
         listOf(
-          IncentiveLevel(code = "BAS", description = "Basic"),
-          IncentiveLevel(code = "ENT", description = "Entry", active = false),
-          IncentiveLevel(code = "STD", description = "Standard"),
-          IncentiveLevel(code = "ENH", description = "Enhanced"),
-          IncentiveLevel(code = "EN2", description = "Enhanced 2"),
-          IncentiveLevel(code = "EN3", description = "Enhanced 3"),
+          IncentiveLevel(code = "BAS", name = "Basic"),
+          IncentiveLevel(code = "ENT", name = "Entry", active = false),
+          IncentiveLevel(code = "STD", name = "Standard"),
+          IncentiveLevel(code = "ENH", name = "Enhanced"),
+          IncentiveLevel(code = "EN2", name = "Enhanced 2"),
+          IncentiveLevel(code = "EN3", name = "Enhanced 3"),
         ),
       )
     }

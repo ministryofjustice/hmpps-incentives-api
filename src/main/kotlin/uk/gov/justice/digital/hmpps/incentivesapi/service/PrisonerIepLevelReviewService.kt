@@ -173,7 +173,7 @@ class PrisonerIepLevelReviewService(
     return prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(bookingIds)
       .map {
         CurrentIepLevel(
-          iepLevel = incentiveLevels[it.iepCode]?.description ?: "Unmapped",
+          iepLevel = incentiveLevels[it.iepCode]?.name ?: "Unmapped",
           bookingId = it.bookingId,
         )
       }.toList()

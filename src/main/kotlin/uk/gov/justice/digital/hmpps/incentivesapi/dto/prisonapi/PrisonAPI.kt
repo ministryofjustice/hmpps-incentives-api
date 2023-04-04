@@ -86,7 +86,7 @@ data class IepLevel(
 
 fun IepLevel.toIncentivesServiceDto(): IncentiveLevel = IncentiveLevel(
   code = iepLevel,
-  description = iepDescription,
+  name = iepDescription,
   active = active,
 )
 

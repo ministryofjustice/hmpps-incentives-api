@@ -40,7 +40,7 @@ class IncentiveLevelServiceTest {
       flowOf(
         IncentiveLevel(
           code = "",
-          description = "Standard",
+          name = "Standard",
           sequence = 10,
           new = true,
         ),
@@ -73,9 +73,9 @@ class IncentiveLevelServiceTest {
     // Then
     assertThat(activeIncentiveLevelsByCode).isEqualTo(
       mapOf(
-        "BAS" to uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel(code = "BAS", description = "Basic"),
-        "STD" to uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel(code = "STD", description = "Standard"),
-        "ENH" to uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel(code = "ENH", description = "Enhanced"),
+        "BAS" to uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel(code = "BAS", name = "Basic"),
+        "STD" to uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel(code = "STD", name = "Standard"),
+        "ENH" to uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel(code = "ENH", name = "Enhanced"),
       ),
     )
     verify(prisonApiService, times(1)).getIepLevels()

@@ -107,8 +107,9 @@ class PrisonIncentiveLevelService(
         }
       }
 
+      // TODO: Rename `levelDescription` to `levelName`
       prisonIncentiveLevelRepository.save(prisonIncentiveLevel)
-        .copy(levelDescription = incentiveLevel.description)
+        .copy(levelDescription = incentiveLevel.name)
         .toDTO()
     }
   }

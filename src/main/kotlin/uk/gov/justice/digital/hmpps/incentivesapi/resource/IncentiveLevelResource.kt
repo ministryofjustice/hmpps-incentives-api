@@ -100,7 +100,7 @@ class IncentiveLevelResource(
   ): IncentiveLevel {
     ensure {
       ("code" to incentiveLevel.code).hasLengthAtLeast(1).hasLengthAtMost(6)
-      ("description" to incentiveLevel.description).hasLengthAtLeast(1)
+      ("name" to incentiveLevel.name).hasLengthAtLeast(1)
 
       if (!incentiveLevel.active && incentiveLevel.required) {
         errors.add("A level must be active if it is required")
@@ -283,8 +283,8 @@ class IncentiveLevelResource(
     update: IncentiveLevelUpdate,
   ): IncentiveLevel {
     ensure {
-      update.description?.let {
-        ("description" to it).hasLengthAtLeast(1)
+      update.name?.let {
+        ("name" to it).hasLengthAtLeast(1)
       }
 
       update.active?.let { active ->
