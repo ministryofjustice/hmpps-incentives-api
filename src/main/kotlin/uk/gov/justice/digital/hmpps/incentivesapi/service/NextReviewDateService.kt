@@ -1,24 +1,23 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import java.time.LocalDate
 import java.time.Period
-
-private const val BASIC = "Basic"
 
 data class NextReviewDateInput(
   val hasAcctOpen: Boolean,
   val dateOfBirth: LocalDate,
   val receptionDate: LocalDate,
-  val iepDetails: List<IepDetail>,
+  val incentiveRecords: List<PrisonerIepLevel>,
 )
 
 class NextReviewDateService(private val input: NextReviewDateInput) {
 
   fun calculate(): LocalDate {
     if (isReadmission()) {
-      val readmissionDate = reviews(includeReadmissions = true).first().iepDate
+      val readmissionDate = reviews(includeReadmissions = true).first().reviewDate
       return ruleForNewPrisoners(readmissionDate)
     }
 
@@ -71,22 +70,22 @@ class NextReviewDateService(private val input: NextReviewDateInput) {
     return ageOnDate < 18
   }
 
-  private fun lastReview(): IepDetail? {
+  private fun lastReview(): PrisonerIepLevel? {
     return reviews().firstOrNull()
   }
 
   private fun isOnBasic(): Boolean {
-    return lastReview()?.iepLevel == BASIC
+    return lastReview()?.iepCode == IncentiveLevel.BasicCode
   }
 
   private fun lastReviewDate(): LocalDate {
-    return lastReview()?.iepDate ?: input.receptionDate
+    return lastReview()?.reviewDate ?: input.receptionDate
   }
 
   private fun wasConfirmedBasic(): Boolean {
     val reviews = reviews()
 
-    return isOnBasic() && reviews.size >= 2 && reviews[1].iepLevel == BASIC
+    return isOnBasic() && reviews.size >= 2 && reviews[1].iepCode == IncentiveLevel.BasicCode
   }
 
   private fun isNewPrisoner(): Boolean {
@@ -98,10 +97,10 @@ class NextReviewDateService(private val input: NextReviewDateInput) {
     return reviews(includeReadmissions = true).firstOrNull()?.reviewType == ReviewType.READMISSION
   }
 
-  private fun reviews(includeReadmissions: Boolean = false): List<IepDetail> {
-    return input.iepDetails.filter { iepDetail ->
-      iepDetail.isRealReview() ||
-        (includeReadmissions && iepDetail.reviewType == ReviewType.READMISSION)
+  private fun reviews(includeReadmissions: Boolean = false): List<PrisonerIepLevel> {
+    return input.incentiveRecords.filter { incentiveRecord ->
+      incentiveRecord.isRealReview() ||
+        (includeReadmissions && incentiveRecord.reviewType == ReviewType.READMISSION)
     }
   }
 }

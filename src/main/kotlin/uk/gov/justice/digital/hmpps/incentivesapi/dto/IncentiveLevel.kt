@@ -30,6 +30,11 @@ data class IncentiveLevel(
   @JsonProperty(required = false, defaultValue = "false")
   val required: Boolean = false,
 ) {
+
+  companion object {
+    const val BasicCode = "BAS"
+  }
+
   fun toUpdate() = IncentiveLevelUpdate(
     description = description,
     active = active,
