@@ -255,13 +255,15 @@ Authorised requests do not require any roles.
 [
   {
     "code": "BAS",
-    "description": "Basic",
+    "name": "Basic",
+    "description": "",
     "active": true,
     "required": true
   },
   {
     "code": "STD",
-    "description": "Standard",
+    "name": "Standard",
+    "description": "",
     "active": true,
     "required": true
   },
@@ -275,20 +277,23 @@ Authorised requests do not require any roles.
 [
   {
     "code": "BAS",
-    "description": "Basic",
+    "name": "Basic",
+    "description": "",
     "active": true,
     "required": true
   },
   {
     "code": "STD",
-    "description": "Standard",
+    "name": "Standard",
+    "description": "",
     "active": true,
     "required": true
   },
   // more entries…
   {
     "code": "ENT",
-    "description": "Entry",
+    "name": "Entry",
+    "description": "",
     "active": false,
     "required": false
   }
@@ -302,7 +307,8 @@ NB: Inactive levels are also returned
 ```json
 {
   "code": "BAS",
-  "description": "Basic",
+  "name": "Basic",
+  "description": "",
   "active": true,
   "required": true
 }
@@ -318,7 +324,8 @@ e.g. **/incentive/prison-levels/MDI** returns
 [
   {
     "levelCode": "STD",
-    "levelDescription": "Standard",
+    "levelName": "Standard",
+    "levelDescription": "",
     "prisonId": "MDI",
     "active": true,
     "defaultOnAdmission": true,
@@ -348,7 +355,8 @@ e.g. **/incentive/prison-levels/MDI/level/STD** returns
 ```json
 {
   "levelCode": "STD",
-  "levelDescription": "Standard",
+  "levelName": "Standard",
+  "levelDescription": "",
   "prisonId": "MDI",
   "active": true,
   "defaultOnAdmission": true,
@@ -371,7 +379,8 @@ Authorised requests will require roles with write scope.
 ```json
 {
   "code": "EN4",
-  "description": "Enhanced 4",
+  "name": "Enhanced 4",
+  "description": "",
   "active": true
 }
 ```
@@ -381,7 +390,8 @@ Authorised requests will require roles with write scope.
 ```json
 {
   "code": "STD",
-  "description": "Silver",
+  "name": "Silver",
+  "description": "",
   "active": true
 }
 ```
@@ -389,7 +399,7 @@ Authorised requests will require roles with write scope.
 `PATCH /incentive/levels/{code}` -
 ```json
 {
-  "description": "Silver"
+  "name": "Silver"
 }
 ```
 
@@ -410,7 +420,8 @@ Authorised requests will require roles with write scope.
 ```json
 {
   "levelCode": "STD",
-  "levelDescription": "Standard",
+  "levelName": "Standard",
+  "levelDescription": "",
   "prisonId": "MDI",
   "active": true,
   "defaultOnAdmission": true,

@@ -108,7 +108,7 @@ class PrisonIncentiveLevelService(
       }
 
       prisonIncentiveLevelRepository.save(prisonIncentiveLevel)
-        .copy(levelDescription = incentiveLevel.description)
+        .copy(levelName = incentiveLevel.name)
         .toDTO()
     }
   }
@@ -144,7 +144,7 @@ class PrisonIncentiveLevelService(
 
   private fun PrisonIncentiveLevel.toDTO(): PrisonIncentiveLevelDTO = PrisonIncentiveLevelDTO(
     levelCode = levelCode,
-    levelDescription = levelDescription!!, // NB: entity will always have a level description if loaded using correct repository method
+    levelName = levelName!!, // NB: entity will always have a level name if loaded using correct repository method
     prisonId = prisonId,
     active = active,
     defaultOnAdmission = defaultOnAdmission,

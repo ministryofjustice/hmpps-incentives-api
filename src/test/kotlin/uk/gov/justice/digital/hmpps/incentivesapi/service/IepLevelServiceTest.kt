@@ -85,7 +85,7 @@ class IepLevelServiceTest {
           listOf(
             PrisonIncentiveLevel(
               levelCode = "BAS",
-              levelDescription = "Basic",
+              levelName = "Basic",
               prisonId = prisonId,
               defaultOnAdmission = true,
               remandTransferLimitInPence = 0,
@@ -96,7 +96,7 @@ class IepLevelServiceTest {
               privilegedVisitOrders = 0,
             ),
             PrisonIncentiveLevel(
-              levelCode = "STD", levelDescription = "Standard",
+              levelCode = "STD", levelName = "Standard",
               prisonId = prisonId,
               defaultOnAdmission = true,
               remandTransferLimitInPence = 0,
@@ -107,7 +107,7 @@ class IepLevelServiceTest {
               privilegedVisitOrders = 0,
             ),
             PrisonIncentiveLevel(
-              levelCode = "ENH", levelDescription = "Enhanced",
+              levelCode = "ENH", levelName = "Enhanced",
               prisonId = prisonId,
               remandTransferLimitInPence = 0,
               remandSpendLimitInPence = 0,
@@ -117,7 +117,7 @@ class IepLevelServiceTest {
               privilegedVisitOrders = 0,
             ),
             PrisonIncentiveLevel(
-              levelCode = "ENH2", levelDescription = "Enhanced 2",
+              levelCode = "ENH2", levelName = "Enhanced 2",
               prisonId = prisonId,
               remandTransferLimitInPence = 0,
               remandSpendLimitInPence = 0,
@@ -127,7 +127,7 @@ class IepLevelServiceTest {
               privilegedVisitOrders = 0,
             ),
             PrisonIncentiveLevel(
-              levelCode = "ENH3", levelDescription = "Enhanced 3",
+              levelCode = "ENH3", levelName = "Enhanced 3",
               prisonId = prisonId,
               remandTransferLimitInPence = 0,
               remandSpendLimitInPence = 0,
@@ -160,12 +160,12 @@ class IepLevelServiceTest {
     fun setup(): Unit = runBlocking {
       whenever(incentiveLevelService.getAllIncentiveLevels()).thenReturn(
         listOf(
-          IncentiveLevel(code = "BAS", description = "Basic"),
-          IncentiveLevel(code = "ENT", description = "Entry", active = false),
-          IncentiveLevel(code = "STD", description = "Standard"),
-          IncentiveLevel(code = "ENH", description = "Enhanced"),
-          IncentiveLevel(code = "EN2", description = "Enhanced 2"),
-          IncentiveLevel(code = "EN3", description = "Enhanced 3"),
+          IncentiveLevel(code = "BAS", name = "Basic"),
+          IncentiveLevel(code = "ENT", name = "Entry", active = false),
+          IncentiveLevel(code = "STD", name = "Standard"),
+          IncentiveLevel(code = "ENH", name = "Enhanced"),
+          IncentiveLevel(code = "EN2", name = "Enhanced 2"),
+          IncentiveLevel(code = "EN3", name = "Enhanced 3"),
         ),
       )
     }

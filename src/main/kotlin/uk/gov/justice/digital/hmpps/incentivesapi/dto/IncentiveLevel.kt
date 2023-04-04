@@ -10,9 +10,9 @@ data class IncentiveLevel(
   @Schema(description = "Unique id for the incentive level", example = "STD", minLength = 1, maxLength = 6)
   @JsonProperty(required = true)
   val code: String,
-  @Schema(description = "Description of the incentive level", example = "Standard", minLength = 1)
+  @Schema(description = "Name of the incentive level", example = "Standard", minLength = 1)
   @JsonProperty(required = true)
-  val description: String,
+  val name: String,
   // TODO: suggest not exposing `sequence`: lists are returned in proper order
   // @Schema(description = "Order in which to display the incentive levels", example = "1")
   // @JsonProperty(required = true)
@@ -36,7 +36,7 @@ data class IncentiveLevel(
   }
 
   fun toUpdate() = IncentiveLevelUpdate(
-    description = description,
+    name = name,
     active = active,
     required = required,
   )
@@ -46,8 +46,8 @@ data class IncentiveLevel(
  * Update payload for IncentiveLevel
  */
 data class IncentiveLevelUpdate(
-  @Schema(description = "Description of the incentive level", example = "Standard", minLength = 1, required = false)
-  val description: String? = null,
+  @Schema(description = "Name of the incentive level", example = "Standard", minLength = 1, required = false)
+  val name: String? = null,
   @Schema(description = "Indicates that the incentive level is active; inactive levels are historic levels no longer in use", example = "true", required = false)
   val active: Boolean? = null,
   @Schema(description = "Indicates that all prisons must have this level active", example = "true", required = false)

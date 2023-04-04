@@ -48,7 +48,7 @@ class IncentiveLevelRepositoryTest : TestBase() {
   fun `level code cannot be blank`(): Unit = assertThatEntityCannotBeSaved(
     IncentiveLevel(
       code = "",
-      description = "Standard",
+      name = "Standard",
       sequence = 10,
       new = true,
     ),
@@ -58,7 +58,7 @@ class IncentiveLevelRepositoryTest : TestBase() {
   fun `level code cannot be too long`(): Unit = assertThatEntityCannotBeSaved(
     IncentiveLevel(
       code = "Standard",
-      description = "Standard",
+      name = "Standard",
       sequence = 10,
       new = true,
     ),
@@ -68,7 +68,7 @@ class IncentiveLevelRepositoryTest : TestBase() {
   fun `level description cannot be blank`(): Unit = assertThatEntityCannotBeSaved(
     IncentiveLevel(
       code = "ABC",
-      description = "",
+      name = "",
       sequence = 10,
       new = true,
     ),
@@ -78,7 +78,7 @@ class IncentiveLevelRepositoryTest : TestBase() {
   fun `level cannot be required if inactive`(): Unit = assertThatEntityCannotBeSaved(
     IncentiveLevel(
       code = "STD",
-      description = "Standard",
+      name = "Standard",
       sequence = 10,
       active = false,
       required = true,

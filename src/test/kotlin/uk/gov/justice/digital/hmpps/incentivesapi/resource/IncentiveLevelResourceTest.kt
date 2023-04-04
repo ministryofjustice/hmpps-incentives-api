@@ -59,11 +59,11 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           // language=json
           """
           [
-            {"code": "BAS", "description": "Basic", "active": true, "required": true},
-            {"code": "STD", "description": "Standard", "active": true, "required": true},
-            {"code": "ENH", "description": "Enhanced", "active": true, "required": true},
-            {"code": "EN2", "description": "Enhanced 2", "active": true, "required": false},
-            {"code": "EN3", "description": "Enhanced 3", "active": true, "required": false}
+            {"code": "BAS", "name": "Basic", "active": true, "required": true},
+            {"code": "STD", "name": "Standard", "active": true, "required": true},
+            {"code": "ENH", "name": "Enhanced", "active": true, "required": true},
+            {"code": "EN2", "name": "Enhanced 2", "active": true, "required": false},
+            {"code": "EN3", "name": "Enhanced 3", "active": true, "required": false}
           ]
           """,
           true,
@@ -81,12 +81,12 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           // language=json
           """
           [
-            {"code": "BAS", "description": "Basic", "active": true, "required": true},
-            {"code": "STD", "description": "Standard", "active": true, "required": true},
-            {"code": "ENH", "description": "Enhanced", "active": true, "required": true},
-            {"code": "EN2", "description": "Enhanced 2", "active": true, "required": false},
-            {"code": "EN3", "description": "Enhanced 3", "active": true, "required": false},
-            {"code": "ENT", "description": "Entry", "active": false, "required": false}
+            {"code": "BAS", "name": "Basic", "active": true, "required": true},
+            {"code": "STD", "name": "Standard", "active": true, "required": true},
+            {"code": "ENH", "name": "Enhanced", "active": true, "required": true},
+            {"code": "EN2", "name": "Enhanced 2", "active": true, "required": false},
+            {"code": "EN3", "name": "Enhanced 3", "active": true, "required": false},
+            {"code": "ENT", "name": "Entry", "active": false, "required": false}
           ]
           """,
           true,
@@ -103,7 +103,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectBody().json(
           // language=json
           """
-          {"code": "EN2", "description": "Enhanced 2", "active": true, "required": false}
+          {"code": "EN2", "name": "Enhanced 2", "active": true, "required": false}
           """,
           true,
         )
@@ -119,7 +119,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectBody().json(
           // language=json
           """
-          {"code": "ENT", "description": "Entry", "active": false, "required": false}
+          {"code": "ENT", "name": "Entry", "active": false, "required": false}
           """,
           true,
         )
@@ -160,7 +160,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .bodyValue(
           // language=json
           """
-          {"code": "EN4", "description": "Enhanced 4", "active": false}
+          {"code": "EN4", "name": "Enhanced 4", "active": false}
           """,
         )
         .exchange()
@@ -168,7 +168,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectBody().json(
           // language=json
           """
-          {"code": "EN4", "description": "Enhanced 4", "active": false, "required": false}
+          {"code": "EN4", "name": "Enhanced 4", "active": false, "required": false}
           """,
           true,
         )
@@ -178,7 +178,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
         val incentiveLevel = incentiveLevelRepository.findById("EN4")
         assertThat(incentiveLevel?.code).isEqualTo("EN4")
-        assertThat(incentiveLevel?.description).isEqualTo("Enhanced 4")
+        assertThat(incentiveLevel?.name).isEqualTo("Enhanced 4")
         assertThat(incentiveLevel?.active).isFalse
         assertThat(incentiveLevel?.sequence).isGreaterThan(maxSequence)
         assertThat(incentiveLevel?.whenUpdated).isEqualTo(now)
@@ -211,7 +211,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .bodyValue(
           // language=json
           """
-          {"code": "EN4", "description": "Enhanced 4", "required": true}
+          {"code": "EN4", "name": "Enhanced 4", "required": true}
           """,
         )
         .exchange()
@@ -259,7 +259,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .bodyValue(
           // language=json
           """
-          {"code": "EN4", "description": "Enhanced 4", "active": false}
+          {"code": "EN4", "name": "Enhanced 4", "active": false}
           """,
         )
         .exchange()
@@ -283,7 +283,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           // language=yaml
           """
           code: STD
-          description: Silver
+          name: Silver
           active: false
           """.trimIndent(),
         )
@@ -299,7 +299,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
         val incentiveLevel = incentiveLevelRepository.findById("STD")
         assertThat(incentiveLevel?.code).isEqualTo("STD")
-        assertThat(incentiveLevel?.description).isEqualTo("Standard")
+        assertThat(incentiveLevel?.name).isEqualTo("Standard")
         assertThat(incentiveLevel?.active).isTrue
       }
 
@@ -316,7 +316,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .bodyValue(
           // language=json
           """
-          {"code": "STD", "description": "Silver", "active": false}
+          {"code": "STD", "name": "Silver", "active": false}
           """,
         )
         .exchange()
@@ -327,7 +327,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
         val incentiveLevel = incentiveLevelRepository.findById("STD")
         assertThat(incentiveLevel?.code).isEqualTo("STD")
-        assertThat(incentiveLevel?.description).isEqualTo("Standard")
+        assertThat(incentiveLevel?.name).isEqualTo("Standard")
         assertThat(incentiveLevel?.active).isTrue
         assertThat(incentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
@@ -345,7 +345,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         """,
         // language=json
         """
-        {"description": "Enhanced 4", "active": false}
+        {"name": "Enhanced 4", "active": false}
         """,
       ],
     )
@@ -371,19 +371,19 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
       strings = [
         // language=json
         """
-        {"code": "", "description": "Enhanced 4", "active": false}
+        {"code": "", "name": "Enhanced 4", "active": false}
         """,
         // language=json
         """
-        {"code": "Enhanced", "description": "Enhanced Plus", "active": false}
+        {"code": "Enhanced", "name": "Enhanced Plus", "active": false}
         """,
         // language=json
         """
-        {"code": "EN4", "description": "", "active": false}
+        {"code": "EN4", "name": "", "active": false}
         """,
         // language=json
         """
-        {"code": "EN4", "description": "Enhanced 4", "active": false, "required": true}
+        {"code": "EN4", "name": "Enhanced 4", "active": false, "required": true}
         """,
       ],
     )
@@ -422,12 +422,12 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           // language=json
           """
           [
-            {"code": "EN3", "description": "Enhanced 3", "active": true, "required": false},
-            {"code": "EN2", "description": "Enhanced 2", "active": true, "required": false},
-            {"code": "ENT", "description": "Entry", "active": false, "required": false},
-            {"code": "ENH", "description": "Enhanced", "active": true, "required": true},
-            {"code": "STD", "description": "Standard", "active": true, "required": true},
-            {"code": "BAS", "description": "Basic", "active": true, "required": true}
+            {"code": "EN3", "name": "Enhanced 3", "active": true, "required": false},
+            {"code": "EN2", "name": "Enhanced 2", "active": true, "required": false},
+            {"code": "ENT", "name": "Entry", "active": false, "required": false},
+            {"code": "ENH", "name": "Enhanced", "active": true, "required": true},
+            {"code": "STD", "name": "Standard", "active": true, "required": true},
+            {"code": "BAS", "name": "Basic", "active": true, "required": true}
           ]
           """,
           true,
@@ -562,7 +562,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .bodyValue(
           // language=json
           """
-          {"code": "STD", "description": "Silver", "active": true, "required": true}
+          {"code": "STD", "name": "Silver", "active": true, "required": true}
           """,
         )
         .exchange()
@@ -570,14 +570,14 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectBody().json(
           // language=json
           """
-          {"code": "STD", "description": "Silver", "active": true, "required": true}
+          {"code": "STD", "name": "Silver", "active": true, "required": true}
           """,
           true,
         )
 
       runBlocking {
         val incentiveLevel = incentiveLevelRepository.findById("STD")
-        assertThat(incentiveLevel?.description).isEqualTo("Silver")
+        assertThat(incentiveLevel?.name).isEqualTo("Silver")
         assertThat(incentiveLevel?.whenUpdated).isEqualTo(now)
       }
 
@@ -586,7 +586,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(it.additionalInformation?.incentiveLevel).isEqualTo("STD")
       }
       assertAuditMessageSentWithMap("INCENTIVE_LEVEL_UPDATED").let {
-        assertThat(it["description"]).isEqualTo("Silver")
+        assertThat(it["name"]).isEqualTo("Silver")
       }
     }
 
@@ -606,7 +606,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .bodyValue(
           // language=json
           """
-          {"code": "ENT", "description": "Entry", "active": true, "required": true}
+          {"code": "ENT", "name": "Entry", "active": true, "required": true}
           """,
         )
         .exchange()
@@ -655,7 +655,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .bodyValue(
           // language=json
           """
-          {"code": "STD", "description": "Silver", "active": true}
+          {"code": "STD", "name": "Silver", "active": true}
           """,
         )
         .exchange()
@@ -663,7 +663,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
       runBlocking {
         val incentiveLevel = incentiveLevelRepository.findById("STD")
-        assertThat(incentiveLevel?.description).isNotEqualTo("Silver")
+        assertThat(incentiveLevel?.name).isNotEqualTo("Silver")
       }
 
       assertNoDomainEventSent()
@@ -679,7 +679,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .bodyValue(
           // language=json
           """
-          {"code": "std", "description": "Silver", "active": true}
+          {"code": "std", "name": "Silver", "active": true}
           """,
         )
         .exchange()
@@ -689,7 +689,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         var incentiveLevel = incentiveLevelRepository.findById("std")
         assertThat(incentiveLevel).isNull()
         incentiveLevel = incentiveLevelRepository.findById("STD")
-        assertThat(incentiveLevel?.description).isEqualTo("Standard")
+        assertThat(incentiveLevel?.name).isEqualTo("Standard")
         assertThat(incentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
 
@@ -706,7 +706,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .bodyValue(
           // language=json
           """
-          {"code": "STD", "description": "Silver", "active": false}
+          {"code": "STD", "name": "Silver", "active": false}
           """,
         )
         .exchange()
@@ -714,10 +714,10 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
       runBlocking {
         var incentiveLevel = incentiveLevelRepository.findById("STD")
-        assertThat(incentiveLevel?.description).isEqualTo("Standard")
+        assertThat(incentiveLevel?.name).isEqualTo("Standard")
         assertThat(incentiveLevel?.active).isTrue
         incentiveLevel = incentiveLevelRepository.findById("ENH")
-        assertThat(incentiveLevel?.description).isEqualTo("Enhanced")
+        assertThat(incentiveLevel?.name).isEqualTo("Enhanced")
         assertThat(incentiveLevel?.active).isTrue
       }
 
@@ -734,7 +734,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         """,
         // language=json
         """
-        {"description": "Silver", "active": false}
+        {"name": "Silver", "active": false}
         """,
         // language=json
         """
@@ -753,7 +753,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
       runBlocking {
         val incentiveLevel = incentiveLevelRepository.findById("STD")
-        assertThat(incentiveLevel?.description).isEqualTo("Standard")
+        assertThat(incentiveLevel?.name).isEqualTo("Standard")
         assertThat(incentiveLevel?.active).isTrue
       }
 
@@ -766,11 +766,11 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
       strings = [
         // language=json
         """
-        {"code": "STD", "description": "", "active": false}
+        {"code": "STD", "name": "", "active": false}
         """,
         // language=json
         """
-        {"code": "STD", "description": "Standard", "active": false, "required": true}
+        {"code": "STD", "name": "Standard", "active": false, "required": true}
         """,
       ],
     )
@@ -785,7 +785,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
       runBlocking {
         var incentiveLevel = incentiveLevelRepository.findById("STD")
-        assertThat(incentiveLevel?.description).isEqualTo("Standard")
+        assertThat(incentiveLevel?.name).isEqualTo("Standard")
         assertThat(incentiveLevel?.active).isTrue
         incentiveLevel = incentiveLevelRepository.findById("")
         assertThat(incentiveLevel).isNull()
@@ -804,7 +804,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .bodyValue(
           // language=json
           """
-          {"description": "Silver"}
+          {"name": "Silver"}
           """,
         )
         .exchange()
@@ -812,14 +812,14 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectBody().json(
           // language=json
           """
-          {"code": "STD", "description": "Silver", "active": true, "required": true}
+          {"code": "STD", "name": "Silver", "active": true, "required": true}
           """,
           true,
         )
 
       runBlocking {
         val incentiveLevel = incentiveLevelRepository.findById("STD")
-        assertThat(incentiveLevel?.description).isEqualTo("Silver")
+        assertThat(incentiveLevel?.name).isEqualTo("Silver")
         assertThat(incentiveLevel?.whenUpdated).isEqualTo(now)
       }
 
@@ -828,7 +828,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(it.additionalInformation?.incentiveLevel).isEqualTo("STD")
       }
       assertAuditMessageSentWithMap("INCENTIVE_LEVEL_UPDATED").let {
-        assertThat(it["description"]).isEqualTo("Silver")
+        assertThat(it["name"]).isEqualTo("Silver")
       }
     }
 
@@ -897,7 +897,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .bodyValue(
           // language=json
           """
-          {"description": "Silver"}
+          {"name": "Silver"}
           """,
         )
         .exchange()
@@ -905,7 +905,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
       runBlocking {
         val incentiveLevel = incentiveLevelRepository.findById("STD")
-        assertThat(incentiveLevel?.description).isNotEqualTo("Silver")
+        assertThat(incentiveLevel?.name).isNotEqualTo("Silver")
       }
 
       assertNoDomainEventSent()
@@ -921,7 +921,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .bodyValue(
           // language=json
           """
-          {"description": "Silver"}
+          {"name": "Silver"}
           """,
         )
         .exchange()
@@ -931,7 +931,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         var incentiveLevel = incentiveLevelRepository.findById("std")
         assertThat(incentiveLevel).isNull()
         incentiveLevel = incentiveLevelRepository.findById("STD")
-        assertThat(incentiveLevel?.description).isEqualTo("Standard")
+        assertThat(incentiveLevel?.name).isEqualTo("Standard")
         assertThat(incentiveLevel?.whenUpdated).isNotEqualTo(now)
       }
 
@@ -948,7 +948,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .bodyValue(
           // language=json
           """
-          {"code": "STD", "description": "Gold", "active": false, "required": false}
+          {"code": "STD", "name": "Gold", "active": false, "required": false}
           """,
         )
         .exchange()
@@ -956,19 +956,19 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectBody().json(
           // language=json
           """
-          {"code": "ENH", "description": "Gold", "active": false, "required": false}
+          {"code": "ENH", "name": "Gold", "active": false, "required": false}
           """,
           true,
         )
 
       runBlocking {
         var incentiveLevel = incentiveLevelRepository.findById("ENH")
-        assertThat(incentiveLevel?.description).isEqualTo("Gold")
+        assertThat(incentiveLevel?.name).isEqualTo("Gold")
         assertThat(incentiveLevel?.active).isFalse
         assertThat(incentiveLevel?.required).isFalse
         assertThat(incentiveLevel?.whenUpdated).isEqualTo(now)
         incentiveLevel = incentiveLevelRepository.findById("STD")
-        assertThat(incentiveLevel?.description).isEqualTo("Standard")
+        assertThat(incentiveLevel?.name).isEqualTo("Standard")
         assertThat(incentiveLevel?.active).isTrue
         assertThat(incentiveLevel?.required).isTrue
         assertThat(incentiveLevel?.whenUpdated).isNotEqualTo(now)
@@ -980,7 +980,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
       }
       assertAuditMessageSentWithMap("INCENTIVE_LEVEL_UPDATED").let {
         assertThat(it["code"]).isEqualTo("ENH")
-        assertThat(it["description"]).isEqualTo("Gold")
+        assertThat(it["name"]).isEqualTo("Gold")
       }
     }
 
@@ -989,7 +989,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
       strings = [
         // language=json
         """
-        {"description": "", "active": false}
+        {"name": "", "active": false}
         """,
         // language=json
         """
@@ -1008,7 +1008,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
       runBlocking {
         val incentiveLevel = incentiveLevelRepository.findById("STD")
-        assertThat(incentiveLevel?.description).isEqualTo("Standard")
+        assertThat(incentiveLevel?.name).isEqualTo("Standard")
         assertThat(incentiveLevel?.active).isTrue
       }
 
@@ -1051,7 +1051,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectBody().json(
           // language=json
           """
-          {"code": "EN2", "description": "Enhanced 2", "active": false, "required": false}
+          {"code": "EN2", "name": "Enhanced 2", "active": false, "required": false}
           """,
           true,
         )
@@ -1084,7 +1084,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectBody().json(
           // language=json
           """
-          {"code": "ENT", "description": "Entry", "active": false, "required": false}
+          {"code": "ENT", "name": "Entry", "active": false, "required": false}
           """,
           true,
         )

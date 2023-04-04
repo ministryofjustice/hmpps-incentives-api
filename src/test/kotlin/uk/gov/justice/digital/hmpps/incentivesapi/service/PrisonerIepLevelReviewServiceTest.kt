@@ -982,10 +982,10 @@ class PrisonerIepLevelReviewServiceTest {
 }
 
 val globalIncentiveLevels = listOf(
-  IncentiveLevel(code = "BAS", description = "Basic"),
-  IncentiveLevel(code = "STD", description = "Standard"),
-  IncentiveLevel(code = "ENH", description = "Enhanced"),
-  IncentiveLevel(code = "EN2", description = "Enhanced 2"),
+  IncentiveLevel(code = "BAS", name = "Basic"),
+  IncentiveLevel(code = "STD", name = "Standard"),
+  IncentiveLevel(code = "ENH", name = "Enhanced"),
+  IncentiveLevel(code = "EN2", name = "Enhanced 2"),
 )
 
 val incentiveLevels = globalIncentiveLevels.associateBy { iep -> iep.code }

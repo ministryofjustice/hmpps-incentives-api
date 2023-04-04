@@ -13,7 +13,7 @@ import java.time.LocalDateTime
 data class IncentiveLevel(
   @Id
   val code: String,
-  val description: String,
+  val name: String,
   val sequence: Int,
   val active: Boolean = true,
   val required: Boolean = false,
