@@ -49,17 +49,17 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """
           [
             {
-              "levelCode": "BAS", "levelDescription": "Basic", "prisonId": "MDI", "active": true, "defaultOnAdmission": false,
+              "levelCode": "BAS", "levelName": "Basic", "prisonId": "MDI", "active": true, "defaultOnAdmission": false,
               "remandTransferLimitInPence": 2750, "remandSpendLimitInPence": 27500, "convictedTransferLimitInPence": 550, "convictedSpendLimitInPence": 5500,
               "visitOrders": 2, "privilegedVisitOrders": 1
             },
             {
-              "levelCode": "STD", "levelDescription": "Standard", "prisonId": "MDI", "active": true, "defaultOnAdmission": true,
+              "levelCode": "STD", "levelName": "Standard", "prisonId": "MDI", "active": true, "defaultOnAdmission": true,
               "remandTransferLimitInPence": 6050, "remandSpendLimitInPence": 60500, "convictedTransferLimitInPence": 1980, "convictedSpendLimitInPence": 19800,
               "visitOrders": 2, "privilegedVisitOrders": 1
             },
             {
-              "levelCode": "ENH", "levelDescription": "Enhanced", "prisonId": "MDI", "active": true, "defaultOnAdmission": false,
+              "levelCode": "ENH", "levelName": "Enhanced", "prisonId": "MDI", "active": true, "defaultOnAdmission": false,
               "remandTransferLimitInPence": 6600, "remandSpendLimitInPence": 66000, "convictedTransferLimitInPence": 3300, "convictedSpendLimitInPence": 33000,
               "visitOrders": 2, "privilegedVisitOrders": 1
             }
@@ -81,22 +81,22 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """
           [
             {
-              "levelCode": "BAS", "levelDescription": "Basic", "prisonId": "MDI", "active": true, "defaultOnAdmission": false,
+              "levelCode": "BAS", "levelName": "Basic", "prisonId": "MDI", "active": true, "defaultOnAdmission": false,
               "remandTransferLimitInPence": 2750, "remandSpendLimitInPence": 27500, "convictedTransferLimitInPence": 550, "convictedSpendLimitInPence": 5500,
               "visitOrders": 2, "privilegedVisitOrders": 1
             },
             {
-              "levelCode": "STD", "levelDescription": "Standard", "prisonId": "MDI", "active": true, "defaultOnAdmission": true,
+              "levelCode": "STD", "levelName": "Standard", "prisonId": "MDI", "active": true, "defaultOnAdmission": true,
               "remandTransferLimitInPence": 6050, "remandSpendLimitInPence": 60500, "convictedTransferLimitInPence": 1980, "convictedSpendLimitInPence": 19800,
               "visitOrders": 2, "privilegedVisitOrders": 1
             },
             {
-              "levelCode": "ENH", "levelDescription": "Enhanced", "prisonId": "MDI", "active": true, "defaultOnAdmission": false,
+              "levelCode": "ENH", "levelName": "Enhanced", "prisonId": "MDI", "active": true, "defaultOnAdmission": false,
               "remandTransferLimitInPence": 6600, "remandSpendLimitInPence": 66000, "convictedTransferLimitInPence": 3300, "convictedSpendLimitInPence": 33000,
               "visitOrders": 2, "privilegedVisitOrders": 1
             },
             {
-              "levelCode": "ENT", "levelDescription": "Entry", "prisonId": "MDI", "active": false, "defaultOnAdmission": false,
+              "levelCode": "ENT", "levelName": "Entry", "prisonId": "MDI", "active": false, "defaultOnAdmission": false,
               "remandTransferLimitInPence": 6600, "remandSpendLimitInPence": 66000, "convictedTransferLimitInPence": 3300, "convictedSpendLimitInPence": 33000,
               "visitOrders": 2, "privilegedVisitOrders": 1
             }
@@ -117,7 +117,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           // language=json
           """
           {
-            "levelCode": "ENH", "levelDescription": "Enhanced", "prisonId": "WRI", "active": true, "defaultOnAdmission": false,
+            "levelCode": "ENH", "levelName": "Enhanced", "prisonId": "WRI", "active": true, "defaultOnAdmission": false,
             "remandTransferLimitInPence": 6600, "remandSpendLimitInPence": 66000, "convictedTransferLimitInPence": 3300, "convictedSpendLimitInPence": 33000,
             "visitOrders": 2, "privilegedVisitOrders": 1
           }
@@ -136,7 +136,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           // language=json
           """
           {
-            "levelCode": "ENT", "levelDescription": "Entry", "prisonId": "MDI", "active": false, "defaultOnAdmission": false,
+            "levelCode": "ENT", "levelName": "Entry", "prisonId": "MDI", "active": false, "defaultOnAdmission": false,
             "remandTransferLimitInPence": 6600, "remandSpendLimitInPence": 66000, "convictedTransferLimitInPence": 3300, "convictedSpendLimitInPence": 33000,
             "visitOrders": 2, "privilegedVisitOrders": 1
           }
@@ -195,7 +195,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           // language=json
           """
           {
-            "levelCode": "STD", "levelDescription": "Standard", "prisonId": "MDI", "active": true, "defaultOnAdmission": true,
+            "levelCode": "STD", "levelName": "Standard", "prisonId": "MDI", "active": true, "defaultOnAdmission": true,
             "remandTransferLimitInPence": 6150, "remandSpendLimitInPence": 61500, "convictedTransferLimitInPence": 2080, "convictedSpendLimitInPence": 20800,
             "visitOrders": 3, "privilegedVisitOrders": 2
           }
@@ -251,7 +251,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           // language=json
           """
           {
-            "levelCode": "ENH", "levelDescription": "Enhanced", "prisonId": "WRI", "active": true, "defaultOnAdmission": true,
+            "levelCode": "ENH", "levelName": "Enhanced", "prisonId": "WRI", "active": true, "defaultOnAdmission": true,
             "remandTransferLimitInPence": 6050, "remandSpendLimitInPence": 60500, "convictedTransferLimitInPence": 1980, "convictedSpendLimitInPence": 19800,
             "visitOrders": 2, "privilegedVisitOrders": 1
           }
@@ -615,7 +615,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           // language=json
           """
           {
-            "levelCode": "BAS", "levelDescription": "Basic", "prisonId": "BAI", "active": true, "defaultOnAdmission": true,
+            "levelCode": "BAS", "levelName": "Basic", "prisonId": "BAI", "active": true, "defaultOnAdmission": true,
             "remandTransferLimitInPence": 2850, "remandSpendLimitInPence": 28500, "convictedTransferLimitInPence": 550, "convictedSpendLimitInPence": 5500,
             "visitOrders": 3, "privilegedVisitOrders": 1
           }
@@ -672,7 +672,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           // language=json
           """
           {
-            "levelCode": "ENH", "levelDescription": "Enhanced", "prisonId": "WRI", "active": true, "defaultOnAdmission": true,
+            "levelCode": "ENH", "levelName": "Enhanced", "prisonId": "WRI", "active": true, "defaultOnAdmission": true,
             "remandTransferLimitInPence": 6600, "remandSpendLimitInPence": 66000, "convictedTransferLimitInPence": 3300, "convictedSpendLimitInPence": 33000,
             "visitOrders": 2, "privilegedVisitOrders": 1
           }
@@ -982,7 +982,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           // language=json
           """
           {
-            "levelCode": "EN2", "levelDescription": "Enhanced 2", "prisonId": "WRI", "active": false, "defaultOnAdmission": false,
+            "levelCode": "EN2", "levelName": "Enhanced 2", "prisonId": "WRI", "active": false, "defaultOnAdmission": false,
             "remandTransferLimitInPence": 6600, "remandSpendLimitInPence": 66000, "convictedTransferLimitInPence": 3300, "convictedSpendLimitInPence": 33000,
             "visitOrders": 2, "privilegedVisitOrders": 1
           }

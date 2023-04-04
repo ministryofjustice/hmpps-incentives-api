@@ -161,9 +161,9 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
     // assert that repository returns prison incentive levels in globally-defined order
     var returnedOrder = repository.findAllByPrisonId("MDI").toList()
     assertThat(returnedOrder.map { it.levelCode }).isEqualTo(listOf("BAS", "STD", "ENH", "EN2", "ENT"))
-    assertThat(returnedOrder.map { it.levelDescription }).isEqualTo(listOf("Basic", "Standard", "Enhanced", "Enhanced 2", "Entry"))
+    assertThat(returnedOrder.map { it.levelName }).isEqualTo(listOf("Basic", "Standard", "Enhanced", "Enhanced 2", "Entry"))
     returnedOrder = repository.findAllByPrisonIdAndActiveIsTrue("MDI").toList()
-    assertThat(returnedOrder.map { it.levelDescription }).isEqualTo(listOf("Basic", "Standard", "Enhanced", "Enhanced 2"))
+    assertThat(returnedOrder.map { it.levelName }).isEqualTo(listOf("Basic", "Standard", "Enhanced", "Enhanced 2"))
   }
 
   @Test
@@ -185,7 +185,7 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
     repository.save(entity)
 
     val savedEntity = repository.findFirstByPrisonIdAndLevelCode("MDI", "ENH")
-    assertThat(savedEntity?.levelDescription).isEqualTo("Enhanced")
+    assertThat(savedEntity?.levelName).isEqualTo("Enhanced")
   }
 
   private fun makeNewEntity(levelCode: String, prisonId: String) = PrisonIncentiveLevel(
@@ -219,13 +219,13 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
     generateDefaultData()
 
     repository.findAll().collect {
-      assertThat(it.levelDescription).isNull()
+      assertThat(it.levelName).isNull()
     }
     val someId = repository.findAll().first().id
     val someEntity = repository.findById(someId)!!
-    assertThat(someEntity.levelDescription).isNull()
+    assertThat(someEntity.levelName).isNull()
     repository.findAllById(listOf(someId)).collect {
-      assertThat(it.levelDescription).isNull()
+      assertThat(it.levelName).isNull()
     }
   }
 
@@ -235,7 +235,7 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
 
     val entity = repository.findFirstByPrisonIdAndActiveIsTrueAndDefaultIsTrue("MDI")
     assertThat(entity?.levelCode).isEqualTo("STD")
-    assertThat(entity?.levelDescription).isEqualTo("Standard")
+    assertThat(entity?.levelName).isEqualTo("Standard")
 
     val missing = repository.findFirstByPrisonIdAndActiveIsTrueAndDefaultIsTrue("LEI")
     assertThat(missing).isNull()

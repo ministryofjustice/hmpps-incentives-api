@@ -21,7 +21,7 @@ class IepLevelService(
         .map {
           IepLevel(
             iepLevel = it.levelCode,
-            iepDescription = it.levelDescription,
+            iepDescription = it.levelName,
             sequence = i++,
             default = it.defaultOnAdmission,
             active = it.active,

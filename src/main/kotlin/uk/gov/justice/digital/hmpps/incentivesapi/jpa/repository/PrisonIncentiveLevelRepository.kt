@@ -15,8 +15,7 @@ interface PrisonIncentiveLevelRepository : CoroutineCrudRepository<PrisonIncenti
   @Query(
     // language=postgresql
     """
-    -- TODO: rename `level_description` to `level_name`
-    SELECT prison_incentive_level.*, incentive_level.name AS level_description
+    SELECT prison_incentive_level.*, incentive_level.name AS level_name
     FROM prison_incentive_level
     JOIN incentive_level ON prison_incentive_level.level_code = incentive_level.code
     WHERE prison_id = :prisonId
@@ -31,8 +30,7 @@ interface PrisonIncentiveLevelRepository : CoroutineCrudRepository<PrisonIncenti
   @Query(
     // language=postgresql
     """
-    -- TODO: rename `level_description` to `level_name`
-    SELECT prison_incentive_level.*, incentive_level.name AS level_description
+    SELECT prison_incentive_level.*, incentive_level.name AS level_name
     FROM prison_incentive_level
     JOIN incentive_level ON prison_incentive_level.level_code = incentive_level.code
     WHERE prison_id = :prisonId AND prison_incentive_level.active IS TRUE
@@ -47,8 +45,7 @@ interface PrisonIncentiveLevelRepository : CoroutineCrudRepository<PrisonIncenti
   @Query(
     // language=postgresql
     """
-    -- TODO: rename `level_description` to `level_name`
-    SELECT prison_incentive_level.*, incentive_level.name AS level_description
+    SELECT prison_incentive_level.*, incentive_level.name AS level_name
     FROM prison_incentive_level
     JOIN incentive_level ON prison_incentive_level.level_code = incentive_level.code
     WHERE prison_id = :prisonId AND prison_incentive_level.level_code = :levelCode
@@ -64,8 +61,7 @@ interface PrisonIncentiveLevelRepository : CoroutineCrudRepository<PrisonIncenti
   @Query(
     // language=postgresql
     """
-    -- TODO: rename `level_description` to `level_name`
-    SELECT prison_incentive_level.*, incentive_level.name AS level_description
+    SELECT prison_incentive_level.*, incentive_level.name AS level_name
     FROM prison_incentive_level
     JOIN incentive_level ON prison_incentive_level.level_code = incentive_level.code
     WHERE prison_id = :prisonId AND prison_incentive_level.active IS TRUE AND prison_incentive_level.default_on_admission IS TRUE

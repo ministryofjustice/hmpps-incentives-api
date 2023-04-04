@@ -10,10 +10,9 @@ data class PrisonIncentiveLevel(
   @Schema(description = "The incentive level code this refers to", example = "STD", minLength = 1, maxLength = 6)
   @JsonProperty(required = true)
   val levelCode: String,
-  // TODO: Rename `levelDescription` to `levelName`
   @Schema(description = "The incentive level this refers to", example = "Standard", minLength = 1, readOnly = true)
   @JsonProperty(required = false, access = JsonProperty.Access.READ_ONLY)
-  val levelDescription: String = "",
+  val levelName: String = "",
   @Schema(description = "The prison this refers to", example = "MDI", minLength = 1, maxLength = 6)
   @JsonProperty(required = true)
   val prisonId: String,
