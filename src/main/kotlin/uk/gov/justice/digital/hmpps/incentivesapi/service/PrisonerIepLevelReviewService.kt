@@ -22,8 +22,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPatchRequest
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Location
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocation
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
@@ -76,35 +74,6 @@ class PrisonerIepLevelReviewService(
   suspend fun addIepReview(bookingId: Long, iepReview: IepReview): IepDetail {
     val prisonerInfo = prisonApiService.getPrisonerInfo(bookingId)
     return addIepReviewForPrisonerAtLocation(prisonerInfo, iepReview)
-  }
-
-  suspend fun persistSyncPostRequest(
-    bookingId: Long,
-    syncPostRequest: SyncPostRequest,
-    includeLocation: Boolean,
-  ): IepDetail {
-    val prisonerInfo = prisonApiService.getPrisonerInfo(bookingId, true)
-    var locationInfo: Location? = null
-    if (includeLocation && prisonerInfo.assignedLivingUnitId > 0) {
-      locationInfo = prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId, true)
-    }
-
-    val review = incentiveStoreService.saveIncentiveReview(
-      PrisonerIepLevel(
-        bookingId = prisonerInfo.bookingId,
-        prisonerNumber = prisonerInfo.offenderNo,
-        locationId = locationInfo?.description,
-        iepCode = syncPostRequest.iepLevel,
-        commentText = syncPostRequest.comment,
-        prisonId = syncPostRequest.prisonId,
-        current = syncPostRequest.current,
-        reviewedBy = syncPostRequest.userId,
-        reviewTime = syncPostRequest.iepTime,
-        reviewType = syncPostRequest.reviewType,
-      ),
-    )
-
-    return review.toIepDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
   }
 
   suspend fun handleSyncPatchIepReviewRequest(

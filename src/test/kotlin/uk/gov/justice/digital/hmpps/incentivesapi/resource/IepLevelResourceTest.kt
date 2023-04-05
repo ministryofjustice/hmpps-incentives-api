@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPatchRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.IncentiveLevelResourceTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
@@ -315,10 +315,10 @@ class IepLevelResourceTest : IncentiveLevelResourceTestBase() {
   }
 
   @Nested
-  inner class SyncIepReview {
+  inner class SyncIepReviewTest {
 
     private val bookingId = 3330000L
-    private val requestBody = syncPostRequest()
+    private val syncPatchRequestBody = syncPatchRequest()
     private val prisonerNumber = "A1234AC"
 
     private lateinit var existingPrisonerIepLevel: PrisonerIepLevel
@@ -341,7 +341,7 @@ class IepLevelResourceTest : IncentiveLevelResourceTestBase() {
       // When the client doesn't have the `write` scope the API responds 403 Forbidden
       webTestClient.patch().uri(syncPatchEndpoint)
         .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read")))
-        .bodyValue(requestBody)
+        .bodyValue(syncPatchRequestBody)
         .exchange()
         .expectStatus().isForbidden
     }
@@ -351,7 +351,7 @@ class IepLevelResourceTest : IncentiveLevelResourceTestBase() {
       // When the client doesn't have the `ROLE_MAINTAIN_IEP` role the API responds 403 Forbidden
       webTestClient.patch().uri(syncPatchEndpoint)
         .headers(setAuthorisation(roles = listOf("ROLE_DUMMY"), scopes = listOf("read", "write")))
-        .bodyValue(requestBody)
+        .bodyValue(syncPatchRequestBody)
         .exchange()
         .expectStatus().isForbidden
     }
@@ -363,7 +363,7 @@ class IepLevelResourceTest : IncentiveLevelResourceTestBase() {
       // The API responds 404 Not Found
       webTestClient.patch().uri(syncPatchEndpoint)
         .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
-        .bodyValue(requestBody)
+        .bodyValue(syncPatchRequestBody)
         .exchange()
         .expectStatus().isNotFound
     }
@@ -376,7 +376,7 @@ class IepLevelResourceTest : IncentiveLevelResourceTestBase() {
       // The API responds 404 Not Found
       webTestClient.patch().uri(syncPatchEndpoint)
         .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
-        .bodyValue(requestBody)
+        .bodyValue(syncPatchRequestBody)
         .exchange()
         .expectStatus().isNotFound
     }
@@ -481,13 +481,9 @@ class IepLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectBody().json(expectedResponseBody)
     }
 
-    private fun syncPostRequest(iepLevel: String = "STD") = SyncPostRequest(
+    private fun syncPatchRequest(iepLevel: String = "STD") = SyncPatchRequest(
       iepTime = LocalDateTime.now(),
-      prisonId = "MDI",
-      iepLevel = iepLevel,
       comment = "A comment",
-      userId = "XYZ_GEN",
-      reviewType = ReviewType.REVIEW,
       current = true,
     )
 
