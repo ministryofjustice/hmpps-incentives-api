@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.config
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
+import jakarta.validation.ValidationException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.TypeMismatchException
 import org.springframework.http.HttpStatus
@@ -21,7 +22,6 @@ import org.springframework.web.server.ServerWebInputException
 import org.springframework.web.server.UnsupportedMediaTypeStatusException
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveReviewNotFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.util.ParameterValidationException
-import javax.validation.ValidationException
 
 @RestControllerAdvice
 class HmppsIncentivesApiExceptionHandler {

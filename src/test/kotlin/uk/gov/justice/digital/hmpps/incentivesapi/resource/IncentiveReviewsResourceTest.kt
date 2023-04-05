@@ -134,7 +134,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
         .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?sort=PRISON")
         .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "No enum constant")
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Parameter conversion failure: 400 BAD_REQUEST \"Type mismatch.\"")
     }
 
     @Test

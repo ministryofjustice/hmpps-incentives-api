@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.integration
 
-import com.amazonaws.services.sqs.model.PurgeQueueRequest
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
@@ -9,6 +8,9 @@ import org.springframework.boot.test.mock.mockito.SpyBean
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
+import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest
+import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.LocalStackContainer.setLocalStackProperties
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
@@ -45,8 +47,8 @@ class SqsIntegrationTestBase : IntegrationTestBase() {
 
   @BeforeEach
   fun cleanQueue() {
-    auditQueue.sqsClient.purgeQueue(PurgeQueueRequest(auditQueue.queueUrl))
-    incentivesQueue.sqsClient.purgeQueue(PurgeQueueRequest(incentivesQueue.queueUrl))
+    auditQueue.sqsClient.purgeQueue(PurgeQueueRequest.builder().queueUrl(auditQueue.queueUrl).build())
+    incentivesQueue.sqsClient.purgeQueue(PurgeQueueRequest.builder().queueUrl(incentivesQueue.queueUrl).build())
   }
 
   companion object {
@@ -62,11 +64,9 @@ class SqsIntegrationTestBase : IntegrationTestBase() {
 
   protected fun jsonString(any: Any) = objectMapper.writeValueAsString(any) as String
 
-  fun getNumberOfMessagesCurrentlyOnQueue(): Int? {
-    val queueAttributes = incentivesQueue.sqsClient.getQueueAttributes(
-      incentivesQueue.queueUrl,
-      listOf("ApproximateNumberOfMessages"),
+  fun getNumberOfMessagesCurrentlyOnQueue(): Int =
+    incentivesQueue.sqsClient.getQueueAttributes(
+      GetQueueAttributesRequest.builder().queueUrl(incentivesQueue.queueUrl).attributeNames(QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES).build(),
     )
-    return queueAttributes.attributes["ApproximateNumberOfMessages"]?.toInt()
-  }
+      .let { it.get().attributes()[QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES]?.toInt() ?: 0 }
 }

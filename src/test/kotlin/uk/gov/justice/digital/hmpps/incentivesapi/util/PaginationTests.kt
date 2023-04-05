@@ -1,10 +1,10 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.util
 
+import jakarta.validation.ValidationException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.springframework.data.domain.PageRequest
-import javax.validation.ValidationException
 
 class PaginationTests {
   @Test

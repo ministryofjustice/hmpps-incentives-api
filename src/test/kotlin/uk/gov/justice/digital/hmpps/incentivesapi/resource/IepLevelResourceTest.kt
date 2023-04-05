@@ -768,7 +768,7 @@ class IepLevelResourceTest : IncentiveLevelResourceTestBase() {
           }""",
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid parameters: `iepLevel` must have length of at most 6")
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Parameter conversion failure: 400 BAD_REQUEST \"Failed to read HTTP message\"")
     }
 
     @Test
