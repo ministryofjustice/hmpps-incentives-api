@@ -23,7 +23,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPatchRequest
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Location
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
@@ -444,65 +443,6 @@ class PrisonerIepLevelReviewServiceTest {
   }
 
   @Nested
-  inner class AddIepMigration {
-
-    private val migrationRequest = syncPostRequest(iepLevelCode = "STD", reviewType = ReviewType.MIGRATED)
-
-    @Test
-    fun `process migration`(): Unit = runBlocking {
-      // Given
-      val bookingId = 1234567L
-      whenever(prisonApiService.getPrisonerInfo(bookingId, true)).thenReturn(prisonerAtLocation())
-      whenever(incentiveStoreService.saveIncentiveReview(any())).thenAnswer { i -> i.arguments[0] }
-
-      // When
-      prisonerIepLevelReviewService.persistSyncPostRequest(bookingId, migrationRequest, false)
-
-      // Then
-      verify(incentiveStoreService, times(1)).saveIncentiveReview(
-        PrisonerIepLevel(
-          iepCode = migrationRequest.iepLevel,
-          commentText = migrationRequest.comment,
-          bookingId = bookingId,
-          prisonId = migrationRequest.prisonId,
-          current = migrationRequest.current,
-          reviewedBy = migrationRequest.userId,
-          reviewTime = migrationRequest.iepTime,
-          reviewType = migrationRequest.reviewType,
-          prisonerNumber = prisonerAtLocation().offenderNo,
-        ),
-      )
-    }
-
-    @Test
-    fun `process migration when userId is not provided`(): Unit = runBlocking {
-      // Given
-      val migrationRequestWithNullUserId = migrationRequest.copy(userId = null)
-      val bookingId = 1234567L
-      whenever(prisonApiService.getPrisonerInfo(bookingId, true)).thenReturn(prisonerAtLocation())
-      whenever(incentiveStoreService.saveIncentiveReview(any())).thenAnswer { i -> i.arguments[0] }
-
-      // When
-      prisonerIepLevelReviewService.persistSyncPostRequest(bookingId, migrationRequestWithNullUserId, false)
-
-      // Then
-      verify(incentiveStoreService, times(1)).saveIncentiveReview(
-        PrisonerIepLevel(
-          iepCode = migrationRequestWithNullUserId.iepLevel,
-          commentText = migrationRequestWithNullUserId.comment,
-          bookingId = bookingId,
-          prisonId = migrationRequestWithNullUserId.prisonId,
-          current = migrationRequestWithNullUserId.current,
-          reviewedBy = null,
-          reviewTime = migrationRequestWithNullUserId.iepTime,
-          reviewType = migrationRequestWithNullUserId.reviewType,
-          prisonerNumber = prisonerAtLocation().offenderNo,
-        ),
-      )
-    }
-  }
-
-  @Nested
   inner class HandleSyncPatchIepReviewRequest {
 
     private val id = 42L
@@ -627,118 +567,6 @@ class PrisonerIepLevelReviewServiceTest {
     }
   }
 
-  @Nested
-  inner class HandleSyncPostIepReviewRequest {
-
-    private val bookingId = 123456L
-    private val offenderNo = "A1234AA"
-    private val iepLevelCode = "ENH"
-    private val iepLevelDescription = "Enhanced"
-    private val syncPostRequest = syncPostRequest(iepLevelCode, reviewType = ReviewType.REVIEW)
-
-    private val iepReviewId = 42L
-    private val iepReview = PrisonerIepLevel(
-      iepCode = syncPostRequest.iepLevel,
-      commentText = syncPostRequest.comment,
-      bookingId = bookingId,
-      prisonId = syncPostRequest.prisonId,
-      locationId = location.description,
-      current = syncPostRequest.current,
-      reviewedBy = syncPostRequest.userId,
-      reviewTime = syncPostRequest.iepTime,
-      reviewType = syncPostRequest.reviewType,
-      prisonerNumber = offenderNo,
-    )
-
-    private val iepDetail = IepDetail(
-      id = iepReviewId,
-      iepLevel = iepLevelDescription,
-      iepCode = iepLevelCode,
-      comments = syncPostRequest.comment,
-      prisonerNumber = offenderNo,
-      bookingId = bookingId,
-      iepDate = syncPostRequest.iepTime.toLocalDate(),
-      iepTime = syncPostRequest.iepTime,
-      agencyId = syncPostRequest.prisonId,
-      locationId = location.description,
-      userId = syncPostRequest.userId,
-      reviewType = syncPostRequest.reviewType,
-      auditModuleName = "INCENTIVES_API",
-    )
-
-    @BeforeEach
-    fun setUp(): Unit = runBlocking {
-      // Mock Prison API getPrisonerInfo() response
-      val prisonerAtLocation = prisonerAtLocation(bookingId, offenderNo)
-      whenever(prisonApiService.getPrisonerInfo(bookingId, true))
-        .thenReturn(prisonerAtLocation)
-
-      whenever(prisonApiService.getLocationById(prisonerAtLocation.assignedLivingUnitId, true))
-        .thenReturn(location)
-
-      // Mock save() of PrisonerIepLevel record
-      whenever(incentiveStoreService.saveIncentiveReview(iepReview))
-        .thenReturn(iepReview.copy(id = iepReviewId))
-
-      whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
-    }
-
-    @Test
-    fun `persists a new IEP review`(): Unit = runBlocking {
-      // When
-      val result = prisonerIepLevelReviewService.handleSyncPostIepReviewRequest(bookingId, syncPostRequest)
-
-      // Then check it's saved
-      verify(incentiveStoreService, times(1))
-        .saveIncentiveReview(iepReview)
-
-      // Then check it's returned
-      assertThat(result).isEqualTo(iepDetail)
-    }
-
-    @Test
-    fun `updates next review date`(): Unit = runBlocking {
-      // When
-      prisonerIepLevelReviewService.handleSyncPostIepReviewRequest(bookingId, syncPostRequest)
-    }
-
-    @Test
-    fun `sends IepReview event and audit message`(): Unit = runBlocking {
-      // When sync POST request is handled
-      prisonerIepLevelReviewService.handleSyncPostIepReviewRequest(bookingId, syncPostRequest)
-
-      // SNS event is sent
-      verify(snsService, times(1)).publishDomainEvent(
-        eventType = IncentivesDomainEventType.IEP_REVIEW_INSERTED,
-        description = "An IEP review has been added",
-        occurredAt = syncPostRequest.iepTime,
-        additionalInformation = AdditionalInformation(
-          id = iepReviewId,
-          nomsNumber = prisonerAtLocation().offenderNo,
-          reason = "USER_CREATED_NOMIS",
-        ),
-      )
-
-      // audit message is sent
-      verify(auditService, times(1))
-        .sendMessage(
-          AuditType.IEP_REVIEW_ADDED,
-          "$iepReviewId",
-          iepDetail,
-          syncPostRequest.userId,
-        )
-    }
-
-    @Test
-    fun `If request has current true we update the previous IEP Level with current of true`(): Unit = runBlocking {
-      // When
-      prisonerIepLevelReviewService.handleSyncPostIepReviewRequest(bookingId, syncPostRequest.copy(current = true))
-
-      verify(incentiveStoreService, times(1))
-        .saveIncentiveReview(iepReview)
-    }
-  }
-
   private val previousLevel = PrisonerIepLevel(
     iepCode = "BAS",
     prisonId = "LEI",
@@ -809,16 +637,6 @@ class PrisonerIepLevelReviewServiceTest {
   )
 
   private val location = Location(agencyId = "MDI", locationId = 77777L, description = "Houseblock 1")
-
-  private fun syncPostRequest(iepLevelCode: String = "STD", reviewType: ReviewType) = SyncPostRequest(
-    iepTime = LocalDateTime.now(),
-    prisonId = "MDI",
-    iepLevel = iepLevelCode,
-    comment = "A comment",
-    userId = "XYZ_GEN",
-    reviewType = reviewType,
-    current = true,
-  )
 
   private fun iepDetailFromIepLevel(
     prisonerIepLevel: PrisonerIepLevel,

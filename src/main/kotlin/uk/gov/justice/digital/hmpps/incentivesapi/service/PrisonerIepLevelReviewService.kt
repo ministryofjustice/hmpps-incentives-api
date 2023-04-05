@@ -107,21 +107,6 @@ class PrisonerIepLevelReviewService(
     return review.toIepDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
   }
 
-  suspend fun handleSyncPostIepReviewRequest(bookingId: Long, syncPostRequest: SyncPostRequest): IepDetail {
-    val iepDetail = persistSyncPostRequest(bookingId, syncPostRequest, true)
-
-    // NOTE: This reason is to allow service that syncs back to NOMIS to ignore these domain events (as these reviews
-    // are already coming from NOMIS, they don't need to be synced again)
-    publishReviewDomainEvent(
-      iepDetail,
-      IncentivesDomainEventType.IEP_REVIEW_INSERTED,
-      IepReviewReason.USER_CREATED_NOMIS,
-    )
-    publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_ADDED)
-
-    return iepDetail
-  }
-
   suspend fun handleSyncPatchIepReviewRequest(
     bookingId: Long,
     id: Long,

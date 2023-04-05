@@ -1,17 +1,14 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.resource
 
 import kotlinx.coroutines.runBlocking
-import org.json.JSONObject
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
-import uk.gov.justice.digital.hmpps.incentivesapi.helper.expectErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.IncentiveLevelResourceTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
@@ -326,7 +323,6 @@ class IepLevelResourceTest : IncentiveLevelResourceTestBase() {
 
     private lateinit var existingPrisonerIepLevel: PrisonerIepLevel
 
-    private val syncCreateEndpoint = "/iep/sync/booking/$bookingId"
     private lateinit var syncPatchEndpoint: String
     private lateinit var syncDeleteEndpoint: String
 
@@ -341,30 +337,10 @@ class IepLevelResourceTest : IncentiveLevelResourceTestBase() {
     }
 
     @Test
-    fun `POST to sync endpoint without write scope responds 403 Unauthorized`() {
-      // When the client doesn't have the `write` scope the API responds 403 Forbidden
-      webTestClient.post().uri(syncCreateEndpoint)
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read")))
-        .bodyValue(requestBody)
-        .exchange()
-        .expectStatus().isForbidden
-    }
-
-    @Test
     fun `PATCH to sync endpoint without write scope responds 403 Unauthorized`() {
       // When the client doesn't have the `write` scope the API responds 403 Forbidden
       webTestClient.patch().uri(syncPatchEndpoint)
         .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read")))
-        .bodyValue(requestBody)
-        .exchange()
-        .expectStatus().isForbidden
-    }
-
-    @Test
-    fun `POST to sync endpoint without 'ROLE_MAINTAIN_IEP' role responds 403 Unauthorized`() {
-      // When the client doesn't have the `ROLE_MAINTAIN_IEP` role the API responds 403 Forbidden
-      webTestClient.post().uri(syncCreateEndpoint)
-        .headers(setAuthorisation(roles = listOf("ROLE_DUMMY"), scopes = listOf("read", "write")))
         .bodyValue(requestBody)
         .exchange()
         .expectStatus().isForbidden
@@ -378,19 +354,6 @@ class IepLevelResourceTest : IncentiveLevelResourceTestBase() {
         .bodyValue(requestBody)
         .exchange()
         .expectStatus().isForbidden
-    }
-
-    @Test
-    fun `POST to sync endpoint when bookingId doesn't exist responds 404 Not Found`() {
-      // Given the bookingId is not found
-      prisonApiMockServer.stubApi404for("/api/bookings/$bookingId?basicInfo=true")
-
-      // The API responds 404 Not Found
-      webTestClient.post().uri(syncCreateEndpoint)
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
-        .bodyValue(requestBody)
-        .exchange()
-        .expectStatus().isNotFound
     }
 
     @Test
@@ -419,18 +382,6 @@ class IepLevelResourceTest : IncentiveLevelResourceTestBase() {
     }
 
     @Test
-    fun `POST to sync endpoint when request is invalid responds 400 Bad Request`() {
-      val badRequest = mapOf("iepLevel" to "STD")
-
-      // The API responds 400 Bad Request
-      webTestClient.post().uri(syncCreateEndpoint)
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
-        .bodyValue(badRequest)
-        .exchange()
-        .expectStatus().isBadRequest
-    }
-
-    @Test
     fun `PATCH to sync endpoint when request is invalid responds 400 Bad Request`() {
       val badRequest = mapOf("iepTime" to null)
 
@@ -440,72 +391,6 @@ class IepLevelResourceTest : IncentiveLevelResourceTestBase() {
         .bodyValue(badRequest)
         .exchange()
         .expectStatus().isBadRequest
-    }
-
-    @Test
-    fun `POST to sync endpoint when request valid creates the IEP review`() {
-      val locationId = 77778L
-
-      // Given the bookingId is valid
-      prisonApiMockServer.stubGetPrisonerInfoByBooking(
-        bookingId = bookingId,
-        prisonerNumber = prisonerNumber,
-        locationId = locationId,
-      )
-      prisonApiMockServer.stubGetLocationById(locationId = locationId, locationDesc = "1-2-003")
-      prisonApiMockServer.stubIepLevels()
-      prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
-
-      // API responds 201 Created with the created IEP review record
-      val responseBytes = webTestClient.post().uri(syncCreateEndpoint)
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
-        .bodyValue(requestBody)
-        .exchange()
-        .expectStatus().isCreated
-        .expectBody().json(
-          """
-          {
-            "bookingId":$bookingId,
-            "prisonerNumber": $prisonerNumber,
-            "iepDate":"${requestBody.iepTime.toLocalDate()}",
-            "agencyId":"${requestBody.prisonId}",
-            "locationId":"1-2-003",
-            "iepLevel":"Standard",
-            "iepCode": "STD",
-            "comments":"${requestBody.comment}",
-            "userId":"${requestBody.userId}",
-            "reviewType":"${requestBody.reviewType}",
-            "auditModuleName":"INCENTIVES_API"
-          }
-          """.trimIndent(),
-        )
-        .returnResult()
-        .responseBody ?: ByteArray(0)
-
-      val prisonerIepLevelId = JSONObject(String(responseBytes)).getLong("id")
-
-      // IEP review is also persisted (can be retrieved later on)
-      webTestClient.get().uri("/iep/reviews/id/$prisonerIepLevelId")
-        .headers(setAuthorisation())
-        .exchange()
-        .expectStatus().isOk
-        .expectBody().json(
-          """
-              {
-                 "id": $prisonerIepLevelId,
-                 "bookingId":$bookingId,
-                 "iepDate":"${requestBody.iepTime.toLocalDate()}",
-                 "agencyId":"${requestBody.prisonId}",
-                 "locationId":"1-2-003",
-                 "iepLevel":"Standard",
-                 "iepCode": "STD",
-                 "comments":"${requestBody.comment}",
-                 "userId":"${requestBody.userId}",
-                 "reviewType":"${requestBody.reviewType}",
-                 "auditModuleName":"INCENTIVES_API"
-              }
-          """,
-        )
     }
 
     @Test
