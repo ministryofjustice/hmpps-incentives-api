@@ -21,7 +21,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPatchRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocation
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
@@ -74,32 +73,6 @@ class PrisonerIepLevelReviewService(
   suspend fun addIepReview(bookingId: Long, iepReview: IepReview): IepDetail {
     val prisonerInfo = prisonApiService.getPrisonerInfo(bookingId)
     return addIepReviewForPrisonerAtLocation(prisonerInfo, iepReview)
-  }
-
-  suspend fun handleSyncPatchIepReviewRequest(
-    bookingId: Long,
-    id: Long,
-    syncPatchRequest: SyncPatchRequest,
-  ): IepDetail {
-    if (listOf(syncPatchRequest.iepTime, syncPatchRequest.comment, syncPatchRequest.current).all { it == null }) {
-      throw ValidationException("Please provide fields to update")
-    }
-
-    val prisonerIepLevel = prisonerIepLevelRepository.findById(id) ?: throw NoDataFoundException(id)
-
-    // Check bookingId on found record matches the bookingId provided
-    if (prisonerIepLevel.bookingId != bookingId) {
-      log.warn("Patch of PrisonerIepLevel with ID $id failed because provided bookingID ($bookingId) didn't match bookingId on DB record (${prisonerIepLevel.bookingId})")
-      throw NoDataFoundException(bookingId)
-    }
-
-    val iepDetail = incentiveStoreService.patchIncentiveReview(syncPatchRequest, prisonerIepLevel)
-      .toIepDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
-
-    publishReviewDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_UPDATED)
-    publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_UPDATED)
-
-    return iepDetail
   }
 
   suspend fun getCurrentIEPLevelForPrisoners(bookingIds: List<Long>): List<CurrentIepLevel> {
