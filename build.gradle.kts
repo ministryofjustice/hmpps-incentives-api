@@ -65,6 +65,7 @@ dependencies {
   testImplementation("org.testcontainers:postgresql:1.18.0")
   testImplementation("io.projectreactor:reactor-test")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
+  testImplementation("javax.xml.bind:jaxb-api:2.3.1")
 
   if (project.hasProperty("docs")) {
     implementation("com.h2database:h2")
