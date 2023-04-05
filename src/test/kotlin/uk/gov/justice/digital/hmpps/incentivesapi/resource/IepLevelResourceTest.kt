@@ -361,15 +361,6 @@ class IepLevelResourceTest : IncentiveLevelResourceTestBase() {
     }
 
     @Test
-    fun `DELETE to sync endpoint without write scope responds 403 Unauthorized`() {
-      // When the client doesn't have the `write` scope the API responds 403 Forbidden
-      webTestClient.delete().uri(syncPatchEndpoint)
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read")))
-        .exchange()
-        .expectStatus().isForbidden
-    }
-
-    @Test
     fun `POST to sync endpoint without 'ROLE_MAINTAIN_IEP' role responds 403 Unauthorized`() {
       // When the client doesn't have the `ROLE_MAINTAIN_IEP` role the API responds 403 Forbidden
       webTestClient.post().uri(syncCreateEndpoint)
@@ -385,15 +376,6 @@ class IepLevelResourceTest : IncentiveLevelResourceTestBase() {
       webTestClient.patch().uri(syncPatchEndpoint)
         .headers(setAuthorisation(roles = listOf("ROLE_DUMMY"), scopes = listOf("read", "write")))
         .bodyValue(requestBody)
-        .exchange()
-        .expectStatus().isForbidden
-    }
-
-    @Test
-    fun `DELETE to sync endpoint without 'ROLE_MAINTAIN_IEP' role responds 403 Unauthorized`() {
-      // When the client doesn't have the `ROLE_MAINTAIN_IEP` role the API responds 403 Forbidden
-      webTestClient.delete().uri(syncDeleteEndpoint)
-        .headers(setAuthorisation(roles = listOf("ROLE_DUMMY"), scopes = listOf("read", "write")))
         .exchange()
         .expectStatus().isForbidden
     }
@@ -424,17 +406,6 @@ class IepLevelResourceTest : IncentiveLevelResourceTestBase() {
     }
 
     @Test
-    fun `DELETE to sync endpoint when record with given id doesn't exist responds 404 Not Found`() {
-      val syncDeleteEndpoint = "/iep/sync/booking/42000/id/42000"
-
-      // The API responds 404 Not Found
-      webTestClient.delete().uri(syncDeleteEndpoint)
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
-        .exchange()
-        .expectStatus().isNotFound
-    }
-
-    @Test
     fun `PATCH to sync endpoint when bookingId doesn't match the one in the IEP review record responds 404 Not Found`() {
       val wrongBookingId = existingPrisonerIepLevel.bookingId + 42
       val syncPatchEndpoint = "/iep/sync/booking/$wrongBookingId/id/${existingPrisonerIepLevel.id}"
@@ -443,18 +414,6 @@ class IepLevelResourceTest : IncentiveLevelResourceTestBase() {
       webTestClient.patch().uri(syncPatchEndpoint)
         .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
         .bodyValue(requestBody)
-        .exchange()
-        .expectStatus().isNotFound
-    }
-
-    @Test
-    fun `DELETE to sync endpoint when bookingId doesn't match the one in the IEP review record responds 404 Not Found`() {
-      val wrongBookingId = existingPrisonerIepLevel.bookingId + 42
-      val syncDeleteEndpoint = "/iep/sync/booking/$wrongBookingId/id/${existingPrisonerIepLevel.id}"
-
-      // The API responds 404 Not Found
-      webTestClient.delete().uri(syncDeleteEndpoint)
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
         .exchange()
         .expectStatus().isNotFound
     }
@@ -635,32 +594,6 @@ class IepLevelResourceTest : IncentiveLevelResourceTestBase() {
         .exchange()
         .expectStatus().isOk
         .expectBody().json(expectedResponseBody)
-    }
-
-    @Test
-    fun `DELETE to sync endpoint when request valid deletes the IEP review`() {
-      // Given the bookingId is valid
-      prisonApiMockServer.stubGetPrisonerInfoByBooking(
-        bookingId = bookingId,
-        prisonerNumber = prisonerNumber,
-        locationId = 77778L,
-      )
-      prisonApiMockServer.stubIepLevels()
-      prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
-
-      // API responds 201 Created with the created IEP review record
-      webTestClient.delete().uri(syncDeleteEndpoint)
-        .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
-        .exchange()
-        .expectStatus().isNoContent
-
-      val prisonerIepLevelId = existingPrisonerIepLevel.id
-
-      // IEP review is no longer available (cannot be retrieved later on)
-      webTestClient.get().uri("/iep/reviews/id/$prisonerIepLevelId")
-        .headers(setAuthorisation())
-        .exchange()
-        .expectStatus().isNotFound
     }
 
     private fun syncPostRequest(iepLevel: String = "STD") = SyncPostRequest(

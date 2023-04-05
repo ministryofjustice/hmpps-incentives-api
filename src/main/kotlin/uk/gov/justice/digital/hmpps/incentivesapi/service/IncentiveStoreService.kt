@@ -40,19 +40,6 @@ class IncentiveStoreService(
     nextReviewDateUpdaterService.update(remainingBookingId)
   }
 
-  suspend fun deleteIncentiveReview(prisonerIepLevel: PrisonerIepLevel) {
-    prisonerIepLevelRepository.delete(prisonerIepLevel)
-    nextReviewDateUpdaterService.update(prisonerIepLevel.bookingId)
-
-    // If the deleted record had `current=true`, the latest IEP review becomes current
-    if (prisonerIepLevel.current) {
-      // The deleted record was current, set new current to the latest IEP review
-      prisonerIepLevelRepository.findFirstByBookingIdOrderByReviewTimeDesc(prisonerIepLevel.bookingId)?.run {
-        prisonerIepLevelRepository.save(this.copy(current = true))
-      }
-    }
-  }
-
   suspend fun patchIncentiveReview(
     syncPatchRequest: SyncPatchRequest,
     prisonerIepLevel: PrisonerIepLevel,
