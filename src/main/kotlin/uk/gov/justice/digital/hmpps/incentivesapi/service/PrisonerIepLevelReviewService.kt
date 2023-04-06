@@ -292,7 +292,6 @@ class PrisonerIepLevelReviewService(
   private suspend fun publishReviewDomainEvent(
     iepDetail: IepDetail,
     eventType: IncentivesDomainEventType,
-    reason: IepReviewReason? = null,
   ) {
     val description: String = when (eventType) {
       IncentivesDomainEventType.IEP_REVIEW_INSERTED -> "An IEP review has been added"
@@ -310,7 +309,6 @@ class PrisonerIepLevelReviewService(
       AdditionalInformation(
         id = iepDetail.id,
         nomsNumber = iepDetail.prisonerNumber,
-        reason = reason?.toString(),
       ),
     )
   }
