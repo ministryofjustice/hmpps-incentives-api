@@ -65,7 +65,7 @@ The `IEP_OTH_PRIV` domain allows extra privileges to be added ![](other_privs_re
 | SP2  | Sony Playstation  | Y      |
 
 
-The **OIMOIEPS** NOMIS screen allows config of levels, visits and other privilages.
+The **OIMOIEPS** NOMIS screen allows config of levels, visits and other privileges.
 
 - IEP_LEVELS
 ```oracle
@@ -124,7 +124,7 @@ CREATE TABLE "OTHER_PRIVILEGES_LEVELS"
 
 This screen represents the Other Privileges ![](other_privs.png)
 
-In production there are only 12 records across all prisons for 1 privilege (Play Station PS2) for privilages and most records were added over 8 years ago.
+In production there are only 12 records across all prisons for 1 privilege (Play Station PS2) for privileges and most records were added over 8 years ago.
 
 | Code | Prison Id | Min Incentive Level | Active |
 |------|-----------|---------------------|--------|
@@ -462,7 +462,7 @@ Authorised requests will require roles with write scope.
 
 ## Decision
 - Other privileges data will NOT be moved off NOMIS as it is not used
-- SYSCON will not migrate data - a one off SQL script will set-up the data in the incentive DB
+- SYSCON will not migrate data - a one-off SQL script will set-up the data in the incentive DB
 - One way sync only will be performed
 - NOMIS screens can be turned off / made read only - but timescale is not urgent as this data changes very infrequently
 
