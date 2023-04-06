@@ -64,9 +64,8 @@ class SqsIntegrationTestBase : IntegrationTestBase() {
 
   protected fun jsonString(any: Any) = objectMapper.writeValueAsString(any) as String
 
-  fun getNumberOfMessagesCurrentlyOnQueue(): Int =
+  fun getNumberOfMessagesCurrentlyOnQueue(): Int? =
     incentivesQueue.sqsClient.getQueueAttributes(
       GetQueueAttributesRequest.builder().queueUrl(incentivesQueue.queueUrl).attributeNames(QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES).build(),
-    )
-      .let { it.get().attributes()[QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES]?.toInt() ?: 0 }
+    ).get().attributes()[QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES]?.toInt()
 }

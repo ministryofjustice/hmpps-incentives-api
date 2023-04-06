@@ -70,9 +70,10 @@ class IncentiveLevelResourceTestBase : SqsIntegrationTestBase() {
     ).collect()
   }
 
-  private fun SqsAsyncClient.getApproxQueueSize(queueUrl: String): Int =
-    getQueueAttributes(GetQueueAttributesRequest.builder().queueUrl(queueUrl).attributeNames(QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES).build())
-      .let { it.get().attributes()[QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES]?.toInt() ?: 0 }
+  private fun SqsAsyncClient.getApproxQueueSize(queueUrl: String): Int? =
+    getQueueAttributes(
+      GetQueueAttributesRequest.builder().queueUrl(queueUrl).attributeNames(QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES).build(),
+    ).get().attributes()[QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES]?.toInt()
 
   protected fun assertNoDomainEventSent() {
     val sqsClient = incentivesQueue.sqsClient
