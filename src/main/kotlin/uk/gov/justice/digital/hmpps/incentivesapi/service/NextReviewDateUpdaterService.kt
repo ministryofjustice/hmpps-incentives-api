@@ -21,7 +21,6 @@ class NextReviewDateUpdaterService(
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository,
   private val nextReviewDateRepository: NextReviewDateRepository,
   private val prisonApiService: PrisonApiService,
-  private val incentiveLevelService: IncentiveLevelService,
   private val snsService: SnsService,
 ) {
 

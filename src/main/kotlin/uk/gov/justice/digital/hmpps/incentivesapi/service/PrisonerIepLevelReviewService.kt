@@ -54,7 +54,6 @@ class PrisonerIepLevelReviewService(
   suspend fun getPrisonerIepLevelHistory(
     bookingId: Long,
     withDetails: Boolean = true,
-    useClientCredentials: Boolean = false,
   ): IepSummary {
     val reviews = prisonerIepLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(bookingId)
     if (reviews.count() == 0) throw IncentiveReviewNotFoundException("No Incentive Reviews for booking ID $bookingId")
@@ -274,7 +273,6 @@ class PrisonerIepLevelReviewService(
             getPrisonerIepLevelHistory(
               prisonerInfo.bookingId,
               withDetails = true,
-              useClientCredentials = true,
             ).iepDetails
           val levelCodeBeforeTransfer =
             iepHistory.sortedBy(IepDetail::iepTime).lastOrNull { it.agencyId != prisonerInfo.agencyId }?.iepCode
