@@ -4,15 +4,15 @@ import com.fasterxml.jackson.core.type.TypeReference
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.awaitility.kotlin.await
+import org.awaitility.kotlin.matches
+import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import software.amazon.awssdk.services.sns.model.SubscribeRequest
-import software.amazon.awssdk.services.sqs.SqsAsyncClient
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest
-import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
-import software.amazon.awssdk.services.sqs.model.QueueAttributeName
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonIncentiveLevel
@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonIncentive
 import uk.gov.justice.digital.hmpps.incentivesapi.service.AuditEvent
 import uk.gov.justice.digital.hmpps.incentivesapi.service.HMPPSDomainEvent
 import uk.gov.justice.digital.hmpps.incentivesapi.service.HMPPSMessage
+import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDateTime
@@ -52,6 +53,7 @@ class IncentiveLevelResourceTestBase : SqsIntegrationTestBase() {
       snsClient.subscribe(SubscribeRequest.builder().topicArn(domainEventsTopicArn).protocol("sqs").endpoint(testDomainEventQueueUrl).build())
     }
     sqsClient.purgeQueue(PurgeQueueRequest.builder().queueUrl(testDomainEventQueueUrl).build())
+    await untilCallTo { sqsClient.countMessagesOnQueue(testDomainEventQueueUrl!!).get() } matches { it == 0 }
   }
 
   @AfterEach
@@ -70,21 +72,15 @@ class IncentiveLevelResourceTestBase : SqsIntegrationTestBase() {
     ).collect()
   }
 
-  private fun SqsAsyncClient.getApproxQueueSize(queueUrl: String): Int? =
-    getQueueAttributes(
-      GetQueueAttributesRequest.builder().queueUrl(queueUrl).attributeNames(QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES).build(),
-    ).get().attributes()[QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES]?.toInt()
-
   protected fun assertNoDomainEventSent() {
     val sqsClient = incentivesQueue.sqsClient
-    val queueSize = sqsClient.getApproxQueueSize(testDomainEventQueueUrl!!)
+    val queueSize = sqsClient.countMessagesOnQueue(testDomainEventQueueUrl!!).get()
     assertThat(queueSize).isEqualTo(0)
   }
 
   protected fun assertDomainEventSent(eventType: String): HMPPSDomainEvent {
     val sqsClient = incentivesQueue.sqsClient
-    val queueSize = sqsClient.getApproxQueueSize(testDomainEventQueueUrl!!)
-    assertThat(queueSize).isEqualTo(1)
+    await untilCallTo { sqsClient.countMessagesOnQueue(testDomainEventQueueUrl!!).get() } matches { it == 1 }
 
     val body = sqsClient.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testDomainEventQueueUrl).build()).get().messages()[0].body()
     val (message, attributes) = objectMapper.readValue(body, HMPPSMessage::class.java)
@@ -97,6 +93,7 @@ class IncentiveLevelResourceTestBase : SqsIntegrationTestBase() {
 
   protected fun getPublishedDomainEvents(): List<HMPPSDomainEvent> {
     val sqsClient = incentivesQueue.sqsClient
+    await untilCallTo { sqsClient.countMessagesOnQueue(testDomainEventQueueUrl!!).get() } matches { it == 1 }
     val request = ReceiveMessageRequest.builder().queueUrl(testDomainEventQueueUrl).maxNumberOfMessages(10).build()
     return sqsClient.receiveMessage(request).get().messages()
       .map {
@@ -106,12 +103,13 @@ class IncentiveLevelResourceTestBase : SqsIntegrationTestBase() {
   }
 
   protected fun assertNoAuditMessageSent() {
-    val queueSize = auditQueue.sqsClient.getApproxQueueSize(auditQueue.queueUrl)
+    val queueSize = auditQueue.sqsClient.countMessagesOnQueue(auditQueue.queueUrl).get()
     assertThat(queueSize).isEqualTo(0)
   }
 
   private fun assertAuditMessageSent(eventType: String): AuditEvent {
-    val queueSize = auditQueue.sqsClient.getApproxQueueSize(auditQueue.queueUrl)
+    val queueSize = auditQueue.sqsClient.countMessagesOnQueue(auditQueue.queueUrl).get()
+    await untilCallTo { auditQueue.sqsClient.countMessagesOnQueue(auditQueue.queueUrl).get() } matches { it == 1 }
     assertThat(queueSize).isEqualTo(1)
     val message = auditQueue.sqsClient.receiveMessage(ReceiveMessageRequest.builder().queueUrl(auditQueue.queueUrl).build()).get().messages()[0].body()
     val event = objectMapper.readValue(message, AuditEvent::class.java)
