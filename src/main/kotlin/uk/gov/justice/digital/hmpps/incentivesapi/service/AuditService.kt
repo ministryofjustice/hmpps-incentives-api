@@ -1,12 +1,12 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
-import com.amazonaws.services.sqs.model.SendMessageRequest
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.microsoft.applicationinsights.TelemetryClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.config.AuthenticationFacade
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
@@ -40,15 +40,15 @@ class AuditService(
 
     val result =
       auditSqsClient.sendMessage(
-        SendMessageRequest(
-          auditQueueUrl,
-          auditEvent.toJson(),
-        ),
-      )
+        SendMessageRequest.builder()
+          .queueUrl(auditQueueUrl)
+          .messageBody(auditEvent.toJson())
+          .build(),
+      ).get()
 
     telemetryClient.trackEvent(
       auditEvent.what,
-      mapOf("messageId" to result.messageId, "id" to id),
+      mapOf("messageId" to result.messageId(), "id" to id),
       null,
     )
   }

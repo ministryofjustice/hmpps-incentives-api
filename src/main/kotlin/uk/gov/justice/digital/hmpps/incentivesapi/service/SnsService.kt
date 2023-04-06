@@ -1,11 +1,11 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
-import com.amazonaws.services.sns.model.MessageAttributeValue
-import com.amazonaws.services.sns.model.PublishRequest
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import software.amazon.awssdk.services.sns.model.MessageAttributeValue
+import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import java.time.Instant
 import java.time.LocalDate
@@ -44,12 +44,15 @@ class SnsService(hmppsQueueService: HmppsQueueService, private val objectMapper:
   private fun publishToDomainEventsTopic(payload: HMPPSDomainEvent) {
     log.debug("Event {} for id {}", payload.eventType, payload.additionalInformation)
     domaineventsTopicClient.publish(
-      PublishRequest(domaineventsTopic.arn, objectMapper.writeValueAsString(payload))
-        .withMessageAttributes(
+      PublishRequest.builder()
+        .topicArn(domaineventsTopic.arn)
+        .message(objectMapper.writeValueAsString(payload))
+        .messageAttributes(
           mapOf(
-            "eventType" to MessageAttributeValue().withDataType("String").withStringValue(payload.eventType),
+            "eventType" to MessageAttributeValue.builder().dataType("String").stringValue(payload.eventType).build(),
           ),
         )
+        .build()
         .also { log.info("Published event $payload to outbound topic") },
     )
   }

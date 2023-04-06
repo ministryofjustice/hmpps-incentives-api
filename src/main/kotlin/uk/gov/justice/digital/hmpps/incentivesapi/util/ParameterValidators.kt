@@ -4,7 +4,7 @@
  */
 package uk.gov.justice.digital.hmpps.incentivesapi.util
 
-import javax.validation.ValidationException
+import jakarta.validation.ValidationException
 
 fun ensure(block: Ensure.() -> Unit) = Ensure().apply {
   block()

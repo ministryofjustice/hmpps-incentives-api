@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.util
 
+import jakarta.validation.ValidationException
 import org.springframework.data.domain.PageRequest
-import javax.validation.ValidationException
 import kotlin.math.min
 
 infix fun <T> List<T>.paginateWith(pageRequest: PageRequest): List<T> {

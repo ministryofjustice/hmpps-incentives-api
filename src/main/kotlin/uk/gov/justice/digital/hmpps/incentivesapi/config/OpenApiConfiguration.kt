@@ -13,7 +13,7 @@ import io.swagger.v3.oas.models.security.Scopes
 import io.swagger.v3.oas.models.security.SecurityRequirement
 import io.swagger.v3.oas.models.security.SecurityScheme
 import io.swagger.v3.oas.models.servers.Server
-import org.springdoc.core.customizers.OpenApiCustomiser
+import org.springdoc.core.customizers.OpenApiCustomizer
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.info.BuildProperties
 import org.springframework.context.annotation.Bean
@@ -76,7 +76,7 @@ class OpenApiConfiguration(
   }
 
   @Bean
-  fun openAPICustomiser(): OpenApiCustomiser = OpenApiCustomiser {
+  fun openAPICustomiser(): OpenApiCustomizer = OpenApiCustomizer {
     it.components.schemas.forEach { (_, schema: Schema<*>) ->
       val properties = schema.properties ?: mutableMapOf()
       for (propertyName in properties.keys) {

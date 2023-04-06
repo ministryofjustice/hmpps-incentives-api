@@ -1,7 +1,9 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.integration
 
-import com.amazonaws.services.sqs.model.PurgeQueueRequest
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.awaitility.kotlin.await
+import org.awaitility.kotlin.matches
+import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -9,12 +11,14 @@ import org.springframework.boot.test.mock.mockito.SpyBean
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
+import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.LocalStackContainer.setLocalStackProperties
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.HmppsSqsProperties
 import uk.gov.justice.hmpps.sqs.MissingQueueException
 import uk.gov.justice.hmpps.sqs.MissingTopicException
+import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
@@ -45,8 +49,10 @@ class SqsIntegrationTestBase : IntegrationTestBase() {
 
   @BeforeEach
   fun cleanQueue() {
-    auditQueue.sqsClient.purgeQueue(PurgeQueueRequest(auditQueue.queueUrl))
-    incentivesQueue.sqsClient.purgeQueue(PurgeQueueRequest(incentivesQueue.queueUrl))
+    auditQueue.sqsClient.purgeQueue(PurgeQueueRequest.builder().queueUrl(auditQueue.queueUrl).build())
+    incentivesQueue.sqsClient.purgeQueue(PurgeQueueRequest.builder().queueUrl(incentivesQueue.queueUrl).build())
+    await untilCallTo { auditQueue.sqsClient.countMessagesOnQueue(auditQueue.queueUrl).get() } matches { it == 0 }
+    await untilCallTo { incentivesQueue.sqsClient.countMessagesOnQueue(incentivesQueue.queueUrl).get() } matches { it == 0 }
   }
 
   companion object {
@@ -62,11 +68,6 @@ class SqsIntegrationTestBase : IntegrationTestBase() {
 
   protected fun jsonString(any: Any) = objectMapper.writeValueAsString(any) as String
 
-  fun getNumberOfMessagesCurrentlyOnQueue(): Int? {
-    val queueAttributes = incentivesQueue.sqsClient.getQueueAttributes(
-      incentivesQueue.queueUrl,
-      listOf("ApproximateNumberOfMessages"),
-    )
-    return queueAttributes.attributes["ApproximateNumberOfMessages"]?.toInt()
-  }
+  fun getNumberOfMessagesCurrentlyOnQueue(): Int? =
+    incentivesQueue.sqsClient.countMessagesOnQueue(incentivesQueue.queueUrl).get()
 }

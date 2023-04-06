@@ -1,7 +1,5 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.integration.service
 
-import com.amazonaws.services.sns.model.MessageAttributeValue
-import com.amazonaws.services.sns.model.PublishRequest
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
@@ -13,6 +11,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
+import software.amazon.awssdk.services.sns.model.MessageAttributeValue
+import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
@@ -275,23 +275,24 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     description: String,
   ) {
     domainEventsTopicSnsClient.publish(
-      PublishRequest(
-        domainEventsTopicArn,
-        jsonString(
-          HMPPSDomainEvent(
-            eventType = eventType,
-            additionalInformation = additionalInformation,
-            occurredAt = Instant.now(),
-            description = description,
+      PublishRequest.builder()
+        .topicArn(domainEventsTopicArn)
+        .message(
+          jsonString(
+            HMPPSDomainEvent(
+              eventType = eventType,
+              additionalInformation = additionalInformation,
+              occurredAt = Instant.now(),
+              description = description,
+            ),
           ),
-        ),
-      )
-        .withMessageAttributes(
+        )
+        .messageAttributes(
           mapOf(
-            "eventType" to MessageAttributeValue().withDataType("String")
-              .withStringValue(eventType),
+            "eventType" to MessageAttributeValue.builder().dataType("String").stringValue(eventType).build(),
           ),
-        ),
+        )
+        .build(),
     )
   }
 }
