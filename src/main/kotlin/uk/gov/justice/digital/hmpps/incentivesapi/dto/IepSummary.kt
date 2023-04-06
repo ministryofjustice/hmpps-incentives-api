@@ -36,6 +36,8 @@ data class IepSummary(
   val nextReviewDate: LocalDate,
 ) {
 
+  // NOTE: This is part of the public `GET /iep/reviews/` API response format.
+  //       Ignore IntelliJ saying it's "not used".
   @get:Schema(description = "Days since last review", example = "23", required = true)
   @get:JsonProperty
   val daysSinceReview: Int

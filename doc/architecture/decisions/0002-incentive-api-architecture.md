@@ -15,7 +15,7 @@ Accepted
 New service to aggregate and capture incentive related data in a single micro service. 
 
 Initially this service will:-
-- Asynchronously call off to the Prison API to obtain information relating to positive and negative case notes, adjuication history, IEP review history and basic prisoner data (name, number, location, image)
+- Asynchronously call off to the Prison API to obtain information relating to positive and negative case notes, adjudication history, IEP review history and basic prisoner data (name, number, location, image)
 - Aggregate this information into a restful response that can be consumed by the [Incentive UI](https://github.com/ministryofjustice/hmpps-incentives-ui)
 
 ### Future Work
