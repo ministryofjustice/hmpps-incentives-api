@@ -21,7 +21,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPatchRequest
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveRecordUpdate
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocation
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
@@ -76,12 +76,12 @@ class PrisonerIepLevelReviewService(
     return addIepReviewForPrisonerAtLocation(prisonerInfo, iepReview)
   }
 
-  suspend fun handleSyncPatchIepReviewRequest(
+  suspend fun updateIncentiveRecord(
     bookingId: Long,
     id: Long,
-    syncPatchRequest: SyncPatchRequest,
+    update: IncentiveRecordUpdate,
   ): IepDetail {
-    if (listOf(syncPatchRequest.iepTime, syncPatchRequest.comment, syncPatchRequest.current).all { it == null }) {
+    if (listOf(update.reviewTime, update.comment, update.current).all { it == null }) {
       throw ValidationException("Please provide fields to update")
     }
 
@@ -93,7 +93,7 @@ class PrisonerIepLevelReviewService(
       throw NoDataFoundException(bookingId)
     }
 
-    val iepDetail = incentiveStoreService.patchIncentiveReview(syncPatchRequest, prisonerIepLevel)
+    val iepDetail = incentiveStoreService.updateIncentiveRecord(update, prisonerIepLevel)
       .toIepDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
 
     publishReviewDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_UPDATED)

@@ -22,7 +22,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPatchRequest
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveRecordUpdate
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Location
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
@@ -581,7 +581,7 @@ class PrisonerIepLevelReviewServiceTest {
   }
 
   @Nested
-  inner class HandleSyncPatchIepReviewRequest {
+  inner class UpdateIncentiveRecordTest {
 
     private val id = 42L
     private val bookingId = 123456L
@@ -589,13 +589,13 @@ class PrisonerIepLevelReviewServiceTest {
     private val iepLevelCode = "ENH"
     private val iepLevelDescription = "Enhanced"
     private val reviewTime = LocalDateTime.now().minusDays(10)
-    private val syncPatchRequest: SyncPatchRequest = SyncPatchRequest(
+    private val update: IncentiveRecordUpdate = IncentiveRecordUpdate(
       comment = "UPDATED",
-      iepTime = null,
+      reviewTime = null,
       current = null,
     )
 
-    private val iepReview = PrisonerIepLevel(
+    private val incentiveRecord = PrisonerIepLevel(
       id = id,
       iepCode = "ENH",
       commentText = "Existing comment, before patch",
@@ -608,13 +608,13 @@ class PrisonerIepLevelReviewServiceTest {
       reviewType = ReviewType.REVIEW,
       prisonerNumber = offenderNo,
     )
-    private val expectedIepReview = iepReview.copy(commentText = syncPatchRequest.comment)
+    private val expectedIncentiveRecord = incentiveRecord.copy(commentText = update.comment)
 
     private val iepDetail = IepDetail(
       id = id,
       iepLevel = iepLevelDescription,
       iepCode = iepLevelCode,
-      comments = syncPatchRequest.comment,
+      comments = update.comment,
       prisonerNumber = offenderNo,
       bookingId = bookingId,
       iepDate = reviewTime.toLocalDate(),
@@ -629,11 +629,11 @@ class PrisonerIepLevelReviewServiceTest {
     @BeforeEach
     fun setUp(): Unit = runBlocking {
       // Mock find query
-      whenever(prisonerIepLevelRepository.findById(id)).thenReturn(iepReview)
+      whenever(prisonerIepLevelRepository.findById(id)).thenReturn(incentiveRecord)
 
       // Mock PrisonerIepLevel being updated
-      whenever(incentiveStoreService.patchIncentiveReview(syncPatchRequest, iepReview))
-        .thenReturn(expectedIepReview)
+      whenever(incentiveStoreService.updateIncentiveRecord(update, incentiveRecord))
+        .thenReturn(expectedIncentiveRecord)
 
       whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
     }
@@ -642,7 +642,7 @@ class PrisonerIepLevelReviewServiceTest {
     fun `updates the IEP review`(): Unit = runBlocking {
       // When
       val result =
-        prisonerIepLevelReviewService.handleSyncPatchIepReviewRequest(bookingId, iepReview.id, syncPatchRequest)
+        prisonerIepLevelReviewService.updateIncentiveRecord(bookingId, incentiveRecord.id, update)
 
       // Then check it's returned
       assertThat(result).isEqualTo(iepDetail)
@@ -651,19 +651,19 @@ class PrisonerIepLevelReviewServiceTest {
     @Test
     fun `updates the next review date for the prisoner`(): Unit = runBlocking {
       // When
-      prisonerIepLevelReviewService.handleSyncPatchIepReviewRequest(bookingId, iepReview.id, syncPatchRequest)
+      prisonerIepLevelReviewService.updateIncentiveRecord(bookingId, incentiveRecord.id, update)
     }
 
     @Test
     fun `sends IepReview event and audit message`(): Unit = runBlocking {
       // When sync POST request is handled
-      prisonerIepLevelReviewService.handleSyncPatchIepReviewRequest(bookingId, iepReview.id, syncPatchRequest)
+      prisonerIepLevelReviewService.updateIncentiveRecord(bookingId, incentiveRecord.id, update)
 
       // SNS event is sent
       verify(snsService, times(1)).publishDomainEvent(
         eventType = IncentivesDomainEventType.IEP_REVIEW_UPDATED,
         description = "An IEP review has been updated",
-        occurredAt = iepReview.reviewTime,
+        occurredAt = incentiveRecord.reviewTime,
         additionalInformation = AdditionalInformation(
           id = id,
           nomsNumber = prisonerAtLocation().offenderNo,
@@ -676,32 +676,32 @@ class PrisonerIepLevelReviewServiceTest {
           AuditType.IEP_REVIEW_UPDATED,
           "$id",
           iepDetail,
-          iepReview.reviewedBy,
+          incentiveRecord.reviewedBy,
         )
     }
 
     @Test
     fun `If request has current true we update the previous IEP Level with current of true`(): Unit = runBlocking {
       // Given
-      val iepReviewUpdatedWithSyncPatch = iepReview.copy(current = true)
-      val syncPatchRequestNew = SyncPatchRequest(
+      val updatedIncentiveRecord = incentiveRecord.copy(current = true)
+      val update = IncentiveRecordUpdate(
         comment = null,
-        iepTime = null,
+        reviewTime = null,
         current = true,
       )
 
-      whenever(incentiveStoreService.patchIncentiveReview(syncPatchRequestNew, iepReview))
-        .thenReturn(iepReviewUpdatedWithSyncPatch)
+      whenever(incentiveStoreService.updateIncentiveRecord(update, incentiveRecord))
+        .thenReturn(updatedIncentiveRecord)
 
       // When
-      prisonerIepLevelReviewService.handleSyncPatchIepReviewRequest(
+      prisonerIepLevelReviewService.updateIncentiveRecord(
         bookingId,
-        iepReview.id,
-        syncPatchRequestNew,
+        incentiveRecord.id,
+        update,
       )
 
       verify(incentiveStoreService, times(1))
-        .patchIncentiveReview(syncPatchRequestNew, iepReview)
+        .updateIncentiveRecord(update, incentiveRecord)
     }
   }
 

@@ -5,7 +5,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPatchRequest
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveRecordUpdate
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 
@@ -53,22 +53,22 @@ class IncentiveStoreService(
     }
   }
 
-  suspend fun patchIncentiveReview(
-    syncPatchRequest: SyncPatchRequest,
-    prisonerIepLevel: PrisonerIepLevel,
+  suspend fun updateIncentiveRecord(
+    update: IncentiveRecordUpdate,
+    incentiveRecord: PrisonerIepLevel,
   ): PrisonerIepLevel {
-    syncPatchRequest.current?.let {
-      prisonerIepLevelRepository.updateIncentivesToNotCurrentForBookingAndIncentive(prisonerIepLevel.bookingId, prisonerIepLevel.id)
+    update.current?.let {
+      prisonerIepLevelRepository.updateIncentivesToNotCurrentForBookingAndIncentive(incentiveRecord.bookingId, incentiveRecord.id)
     }
 
-    val review = prisonerIepLevelRepository.save(
-      prisonerIepLevel.copy(
-        reviewTime = syncPatchRequest.iepTime ?: prisonerIepLevel.reviewTime,
-        commentText = syncPatchRequest.comment ?: prisonerIepLevel.commentText,
-        current = syncPatchRequest.current ?: prisonerIepLevel.current,
+    val updatedIncentiveRecord = prisonerIepLevelRepository.save(
+      incentiveRecord.copy(
+        reviewTime = update.reviewTime ?: incentiveRecord.reviewTime,
+        commentText = update.comment ?: incentiveRecord.commentText,
+        current = update.current ?: incentiveRecord.current,
       ),
     )
-    nextReviewDateUpdaterService.update(review.bookingId)
-    return review
+    nextReviewDateUpdaterService.update(updatedIncentiveRecord.bookingId)
+    return updatedIncentiveRecord
   }
 }
