@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLeve
 import java.time.LocalDate.now
 import java.time.format.DateTimeFormatter
 
-class IepLevelResourceTest : IncentiveLevelResourceTestBase() {
+class IepReviewsResourceTest : IncentiveLevelResourceTestBase() {
   @Autowired
   private lateinit var repository: PrisonerIepLevelRepository
 
