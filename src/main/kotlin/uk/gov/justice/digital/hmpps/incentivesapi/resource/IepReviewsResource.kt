@@ -22,55 +22,15 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.CurrentIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
-import uk.gov.justice.digital.hmpps.incentivesapi.service.IepLevelService
 import uk.gov.justice.digital.hmpps.incentivesapi.service.PrisonerIepLevelReviewService
 import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 
 @RestController
 @RequestMapping("/iep", produces = [MediaType.APPLICATION_JSON_VALUE])
 @Tag(name = "Incentive reviews", description = "Retrieve and add incentive review records. Ported from prison-api")
-class IepLevelResource(
-  private val iepLevelService: IepLevelService,
+class IepReviewsResource(
   private val prisonerIepLevelReviewService: PrisonerIepLevelReviewService,
 ) {
-  @GetMapping("/levels/{prisonId}")
-  @Operation(
-    summary = "Returns the valid IEP levels for specified prison",
-    description = "prison ID should be a 3 character string e.g. MDI = Moorland",
-    responses = [
-      ApiResponse(
-        responseCode = "200",
-        description = "IEP Level Information returned",
-      ),
-      ApiResponse(
-        responseCode = "400",
-        description = "Incorrect data specified to return IEP Level data",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun getPrisonIepLevels(
-    @Schema(description = "Prison Id", example = "MDI", required = true, minLength = 3, maxLength = 5)
-    @PathVariable
-    prisonId: String,
-  ): List<IepLevel> {
-    ensure {
-      ("prisonId" to prisonId).hasLengthAtLeast(3).hasLengthAtMost(5)
-    }
-    return iepLevelService.getIepLevelsForPrison(prisonId)
-  }
-
   @GetMapping("/reviews/booking/{bookingId}")
   @Operation(
     summary = "Returns a history of IEP reviews for a prisoner",
