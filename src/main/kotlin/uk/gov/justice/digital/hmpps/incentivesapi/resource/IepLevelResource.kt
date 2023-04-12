@@ -9,9 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -24,8 +22,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.CurrentIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPatchRequest
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IepLevelService
 import uk.gov.justice.digital.hmpps.incentivesapi.service.PrisonerIepLevelReviewService
@@ -293,168 +289,4 @@ class IepLevelResource(
     @RequestBody
     iepReview: IepReview,
   ): IepDetail = prisonerIepLevelReviewService.addIepReview(prisonerNumber, iepReview)
-
-  @PostMapping("/migration/booking/{bookingId}")
-  @PreAuthorize("hasRole('MAINTAIN_IEP') and hasAuthority('SCOPE_write')")
-  @ResponseStatus(HttpStatus.CREATED)
-  @Operation(
-    summary = "Migrates an IEP Review for this specific prisoner by booking Id",
-    description = "Booking ID is an internal ID for a prisoner in NOMIS, requires MAINTAIN_IEP role and write scope",
-    responses = [
-      ApiResponse(
-        responseCode = "201",
-        description = "IEP Review Migrated",
-      ),
-      ApiResponse(
-        responseCode = "400",
-        description = "Incorrect data specified to add new IEP review",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun migrateIepReview(
-    @Schema(description = "Booking Id", example = "3000002", required = true, type = "integer", format = "int64", pattern = "^[0-9]{1,20}$")
-    @PathVariable
-    bookingId: Long,
-    @Schema(
-      description = "IEP Review",
-      required = true,
-      implementation = SyncPostRequest::class,
-    )
-    @RequestBody
-    syncPostRequest: SyncPostRequest,
-  ): IepDetail =
-    prisonerIepLevelReviewService.persistSyncPostRequest(bookingId, syncPostRequest, false)
-
-  @PostMapping("/sync/booking/{bookingId}")
-  @PreAuthorize("hasRole('MAINTAIN_IEP') and hasAuthority('SCOPE_write')")
-  @ResponseStatus(HttpStatus.CREATED)
-  @Operation(
-    summary = "Synchronise (NOMIS -> Incentives) an IEP Review for this specific prisoner by booking Id",
-    description = "Booking ID is an internal ID for a prisoner in NOMIS, requires MAINTAIN_IEP role and write scope",
-    responses = [
-      ApiResponse(
-        responseCode = "201",
-        description = "IEP Review Synchronised",
-      ),
-      ApiResponse(
-        responseCode = "400",
-        description = "Incorrect data specified to add new IEP review",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun syncPostIepReview(
-    @Schema(description = "Booking Id", example = "3000002", required = true, type = "integer", format = "int64", pattern = "^[0-9]{1,20}$")
-    @PathVariable
-    bookingId: Long,
-    @Schema(
-      description = "IEP Review",
-      required = true,
-      implementation = SyncPostRequest::class,
-    )
-    @RequestBody
-    syncPostRequest: SyncPostRequest,
-  ): IepDetail = prisonerIepLevelReviewService.handleSyncPostIepReviewRequest(bookingId, syncPostRequest)
-
-  @PatchMapping("/sync/booking/{bookingId}/id/{id}")
-  @PreAuthorize("hasRole('MAINTAIN_IEP') and hasAuthority('SCOPE_write')")
-  @ResponseStatus(HttpStatus.OK)
-  @Operation(
-    summary = "Update an existing IEP review for this specific prisoner by booking Id",
-    description = "Booking ID is an internal ID for a prisoner in NOMIS, ID is the ID of the IEP review. Requires MAINTAIN_IEP role and write scope",
-    responses = [
-      ApiResponse(
-        responseCode = "200",
-        description = "IEP Review updated",
-      ),
-      ApiResponse(
-        responseCode = "400",
-        description = "Incorrect data specified to update the IEP review",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun syncPatchIepReview(
-    @Schema(description = "Booking Id", required = true, example = "1234567", type = "integer", format = "int64", pattern = "^[0-9]{1,20}$")
-    @PathVariable
-    bookingId: Long,
-    @Schema(description = "ID", required = true, example = "12345", type = "integer", format = "int64", pattern = "^[0-9]{1,20}$")
-    @PathVariable
-    id: Long,
-    @Schema(
-      description = "IEP Review changes",
-      required = true,
-      implementation = SyncPatchRequest::class,
-    )
-    @RequestBody
-    syncPatchRequest: SyncPatchRequest,
-  ): IepDetail = prisonerIepLevelReviewService.handleSyncPatchIepReviewRequest(bookingId, id, syncPatchRequest)
-
-  @DeleteMapping("/sync/booking/{bookingId}/id/{id}")
-  @PreAuthorize("hasRole('MAINTAIN_IEP') and hasAuthority('SCOPE_write')")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(
-    summary = "Deletes an existing IEP review for this specific prisoner by booking Id",
-    description = "Booking ID is an internal ID for a prisoner in NOMIS, ID is the ID of the IEP review. Requires MAINTAIN_IEP role and write scope",
-    responses = [
-      ApiResponse(
-        responseCode = "204",
-        description = "IEP Review deleted",
-      ),
-      ApiResponse(
-        responseCode = "400",
-        description = "Incorrect data specified to delete the IEP review",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun syncDeleteIepReview(
-    @Schema(description = "Booking Id", required = true, example = "1234567", type = "integer", format = "int64", pattern = "^[0-9]{1,20}$")
-    @PathVariable
-    bookingId: Long,
-    @Schema(description = "ID", required = true, example = "12345", type = "integer", format = "int64", pattern = "^[0-9]{1,20}$")
-    @PathVariable
-    id: Long,
-  ): Unit = prisonerIepLevelReviewService.handleSyncDeleteIepReviewRequest(bookingId, id)
 }

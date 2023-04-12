@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
-import jakarta.validation.ValidationException
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.count
@@ -21,9 +20,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPatchRequest
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.SyncPostRequest
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Location
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocation
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
@@ -76,95 +72,6 @@ class PrisonerIepLevelReviewService(
   suspend fun addIepReview(bookingId: Long, iepReview: IepReview): IepDetail {
     val prisonerInfo = prisonApiService.getPrisonerInfo(bookingId)
     return addIepReviewForPrisonerAtLocation(prisonerInfo, iepReview)
-  }
-
-  suspend fun persistSyncPostRequest(
-    bookingId: Long,
-    syncPostRequest: SyncPostRequest,
-    includeLocation: Boolean,
-  ): IepDetail {
-    val prisonerInfo = prisonApiService.getPrisonerInfo(bookingId, true)
-    var locationInfo: Location? = null
-    if (includeLocation && prisonerInfo.assignedLivingUnitId > 0) {
-      locationInfo = prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId, true)
-    }
-
-    val review = incentiveStoreService.saveIncentiveReview(
-      PrisonerIepLevel(
-        bookingId = prisonerInfo.bookingId,
-        prisonerNumber = prisonerInfo.offenderNo,
-        locationId = locationInfo?.description,
-        iepCode = syncPostRequest.iepLevel,
-        commentText = syncPostRequest.comment,
-        prisonId = syncPostRequest.prisonId,
-        current = syncPostRequest.current,
-        reviewedBy = syncPostRequest.userId,
-        reviewTime = syncPostRequest.iepTime,
-        reviewType = syncPostRequest.reviewType,
-      ),
-    )
-
-    return review.toIepDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
-  }
-
-  suspend fun handleSyncPostIepReviewRequest(bookingId: Long, syncPostRequest: SyncPostRequest): IepDetail {
-    val iepDetail = persistSyncPostRequest(bookingId, syncPostRequest, true)
-
-    // NOTE: This reason is to allow service that syncs back to NOMIS to ignore these domain events (as these reviews
-    // are already coming from NOMIS, they don't need to be synced again)
-    publishReviewDomainEvent(
-      iepDetail,
-      IncentivesDomainEventType.IEP_REVIEW_INSERTED,
-      IepReviewReason.USER_CREATED_NOMIS,
-    )
-    publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_ADDED)
-
-    return iepDetail
-  }
-
-  suspend fun handleSyncPatchIepReviewRequest(
-    bookingId: Long,
-    id: Long,
-    syncPatchRequest: SyncPatchRequest,
-  ): IepDetail {
-    if (listOf(syncPatchRequest.iepTime, syncPatchRequest.comment, syncPatchRequest.current).all { it == null }) {
-      throw ValidationException("Please provide fields to update")
-    }
-
-    val prisonerIepLevel = prisonerIepLevelRepository.findById(id) ?: throw NoDataFoundException(id)
-
-    // Check bookingId on found record matches the bookingId provided
-    if (prisonerIepLevel.bookingId != bookingId) {
-      log.warn("Patch of PrisonerIepLevel with ID $id failed because provided bookingID ($bookingId) didn't match bookingId on DB record (${prisonerIepLevel.bookingId})")
-      throw NoDataFoundException(bookingId)
-    }
-
-    val iepDetail = incentiveStoreService.patchIncentiveReview(syncPatchRequest, prisonerIepLevel)
-      .toIepDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
-
-    publishReviewDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_UPDATED)
-    publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_UPDATED)
-
-    return iepDetail
-  }
-
-  suspend fun handleSyncDeleteIepReviewRequest(bookingId: Long, id: Long) {
-    val prisonerIepLevel: PrisonerIepLevel? = prisonerIepLevelRepository.findById(id)
-    if (prisonerIepLevel == null) {
-      log.debug("PrisonerIepLevel with ID $id not found")
-      throw NoDataFoundException(id)
-    }
-    // Check bookingId on found record matches the bookingId provided
-    if (prisonerIepLevel.bookingId != bookingId) {
-      log.warn("Delete of PrisonerIepLevel with ID $id failed because provided bookingID ($bookingId) didn't match bookingId on DB record (${prisonerIepLevel.bookingId})")
-      throw NoDataFoundException(bookingId)
-    }
-
-    incentiveStoreService.deleteIncentiveReview(prisonerIepLevel)
-
-    val iepDetail = prisonerIepLevel.toIepDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
-    publishReviewDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_DELETED)
-    publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_DELETED)
   }
 
   suspend fun getCurrentIEPLevelForPrisoners(bookingIds: List<Long>): List<CurrentIepLevel> {
@@ -357,7 +264,6 @@ class PrisonerIepLevelReviewService(
   private suspend fun publishReviewDomainEvent(
     iepDetail: IepDetail,
     eventType: IncentivesDomainEventType,
-    reason: IepReviewReason? = null,
   ) {
     val description: String = when (eventType) {
       IncentivesDomainEventType.IEP_REVIEW_INSERTED -> "An IEP review has been added"
@@ -375,7 +281,6 @@ class PrisonerIepLevelReviewService(
       AdditionalInformation(
         id = iepDetail.id,
         nomsNumber = iepDetail.prisonerNumber,
-        reason = reason?.toString(),
       ),
     )
   }
