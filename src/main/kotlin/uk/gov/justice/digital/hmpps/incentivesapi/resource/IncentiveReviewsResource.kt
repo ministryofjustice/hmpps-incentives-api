@@ -24,7 +24,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 @RequestMapping("/incentives-reviews", produces = [MediaType.APPLICATION_JSON_VALUE])
 @PreAuthorize("hasRole('ROLE_INCENTIVES')")
 @Tag(
-  name = "Incentive Review Summary",
+  name = "Incentive review summary",
   description = "List of incentive review information for a given location within a prison and on a given level",
 )
 class IncentiveReviewsResource(private val incentiveReviewsService: IncentiveReviewsService) {
