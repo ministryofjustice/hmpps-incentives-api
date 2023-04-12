@@ -102,7 +102,7 @@ class PrisonerIepLevelReviewService(
     return iepDetail
   }
 
-  suspend fun handleSyncDeleteIepReviewRequest(bookingId: Long, id: Long) {
+  suspend fun deleteIncentiveRecord(bookingId: Long, id: Long) {
     val prisonerIepLevel: PrisonerIepLevel? = prisonerIepLevelRepository.findById(id)
     if (prisonerIepLevel == null) {
       log.debug("PrisonerIepLevel with ID $id not found")
@@ -114,7 +114,7 @@ class PrisonerIepLevelReviewService(
       throw NoDataFoundException(bookingId)
     }
 
-    incentiveStoreService.deleteIncentiveReview(prisonerIepLevel)
+    incentiveStoreService.deleteIncentiveRecord(prisonerIepLevel)
 
     val iepDetail = prisonerIepLevel.toIepDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
     publishReviewDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_DELETED)
