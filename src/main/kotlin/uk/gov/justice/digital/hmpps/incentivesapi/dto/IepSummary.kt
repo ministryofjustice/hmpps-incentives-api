@@ -119,3 +119,16 @@ data class IepReview(
     }
   }
 }
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Patch request to synchronise an IEP Review from NOMIS")
+data class SyncPatchRequest(
+  @Schema(description = "Date and time when the review took place", required = false, example = "2021-12-31T12:34:56.789012")
+  val iepTime: LocalDateTime?,
+
+  @Schema(description = "Comment about review", required = false, example = "A review took place")
+  val comment: String?,
+
+  @Schema(description = "Flag to indicate this is the current review for the prisoner", example = "true", required = false)
+  val current: Boolean?,
+)
