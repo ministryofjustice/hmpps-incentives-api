@@ -25,7 +25,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 
 @RestController
 @RequestMapping("/incentive/prison-levels", produces = [MediaType.APPLICATION_JSON_VALUE])
-@Tag(name = "Prison incentive levels", description = "Incentive levels and their per-prison associated information")
+@Tag(name = "[Not in use yet!] Prison incentive levels", description = "Incentive levels and their per-prison associated information") // TODO: remove warning when FEATURE_INCENTIVES_REFERENCE_DATA_SOURCE_OF_TRUTH is removed
 class PrisonIncentiveLevelResource(
   private val prisonIncentiveLevelService: PrisonIncentiveLevelAuditedService,
 ) {
@@ -241,8 +241,8 @@ class PrisonIncentiveLevelResource(
   @DeleteMapping("{prisonId}/level/{levelCode}")
   @PreAuthorize("hasRole('MAINTAIN_PRISON_IEP_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
-    summary = "Deactivate an incentive level for a prison." +
-      "\n\nRequires role: MAINTAIN_PRISON_IEP_LEVELS with write scope" +
+    summary = "Deactivate an incentive level for a prison",
+    description = "Requires role: MAINTAIN_PRISON_IEP_LEVELS with write scope" +
       "\nRaises HMPPS domain event: \"incentives.prison-level.changed\"",
     // TODO: decide and explain what happens to prisoners if level is deactivated
     responses = [

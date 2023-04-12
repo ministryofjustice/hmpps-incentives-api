@@ -29,7 +29,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 
 @RestController
 @RequestMapping("/iep", produces = [MediaType.APPLICATION_JSON_VALUE])
-@Tag(name = "Incentive Reviews", description = "Manage Incentive Data and Reviews")
+@Tag(name = "Incentive reviews", description = "Retrieve and add incentive review records. Ported from prison-api")
 class IepLevelResource(
   private val iepLevelService: IepLevelService,
   private val prisonerIepLevelReviewService: PrisonerIepLevelReviewService,
