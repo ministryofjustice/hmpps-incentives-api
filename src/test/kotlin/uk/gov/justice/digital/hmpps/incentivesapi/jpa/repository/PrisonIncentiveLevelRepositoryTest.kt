@@ -254,4 +254,21 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
     val prisonIds = repository.findPrisonIdsWithActiveLevels().toSet()
     assertThat(prisonIds).isEqualTo(setOf("BAI", "MDI", "WRI"))
   }
+
+  @Test
+  fun `find prisons that have specific level active`(): Unit = runBlocking {
+    generateDefaultData()
+    // Generate active prisons with inactive EN2 that will not be returned:
+    listOf("BAS", "STD", "ENH", "EN2").forEach { levelCode ->
+      listOf("EXI", "LEI").forEach { prisonId ->
+        repository.save(makeNewEntity(levelCode, prisonId).copy(active = levelCode != "EN2"))
+      }
+    }
+
+    var prisonIds = repository.findPrisonIdsWithActiveLevels().toSet()
+    assertThat(prisonIds).isEqualTo(setOf("BAI", "MDI", "WRI", "EXI", "LEI"))
+
+    prisonIds = repository.findPrisonIdsWithActiveLevel("EN2").toSet()
+    assertThat(prisonIds).isEqualTo(setOf("BAI", "MDI", "WRI"))
+  }
 }

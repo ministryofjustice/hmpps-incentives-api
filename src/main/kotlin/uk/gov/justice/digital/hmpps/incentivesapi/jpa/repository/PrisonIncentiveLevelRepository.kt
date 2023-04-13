@@ -97,4 +97,17 @@ interface PrisonIncentiveLevelRepository : CoroutineCrudRepository<PrisonIncenti
     """,
   )
   fun findPrisonIdsWithActiveLevels(): Flow<String>
+
+  /**
+   * All prisons that have this level active
+   */
+  @Query(
+    // language=postgresql
+    """
+    SELECT prison_id
+    FROM prison_incentive_level
+    WHERE active IS TRUE AND level_code = :levelCode
+    """,
+  )
+  fun findPrisonIdsWithActiveLevel(levelCode: String): Flow<String>
 }
