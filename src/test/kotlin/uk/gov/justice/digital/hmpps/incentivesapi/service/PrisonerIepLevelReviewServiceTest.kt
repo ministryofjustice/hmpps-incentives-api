@@ -21,6 +21,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.config.FeatureFlagsService
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveRecordUpdate
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Location
@@ -438,6 +439,269 @@ class PrisonerIepLevelReviewServiceTest {
 
       // Then
       verifyNoInteractions(prisonerIepLevelRepository)
+    }
+  }
+
+  @Nested
+  inner class DeleteIncentiveRecordTest {
+
+    private val id = 42L
+    private val bookingId = 123456L
+    private val offenderNo = "A1234AA"
+    private val iepLevelCode = "ENH"
+    private val iepLevelDescription = "Enhanced"
+    private val reviewTime = LocalDateTime.now().minusDays(10)
+
+    private val incentiveRecord = PrisonerIepLevel(
+      id = id,
+      iepCode = iepLevelCode,
+      commentText = "A review took place",
+      bookingId = bookingId,
+      prisonId = "MDI",
+      locationId = "1-2-003",
+      current = true,
+      reviewedBy = "USER_1_GEN",
+      reviewTime = reviewTime,
+      reviewType = ReviewType.REVIEW,
+      prisonerNumber = offenderNo,
+    )
+
+    private val iepDetail = IepDetail(
+      id = id,
+      iepLevel = iepLevelDescription,
+      iepCode = iepLevelCode,
+      comments = incentiveRecord.commentText,
+      prisonerNumber = offenderNo,
+      bookingId = bookingId,
+      iepDate = reviewTime.toLocalDate(),
+      iepTime = reviewTime,
+      agencyId = "MDI",
+      locationId = "1-2-003",
+      userId = "USER_1_GEN",
+      reviewType = ReviewType.REVIEW,
+      auditModuleName = "INCENTIVES_API",
+    )
+
+    @BeforeEach
+    fun setUp(): Unit = runBlocking {
+      // Mock find query
+      whenever(prisonerIepLevelRepository.findById(id)).thenReturn(incentiveRecord)
+
+      // Mock PrisonerIepLevel being updated
+      whenever(prisonerIepLevelRepository.delete(incentiveRecord)).thenReturn(Unit)
+
+      whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
+    }
+
+    @Test
+    fun `deletes the IEP review`(): Unit = runBlocking {
+      // When
+      prisonerIepLevelReviewService.deleteIncentiveRecord(bookingId, incentiveRecord.id)
+
+      // Then check it's saved
+      verify(incentiveStoreService, times(1))
+        .deleteIncentiveRecord(incentiveRecord)
+    }
+
+    @Test
+    fun `updates the next review date of the affected prisoner`(): Unit = runBlocking {
+      // When
+      prisonerIepLevelReviewService.deleteIncentiveRecord(bookingId, incentiveRecord.id)
+    }
+
+    @Test
+    fun `sends IepReview event and audit message`(): Unit = runBlocking {
+      // When sync DELETE request is handled
+      prisonerIepLevelReviewService.deleteIncentiveRecord(bookingId, incentiveRecord.id)
+
+      // SNS event is sent
+      verify(snsService, times(1)).publishDomainEvent(
+        eventType = IncentivesDomainEventType.IEP_REVIEW_DELETED,
+        description = "An IEP review has been deleted",
+        occurredAt = incentiveRecord.reviewTime,
+        additionalInformation = AdditionalInformation(
+          id = id,
+          nomsNumber = prisonerAtLocation().offenderNo,
+        ),
+      )
+
+      // audit message is sent
+      verify(auditService, times(1))
+        .sendMessage(
+          AuditType.IEP_REVIEW_DELETED,
+          "$id",
+          iepDetail,
+          incentiveRecord.reviewedBy,
+        )
+    }
+
+    @Test
+    fun `If deleted IEP review had current = true, set the latest IEP review current flag to true`(): Unit =
+      runBlocking {
+        // Prisoner had few IEP reviews
+        val currentIepReview = incentiveRecord.copy(current = true)
+        val olderIepReview = incentiveRecord.copy(id = currentIepReview.id - 1, current = false)
+
+        // Mock find query
+        whenever(prisonerIepLevelRepository.findById(id)).thenReturn(currentIepReview)
+
+        // Mock find of the latest IEP review
+        whenever(prisonerIepLevelRepository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId))
+          .thenReturn(olderIepReview)
+
+        // When
+        prisonerIepLevelReviewService.deleteIncentiveRecord(bookingId, currentIepReview.id)
+
+        // Then desired IEP review is deletes as usual
+        verify(incentiveStoreService, times(1))
+          .deleteIncentiveRecord(currentIepReview)
+      }
+
+    @Test
+    fun `If deleted IEP review had current = false, doesn't update latest IEP review`(): Unit =
+      runBlocking {
+        // Prisoner had few IEP reviews
+        val currentIepReview = incentiveRecord.copy(current = false)
+        val olderIepReview = incentiveRecord.copy(id = currentIepReview.id - 1, current = false)
+
+        // Mock find query
+        whenever(prisonerIepLevelRepository.findById(id)).thenReturn(currentIepReview)
+
+        // Mock find of the latest IEP review
+        whenever(prisonerIepLevelRepository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId))
+          .thenReturn(olderIepReview)
+
+        // When
+        prisonerIepLevelReviewService.deleteIncentiveRecord(bookingId, currentIepReview.id)
+
+        // Then desired IEP review is deletes as usual
+        verify(incentiveStoreService, times(1))
+          .deleteIncentiveRecord(currentIepReview)
+      }
+  }
+
+  @Nested
+  inner class UpdateIncentiveRecordTest {
+
+    private val id = 42L
+    private val bookingId = 123456L
+    private val offenderNo = "A1234AA"
+    private val iepLevelCode = "ENH"
+    private val iepLevelDescription = "Enhanced"
+    private val reviewTime = LocalDateTime.now().minusDays(10)
+    private val update: IncentiveRecordUpdate = IncentiveRecordUpdate(
+      comment = "UPDATED",
+      reviewTime = null,
+      current = null,
+    )
+
+    private val incentiveRecord = PrisonerIepLevel(
+      id = id,
+      iepCode = "ENH",
+      commentText = "Existing comment, before patch",
+      bookingId = bookingId,
+      prisonId = "MDI",
+      locationId = "1-2-003",
+      current = true,
+      reviewedBy = "USER_1_GEN",
+      reviewTime = reviewTime,
+      reviewType = ReviewType.REVIEW,
+      prisonerNumber = offenderNo,
+    )
+    private val expectedIncentiveRecord = incentiveRecord.copy(commentText = update.comment)
+
+    private val iepDetail = IepDetail(
+      id = id,
+      iepLevel = iepLevelDescription,
+      iepCode = iepLevelCode,
+      comments = update.comment,
+      prisonerNumber = offenderNo,
+      bookingId = bookingId,
+      iepDate = reviewTime.toLocalDate(),
+      iepTime = reviewTime,
+      agencyId = "MDI",
+      locationId = "1-2-003",
+      userId = "USER_1_GEN",
+      reviewType = ReviewType.REVIEW,
+      auditModuleName = "INCENTIVES_API",
+    )
+
+    @BeforeEach
+    fun setUp(): Unit = runBlocking {
+      // Mock find query
+      whenever(prisonerIepLevelRepository.findById(id)).thenReturn(incentiveRecord)
+
+      // Mock PrisonerIepLevel being updated
+      whenever(incentiveStoreService.updateIncentiveRecord(update, incentiveRecord))
+        .thenReturn(expectedIncentiveRecord)
+
+      whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
+    }
+
+    @Test
+    fun `updates the IEP review`(): Unit = runBlocking {
+      // When
+      val result =
+        prisonerIepLevelReviewService.updateIncentiveRecord(bookingId, incentiveRecord.id, update)
+
+      // Then check it's returned
+      assertThat(result).isEqualTo(iepDetail)
+    }
+
+    @Test
+    fun `updates the next review date for the prisoner`(): Unit = runBlocking {
+      // When
+      prisonerIepLevelReviewService.updateIncentiveRecord(bookingId, incentiveRecord.id, update)
+    }
+
+    @Test
+    fun `sends IepReview event and audit message`(): Unit = runBlocking {
+      // When sync POST request is handled
+      prisonerIepLevelReviewService.updateIncentiveRecord(bookingId, incentiveRecord.id, update)
+
+      // SNS event is sent
+      verify(snsService, times(1)).publishDomainEvent(
+        eventType = IncentivesDomainEventType.IEP_REVIEW_UPDATED,
+        description = "An IEP review has been updated",
+        occurredAt = incentiveRecord.reviewTime,
+        additionalInformation = AdditionalInformation(
+          id = id,
+          nomsNumber = prisonerAtLocation().offenderNo,
+        ),
+      )
+
+      // audit message is sent
+      verify(auditService, times(1))
+        .sendMessage(
+          AuditType.IEP_REVIEW_UPDATED,
+          "$id",
+          iepDetail,
+          incentiveRecord.reviewedBy,
+        )
+    }
+
+    @Test
+    fun `If request has current true we update the previous IEP Level with current of true`(): Unit = runBlocking {
+      // Given
+      val updatedIncentiveRecord = incentiveRecord.copy(current = true)
+      val update = IncentiveRecordUpdate(
+        comment = null,
+        reviewTime = null,
+        current = true,
+      )
+
+      whenever(incentiveStoreService.updateIncentiveRecord(update, incentiveRecord))
+        .thenReturn(updatedIncentiveRecord)
+
+      // When
+      prisonerIepLevelReviewService.updateIncentiveRecord(
+        bookingId,
+        incentiveRecord.id,
+        update,
+      )
+
+      verify(incentiveStoreService, times(1))
+        .updateIncentiveRecord(update, incentiveRecord)
     }
   }
 
