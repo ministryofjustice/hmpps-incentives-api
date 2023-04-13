@@ -1,6 +1,8 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.opentelemetry.api.trace.SpanKind
+import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -25,6 +27,7 @@ class SnsService(hmppsQueueService: HmppsQueueService, private val objectMapper:
   }
   private val domaineventsTopicClient by lazy { domaineventsTopic.snsClient }
 
+  @WithSpan(value = "hmpps-domain-events-topic", kind = SpanKind.PRODUCER)
   fun publishDomainEvent(
     eventType: IncentivesDomainEventType,
     description: String,
