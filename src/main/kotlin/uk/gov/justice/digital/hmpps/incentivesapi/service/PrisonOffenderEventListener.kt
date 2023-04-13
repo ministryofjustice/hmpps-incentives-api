@@ -2,6 +2,8 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.awspring.cloud.sqs.annotation.SqsListener
+import io.opentelemetry.api.trace.SpanKind
+import io.opentelemetry.instrumentation.annotations.WithSpan
 import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -17,6 +19,7 @@ class PrisonOffenderEventListener(
   }
 
   @SqsListener("incentives", factory = "hmppsQueueContainerFactoryProxy")
+  @WithSpan(value = "hmpps-incentives-prisoner-event-queue", kind = SpanKind.SERVER)
   fun onPrisonOffenderEvent(requestJson: String) = runBlocking {
     val (message, messageAttributes) = mapper.readValue(requestJson, HMPPSMessage::class.java)
     val eventType = messageAttributes.eventType.Value
