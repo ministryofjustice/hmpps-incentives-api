@@ -1163,5 +1163,36 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
       assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
+
+    @Test
+    fun `fails to deactivate a level when it is active in some prison`() {
+      runBlocking {
+        // 2 prisons with active EN2 level and 1 active prison without
+        listOf("BAI", "MDI", "WRI").forEach { prisonId ->
+          listOf("BAS", "STD", "ENH", "EN2").forEach { levelCode ->
+            makePrisonIncentiveLevel(prisonId, levelCode)
+          }
+        }
+        prisonIncentiveLevelRepository.save(
+          prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("WRI", "EN2")!!.copy(active = false),
+        )
+      }
+
+      webTestClient.delete()
+        .uri("/incentive/levels/EN2")
+        .withCentralAuthorisation()
+        .exchange()
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "A level must remain active if it is active in some prison")
+
+      runBlocking {
+        val incentiveLevel = incentiveLevelRepository.findById("EN2")
+        assertThat(incentiveLevel?.active).isTrue
+        assertThat(incentiveLevel?.required).isFalse
+        assertThat(incentiveLevel?.whenUpdated).isNotEqualTo(now)
+      }
+
+      assertNoDomainEventSent()
+      assertNoAuditMessageSent()
+    }
   }
 }

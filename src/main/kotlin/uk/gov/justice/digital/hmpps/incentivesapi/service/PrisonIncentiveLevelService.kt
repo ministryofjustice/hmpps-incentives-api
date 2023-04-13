@@ -54,6 +54,13 @@ class PrisonIncentiveLevelService(
   }
 
   /**
+   * Returns prison ids which have given level active
+   */
+  suspend fun getPrisonIdsWithActivePrisonIncentiveLevel(levelCode: String): List<String> {
+    return prisonIncentiveLevelRepository.findPrisonIdsWithActiveLevel(levelCode).toList()
+  }
+
+  /**
    * Updates an incentive level for given prison and level code; will fail if data integrity is not maintained.
    * Conceptually, every incentive level exists in every prison but is considered inactive if it does not exist in the database.
    * NB: Default values may be used for associated information if not fully specified and not already in database.

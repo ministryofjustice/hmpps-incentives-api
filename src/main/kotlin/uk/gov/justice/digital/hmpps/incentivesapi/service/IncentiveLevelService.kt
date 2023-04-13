@@ -100,6 +100,11 @@ class IncentiveLevelService(
         if (!incentiveLevel.active && incentiveLevel.required) {
           throw ValidationException("A level must be active if it is required")
         }
+        if (originalIncentiveLevel.active && !incentiveLevel.active) {
+          if (prisonIncentiveLevelService.getPrisonIdsWithActivePrisonIncentiveLevel(incentiveLevel.code).isNotEmpty()) {
+            throw ValidationException("A level must remain active if it is active in some prison")
+          }
+        }
 
         incentiveLevelRepository.save(incentiveLevel)
           .toDTO()
