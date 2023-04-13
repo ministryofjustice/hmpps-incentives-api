@@ -5,5 +5,6 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import reactor.core.publisher.Mono
 
 fun <T> emptyWhenNotFound(exception: WebClientResponseException): Mono<T> = emptyWhen(exception, HttpStatus.NOT_FOUND)
+
 fun <T> emptyWhen(exception: WebClientResponseException, statusCode: HttpStatus): Mono<T> =
-  if (exception.rawStatusCode == statusCode.value()) Mono.empty() else Mono.error(exception)
+  if (exception.statusCode.value() == statusCode.value()) Mono.empty() else Mono.error(exception)
