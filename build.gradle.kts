@@ -99,6 +99,14 @@ tasks {
   }
 }
 
+tasks.withType<JavaCompile>().configureEach {
+  javaCompiler.set(
+    javaToolchains.compilerFor {
+      languageVersion.set(JavaLanguageVersion.of(19))
+    }
+  )
+}
+
 tasks.test {
   finalizedBy(tasks.jacocoTestReport)
 }
