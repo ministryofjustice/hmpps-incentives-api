@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitBody
@@ -9,11 +11,10 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisonerList
 @Service
 class OffenderSearchService(private val offenderSearchWebClient: WebClient) {
   /**
-   * Searches for offenders using a cell location prefix, e.g. MDI-1
-   * Requires role ROLE_PRISONER_IN_PRISON_SEARCH or ROLE_PRISONER_SEARCH
+   * Searches for offenders using a cell location prefix (e.g. MDI-1) returning a flow of pages
+   * Requires role PRISONER_IN_PRISON_SEARCH or PRISONER_SEARCH
    */
-  suspend fun findOffenders(prisonId: String, cellLocationPrefix: String): List<OffenderSearchPrisoner> {
-    val offenders = mutableListOf<OffenderSearchPrisoner>()
+  fun findOffendersAtLocation(prisonId: String, cellLocationPrefix: String): Flow<List<OffenderSearchPrisoner>> = flow {
     var page = 0
     do {
       val pageOfData = offenderSearchWebClient.get()
@@ -29,9 +30,20 @@ class OffenderSearchService(private val offenderSearchWebClient: WebClient) {
         )
         .retrieve()
         .awaitBody<OffenderSearchPrisonerList>()
-      offenders.addAll(pageOfData.content)
+      emit(pageOfData.content)
       page += 1
     } while (!pageOfData.last)
+  }
+
+  /**
+   * Searches for offenders using a cell location prefix (e.g. MDI-1) returning a complete list
+   * Requires role PRISONER_IN_PRISON_SEARCH or PRISONER_SEARCH
+   */
+  suspend fun getOffendersAtLocation(prisonId: String, cellLocationPrefix: String): List<OffenderSearchPrisoner> {
+    val offenders = mutableListOf<OffenderSearchPrisoner>()
+    findOffendersAtLocation(prisonId, cellLocationPrefix).collect {
+      offenders.addAll(it)
+    }
     return offenders
   }
 }

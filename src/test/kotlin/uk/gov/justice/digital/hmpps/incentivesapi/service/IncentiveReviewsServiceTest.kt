@@ -112,7 +112,7 @@ class IncentiveReviewsServiceTest {
       ),
     )
     whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-2-1")
-    whenever(offenderSearchService.findOffenders(any(), any())).thenReturn(offenders)
+    whenever(offenderSearchService.getOffendersAtLocation(any(), any())).thenReturn(offenders)
     val nextReviewDatesMap = mapOf(
       110001L to LocalDate.now(clock).plusYears(1),
       110002L to LocalDate.now(clock).plusYears(1),
@@ -121,7 +121,7 @@ class IncentiveReviewsServiceTest {
 
     val reviews = incentiveReviewsService.reviews("MDI", "MDI-2-1", "STD")
 
-    verify(offenderSearchService, times(1)).findOffenders(any(), eq("MDI-2-1"))
+    verify(offenderSearchService, times(1)).getOffendersAtLocation(any(), eq("MDI-2-1"))
     assertThat(reviews.locationDescription).isEqualTo("A houseblock")
     val reviewCount = reviews.levels.find { level -> level.levelCode == "STD" }?.reviewCount
     assertThat(reviewCount).isEqualTo(2)
@@ -163,7 +163,7 @@ class IncentiveReviewsServiceTest {
     val prisonerNumber = "G6123VU"
     whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-2-1")
     val offenders = listOf(offenderSearchPrisoner(prisonerNumber))
-    whenever(offenderSearchService.findOffenders(any(), any())).thenReturn(offenders)
+    whenever(offenderSearchService.getOffendersAtLocation(any(), any())).thenReturn(offenders)
     val nextReviewDatesMap = mapOf(offenders[0].bookingId to LocalDate.now(clock).plusYears(1))
     whenever(nextReviewDateGetterService.getMany(offenders)).thenReturn(nextReviewDatesMap)
 
@@ -218,7 +218,7 @@ class IncentiveReviewsServiceTest {
     val expectedNextReviewDate = LocalDate.now(clock).plusYears(1)
 
     whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-2-1")
-    whenever(offenderSearchService.findOffenders(any(), any())).thenReturn(listOf(offenderSearchPrisoner(prisonerNumber)))
+    whenever(offenderSearchService.getOffendersAtLocation(any(), any())).thenReturn(listOf(offenderSearchPrisoner(prisonerNumber)))
 
     whenever(nextReviewDateGetterService.getMany(any())).thenReturn(mapOf(110002L to expectedNextReviewDate))
 
@@ -255,7 +255,7 @@ class IncentiveReviewsServiceTest {
     val someFutureNextReviewDate = LocalDate.now(clock).plusYears(1)
 
     whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-2-1")
-    whenever(offenderSearchService.findOffenders(any(), any())).thenReturn(offenders)
+    whenever(offenderSearchService.getOffendersAtLocation(any(), any())).thenReturn(offenders)
     whenever(prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(any()))
       .thenReturn(
         flowOf(
@@ -335,7 +335,7 @@ class IncentiveReviewsServiceTest {
         offenderSearchPrisoner("A1409AE", 110001L),
         offenderSearchPrisoner("G6123VU", 110002L),
       )
-      whenever(offenderSearchService.findOffenders(any(), any())).thenReturn(offenders)
+      whenever(offenderSearchService.getOffendersAtLocation(any(), any())).thenReturn(offenders)
       whenever(nextReviewDateGetterService.getMany(offenders)).thenReturn(nextReviewDatesMap)
 
       // When
@@ -382,7 +382,7 @@ class IncentiveReviewsServiceTest {
         offenderSearchPrisoner("A1409AE", 110001L),
         offenderSearchPrisoner("G6123VU", 110002L),
       )
-      whenever(offenderSearchService.findOffenders(any(), any())).thenReturn(offenders)
+      whenever(offenderSearchService.getOffendersAtLocation(any(), any())).thenReturn(offenders)
       whenever(nextReviewDateGetterService.getMany(offenders)).thenReturn(nextReviewDatesMap)
 
       // When
@@ -400,7 +400,7 @@ class IncentiveReviewsServiceTest {
         offenderSearchPrisoner("A1409AE", 110001L),
         offenderSearchPrisoner("G6123VU", 110002L),
       )
-      whenever(offenderSearchService.findOffenders(any(), any())).thenReturn(offenders)
+      whenever(offenderSearchService.getOffendersAtLocation(any(), any())).thenReturn(offenders)
       whenever(nextReviewDateGetterService.getMany(offenders)).thenReturn(nextReviewDatesMap)
 
       // When
@@ -421,7 +421,7 @@ class IncentiveReviewsServiceTest {
   fun `throw exception if cannot find incentive level one bookingId`(): Unit = runBlocking {
     // Given - we only have prisonerIepLevel records for 110001
     whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-2-1")
-    whenever(offenderSearchService.findOffenders(any(), any())).thenReturn(
+    whenever(offenderSearchService.getOffendersAtLocation(any(), any())).thenReturn(
       listOf(
         offenderSearchPrisoner("A1409AE", 110001),
         offenderSearchPrisoner("G6123VU", 110002),
@@ -447,7 +447,7 @@ class IncentiveReviewsServiceTest {
   fun `throw exception if cannot find incentive levels all bookingIds`(): Unit = runBlocking {
     // Given - we don't have prisonerIepLevel records for either bookingId
     whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-2-1")
-    whenever(offenderSearchService.findOffenders(any(), any())).thenReturn(
+    whenever(offenderSearchService.getOffendersAtLocation(any(), any())).thenReturn(
       listOf(
         offenderSearchPrisoner("A1409AE", 110001),
         offenderSearchPrisoner("G6123VU", 110002),
@@ -476,7 +476,7 @@ class IncentiveReviewsServiceTest {
       offenderSearchPrisoner("G6123VU", 110002),
       offenderSearchPrisoner("G6123VX", 110003),
     )
-    whenever(offenderSearchService.findOffenders(any(), any())).thenReturn(offenders)
+    whenever(offenderSearchService.getOffendersAtLocation(any(), any())).thenReturn(offenders)
     whenever(prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(any()))
       .thenReturn(
         flowOf(
@@ -521,7 +521,7 @@ class IncentiveReviewsServiceTest {
         offenderSearchPrisoner("G6123VU", 110002),
         offenderSearchPrisoner("G6123VX", 110003),
       )
-      whenever(offenderSearchService.findOffenders(any(), any())).thenReturn(offenders)
+      whenever(offenderSearchService.getOffendersAtLocation(any(), any())).thenReturn(offenders)
       whenever(prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(any())).thenReturn(emptyFlow())
 
       whenever(prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(any()))
@@ -560,7 +560,7 @@ class IncentiveReviewsServiceTest {
       offenderSearchPrisoner("G6123VU", 110002),
       offenderSearchPrisoner("G6123VX", 110003),
     )
-    whenever(offenderSearchService.findOffenders(any(), any())).thenReturn(offenders)
+    whenever(offenderSearchService.getOffendersAtLocation(any(), any())).thenReturn(offenders)
     whenever(prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(any()))
       .thenReturn(
         flowOf(
@@ -604,7 +604,7 @@ class IncentiveReviewsServiceTest {
   fun `overdue count where no next reviews are in the past`(): Unit = runBlocking {
     // Given
     whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-2-1")
-    whenever(offenderSearchService.findOffenders(any(), any())).thenReturn(
+    whenever(offenderSearchService.getOffendersAtLocation(any(), any())).thenReturn(
       listOf(
         offenderSearchPrisoner("A1409AE", 110001),
         offenderSearchPrisoner("G6123VU", 110002),

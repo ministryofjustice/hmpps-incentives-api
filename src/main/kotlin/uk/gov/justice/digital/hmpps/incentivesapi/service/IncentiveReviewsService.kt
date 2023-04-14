@@ -51,7 +51,7 @@ class IncentiveReviewsService(
   ): IncentiveReviewResponse = coroutineScope {
     val deferredOffenders = async {
       // all offenders at location are required to determine total number with overdue reviews
-      offenderSearchService.findOffenders(prisonId, cellLocationPrefix)
+      offenderSearchService.getOffendersAtLocation(prisonId, cellLocationPrefix)
     }
     val deferredLocationDescription = async {
       try {
