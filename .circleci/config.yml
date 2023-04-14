@@ -116,6 +116,10 @@ workflows:
             - generate-api-docs
       - hmpps/helm_lint:
           name: helm_lint
+      - hmpps/gradle_owasp_dependency_check:
+          context:
+            - hmpps-common-vars
+          cache_key: "v2_0"
       - hmpps/build_docker:
           name: build_docker
           filters:
