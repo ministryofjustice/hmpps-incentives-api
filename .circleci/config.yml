@@ -2,6 +2,8 @@ version: 2.1
 
 orbs:
   hmpps: ministryofjustice/hmpps@7.1.0
+  gradle: circleci/gradle@2.2.0
+  owasp: entur/owasp@0.0.17
 
 parameters:
   alerts-slack-channel:
@@ -46,6 +48,36 @@ jobs:
           path: build/reports/tests
       - store_artifacts:
           path: build/reports/jacoco/test/html
+
+  gradle_owasp_dependency_check:
+    executor:
+      name: hmpps/java
+      tag: "19.0"
+    steps:
+      - checkout
+      - gradle/with_cache:
+          steps:
+            - owasp/generate_cache_keys:
+                cache_key: gradle-v2-cache-key
+            - owasp/restore_owasp_cache:
+                cache_key: v2
+            - run:
+                name: Update OWASP Dependency-Check Database
+                command: ./gradlew dependencyCheckUpdate --info
+            - owasp/store_owasp_cache:
+                cve_data_directory: ~/.gradle/dependency-check-data
+                cache_key: v2
+            - run:
+                name: Run OWASP Dependency-Check Analyzer
+                no_output_timeout: 15m
+                command: ./gradlew dependencyCheckAnalyze --info
+            - run:
+                # note: Also run purge so so that vulnerability data is not cached twice.
+                # Run in separate step so not run for each submodule.
+                name: OWASP Dependency-Check cache cleanup
+                command: ./gradlew dependencyCheckPurge --info
+            - owasp/collect_reports:
+                persist_to_workspace: false
 
   generate-api-docs:
     executor:
@@ -116,10 +148,9 @@ workflows:
             - generate-api-docs
       - hmpps/helm_lint:
           name: helm_lint
-      - hmpps/gradle_owasp_dependency_check:
+      - gradle_owasp_dependency_check:
           context:
             - hmpps-common-vars
-          cache_key: "v2_0"
       - hmpps/build_docker:
           name: build_docker
           filters:
