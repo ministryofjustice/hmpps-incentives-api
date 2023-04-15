@@ -20,7 +20,7 @@ import java.time.ZoneId
 
 // TODO: move into inner class CountPrisonersOnLevel of PrisonerIepLevelReviewServiceTest once IepLevelService is removed
 class CountPrisonersServiceTest {
-  private val clock: Clock = Clock.fixed(Instant.ofEpochMilli(0), ZoneId.of("Europe/London"))
+  private val clock: Clock = Clock.fixed(Instant.parse("2022-08-01T12:45:00.00Z"), ZoneId.of("Europe/London"))
 
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository = mock()
   private val offenderSearchService: OffenderSearchService = mock()
