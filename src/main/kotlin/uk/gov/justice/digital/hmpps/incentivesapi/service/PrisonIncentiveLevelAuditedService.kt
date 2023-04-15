@@ -20,10 +20,12 @@ class PrisonIncentiveLevelAuditedService(
   private val snsService: SnsService,
   incentiveLevelRepository: IncentiveLevelRepository,
   prisonIncentiveLevelRepository: PrisonIncentiveLevelRepository,
+  countPrisonersService: CountPrisonersService,
 ) : PrisonIncentiveLevelService(
   clock = clock,
   incentiveLevelRepository = incentiveLevelRepository,
   prisonIncentiveLevelRepository = prisonIncentiveLevelRepository,
+  countPrisonersService = countPrisonersService,
 ) {
   override suspend fun updatePrisonIncentiveLevel(
     prisonId: String,
