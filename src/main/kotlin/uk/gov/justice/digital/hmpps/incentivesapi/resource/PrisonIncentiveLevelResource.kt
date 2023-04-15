@@ -107,10 +107,10 @@ class PrisonIncentiveLevelResource(
   @PreAuthorize("hasRole('MAINTAIN_PRISON_IEP_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
     summary = "Updates prison incentive level information",
-    description = "Payload must include all required fields." +
+    description = "Payload must include all required fields. " +
+      "Deactivating a level is only possible if there are no prisoners occupying it." +
       "\n\nRequires role: MAINTAIN_PRISON_IEP_LEVELS with write scope" +
-      "\nRaises HMPPS domain event: \"incentives.prison-level.changed\"",
-    // TODO: decide and explain what happens to prisoners if level is deactivated
+      "\n\nRaises HMPPS domain event: \"incentives.prison-level.changed\"",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -118,7 +118,7 @@ class PrisonIncentiveLevelResource(
       ),
       ApiResponse(
         responseCode = "400",
-        description = "Invalid payload", // TODO: maybe also when deactivating and there are prisoners on level?
+        description = "Invalid payload or level is being deactivated despite having prisoners on it",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
@@ -163,10 +163,10 @@ class PrisonIncentiveLevelResource(
   @PreAuthorize("hasRole('MAINTAIN_PRISON_IEP_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
     summary = "Updates prison incentive level information",
-    description = "Partial updates are allowed." +
+    description = "Partial updates are allowed. " +
+      "Deactivating a level is only possible if there are no prisoners occupying it." +
       "\n\nRequires role: MAINTAIN_PRISON_IEP_LEVELS with write scope" +
-      "\nRaises HMPPS domain event: \"incentives.prison-level.changed\"",
-    // TODO: decide and explain what happens to prisoners if level is deactivated
+      "\n\nRaises HMPPS domain event: \"incentives.prison-level.changed\"",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -174,7 +174,7 @@ class PrisonIncentiveLevelResource(
       ),
       ApiResponse(
         responseCode = "400",
-        description = "Invalid payload", // TODO: maybe also when deactivating and there are prisoners on level?
+        description = "Invalid payload or level is being deactivated despite having prisoners on it",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
@@ -242,19 +242,19 @@ class PrisonIncentiveLevelResource(
   @PreAuthorize("hasRole('MAINTAIN_PRISON_IEP_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
     summary = "Deactivate an incentive level for a prison",
-    description = "Requires role: MAINTAIN_PRISON_IEP_LEVELS with write scope" +
-      "\nRaises HMPPS domain event: \"incentives.prison-level.changed\"",
-    // TODO: decide and explain what happens to prisoners if level is deactivated
+    description = "Deactivating a level is only possible if there are no prisoners occupying it." +
+      "\n\nRequires role: MAINTAIN_PRISON_IEP_LEVELS with write scope" +
+      "\n\nRaises HMPPS domain event: \"incentives.prison-level.changed\"",
     responses = [
       ApiResponse(
         responseCode = "200",
         description = "Prison incentive level deactivated",
       ),
-      // ApiResponse(
-      //   responseCode = "400",
-      //   description = "There are prisoners on this incentive level at this prison",
-      //   content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))]
-      // ),
+      ApiResponse(
+        responseCode = "400",
+        description = "Incentive level is globally required or there are prisoners on this incentive level at this prison",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
       ApiResponse(
         responseCode = "401",
         description = "Unauthorized to access this endpoint",
