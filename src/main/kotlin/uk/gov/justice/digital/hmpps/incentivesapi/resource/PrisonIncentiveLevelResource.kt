@@ -108,7 +108,7 @@ class PrisonIncentiveLevelResource(
   @Operation(
     summary = "Updates prison incentive level information",
     description = "Payload must include all required fields. " +
-      "Deactivating a level is only possible if there are no prisoners occupying it." +
+      "Deactivating a level is only possible if there are no prisoners currently on it." +
       "\n\nRequires role: MAINTAIN_PRISON_IEP_LEVELS with write scope" +
       "\n\nRaises HMPPS domain event: \"incentives.prison-level.changed\"",
     responses = [
@@ -164,7 +164,7 @@ class PrisonIncentiveLevelResource(
   @Operation(
     summary = "Updates prison incentive level information",
     description = "Partial updates are allowed. " +
-      "Deactivating a level is only possible if there are no prisoners occupying it." +
+      "Deactivating a level is only possible if there are no prisoners currently on it." +
       "\n\nRequires role: MAINTAIN_PRISON_IEP_LEVELS with write scope" +
       "\n\nRaises HMPPS domain event: \"incentives.prison-level.changed\"",
     responses = [
@@ -242,7 +242,7 @@ class PrisonIncentiveLevelResource(
   @PreAuthorize("hasRole('MAINTAIN_PRISON_IEP_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
     summary = "Deactivate an incentive level for a prison",
-    description = "Deactivating a level is only possible if there are no prisoners occupying it." +
+    description = "Deactivating a level is only possible if there are no prisoners currently on it." +
       "\n\nRequires role: MAINTAIN_PRISON_IEP_LEVELS with write scope" +
       "\n\nRaises HMPPS domain event: \"incentives.prison-level.changed\"",
     responses = [

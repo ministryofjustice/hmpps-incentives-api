@@ -642,10 +642,10 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
     }
 
     @Test
-    fun `fails to update a prison incentive level if it would become inactive despite being occupied with prisoners`() {
+    fun `fails to update a prison incentive level if it would become inactive despite having prisoners on it`() {
       makePrisonIncentiveLevel("WRI", "STD") // Standard is the default for admission, needed to manipulate other levels
       makePrisonIncentiveLevel("WRI", "EN2")
-      makeIncentiveReviews("WRI") // EN2 is occupied by A1234AB/1234135 & A1234AD/1234137
+      makeIncentiveReviews("WRI") // EN2 has A1234AB/1234135 & A1234AD/1234137 on it
 
       webTestClient.put()
         .uri("/incentive/prison-levels/WRI/level/EN2")
@@ -1080,10 +1080,10 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
     }
 
     @Test
-    fun `fails to partially update a prison incentive level if it would become inactive despite being occupied with prisoners`() {
+    fun `fails to partially update a prison incentive level if it would become inactive despite having prisoners on it`() {
       makePrisonIncentiveLevel("WRI", "STD") // Standard is the default for admission, needed to manipulate other levels
       makePrisonIncentiveLevel("WRI", "EN2")
-      makeIncentiveReviews("WRI") // EN2 is occupied by A1234AB/1234135 & A1234AD/1234137
+      makeIncentiveReviews("WRI") // EN2 has A1234AB/1234135 & A1234AD/1234137 on it
 
       webTestClient.patch()
         .uri("/incentive/prison-levels/WRI/level/EN2")
@@ -1257,10 +1257,10 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
     }
 
     @Test
-    fun `fails to deactivate a prison incentive level which is occupied with prisoners`() {
+    fun `fails to deactivate a prison incentive level which has prisoners on it`() {
       makePrisonIncentiveLevel("MDI", "STD") // Standard is the default for admission, needed to manipulate other levels
       makePrisonIncentiveLevel("MDI", "EN2")
-      makeIncentiveReviews("MDI") // EN2 is occupied by A1234AB/1234135 & A1234AD/1234137
+      makeIncentiveReviews("MDI") // EN2 has A1234AB/1234135 & A1234AD/1234137 on it
 
       webTestClient.delete()
         .uri("/incentive/prison-levels/MDI/level/EN2")
