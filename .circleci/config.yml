@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  hmpps: ministryofjustice/hmpps@7.1.0
+  hmpps: ministryofjustice/hmpps@7
 
 parameters:
   alerts-slack-channel:
@@ -180,6 +180,7 @@ workflows:
           context:
             - hmpps-common-vars
           cache_key: "v2_0"
+          jdk_tag: "19.0"
       - hmpps/trivy_latest_scan:
           slack_channel: << pipeline.parameters.alerts-slack-channel >>
           context:
