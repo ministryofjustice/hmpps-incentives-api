@@ -256,14 +256,12 @@ Authorised requests do not require any roles.
   {
     "code": "BAS",
     "name": "Basic",
-    "description": "",
     "active": true,
     "required": true
   },
   {
     "code": "STD",
     "name": "Standard",
-    "description": "",
     "active": true,
     "required": true
   },
@@ -278,14 +276,12 @@ Authorised requests do not require any roles.
   {
     "code": "BAS",
     "name": "Basic",
-    "description": "",
     "active": true,
     "required": true
   },
   {
     "code": "STD",
     "name": "Standard",
-    "description": "",
     "active": true,
     "required": true
   },
@@ -293,7 +289,6 @@ Authorised requests do not require any roles.
   {
     "code": "ENT",
     "name": "Entry",
-    "description": "",
     "active": false,
     "required": false
   }
@@ -308,7 +303,6 @@ NB: Inactive levels are also returned
 {
   "code": "BAS",
   "name": "Basic",
-  "description": "",
   "active": true,
   "required": true
 }
@@ -325,7 +319,6 @@ e.g. **/incentive/prison-levels/MDI** returns
   {
     "levelCode": "STD",
     "levelName": "Standard",
-    "levelDescription": "",
     "prisonId": "MDI",
     "active": true,
     "defaultOnAdmission": true,
@@ -356,7 +349,6 @@ e.g. **/incentive/prison-levels/MDI/level/STD** returns
 {
   "levelCode": "STD",
   "levelName": "Standard",
-  "levelDescription": "",
   "prisonId": "MDI",
   "active": true,
   "defaultOnAdmission": true,
@@ -380,7 +372,6 @@ Authorised requests will require roles with write scope.
 {
   "code": "EN4",
   "name": "Enhanced 4",
-  "description": "",
   "active": true
 }
 ```
@@ -391,7 +382,6 @@ Authorised requests will require roles with write scope.
 {
   "code": "STD",
   "name": "Silver",
-  "description": "",
   "active": true
 }
 ```
@@ -421,7 +411,6 @@ Authorised requests will require roles with write scope.
 {
   "levelCode": "STD",
   "levelName": "Standard",
-  "levelDescription": "",
   "prisonId": "MDI",
   "active": true,
   "defaultOnAdmission": true,

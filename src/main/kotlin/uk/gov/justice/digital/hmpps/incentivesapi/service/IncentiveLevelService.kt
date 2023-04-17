@@ -149,7 +149,6 @@ class IncentiveLevelService(
   private fun IncentiveLevel.withUpdate(update: IncentiveLevelUpdateDTO): IncentiveLevel = copy(
     code = code,
     name = update.name ?: name,
-    description = update.description ?: description,
     active = update.active ?: active,
     required = update.required ?: required,
 
@@ -160,7 +159,6 @@ class IncentiveLevelService(
   private fun IncentiveLevel.toDTO(): IncentiveLevelDTO = IncentiveLevelDTO(
     code = code,
     name = name,
-    description = description,
     active = active,
     required = required,
   )
@@ -168,7 +166,6 @@ class IncentiveLevelService(
   private fun IncentiveLevelDTO.toNewEntity(sequence: Int): IncentiveLevel = IncentiveLevel(
     code = code,
     name = name,
-    description = description,
     sequence = sequence,
     active = active,
     required = required,

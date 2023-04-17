@@ -14,7 +14,6 @@ data class IncentiveLevel(
   @Id
   val code: String,
   val name: String,
-  val description: String = "",
   val sequence: Int,
   val active: Boolean = true,
   val required: Boolean = false,
