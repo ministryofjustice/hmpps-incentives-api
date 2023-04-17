@@ -1,13 +1,16 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.resource
 
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
@@ -15,7 +18,10 @@ import org.springframework.http.HttpStatus
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.incentivesapi.helper.expectErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.IncentiveLevelResourceTestBase
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import java.time.Clock
+import java.time.LocalDateTime
 
 class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
   @TestConfiguration
@@ -25,11 +31,29 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
     fun fixedClock(): Clock = clock
   }
 
+  @Autowired
+  private lateinit var prisonerIepLevelRepository: PrisonerIepLevelRepository
+
+  @BeforeEach
+  fun setUp(): Unit = runBlocking {
+    prisonIncentiveLevelRepository.deleteAll()
+    prisonerIepLevelRepository.deleteAll()
+
+    offenderSearchMockServer.stubFindOffenders("BAI")
+    offenderSearchMockServer.stubFindOffenders("MDI")
+    offenderSearchMockServer.stubFindOffenders("WRI")
+  }
+
+  @AfterEach
+  override fun tearDown(): Unit = runBlocking {
+    prisonerIepLevelRepository.deleteAll()
+    super.tearDown()
+  }
+
   @Nested
   inner class `retrieving prison incentive levels` {
     @BeforeEach
     fun setUp() = runBlocking {
-      prisonIncentiveLevelRepository.deleteAll()
       listOf("BAS", "STD", "ENH", "ENT").forEach { levelCode ->
         listOf("BAI", "MDI", "WRI").forEach { prisonId ->
           makePrisonIncentiveLevel(prisonId, levelCode)
@@ -618,6 +642,39 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
     }
 
     @Test
+    fun `fails to update a prison incentive level if it would become inactive despite having prisoners on it`() {
+      makePrisonIncentiveLevel("WRI", "STD") // Standard is the default for admission, needed to manipulate other levels
+      makePrisonIncentiveLevel("WRI", "EN2")
+      makeIncentiveReviews("WRI") // EN2 has A1234AB/1234135 & A1234AD/1234137 on it
+
+      webTestClient.put()
+        .uri("/incentive/prison-levels/WRI/level/EN2")
+        .withLocalAuthorisation()
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          {
+            "levelCode": "EN2", "prisonId": "WRI", "active": false,
+            "remandTransferLimitInPence": 6600, "remandSpendLimitInPence": 66000, "convictedTransferLimitInPence": 3300, "convictedSpendLimitInPence": 33000,
+            "visitOrders": 2, "privilegedVisitOrders": 1
+          }
+          """,
+        )
+        .exchange()
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "A level must remain active if there are prisoners on it currently")
+
+      runBlocking {
+        val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("WRI", "EN2")
+        assertThat(prisonIncentiveLevel?.active).isTrue
+        assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
+      }
+
+      assertNoDomainEventSent()
+      assertNoAuditMessageSent()
+    }
+
+    @Test
     fun `partially updates a prison incentive level when one exists`() {
       makePrisonIncentiveLevel("BAI", "BAS")
       `partially updates a prison incentive level when per-prison information does not exist`()
@@ -1023,6 +1080,37 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
     }
 
     @Test
+    fun `fails to partially update a prison incentive level if it would become inactive despite having prisoners on it`() {
+      makePrisonIncentiveLevel("WRI", "STD") // Standard is the default for admission, needed to manipulate other levels
+      makePrisonIncentiveLevel("WRI", "EN2")
+      makeIncentiveReviews("WRI") // EN2 has A1234AB/1234135 & A1234AD/1234137 on it
+
+      webTestClient.patch()
+        .uri("/incentive/prison-levels/WRI/level/EN2")
+        .withLocalAuthorisation()
+        .header("Content-Type", "application/json")
+        .bodyValue(
+          // language=json
+          """
+          {
+            "active": false
+          }
+          """,
+        )
+        .exchange()
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "A level must remain active if there are prisoners on it currently")
+
+      runBlocking {
+        val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("WRI", "EN2")
+        assertThat(prisonIncentiveLevel?.active).isTrue
+        assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
+      }
+
+      assertNoDomainEventSent()
+      assertNoAuditMessageSent()
+    }
+
+    @Test
     fun `deactivates a prison incentive level when one exists`() {
       makePrisonIncentiveLevel("WRI", "EN2")
       `deactivates a prison incentive level when per-prison information does not exist`()
@@ -1167,5 +1255,81 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
       assertNoDomainEventSent()
       assertNoAuditMessageSent()
     }
+
+    @Test
+    fun `fails to deactivate a prison incentive level which has prisoners on it`() {
+      makePrisonIncentiveLevel("MDI", "STD") // Standard is the default for admission, needed to manipulate other levels
+      makePrisonIncentiveLevel("MDI", "EN2")
+      makeIncentiveReviews("MDI") // EN2 has A1234AB/1234135 & A1234AD/1234137 on it
+
+      webTestClient.delete()
+        .uri("/incentive/prison-levels/MDI/level/EN2")
+        .withLocalAuthorisation()
+        .header("Content-Type", "application/json")
+        .exchange()
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "A level must remain active if there are prisoners on it currently")
+
+      runBlocking {
+        val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("MDI", "EN2")
+        assertThat(prisonIncentiveLevel?.active).isTrue
+        assertThat(prisonIncentiveLevel?.whenUpdated).isNotEqualTo(now)
+      }
+
+      assertNoDomainEventSent()
+      assertNoAuditMessageSent()
+    }
+  }
+
+  private fun makeIncentiveReviews(prisonId: String): Unit = runBlocking {
+    // prisoner numbers and booking ids match stubbed offender search response
+    prisonerIepLevelRepository.saveAll(
+      listOf(
+        PrisonerIepLevel(
+          prisonerNumber = "A1234AA",
+          bookingId = 1234134,
+          iepCode = "STD",
+          prisonId = prisonId,
+          locationId = "$prisonId-1-1-001",
+          reviewedBy = "TEST_STAFF1",
+          reviewTime = LocalDateTime.now(clock).minusDays(1),
+        ),
+        PrisonerIepLevel(
+          prisonerNumber = "A1234AB",
+          bookingId = 1234135,
+          iepCode = "EN2",
+          prisonId = prisonId,
+          locationId = "$prisonId-1-1-002",
+          reviewedBy = "TEST_STAFF1",
+          reviewTime = LocalDateTime.now(clock).minusDays(1),
+        ),
+        PrisonerIepLevel(
+          prisonerNumber = "A1234AC",
+          bookingId = 1234136,
+          iepCode = "ENH",
+          prisonId = prisonId,
+          locationId = "$prisonId-1-1-003",
+          reviewedBy = "TEST_STAFF1",
+          reviewTime = LocalDateTime.now(clock).minusDays(1),
+        ),
+        PrisonerIepLevel(
+          prisonerNumber = "A1234AD",
+          bookingId = 1234137,
+          iepCode = "EN2",
+          prisonId = prisonId,
+          locationId = "$prisonId-1-1-004",
+          reviewedBy = "TEST_STAFF1",
+          reviewTime = LocalDateTime.now(clock).minusDays(1),
+        ),
+        PrisonerIepLevel(
+          prisonerNumber = "A1234AE",
+          bookingId = 1234138,
+          iepCode = "BAS",
+          prisonId = prisonId,
+          locationId = "$prisonId-1-1-005",
+          reviewedBy = "TEST_STAFF1",
+          reviewTime = LocalDateTime.now(clock).minusDays(1),
+        ),
+      ),
+    ).collect()
   }
 }

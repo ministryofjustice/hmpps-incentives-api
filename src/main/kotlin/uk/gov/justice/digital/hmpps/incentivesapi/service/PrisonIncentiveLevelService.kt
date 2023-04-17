@@ -31,6 +31,7 @@ class PrisonIncentiveLevelService(
   private val clock: Clock,
   private val incentiveLevelRepository: IncentiveLevelRepository,
   private val prisonIncentiveLevelRepository: PrisonIncentiveLevelRepository,
+  private val countPrisonersService: CountPrisonersService,
 ) {
   /**
    * Returns all incentive levels for given prison, including inactive ones, along with associated information, in globally-defined order
@@ -91,10 +92,10 @@ class PrisonIncentiveLevelService(
     }
 
     return incentiveLevelRepository.findById(levelCode)?.let { incentiveLevel ->
-      val prisonIncentiveLevel =
-        prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode(prisonId, levelCode)
-          ?.withUpdate(update)
-          ?: update.toNewEntity(prisonId, levelCode)
+      val originalPrisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode(prisonId, levelCode)
+      val prisonIncentiveLevel = originalPrisonIncentiveLevel
+        ?.withUpdate(update)
+        ?: update.toNewEntity(prisonId, levelCode)
 
       if (!incentiveLevel.active && prisonIncentiveLevel.active) {
         throw ValidationException("A level cannot be made active and when it is globally inactive")
@@ -104,6 +105,12 @@ class PrisonIncentiveLevelService(
       }
       if (!prisonIncentiveLevel.active && prisonIncentiveLevel.defaultOnAdmission) {
         throw ValidationException("A level cannot be made inactive and still be the default for admission")
+      }
+      if (originalPrisonIncentiveLevel?.active == true && !prisonIncentiveLevel.active) {
+        val countOfPrisonersOnLevel = countPrisonersService.countOfPrisonersOnLevelInPrison(prisonIncentiveLevel.prisonId, prisonIncentiveLevel.levelCode)
+        if (countOfPrisonersOnLevel != 0) {
+          throw ValidationException("A level must remain active if there are prisoners on it currently")
+        }
       }
 
       if (prisonIncentiveLevel.defaultOnAdmission) {

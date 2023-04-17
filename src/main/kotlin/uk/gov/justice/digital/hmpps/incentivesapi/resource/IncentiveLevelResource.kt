@@ -72,7 +72,7 @@ class IncentiveLevelResource(
     summary = "Creates a new incentive level",
     description = "New incentive levels are added to the end of the list." +
       "\n\nRequires role: MAINTAIN_INCENTIVE_LEVELS with write scope" +
-      "\nRaises HMPPS domain event: \"incentives.level.changed\"",
+      "\n\nRaises HMPPS domain event: \"incentives.level.changed\"",
     responses = [
       ApiResponse(
         responseCode = "201",
@@ -115,7 +115,7 @@ class IncentiveLevelResource(
     summary = "Sets the order of incentive levels",
     description = "All existing incentive level codes must be provided." +
       "\n\nRequires role: MAINTAIN_INCENTIVE_LEVELS with write scope" +
-      "\nRaises HMPPS domain event: \"incentives.levels.reordered\"",
+      "\n\nRaises HMPPS domain event: \"incentives.levels.reordered\"",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -192,11 +192,11 @@ class IncentiveLevelResource(
   @PreAuthorize("hasRole('MAINTAIN_INCENTIVE_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
     summary = "Updates an incentive level",
-    description = "Payload must include all required fields. A level marked as required must also be active. Deactivated incentive levels remain in the same position with respect to the others." +
+    description = "Payload must include all required fields. A level marked as required must also be active. " +
+      "Deactivating a level is only possible if it is not active in any prison. " +
+      "Deactivated incentive levels remain in the same position with respect to the others." +
       "\n\nRequires role: MAINTAIN_INCENTIVE_LEVELS with write scope" +
-      "\nRaises HMPPS domain event: \"incentives.level.changed\"",
-    // TODO: decide and explain what happens to associated per-prison data when activating/deactivating;
-    //       especially if level is active and/or occupied in some prison
+      "\n\nRaises HMPPS domain event: \"incentives.level.changed\"",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -204,7 +204,7 @@ class IncentiveLevelResource(
       ),
       ApiResponse(
         responseCode = "400",
-        description = "Invalid payload",
+        description = "Invalid payload or level is being deactivated despite being active in some prison",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
@@ -243,11 +243,11 @@ class IncentiveLevelResource(
   @PreAuthorize("hasRole('MAINTAIN_INCENTIVE_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
     summary = "Updates an incentive level",
-    description = "Partial updates are allowed. A level marked as required must also be active. Deactivated incentive levels remain in the same position with respect to the others." +
+    description = "Partial updates are allowed. A level marked as required must also be active. " +
+      "Deactivating a level is only possible if it is not active in any prison. " +
+      "Deactivated incentive levels remain in the same position with respect to the others." +
       "\n\nRequires role: MAINTAIN_INCENTIVE_LEVELS with write scope" +
-      "\nRaises HMPPS domain event: \"incentives.level.changed\"",
-    // TODO: decide and explain what happens to associated per-prison data when activating/deactivating;
-    //       especially if level is active and/or occupied in some prison
+      "\n\nRaises HMPPS domain event: \"incentives.level.changed\"",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -255,7 +255,7 @@ class IncentiveLevelResource(
       ),
       ApiResponse(
         responseCode = "400",
-        description = "Invalid payload",
+        description = "Invalid payload or level is being deactivated despite being active in some prison",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(
@@ -303,11 +303,11 @@ class IncentiveLevelResource(
   @PreAuthorize("hasRole('MAINTAIN_INCENTIVE_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
     summary = "Deactivates an incentive level",
-    description = "A required level cannot be deactivated, needs to be updated first to be not required. Deactivated incentive levels remain in the same position with respect to the others." +
+    description = "A required level cannot be deactivated, needs to be updated first to be not required. " +
+      "Deactivating a level is only possible if it is not active in any prison. " +
+      "Deactivated incentive levels remain in the same position with respect to the others." +
       "\n\nRequires role: MAINTAIN_INCENTIVE_LEVELS with write scope" +
-      "\nRaises HMPPS domain event: \"incentives.level.changed\"",
-    // TODO: decide and explain what happens to associated per-prison data;
-    //       especially if level is active and/or occupied in some prison
+      "\n\nRaises HMPPS domain event: \"incentives.level.changed\"",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -315,7 +315,7 @@ class IncentiveLevelResource(
       ),
       ApiResponse(
         responseCode = "400",
-        description = "Incentive level is marked as required",
+        description = "Incentive level is marked as required or is active in some prison",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(

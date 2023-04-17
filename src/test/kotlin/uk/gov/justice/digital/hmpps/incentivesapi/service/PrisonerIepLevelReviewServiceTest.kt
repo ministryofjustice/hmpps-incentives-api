@@ -39,7 +39,7 @@ class PrisonerIepLevelReviewServiceTest {
   private val prisonApiService: PrisonApiService = mock()
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository = mock()
   private val authenticationFacade: AuthenticationFacade = mock()
-  private var clock: Clock = Clock.fixed(Instant.ofEpochMilli(0), ZoneId.of("Europe/London"))
+  private val clock: Clock = Clock.fixed(Instant.parse("2022-08-01T12:45:00.00Z"), ZoneId.of("Europe/London"))
   private val snsService: SnsService = mock()
   private val auditService: AuditService = mock()
   private val nextReviewDateGetterService: NextReviewDateGetterService = mock()
@@ -179,28 +179,27 @@ class PrisonerIepLevelReviewServiceTest {
   inner class GetPrisonerIepLevelHistory {
 
     @Test
-    fun `will not return iep details if withDetails is false`(): Unit =
-      runBlocking {
-        val bookingId = currentLevel.bookingId
-        val expectedNextReviewDate = currentAndPreviousLevels.first().reviewTime.plusYears(1).toLocalDate()
+    fun `will not return iep details if withDetails is false`(): Unit = runBlocking {
+      val bookingId = currentLevel.bookingId
+      val expectedNextReviewDate = currentAndPreviousLevels.first().reviewTime.plusYears(1).toLocalDate()
 
-        whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
-        whenever(nextReviewDateGetterService.get(bookingId)).thenReturn(expectedNextReviewDate)
+      whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
+      whenever(nextReviewDateGetterService.get(bookingId)).thenReturn(expectedNextReviewDate)
 
-        // Given
-        whenever(prisonerIepLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(bookingId)).thenReturn(
-          currentAndPreviousLevels,
-        )
+      // Given
+      whenever(prisonerIepLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(bookingId)).thenReturn(
+        currentAndPreviousLevels,
+      )
 
-        // When
-        val result =
-          prisonerIepLevelReviewService.getPrisonerIepLevelHistory(bookingId, withDetails = false)
+      // When
+      val result =
+        prisonerIepLevelReviewService.getPrisonerIepLevelHistory(bookingId, withDetails = false)
 
-        // Then
-        verify(prisonerIepLevelRepository, times(1)).findAllByBookingIdOrderByReviewTimeDesc(bookingId)
-        assertThat(result.iepDetails.size).isZero
-        assertThat(result.nextReviewDate).isEqualTo(expectedNextReviewDate)
-      }
+      // Then
+      verify(prisonerIepLevelRepository, times(1)).findAllByBookingIdOrderByReviewTimeDesc(bookingId)
+      assertThat(result.iepDetails.size).isZero
+      assertThat(result.nextReviewDate).isEqualTo(expectedNextReviewDate)
+    }
   }
 
   @Nested
@@ -797,13 +796,13 @@ class PrisonerIepLevelReviewServiceTest {
       prisonerNumber = prisonerIepLevel.prisonerNumber,
       auditModuleName = "INCENTIVES_API",
     )
+
+  private val globalIncentiveLevels = listOf(
+    IncentiveLevel(code = "BAS", name = "Basic"),
+    IncentiveLevel(code = "STD", name = "Standard"),
+    IncentiveLevel(code = "ENH", name = "Enhanced"),
+    IncentiveLevel(code = "EN2", name = "Enhanced 2"),
+  )
+
+  private val incentiveLevels = globalIncentiveLevels.associateBy { iep -> iep.code }
 }
-
-val globalIncentiveLevels = listOf(
-  IncentiveLevel(code = "BAS", name = "Basic"),
-  IncentiveLevel(code = "STD", name = "Standard"),
-  IncentiveLevel(code = "ENH", name = "Enhanced"),
-  IncentiveLevel(code = "EN2", name = "Enhanced 2"),
-)
-
-val incentiveLevels = globalIncentiveLevels.associateBy { iep -> iep.code }

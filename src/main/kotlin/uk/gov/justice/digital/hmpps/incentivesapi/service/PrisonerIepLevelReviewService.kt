@@ -1,12 +1,10 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import jakarta.validation.ValidationException
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.count
-import kotlinx.coroutines.flow.flattenMerge
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.toList
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -133,7 +131,8 @@ class PrisonerIepLevelReviewService(
   }
 
   suspend fun getReviewById(id: Long): IepDetail =
-    prisonerIepLevelRepository.findById(id)?.toIepDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode()) ?: throw NoDataFoundException(id)
+    prisonerIepLevelRepository.findById(id)?.toIepDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
+      ?: throw NoDataFoundException(id)
 
   suspend fun processOffenderEvent(prisonOffenderEvent: HMPPSDomainEvent) =
     when (prisonOffenderEvent.additionalInformation?.reason) {
@@ -377,9 +376,6 @@ class PrisonerIepLevelReviewService(
     }
   }
 }
-
-@OptIn(FlowPreview::class)
-fun <T> merge(vararg flows: Flow<T>): Flow<T> = flowOf(*flows).flattenMerge()
 
 class IncentiveReviewNotFoundException(message: String?) :
   RuntimeException(message),

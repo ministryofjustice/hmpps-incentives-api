@@ -113,7 +113,7 @@ class OffenderSearchServiceTest {
       ),
     )
     val offenderSearchService = OffenderSearchService(webClient)
-    val offenders = offenderSearchService.findOffenders("MDI", "MDI-1")
+    val offenders = offenderSearchService.getOffendersAtLocation("MDI", "MDI-1")
     assertThat(offenders).hasSize(1)
   }
 
@@ -157,7 +157,7 @@ class OffenderSearchServiceTest {
       ),
     )
     val offenderSearchService = OffenderSearchService(webClient)
-    val offenders = offenderSearchService.findOffenders("MDI", "MDI-1")
+    val offenders = offenderSearchService.getOffendersAtLocation("MDI", "MDI-1")
     assertThat(offenders).hasSize(3)
   }
 }
