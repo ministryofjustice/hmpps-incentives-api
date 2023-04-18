@@ -8,6 +8,12 @@
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "all non major Gradle dependencies",
       "groupSlug": "all-gradle-minor-patch"
+    },
+    {
+      "matchDatasources": ["orb"],
+      "matchDepNames": ["hmpps"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "enabled": false
     }
   ]
 }
