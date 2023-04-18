@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.config
 
-import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.ValidationException
 import org.slf4j.LoggerFactory
@@ -32,7 +31,7 @@ class HmppsIncentivesApiExceptionHandler {
       .status(BAD_REQUEST)
       .body(
         ErrorResponse(
-          status = (BAD_REQUEST.value()),
+          status = BAD_REQUEST,
           userMessage = "Validation failure: $message",
           developerMessage = (e.message),
         ),
@@ -244,14 +243,13 @@ class ListOfDataNotFoundException(dataType: String, ids: Collection<Long>) :
 class DataIntegrityException(message: String) :
   Exception(message)
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Error Response")
+@Schema(description = "Error response")
 data class ErrorResponse(
-  @Schema(description = "Status of Error", example = "500", required = true)
+  @Schema(description = "HTTP status code", example = "500", required = true)
   val status: Int,
-  @Schema(description = "Error Code", example = "500", required = false)
+  @Schema(description = "Internal error code", example = "123", required = false)
   val errorCode: Int? = null,
-  @Schema(description = "User Message of error", example = "Bad Data", required = false)
+  @Schema(description = "User message for the error", example = "Bad Data", required = false)
   val userMessage: String? = null,
   @Schema(description = "More detailed error message", example = "This is a stack trace", required = false)
   val developerMessage: String? = null,
