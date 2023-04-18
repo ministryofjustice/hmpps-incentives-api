@@ -30,7 +30,7 @@ class CountPrisonersServiceTest {
   @Test
   fun `count prisoners on a level in a prison`(): Unit = runBlocking {
     // mock offender search returning 2 pages of results with 3 prisoners, only 2 of which are on Standard in the repository
-    whenever(offenderSearchService.findOffendersAtLocation("MDI", "MDI")).thenReturn(
+    whenever(offenderSearchService.findOffendersAtLocation("MDI", "")).thenReturn(
       flowOf(
         listOf(
           OffenderSearchPrisoner(
@@ -106,7 +106,7 @@ class CountPrisonersServiceTest {
     val countOfPrisonersOnLevelInPrison = countPrisonersService.countOfPrisonersOnLevelInPrison("MDI", "STD")
 
     assertThat(countOfPrisonersOnLevelInPrison).isEqualTo(2)
-    verify(offenderSearchService, times(1)).findOffendersAtLocation("MDI", "MDI")
+    verify(offenderSearchService, times(1)).findOffendersAtLocation("MDI", "")
     verify(prisonerIepLevelRepository, times(2)).findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(any())
   }
 }
