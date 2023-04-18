@@ -107,8 +107,8 @@ class PrisonIncentiveLevelService(
         throw ValidationException("A level cannot be made inactive and still be the default for admission")
       }
       if (originalPrisonIncentiveLevel?.active == true && !prisonIncentiveLevel.active) {
-        val countOfPrisonersOnLevel = countPrisonersService.countOfPrisonersOnLevelInPrison(prisonIncentiveLevel.prisonId, prisonIncentiveLevel.levelCode)
-        if (countOfPrisonersOnLevel != 0) {
+        val prisonersExistOnLevel = countPrisonersService.prisonersExistOnLevelInPrison(prisonIncentiveLevel.prisonId, prisonIncentiveLevel.levelCode)
+        if (prisonersExistOnLevel) {
           throw ValidationException("A level must remain active if there are prisoners on it currently")
         }
       }

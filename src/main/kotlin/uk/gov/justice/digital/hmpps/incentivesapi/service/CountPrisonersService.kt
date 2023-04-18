@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
-import kotlinx.coroutines.flow.count
-import kotlinx.coroutines.flow.fold
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.takeWhile
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 
@@ -12,16 +12,17 @@ class CountPrisonersService(
   private val offenderSearchService: OffenderSearchService,
 ) {
   /**
-   * Returns the number of prisoners on given level at a prison
+   * True if there are currently any prisoners on a given incentive level at a prison
    */
-  suspend fun countOfPrisonersOnLevelInPrison(prisonId: String, levelCode: String): Int {
-    return offenderSearchService.findOffendersAtLocation(prisonId)
-      .fold(0) { countSoFar, offenders ->
+  suspend fun prisonersExistOnLevelInPrison(prisonId: String, levelCode: String): Boolean {
+    var prisonersExistOnLevel = false
+    offenderSearchService.findOffendersAtLocation(prisonId)
+      .takeWhile { offenders ->
         val bookingIds = offenders.map { it.bookingId }
-        countSoFar + prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(bookingIds)
-          .count {
-            it.iepCode == levelCode
-          }
+        prisonersExistOnLevel = prisonerIepLevelRepository.somePrisonerCurrentlyOnLevel(bookingIds, levelCode)
+        !prisonersExistOnLevel
       }
+      .collect()
+    return prisonersExistOnLevel
   }
 }
