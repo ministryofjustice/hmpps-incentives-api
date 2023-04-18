@@ -15,7 +15,7 @@ class CountPrisonersService(
    * Returns the number of prisoners on given level at a prison
    */
   suspend fun countOfPrisonersOnLevelInPrison(prisonId: String, levelCode: String): Int {
-    return offenderSearchService.findOffendersAtLocation(prisonId, prisonId)
+    return offenderSearchService.findOffendersAtLocation(prisonId)
       .fold(0) { countSoFar, offenders ->
         val bookingIds = offenders.map { it.bookingId }
         countSoFar + prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(bookingIds)

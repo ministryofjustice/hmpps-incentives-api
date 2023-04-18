@@ -11,10 +11,11 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisonerList
 @Service
 class OffenderSearchService(private val offenderSearchWebClient: WebClient) {
   /**
-   * Searches for offenders using a cell location prefix (e.g. MDI-1) returning a flow of pages
+   * Searches for offenders in a prison using an optional cell location prefix (e.g. MDI-1)
+   * returning a flow of pages.
    * Requires role PRISONER_IN_PRISON_SEARCH or PRISONER_SEARCH
    */
-  fun findOffendersAtLocation(prisonId: String, cellLocationPrefix: String): Flow<List<OffenderSearchPrisoner>> = flow {
+  fun findOffendersAtLocation(prisonId: String, cellLocationPrefix: String = ""): Flow<List<OffenderSearchPrisoner>> = flow {
     var page = 0
     do {
       val pageOfData = offenderSearchWebClient.get()
@@ -36,10 +37,11 @@ class OffenderSearchService(private val offenderSearchWebClient: WebClient) {
   }
 
   /**
-   * Searches for offenders using a cell location prefix (e.g. MDI-1) returning a complete list
+   * Searches for offenders in a prison using an optional cell location prefix (e.g. MDI-1)
+   * returning a complete list.
    * Requires role PRISONER_IN_PRISON_SEARCH or PRISONER_SEARCH
    */
-  suspend fun getOffendersAtLocation(prisonId: String, cellLocationPrefix: String): List<OffenderSearchPrisoner> {
+  suspend fun getOffendersAtLocation(prisonId: String, cellLocationPrefix: String = ""): List<OffenderSearchPrisoner> {
     val offenders = mutableListOf<OffenderSearchPrisoner>()
     findOffendersAtLocation(prisonId, cellLocationPrefix).collect {
       offenders.addAll(it)
