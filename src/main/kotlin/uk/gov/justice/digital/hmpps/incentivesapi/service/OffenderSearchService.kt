@@ -23,7 +23,7 @@ class OffenderSearchService(private val offenderSearchWebClient: WebClient) {
           mapOf(
             "prisonId" to prisonId,
             "cellLocationPrefix" to cellLocationPrefix,
-            "size" to 200, // NB: this is the max allowed page size
+            "size" to 500, // NB: API allows up 3,000 results per page
             "page" to page,
             "sort" to "prisonerNumber,ASC",
           ),
