@@ -1250,6 +1250,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           HttpStatus.BAD_REQUEST,
           "A level must remain active if it is active in some prison",
           errorCode = 101,
+          moreInfo = "BAI,MDI",
         )
 
       runBlocking {

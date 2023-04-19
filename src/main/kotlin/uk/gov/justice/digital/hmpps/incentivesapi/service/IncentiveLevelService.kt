@@ -111,10 +111,12 @@ class IncentiveLevelService(
           )
         }
         if (originalIncentiveLevel.active && !incentiveLevel.active) {
-          if (prisonIncentiveLevelService.getPrisonIdsWithActivePrisonIncentiveLevel(incentiveLevel.code).isNotEmpty()) {
+          val prisonIds = prisonIncentiveLevelService.getPrisonIdsWithActivePrisonIncentiveLevel(incentiveLevel.code)
+          if (prisonIds.isNotEmpty()) {
             throw ValidationExceptionWithErrorCode(
               "A level must remain active if it is active in some prison",
               ErrorCode.IncentiveLevelActiveIfActiveInPrison,
+              moreInfo = prisonIds.joinToString(","),
             )
           }
         }

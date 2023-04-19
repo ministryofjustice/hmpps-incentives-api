@@ -107,6 +107,7 @@ interface PrisonIncentiveLevelRepository : CoroutineCrudRepository<PrisonIncenti
     SELECT prison_id
     FROM prison_incentive_level
     WHERE active IS TRUE AND level_code = :levelCode
+    ORDER BY prison_id
     """,
   )
   fun findPrisonIdsWithActiveLevel(levelCode: String): Flow<String>

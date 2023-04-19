@@ -71,6 +71,11 @@ class HmppsIncentivesApiExceptionHandler {
           },
           userMessage = "Validation failure: ${e.message}",
           developerMessage = e.message,
+          moreInfo = if (e is ValidationExceptionWithErrorCode) {
+            e.moreInfo
+          } else {
+            null
+          },
         ),
       )
   }
@@ -248,7 +253,7 @@ class ListOfDataNotFoundException(dataType: String, ids: Collection<Long>) :
 class DataIntegrityException(message: String) :
   Exception(message)
 
-class ValidationExceptionWithErrorCode(message: String, val errorCode: ErrorCode) :
+class ValidationExceptionWithErrorCode(message: String, val errorCode: ErrorCode, val moreInfo: String? = null) :
   ValidationException(message)
 
 enum class ErrorCode(val errorCode: Int) {

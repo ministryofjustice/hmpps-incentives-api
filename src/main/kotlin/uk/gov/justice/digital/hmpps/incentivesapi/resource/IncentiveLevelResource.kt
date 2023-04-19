@@ -193,7 +193,7 @@ class IncentiveLevelResource(
   @Operation(
     summary = "Updates an incentive level",
     description = "Payload must include all required fields. A level marked as required must also be active. " +
-      "Deactivating a level is only possible if it is not active in any prison. " +
+      "Deactivating a level is only possible if it is not active in any prison (moreInfo field will contain comma-separated prison ids). " +
       "Deactivated incentive levels remain in the same position with respect to the others." +
       "\n\nRequires role: MAINTAIN_INCENTIVE_LEVELS with write scope" +
       "\n\nRaises HMPPS domain event: \"incentives.level.changed\"",
@@ -244,7 +244,7 @@ class IncentiveLevelResource(
   @Operation(
     summary = "Updates an incentive level",
     description = "Partial updates are allowed. A level marked as required must also be active. " +
-      "Deactivating a level is only possible if it is not active in any prison. " +
+      "Deactivating a level is only possible if it is not active in any prison (moreInfo field will contain comma-separated prison ids). " +
       "Deactivated incentive levels remain in the same position with respect to the others." +
       "\n\nRequires role: MAINTAIN_INCENTIVE_LEVELS with write scope" +
       "\n\nRaises HMPPS domain event: \"incentives.level.changed\"",
@@ -304,7 +304,7 @@ class IncentiveLevelResource(
   @Operation(
     summary = "Deactivates an incentive level",
     description = "A required level cannot be deactivated, needs to be updated first to be not required. " +
-      "Deactivating a level is only possible if it is not active in any prison. " +
+      "Deactivating a level is only possible if it is not active in any prison (moreInfo field will contain comma-separated prison ids). " +
       "Deactivated incentive levels remain in the same position with respect to the others." +
       "\n\nRequires role: MAINTAIN_INCENTIVE_LEVELS with write scope" +
       "\n\nRaises HMPPS domain event: \"incentives.level.changed\"",
