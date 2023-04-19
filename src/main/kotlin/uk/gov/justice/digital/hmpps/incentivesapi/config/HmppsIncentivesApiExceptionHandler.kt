@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.ValidationException
 import org.slf4j.LoggerFactory
-import org.springframework.beans.TypeMismatchException
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatus.BAD_REQUEST
 import org.springframework.http.HttpStatus.FORBIDDEN
@@ -233,20 +232,6 @@ class HmppsIncentivesApiExceptionHandler {
           status = BAD_REQUEST,
           userMessage = "Invalid request format, e.g. request is missing a required field or one of the fields has an invalid value",
           developerMessage = developerMessage,
-        ),
-      )
-  }
-
-  @ExceptionHandler(TypeMismatchException::class)
-  fun handleTypeMismatchException(e: TypeMismatchException): ResponseEntity<ErrorResponse> {
-    log.error("Parameter conversion exception: {}", e.message)
-    return ResponseEntity
-      .status(BAD_REQUEST)
-      .body(
-        ErrorResponse(
-          status = BAD_REQUEST,
-          userMessage = "Parameter conversion failure: ${e.message}",
-          developerMessage = e.message,
         ),
       )
   }
