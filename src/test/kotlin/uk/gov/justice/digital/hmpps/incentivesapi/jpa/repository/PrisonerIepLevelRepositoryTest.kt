@@ -167,4 +167,61 @@ class PrisonerIepLevelRepositoryTest : TestBase() {
       assertThat(repository.findAllByBookingIdOrderByReviewTimeDesc(secondBookingId).toList()).hasSize(2)
     }
   }
+
+  @Test
+  fun `counts prisoners on a level`(): Unit = runBlocking {
+    repository.save(
+      PrisonerIepLevel(
+        iepCode = "BAS",
+        prisonId = "LEI",
+        locationId = "LEI-1-1-001",
+        bookingId = 123456,
+        current = true,
+        reviewedBy = "TEST_STAFF1",
+        reviewTime = LocalDateTime.now().minusDays(2),
+        prisonerNumber = "A1234AB",
+      ),
+    )
+    repository.save(
+      PrisonerIepLevel(
+        iepCode = "STD",
+        prisonId = "LEI",
+        locationId = "LEI-1-1-002",
+        bookingId = 123456,
+        current = false,
+        reviewedBy = "TEST_STAFF1",
+        reviewTime = LocalDateTime.now().minusDays(20),
+        prisonerNumber = "A1234AB",
+      ),
+    )
+
+    // unknown booking
+    assertThat(repository.somePrisonerCurrentlyOnLevel(listOf(123400), "BAS")).isFalse
+    // non-current record
+    assertThat(repository.somePrisonerCurrentlyOnLevel(listOf(123456), "STD")).isFalse
+    // exists currently
+    assertThat(repository.somePrisonerCurrentlyOnLevel(listOf(123456), "BAS")).isTrue
+    // multiple bookings, none currently on level
+    assertThat(repository.somePrisonerCurrentlyOnLevel(listOf(123400, 123456), "STD")).isFalse
+    // multiple bookings, one exists currently
+    assertThat(repository.somePrisonerCurrentlyOnLevel(listOf(123400, 123456), "BAS")).isTrue
+
+    repository.save(
+      PrisonerIepLevel(
+        iepCode = "BAS",
+        prisonId = "LEI",
+        locationId = "LEI-1-1-001",
+        bookingId = 123400,
+        current = true,
+        reviewedBy = "TEST_STAFF1",
+        reviewTime = LocalDateTime.now().minusDays(2),
+        prisonerNumber = "A1234AC",
+      ),
+    )
+
+    // now known and exists currently
+    assertThat(repository.somePrisonerCurrentlyOnLevel(listOf(123400), "BAS")).isTrue
+    // multiple bookings, both exist currently
+    assertThat(repository.somePrisonerCurrentlyOnLevel(listOf(123400, 123456), "BAS")).isTrue
+  }
 }

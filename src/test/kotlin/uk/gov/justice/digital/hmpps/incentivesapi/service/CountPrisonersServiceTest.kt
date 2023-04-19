@@ -5,30 +5,24 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
-import java.time.Clock
-import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.ZoneId
 
 // TODO: move into inner class CountPrisonersOnLevel of PrisonerIepLevelReviewServiceTest once IepLevelService is removed
 class CountPrisonersServiceTest {
-  private val clock: Clock = Clock.fixed(Instant.parse("2022-08-01T12:45:00.00Z"), ZoneId.of("Europe/London"))
-
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository = mock()
   private val offenderSearchService: OffenderSearchService = mock()
 
   private val countPrisonersService = CountPrisonersService(prisonerIepLevelRepository, offenderSearchService)
 
   @Test
-  fun `count prisoners on a level in a prison`(): Unit = runBlocking {
+  fun `finds prisoners on a level in a prison`(): Unit = runBlocking {
     // mock offender search returning 2 pages of results with 3 prisoners, only 2 of which are on Standard in the repository
     whenever(offenderSearchService.findOffendersAtLocation("MDI", "")).thenReturn(
       flowOf(
@@ -65,48 +59,17 @@ class CountPrisonersServiceTest {
         ),
       ),
     )
-    whenever(prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(listOf(110001, 110002)))
-      .thenReturn(
-        flowOf(
-          PrisonerIepLevel(
-            prisonerNumber = "A1409AE",
-            bookingId = 110001,
-            iepCode = "STD",
-            prisonId = "MDI",
-            locationId = "MDI-1-1-001",
-            reviewedBy = "TEST_STAFF1",
-            reviewTime = LocalDateTime.now(clock).minusDays(2),
-          ),
-          PrisonerIepLevel(
-            prisonerNumber = "G6123VU",
-            bookingId = 110002,
-            iepCode = "ENH",
-            prisonId = "MDI",
-            locationId = "MDI-1-1-002",
-            reviewedBy = "TEST_STAFF1",
-            reviewTime = LocalDateTime.now(clock).minusDays(10),
-          ),
-        ),
-      )
-    whenever(prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(listOf(110003)))
-      .thenReturn(
-        flowOf(
-          PrisonerIepLevel(
-            prisonerNumber = "G6123VX",
-            bookingId = 110003,
-            iepCode = "STD",
-            prisonId = "MDI",
-            locationId = "MDI-1-1-004",
-            reviewedBy = "TEST_STAFF1",
-            reviewTime = LocalDateTime.now(clock).minusDays(5),
-          ),
-        ),
-      )
+    whenever(prisonerIepLevelRepository.somePrisonerCurrentlyOnLevel(listOf(110001, 110002), "STD"))
+      .thenReturn(true)
+    whenever(prisonerIepLevelRepository.somePrisonerCurrentlyOnLevel(listOf(110003), "STD"))
+      .thenReturn(true)
+    // NB: second call is not made because first page already returned true
 
-    val countOfPrisonersOnLevelInPrison = countPrisonersService.countOfPrisonersOnLevelInPrison("MDI", "STD")
+    assertThat(
+      countPrisonersService.prisonersExistOnLevelInPrison("MDI", "STD"),
+    ).isTrue
 
-    assertThat(countOfPrisonersOnLevelInPrison).isEqualTo(2)
     verify(offenderSearchService, times(1)).findOffendersAtLocation("MDI", "")
-    verify(prisonerIepLevelRepository, times(2)).findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(any())
+    verify(prisonerIepLevelRepository, times(1)).somePrisonerCurrentlyOnLevel(any(), eq("STD"))
   }
 }
