@@ -216,16 +216,23 @@ class HmppsIncentivesApiExceptionHandler {
       )
   }
 
+  // Exception thrown when the request body is missing a required field
+  // or provided value doesn't match valid enum values
+  //
+  // NOTE: This exception covers a number of possible bad inputs,
+  // e.g. missing fields, values of the wrong type, values not
+  // matching the ones available in an enum, etc...
   @ExceptionHandler(ServerWebInputException::class)
   fun handleServerWebInputException(e: ServerWebInputException): ResponseEntity<ErrorResponse> {
-    log.error("Parameter conversion exception: {}", e.message)
+    val developerMessage = "Invalid request format: ${e.cause}"
+    log.error(developerMessage)
     return ResponseEntity
       .status(BAD_REQUEST)
       .body(
         ErrorResponse(
           status = BAD_REQUEST,
-          userMessage = "Parameter conversion failure: ${e.message}",
-          developerMessage = e.message,
+          userMessage = "Invalid request format, e.g. request is missing a required field or one of the fields has an invalid value",
+          developerMessage = developerMessage,
         ),
       )
   }
