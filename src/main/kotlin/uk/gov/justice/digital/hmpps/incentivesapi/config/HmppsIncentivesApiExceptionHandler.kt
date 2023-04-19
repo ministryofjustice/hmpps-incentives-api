@@ -64,6 +64,11 @@ class HmppsIncentivesApiExceptionHandler {
       .body(
         ErrorResponse(
           status = BAD_REQUEST,
+          errorCode = if (e is ValidationExceptionWithErrorCode) {
+            e.errorCode
+          } else {
+            null
+          },
           userMessage = "Validation failure: ${e.message}",
           developerMessage = e.message,
         ),
@@ -243,6 +248,22 @@ class ListOfDataNotFoundException(dataType: String, ids: Collection<Long>) :
 class DataIntegrityException(message: String) :
   Exception(message)
 
+class ValidationExceptionWithErrorCode(message: String, val errorCode: ErrorCode) :
+  ValidationException(message)
+
+enum class ErrorCode(val errorCode: Int) {
+  IncentiveLevelActiveIfRequired(100),
+  IncentiveLevelActiveIfActiveInPrison(101),
+  IncentiveLevelCodeNotUnique(102),
+  IncentiveLevelReorderNeedsFullSet(103),
+
+  PrisonIncentiveLevelActiveIfRequired(200),
+  PrisonIncentiveLevelActiveIfDefault(201),
+  PrisonIncentiveLevelActiveIfPrisonersExist(202),
+  PrisonIncentiveLevelNotGloballyActive(203),
+  PrisonIncentiveLevelDefaultRequired(204),
+}
+
 @Schema(description = "Error response")
 data class ErrorResponse(
   @Schema(description = "HTTP status code", example = "500", required = true)
@@ -258,10 +279,10 @@ data class ErrorResponse(
 ) {
   constructor(
     status: HttpStatus,
-    errorCode: Int? = null,
+    errorCode: ErrorCode? = null,
     userMessage: String? = null,
     developerMessage: String? = null,
     moreInfo: String? = null,
   ) :
-    this(status.value(), errorCode, userMessage, developerMessage, moreInfo)
+    this(status.value(), errorCode?.errorCode, userMessage, developerMessage, moreInfo)
 }

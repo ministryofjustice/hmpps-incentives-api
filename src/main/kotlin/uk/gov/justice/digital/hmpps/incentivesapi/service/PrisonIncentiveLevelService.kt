@@ -6,6 +6,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorCode
+import uk.gov.justice.digital.hmpps.incentivesapi.config.ValidationExceptionWithErrorCode
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonIncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveLevelRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonIncentiveLevelRepository
@@ -98,18 +100,30 @@ class PrisonIncentiveLevelService(
         ?: update.toNewEntity(prisonId, levelCode)
 
       if (!incentiveLevel.active && prisonIncentiveLevel.active) {
-        throw ValidationException("A level cannot be made active and when it is globally inactive")
+        throw ValidationExceptionWithErrorCode(
+          "A level cannot be made active and when it is globally inactive",
+          ErrorCode.PrisonIncentiveLevelNotGloballyActive,
+        )
       }
       if (incentiveLevel.required && !prisonIncentiveLevel.active) {
-        throw ValidationException("A level cannot be made inactive and when it is globally required")
+        throw ValidationExceptionWithErrorCode(
+          "A level cannot be made inactive and when it is globally required",
+          ErrorCode.PrisonIncentiveLevelActiveIfRequired,
+        )
       }
       if (!prisonIncentiveLevel.active && prisonIncentiveLevel.defaultOnAdmission) {
-        throw ValidationException("A level cannot be made inactive and still be the default for admission")
+        throw ValidationExceptionWithErrorCode(
+          "A level cannot be made inactive and still be the default for admission",
+          ErrorCode.PrisonIncentiveLevelActiveIfDefault,
+        )
       }
       if (originalPrisonIncentiveLevel?.active == true && !prisonIncentiveLevel.active) {
         val prisonersExistOnLevel = countPrisonersService.prisonersExistOnLevelInPrison(prisonIncentiveLevel.prisonId, prisonIncentiveLevel.levelCode)
         if (prisonersExistOnLevel) {
-          throw ValidationException("A level must remain active if there are prisoners on it currently")
+          throw ValidationExceptionWithErrorCode(
+            "A level must remain active if there are prisoners on it currently",
+            ErrorCode.PrisonIncentiveLevelActiveIfPrisonersExist,
+          )
         }
       }
 
@@ -120,7 +134,10 @@ class PrisonIncentiveLevelService(
           prisonIncentiveLevelRepository.findFirstByPrisonIdAndActiveIsTrueAndDefaultIsTrue(prisonId)?.levelCode
         if (currentDefaultLevelCode == null || currentDefaultLevelCode == prisonIncentiveLevel.levelCode) {
           // NB: this rule means that for a prison with no levels yet in the database, the first one added must be the default level
-          throw ValidationException("There must be an active default level for admission in a prison")
+          throw ValidationExceptionWithErrorCode(
+            "There must be an active default level for admission in a prison",
+            ErrorCode.PrisonIncentiveLevelDefaultRequired,
+          )
         }
       }
 

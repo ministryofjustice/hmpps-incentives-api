@@ -131,7 +131,10 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .uri("/incentive/levels/bas")
         .headers(setAuthorisation())
         .exchange()
-        .expectErrorResponse(HttpStatus.NOT_FOUND, "No incentive level found for code `bas`")
+        .expectErrorResponse(
+          HttpStatus.NOT_FOUND,
+          "No incentive level found for code `bas`",
+        )
     }
   }
 
@@ -263,7 +266,10 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.FORBIDDEN, "Forbidden")
+        .expectErrorResponse(
+          HttpStatus.FORBIDDEN,
+          "Forbidden",
+        )
 
       runBlocking {
         assertThat(incentiveLevelRepository.count()).isEqualTo(6)
@@ -320,7 +326,11 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Incentive level with code STD already exists")
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "Incentive level with code STD already exists",
+          errorCode = 102,
+        )
 
       runBlocking {
         assertThat(incentiveLevelRepository.count()).isEqualTo(6)
@@ -356,7 +366,10 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .header("Content-Type", "application/json")
         .bodyValue(body)
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid request format")
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "Invalid request format",
+        )
 
       runBlocking {
         assertThat(incentiveLevelRepository.count()).isEqualTo(6)
@@ -394,7 +407,10 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .header("Content-Type", "application/json")
         .bodyValue(body)
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid parameters")
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "Invalid parameters",
+        )
 
       runBlocking {
         assertThat(incentiveLevelRepository.count()).isEqualTo(6)
@@ -464,7 +480,10 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.FORBIDDEN, "Forbidden")
+        .expectErrorResponse(
+          HttpStatus.FORBIDDEN,
+          "Forbidden",
+        )
 
       runBlocking {
         val incentiveLevelCodes = incentiveLevelRepository.findAllByOrderBySequence().map { it.code }.toList()
@@ -488,7 +507,10 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.NOT_FOUND, "No incentive level found for code `EN4`")
+        .expectErrorResponse(
+          HttpStatus.NOT_FOUND,
+          "No incentive level found for code `EN4`",
+        )
 
       runBlocking {
         val incentiveLevels = incentiveLevelRepository.findAllByOrderBySequence().toList()
@@ -516,7 +538,10 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "must have size of at least 2")
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "must have size of at least 2",
+        )
 
       runBlocking {
         val incentiveLevels = incentiveLevelRepository.findAllByOrderBySequence().toList()
@@ -541,7 +566,11 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "All incentive levels required when setting order. Missing: `ENT`")
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "All incentive levels required when setting order. Missing: `ENT`",
+          errorCode = 103,
+        )
 
       runBlocking {
         val incentiveLevels = incentiveLevelRepository.findAllByOrderBySequence().toList()
@@ -659,7 +688,10 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.FORBIDDEN, "Forbidden")
+        .expectErrorResponse(
+          HttpStatus.FORBIDDEN,
+          "Forbidden",
+        )
 
       runBlocking {
         val incentiveLevel = incentiveLevelRepository.findById("STD")
@@ -683,7 +715,10 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.NOT_FOUND, "No incentive level found for code `std`")
+        .expectErrorResponse(
+          HttpStatus.NOT_FOUND,
+          "No incentive level found for code `std`",
+        )
 
       runBlocking {
         var incentiveLevel = incentiveLevelRepository.findById("std")
@@ -710,7 +745,10 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Incentive level codes must match in URL and payload")
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "Incentive level codes must match in URL and payload",
+        )
 
       runBlocking {
         var incentiveLevel = incentiveLevelRepository.findById("STD")
@@ -749,7 +787,10 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .header("Content-Type", "application/json")
         .bodyValue(body)
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid request format")
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "Invalid request format",
+        )
 
       runBlocking {
         val incentiveLevel = incentiveLevelRepository.findById("STD")
@@ -781,7 +822,10 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .header("Content-Type", "application/json")
         .bodyValue(body)
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid parameters")
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "Invalid parameters",
+        )
 
       runBlocking {
         var incentiveLevel = incentiveLevelRepository.findById("STD")
@@ -901,7 +945,10 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.FORBIDDEN, "Forbidden")
+        .expectErrorResponse(
+          HttpStatus.FORBIDDEN,
+          "Forbidden",
+        )
 
       runBlocking {
         val incentiveLevel = incentiveLevelRepository.findById("STD")
@@ -925,7 +972,10 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.NOT_FOUND, "No incentive level found for code `std`")
+        .expectErrorResponse(
+          HttpStatus.NOT_FOUND,
+          "No incentive level found for code `std`",
+        )
 
       runBlocking {
         var incentiveLevel = incentiveLevelRepository.findById("std")
@@ -1004,7 +1054,10 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .header("Content-Type", "application/json")
         .bodyValue(body)
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid parameters")
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "Invalid parameters",
+        )
 
       runBlocking {
         val incentiveLevel = incentiveLevelRepository.findById("STD")
@@ -1029,7 +1082,11 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "A level must be active if it is required")
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "A level must be active if it is required",
+          errorCode = 100,
+        )
 
       runBlocking {
         val incentiveLevel = incentiveLevelRepository.findById("ENT")
@@ -1111,7 +1168,10 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .uri("/incentive/levels/STD")
         .headers(setAuthorisation())
         .exchange()
-        .expectErrorResponse(HttpStatus.FORBIDDEN, "Forbidden")
+        .expectErrorResponse(
+          HttpStatus.FORBIDDEN,
+          "Forbidden",
+        )
 
       runBlocking {
         val incentiveLevel = incentiveLevelRepository.findById("STD")
@@ -1128,7 +1188,10 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .uri("/incentive/levels/std")
         .withCentralAuthorisation()
         .exchange()
-        .expectErrorResponse(HttpStatus.NOT_FOUND, "No incentive level found for code `std`")
+        .expectErrorResponse(
+          HttpStatus.NOT_FOUND,
+          "No incentive level found for code `std`",
+        )
 
       runBlocking {
         var incentiveLevel = incentiveLevelRepository.findById("std")
@@ -1148,7 +1211,11 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .uri("/incentive/levels/STD")
         .withCentralAuthorisation()
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "A level must be active if it is required")
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "A level must be active if it is required",
+          errorCode = 100,
+        )
 
       runBlocking {
         val incentiveLevel = incentiveLevelRepository.findById("STD")
@@ -1179,7 +1246,11 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .uri("/incentive/levels/EN2")
         .withCentralAuthorisation()
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "A level must remain active if it is active in some prison")
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "A level must remain active if it is active in some prison",
+          errorCode = 101,
+        )
 
       runBlocking {
         val incentiveLevel = incentiveLevelRepository.findById("EN2")
