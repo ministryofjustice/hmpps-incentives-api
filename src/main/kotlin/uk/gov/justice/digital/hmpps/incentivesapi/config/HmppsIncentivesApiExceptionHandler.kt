@@ -53,6 +53,8 @@ class HmppsIncentivesApiExceptionHandler {
       )
   }
 
+  // Validation exceptions including `ParameterValidationException`
+  // thrown by `ensure` blocks when field validations fail
   @ExceptionHandler(ValidationException::class)
   fun handleValidationException(e: ValidationException): ResponseEntity<ErrorResponse> {
     log.info("Validation exception: {}", e.message)
