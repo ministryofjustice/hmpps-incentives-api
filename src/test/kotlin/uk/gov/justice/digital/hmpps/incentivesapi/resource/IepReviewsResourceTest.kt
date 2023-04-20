@@ -5,8 +5,10 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
+import uk.gov.justice.digital.hmpps.incentivesapi.helper.expectErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.IncentiveLevelResourceTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import java.time.LocalDate.now
@@ -46,7 +48,7 @@ class IepReviewsResourceTest : IncentiveLevelResourceTestBase() {
     webTestClient.get().uri("/iep/reviews/booking/undefined")
       .headers(setAuthorisation())
       .exchange()
-      .expectStatus().isBadRequest
+      .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid request format")
   }
 
   @Test

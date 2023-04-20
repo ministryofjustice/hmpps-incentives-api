@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.ValidationException
 import org.slf4j.LoggerFactory
-import org.springframework.beans.TypeMismatchException
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatus.BAD_REQUEST
 import org.springframework.http.HttpStatus.FORBIDDEN
@@ -21,7 +20,6 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.springframework.web.server.ServerWebInputException
 import org.springframework.web.server.UnsupportedMediaTypeStatusException
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveReviewNotFoundException
-import uk.gov.justice.digital.hmpps.incentivesapi.util.ParameterValidationException
 
 @RestControllerAdvice
 class HmppsIncentivesApiExceptionHandler {
@@ -55,6 +53,10 @@ class HmppsIncentivesApiExceptionHandler {
       )
   }
 
+  /**
+   * Validation exceptions including `ParameterValidationException`
+   * thrown by `ensure` blocks when field validations fail
+   */
   @ExceptionHandler(ValidationException::class)
   fun handleValidationException(e: ValidationException): ResponseEntity<ErrorResponse> {
     log.info("Validation exception: {}", e.message)
@@ -64,20 +66,6 @@ class HmppsIncentivesApiExceptionHandler {
         ErrorResponse(
           status = BAD_REQUEST,
           userMessage = "Validation failure: ${e.message}",
-          developerMessage = e.message,
-        ),
-      )
-  }
-
-  @ExceptionHandler(ParameterValidationException::class)
-  fun handleParameterValidationException(e: ParameterValidationException): ResponseEntity<ErrorResponse> {
-    log.info("Invalid parameters: {}", e.errors)
-    return ResponseEntity
-      .status(BAD_REQUEST)
-      .body(
-        ErrorResponse(
-          status = BAD_REQUEST,
-          userMessage = e.message,
           developerMessage = e.message,
         ),
       )
@@ -216,30 +204,25 @@ class HmppsIncentivesApiExceptionHandler {
       )
   }
 
+  /**
+   * Exception thrown when the request body is missing a required field
+   * or provided value doesn't match valid enum values
+   *
+   * NOTE: This exception covers a number of possible bad inputs,
+   * e.g. missing fields, values of the wrong type, values not
+   * matching the ones available in an enum, etc...
+   */
   @ExceptionHandler(ServerWebInputException::class)
   fun handleServerWebInputException(e: ServerWebInputException): ResponseEntity<ErrorResponse> {
-    log.error("Parameter conversion exception: {}", e.message)
+    val developerMessage = "Invalid request format: ${e.cause}"
+    log.error(developerMessage)
     return ResponseEntity
       .status(BAD_REQUEST)
       .body(
         ErrorResponse(
           status = BAD_REQUEST,
-          userMessage = "Parameter conversion failure: ${e.message}",
-          developerMessage = e.message,
-        ),
-      )
-  }
-
-  @ExceptionHandler(TypeMismatchException::class)
-  fun handleTypeMismatchException(e: TypeMismatchException): ResponseEntity<ErrorResponse> {
-    log.error("Parameter conversion exception: {}", e.message)
-    return ResponseEntity
-      .status(BAD_REQUEST)
-      .body(
-        ErrorResponse(
-          status = BAD_REQUEST,
-          userMessage = "Parameter conversion failure: ${e.message}",
-          developerMessage = e.message,
+          userMessage = "Invalid request format, e.g. request is missing a required field or one of the fields has an invalid value",
+          developerMessage = developerMessage,
         ),
       )
   }

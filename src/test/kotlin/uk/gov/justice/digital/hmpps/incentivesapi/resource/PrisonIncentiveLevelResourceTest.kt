@@ -447,7 +447,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Parameter conversion failure")
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid request format")
 
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero

@@ -356,7 +356,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .header("Content-Type", "application/json")
         .bodyValue(body)
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Parameter conversion failure")
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid request format")
 
       runBlocking {
         assertThat(incentiveLevelRepository.count()).isEqualTo(6)
@@ -749,7 +749,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .header("Content-Type", "application/json")
         .bodyValue(body)
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Parameter conversion failure")
+        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid request format")
 
       runBlocking {
         val incentiveLevel = incentiveLevelRepository.findById("STD")
