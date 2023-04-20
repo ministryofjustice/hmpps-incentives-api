@@ -53,8 +53,10 @@ class HmppsIncentivesApiExceptionHandler {
       )
   }
 
-  // Validation exceptions including `ParameterValidationException`
-  // thrown by `ensure` blocks when field validations fail
+  /**
+   * Validation exceptions including `ParameterValidationException`
+   * thrown by `ensure` blocks when field validations fail
+   */
   @ExceptionHandler(ValidationException::class)
   fun handleValidationException(e: ValidationException): ResponseEntity<ErrorResponse> {
     log.info("Validation exception: {}", e.message)
@@ -202,12 +204,14 @@ class HmppsIncentivesApiExceptionHandler {
       )
   }
 
-  // Exception thrown when the request body is missing a required field
-  // or provided value doesn't match valid enum values
-  //
-  // NOTE: This exception covers a number of possible bad inputs,
-  // e.g. missing fields, values of the wrong type, values not
-  // matching the ones available in an enum, etc...
+  /**
+   * Exception thrown when the request body is missing a required field
+   * or provided value doesn't match valid enum values
+   *
+   * NOTE: This exception covers a number of possible bad inputs,
+   * e.g. missing fields, values of the wrong type, values not
+   * matching the ones available in an enum, etc...
+   */
   @ExceptionHandler(ServerWebInputException::class)
   fun handleServerWebInputException(e: ServerWebInputException): ResponseEntity<ErrorResponse> {
     val developerMessage = "Invalid request format: ${e.cause}"
