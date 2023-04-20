@@ -169,7 +169,7 @@ class PrisonerIepLevelRepositoryTest : TestBase() {
   }
 
   @Test
-  fun `counts prisoners on a level`(): Unit = runBlocking {
+  fun `checks if there are prisoners on a level`(): Unit = runBlocking {
     repository.save(
       PrisonerIepLevel(
         iepCode = "BAS",

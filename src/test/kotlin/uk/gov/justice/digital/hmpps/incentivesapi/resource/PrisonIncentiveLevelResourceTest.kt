@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.http.HttpStatus
 import org.springframework.test.web.reactive.server.WebTestClient
+import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorCode
 import uk.gov.justice.digital.hmpps.incentivesapi.helper.expectErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.IncentiveLevelResourceTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
@@ -175,7 +176,10 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .uri("/incentive/prison-levels/BAI/level/EN4")
         .headers(setAuthorisation())
         .exchange()
-        .expectErrorResponse(HttpStatus.NOT_FOUND, "No prison incentive level found for code `EN4`")
+        .expectErrorResponse(
+          HttpStatus.NOT_FOUND,
+          "No prison incentive level found for code `EN4`",
+        )
     }
   }
 
@@ -338,7 +342,10 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.FORBIDDEN, "Forbidden")
+        .expectErrorResponse(
+          HttpStatus.FORBIDDEN,
+          "Forbidden",
+        )
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("MDI", "STD")
@@ -368,7 +375,10 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.NOT_FOUND, "No incentive level found for code `std`")
+        .expectErrorResponse(
+          HttpStatus.NOT_FOUND,
+          "No incentive level found for code `std`",
+        )
 
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
@@ -395,7 +405,10 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Incentive level codes must match in URL and payload")
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "Incentive level codes must match in URL and payload",
+        )
 
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
@@ -422,7 +435,10 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Prison ids must match in URL and payload")
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "Prison ids must match in URL and payload",
+        )
 
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
@@ -447,7 +463,10 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid request format")
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "Invalid request format",
+        )
 
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
@@ -474,7 +493,10 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid parameters")
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "Invalid parameters",
+        )
 
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
@@ -533,7 +555,11 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "There must be an active default level for admission in a prison")
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "There must be an active default level for admission in a prison",
+          errorCode = ErrorCode.PrisonIncentiveLevelDefaultRequired,
+        )
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "STD")
@@ -569,7 +595,11 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "There must be an active default level for admission in a prison")
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "There must be an active default level for admission in a prison",
+          errorCode = ErrorCode.PrisonIncentiveLevelDefaultRequired,
+        )
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "BAS")
@@ -603,7 +633,11 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "A level cannot be made active and when it is globally inactive")
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "A level cannot be made active and when it is globally inactive",
+          errorCode = ErrorCode.PrisonIncentiveLevelNotGloballyActive,
+        )
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "ENT")
@@ -631,7 +665,11 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "A level cannot be made inactive and when it is globally required")
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "A level cannot be made inactive and when it is globally required",
+          errorCode = ErrorCode.PrisonIncentiveLevelActiveIfRequired,
+        )
 
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
@@ -662,7 +700,11 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "A level must remain active if there are prisoners on it currently")
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "A level must remain active if there are prisoners on it currently",
+          errorCode = ErrorCode.PrisonIncentiveLevelActiveIfPrisonersExist,
+        )
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("WRI", "EN2")
@@ -820,7 +862,10 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.FORBIDDEN, "Forbidden")
+        .expectErrorResponse(
+          HttpStatus.FORBIDDEN,
+          "Forbidden",
+        )
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "BAS")
@@ -847,7 +892,10 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.NOT_FOUND, "No incentive level found for code `std`")
+        .expectErrorResponse(
+          HttpStatus.NOT_FOUND,
+          "No incentive level found for code `std`",
+        )
 
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
@@ -874,7 +922,10 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid parameters")
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "Invalid parameters",
+        )
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("WRI", "ENH")
@@ -907,6 +958,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectErrorResponse(
           HttpStatus.BAD_REQUEST,
           "A level cannot be made inactive and still be the default for admission",
+          errorCode = ErrorCode.PrisonIncentiveLevelActiveIfDefault,
         )
 
       runBlocking {
@@ -942,7 +994,11 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "A level cannot be made inactive and still be the default for admission")
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "A level cannot be made inactive and still be the default for admission",
+          errorCode = ErrorCode.PrisonIncentiveLevelActiveIfDefault,
+        )
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("MDI", "STD")
@@ -972,7 +1028,11 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "There must be an active default level for admission in a prison")
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "There must be an active default level for admission in a prison",
+          errorCode = ErrorCode.PrisonIncentiveLevelDefaultRequired,
+        )
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "STD")
@@ -1006,7 +1066,11 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "There must be an active default level for admission in a prison")
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "There must be an active default level for admission in a prison",
+          errorCode = ErrorCode.PrisonIncentiveLevelDefaultRequired,
+        )
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "BAS")
@@ -1038,7 +1102,11 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "A level cannot be made active and when it is globally inactive")
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "A level cannot be made active and when it is globally inactive",
+          errorCode = ErrorCode.PrisonIncentiveLevelNotGloballyActive,
+        )
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "ENT")
@@ -1067,7 +1135,11 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "A level cannot be made inactive and when it is globally required")
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "A level cannot be made inactive and when it is globally required",
+          errorCode = ErrorCode.PrisonIncentiveLevelActiveIfRequired,
+        )
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("BAI", "BAS")
@@ -1098,7 +1170,11 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           """,
         )
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "A level must remain active if there are prisoners on it currently")
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "A level must remain active if there are prisoners on it currently",
+          errorCode = ErrorCode.PrisonIncentiveLevelActiveIfPrisonersExist,
+        )
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("WRI", "EN2")
@@ -1174,7 +1250,10 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .headers(setAuthorisation())
         .header("Content-Type", "application/json")
         .exchange()
-        .expectErrorResponse(HttpStatus.FORBIDDEN, "Forbidden")
+        .expectErrorResponse(
+          HttpStatus.FORBIDDEN,
+          "Forbidden",
+        )
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("WRI", "ENH")
@@ -1192,7 +1271,10 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .exchange()
-        .expectErrorResponse(HttpStatus.NOT_FOUND, "No incentive level found for code `bas`")
+        .expectErrorResponse(
+          HttpStatus.NOT_FOUND,
+          "No incentive level found for code `bas`",
+        )
 
       runBlocking {
         assertThat(prisonIncentiveLevelRepository.count()).isZero
@@ -1219,6 +1301,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectErrorResponse(
           HttpStatus.BAD_REQUEST,
           "A level cannot be made inactive and still be the default for admission",
+          errorCode = ErrorCode.PrisonIncentiveLevelActiveIfDefault,
         )
 
       runBlocking {
@@ -1244,6 +1327,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectErrorResponse(
           HttpStatus.BAD_REQUEST,
           "A level cannot be made inactive and when it is globally required",
+          errorCode = ErrorCode.PrisonIncentiveLevelActiveIfRequired,
         )
 
       runBlocking {
@@ -1267,7 +1351,11 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .withLocalAuthorisation()
         .header("Content-Type", "application/json")
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "A level must remain active if there are prisoners on it currently")
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "A level must remain active if there are prisoners on it currently",
+          errorCode = ErrorCode.PrisonIncentiveLevelActiveIfPrisonersExist,
+        )
 
       runBlocking {
         val prisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode("MDI", "EN2")

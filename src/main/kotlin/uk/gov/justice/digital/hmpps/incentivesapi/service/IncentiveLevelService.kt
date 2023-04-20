@@ -1,13 +1,14 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
-import jakarta.validation.ValidationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorCode
 import uk.gov.justice.digital.hmpps.incentivesapi.config.FeatureFlagsService
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataWithCodeFoundException
+import uk.gov.justice.digital.hmpps.incentivesapi.config.ValidationExceptionWithErrorCode
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.toIncentivesServiceDto
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveLevel
@@ -71,10 +72,16 @@ class IncentiveLevelService(
   @Transactional
   suspend fun createIncentiveLevel(dto: IncentiveLevelDTO): IncentiveLevelDTO {
     if (!dto.active && dto.required) {
-      throw ValidationException("A level must be active if it is required")
+      throw ValidationExceptionWithErrorCode(
+        "A level must be active if it is required",
+        ErrorCode.IncentiveLevelActiveIfRequired,
+      )
     }
     if (incentiveLevelRepository.existsById(dto.code)) {
-      throw ValidationException("Incentive level with code ${dto.code} already exists")
+      throw ValidationExceptionWithErrorCode(
+        "Incentive level with code ${dto.code} already exists",
+        ErrorCode.IncentiveLevelCodeNotUnique,
+      )
     }
 
     val highestSequence = incentiveLevelRepository.findMaxSequence() ?: 0
@@ -98,11 +105,19 @@ class IncentiveLevelService(
         val incentiveLevel = originalIncentiveLevel.withUpdate(update)
 
         if (!incentiveLevel.active && incentiveLevel.required) {
-          throw ValidationException("A level must be active if it is required")
+          throw ValidationExceptionWithErrorCode(
+            "A level must be active if it is required",
+            ErrorCode.IncentiveLevelActiveIfRequired,
+          )
         }
         if (originalIncentiveLevel.active && !incentiveLevel.active) {
-          if (prisonIncentiveLevelService.getPrisonIdsWithActivePrisonIncentiveLevel(incentiveLevel.code).isNotEmpty()) {
-            throw ValidationException("A level must remain active if it is active in some prison")
+          val prisonIds = prisonIncentiveLevelService.getPrisonIdsWithActivePrisonIncentiveLevel(incentiveLevel.code)
+          if (prisonIds.isNotEmpty()) {
+            throw ValidationExceptionWithErrorCode(
+              "A level must remain active if it is active in some prison",
+              ErrorCode.IncentiveLevelActiveIfActiveInPrison,
+              moreInfo = prisonIds.joinToString(","),
+            )
           }
         }
 
@@ -130,7 +145,10 @@ class IncentiveLevelService(
     }
     if (allIncentiveLevels.isNotEmpty()) {
       val missing = allIncentiveLevels.keys.joinToString("`, `", prefix = "`", postfix = "`")
-      throw ValidationException("All incentive levels required when setting order. Missing: $missing")
+      throw ValidationExceptionWithErrorCode(
+        "All incentive levels required when setting order. Missing: $missing",
+        ErrorCode.IncentiveLevelReorderNeedsFullSet,
+      )
     }
 
     val incentiveLevelsWithNewSequences = allIncentiveLevelsInDesiredOrder.mapIndexed { index, incentiveLevel ->

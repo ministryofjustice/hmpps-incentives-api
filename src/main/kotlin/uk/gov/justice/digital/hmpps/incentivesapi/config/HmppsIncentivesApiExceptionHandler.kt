@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.config
 
-import com.fasterxml.jackson.annotation.JsonInclude
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.ValidationException
 import org.slf4j.LoggerFactory
@@ -32,7 +31,7 @@ class HmppsIncentivesApiExceptionHandler {
       .status(BAD_REQUEST)
       .body(
         ErrorResponse(
-          status = (BAD_REQUEST.value()),
+          status = BAD_REQUEST,
           userMessage = "Validation failure: $message",
           developerMessage = (e.message),
         ),
@@ -65,8 +64,18 @@ class HmppsIncentivesApiExceptionHandler {
       .body(
         ErrorResponse(
           status = BAD_REQUEST,
+          errorCode = if (e is ValidationExceptionWithErrorCode) {
+            e.errorCode
+          } else {
+            null
+          },
           userMessage = "Validation failure: ${e.message}",
           developerMessage = e.message,
+          moreInfo = if (e is ValidationExceptionWithErrorCode) {
+            e.moreInfo
+          } else {
+            null
+          },
         ),
       )
   }
@@ -244,26 +253,47 @@ class ListOfDataNotFoundException(dataType: String, ids: Collection<Long>) :
 class DataIntegrityException(message: String) :
   Exception(message)
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Error Response")
+class ValidationExceptionWithErrorCode(message: String, val errorCode: ErrorCode, val moreInfo: String? = null) :
+  ValidationException(message)
+
+/**
+ * Codes that can be used by api clients to uniquely discriminate between error types,
+ * instead of relying on non-constant text descriptions.
+ *
+ * NB: Once defined, the values must not be changed
+ */
+enum class ErrorCode(val errorCode: Int) {
+  IncentiveLevelActiveIfRequired(100),
+  IncentiveLevelActiveIfActiveInPrison(101),
+  IncentiveLevelCodeNotUnique(102),
+  IncentiveLevelReorderNeedsFullSet(103),
+
+  PrisonIncentiveLevelActiveIfRequired(200),
+  PrisonIncentiveLevelActiveIfDefault(201),
+  PrisonIncentiveLevelActiveIfPrisonersExist(202),
+  PrisonIncentiveLevelNotGloballyActive(203),
+  PrisonIncentiveLevelDefaultRequired(204),
+}
+
+@Schema(description = "Error response")
 data class ErrorResponse(
-  @Schema(description = "Status of Error", example = "500", required = true)
+  @Schema(description = "HTTP status code", example = "500", required = true)
   val status: Int,
-  @Schema(description = "Error Code", example = "500", required = false)
+  @Schema(description = "When present, uniquely identifies the type of error making it easier for clients to discriminate without relying on error description; see `uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorResponse` enumeration in hmpps-incentives-api", example = "123", required = false)
   val errorCode: Int? = null,
-  @Schema(description = "User Message of error", example = "Bad Data", required = false)
+  @Schema(description = "User message for the error", example = "No incentive level found for code `ABC`", required = false)
   val userMessage: String? = null,
-  @Schema(description = "More detailed error message", example = "This is a stack trace", required = false)
+  @Schema(description = "More detailed error message", example = "[Details, sometimes a stack trace]", required = false)
   val developerMessage: String? = null,
-  @Schema(description = "More information about the error", example = "More info", required = false)
+  @Schema(description = "More information about the error", example = "[Rarely used, error-specific]", required = false)
   val moreInfo: String? = null,
 ) {
   constructor(
     status: HttpStatus,
-    errorCode: Int? = null,
+    errorCode: ErrorCode? = null,
     userMessage: String? = null,
     developerMessage: String? = null,
     moreInfo: String? = null,
   ) :
-    this(status.value(), errorCode, userMessage, developerMessage, moreInfo)
+    this(status.value(), errorCode?.errorCode, userMessage, developerMessage, moreInfo)
 }
