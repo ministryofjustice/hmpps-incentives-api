@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.http.HttpStatus
 import org.springframework.test.web.reactive.server.WebTestClient
+import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorCode
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.helper.expectErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.IncentiveLevelResourceTestBase
@@ -329,7 +330,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectErrorResponse(
           HttpStatus.BAD_REQUEST,
           "Incentive level with code STD already exists",
-          errorCode = 102,
+          errorCode = ErrorCode.IncentiveLevelCodeNotUnique,
         )
 
       runBlocking {
@@ -569,7 +570,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectErrorResponse(
           HttpStatus.BAD_REQUEST,
           "All incentive levels required when setting order. Missing: `ENT`",
-          errorCode = 103,
+          errorCode = ErrorCode.IncentiveLevelReorderNeedsFullSet,
         )
 
       runBlocking {
@@ -1085,7 +1086,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectErrorResponse(
           HttpStatus.BAD_REQUEST,
           "A level must be active if it is required",
-          errorCode = 100,
+          errorCode = ErrorCode.IncentiveLevelActiveIfRequired,
         )
 
       runBlocking {
@@ -1214,7 +1215,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectErrorResponse(
           HttpStatus.BAD_REQUEST,
           "A level must be active if it is required",
-          errorCode = 100,
+          errorCode = ErrorCode.IncentiveLevelActiveIfRequired,
         )
 
       runBlocking {
@@ -1249,7 +1250,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectErrorResponse(
           HttpStatus.BAD_REQUEST,
           "A level must remain active if it is active in some prison",
-          errorCode = 101,
+          errorCode = ErrorCode.IncentiveLevelActiveIfActiveInPrison,
           moreInfo = "BAI,MDI",
         )
 

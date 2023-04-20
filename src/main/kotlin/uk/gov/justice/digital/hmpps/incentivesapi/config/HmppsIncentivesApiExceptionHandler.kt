@@ -256,6 +256,12 @@ class DataIntegrityException(message: String) :
 class ValidationExceptionWithErrorCode(message: String, val errorCode: ErrorCode, val moreInfo: String? = null) :
   ValidationException(message)
 
+/**
+ * Codes that can be used by api clients to uniquely discriminate between error types,
+ * instead of relying on non-constant text descriptions.
+ *
+ * NB: Once defined, the values must not be changed
+ */
 enum class ErrorCode(val errorCode: Int) {
   IncentiveLevelActiveIfRequired(100),
   IncentiveLevelActiveIfActiveInPrison(101),
@@ -273,13 +279,13 @@ enum class ErrorCode(val errorCode: Int) {
 data class ErrorResponse(
   @Schema(description = "HTTP status code", example = "500", required = true)
   val status: Int,
-  @Schema(description = "Internal error code", example = "123", required = false)
+  @Schema(description = "When present, uniquely identifies the type of error making it easier for clients to discriminate without relying on error description; see `uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorResponse` enumeration in hmpps-incentives-api", example = "123", required = false)
   val errorCode: Int? = null,
-  @Schema(description = "User message for the error", example = "Bad Data", required = false)
+  @Schema(description = "User message for the error", example = "No incentive level found for code `ABC`", required = false)
   val userMessage: String? = null,
-  @Schema(description = "More detailed error message", example = "This is a stack trace", required = false)
+  @Schema(description = "More detailed error message", example = "[Details, sometimes a stack trace]", required = false)
   val developerMessage: String? = null,
-  @Schema(description = "More information about the error", example = "More info", required = false)
+  @Schema(description = "More information about the error", example = "[Rarely used, error-specific]", required = false)
   val moreInfo: String? = null,
 ) {
   constructor(

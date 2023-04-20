@@ -3,11 +3,12 @@ package uk.gov.justice.digital.hmpps.incentivesapi.helper
 import org.assertj.core.api.Assertions.assertThat
 import org.springframework.http.HttpStatus
 import org.springframework.test.web.reactive.server.WebTestClient
+import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorCode
 
 fun <T : WebTestClient.ResponseSpec> T.expectErrorResponse(
   status: HttpStatus,
   vararg messages: String,
-  errorCode: Int? = null,
+  errorCode: ErrorCode? = null,
   moreInfo: String? = null,
 ): T {
   expectStatus().isEqualTo(status)
@@ -21,7 +22,7 @@ fun <T : WebTestClient.ResponseSpec> T.expectErrorResponse(
     }
 
     if (errorCode != null) {
-      jsonPath("$.errorCode").isEqualTo(errorCode)
+      jsonPath("$.errorCode").isEqualTo(errorCode.errorCode)
     } else {
       jsonPath("$.errorCode").doesNotExist()
     }

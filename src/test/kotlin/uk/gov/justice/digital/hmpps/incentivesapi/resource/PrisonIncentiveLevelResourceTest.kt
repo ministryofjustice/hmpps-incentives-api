@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.http.HttpStatus
 import org.springframework.test.web.reactive.server.WebTestClient
+import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorCode
 import uk.gov.justice.digital.hmpps.incentivesapi.helper.expectErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.IncentiveLevelResourceTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
@@ -557,7 +558,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectErrorResponse(
           HttpStatus.BAD_REQUEST,
           "There must be an active default level for admission in a prison",
-          errorCode = 204,
+          errorCode = ErrorCode.PrisonIncentiveLevelDefaultRequired,
         )
 
       runBlocking {
@@ -597,7 +598,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectErrorResponse(
           HttpStatus.BAD_REQUEST,
           "There must be an active default level for admission in a prison",
-          errorCode = 204,
+          errorCode = ErrorCode.PrisonIncentiveLevelDefaultRequired,
         )
 
       runBlocking {
@@ -635,7 +636,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectErrorResponse(
           HttpStatus.BAD_REQUEST,
           "A level cannot be made active and when it is globally inactive",
-          errorCode = 203,
+          errorCode = ErrorCode.PrisonIncentiveLevelNotGloballyActive,
         )
 
       runBlocking {
@@ -667,7 +668,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectErrorResponse(
           HttpStatus.BAD_REQUEST,
           "A level cannot be made inactive and when it is globally required",
-          errorCode = 200,
+          errorCode = ErrorCode.PrisonIncentiveLevelActiveIfRequired,
         )
 
       runBlocking {
@@ -702,7 +703,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectErrorResponse(
           HttpStatus.BAD_REQUEST,
           "A level must remain active if there are prisoners on it currently",
-          errorCode = 202,
+          errorCode = ErrorCode.PrisonIncentiveLevelActiveIfPrisonersExist,
         )
 
       runBlocking {
@@ -957,7 +958,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectErrorResponse(
           HttpStatus.BAD_REQUEST,
           "A level cannot be made inactive and still be the default for admission",
-          errorCode = 201,
+          errorCode = ErrorCode.PrisonIncentiveLevelActiveIfDefault,
         )
 
       runBlocking {
@@ -996,7 +997,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectErrorResponse(
           HttpStatus.BAD_REQUEST,
           "A level cannot be made inactive and still be the default for admission",
-          errorCode = 201,
+          errorCode = ErrorCode.PrisonIncentiveLevelActiveIfDefault,
         )
 
       runBlocking {
@@ -1030,7 +1031,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectErrorResponse(
           HttpStatus.BAD_REQUEST,
           "There must be an active default level for admission in a prison",
-          errorCode = 204,
+          errorCode = ErrorCode.PrisonIncentiveLevelDefaultRequired,
         )
 
       runBlocking {
@@ -1068,7 +1069,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectErrorResponse(
           HttpStatus.BAD_REQUEST,
           "There must be an active default level for admission in a prison",
-          errorCode = 204,
+          errorCode = ErrorCode.PrisonIncentiveLevelDefaultRequired,
         )
 
       runBlocking {
@@ -1104,7 +1105,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectErrorResponse(
           HttpStatus.BAD_REQUEST,
           "A level cannot be made active and when it is globally inactive",
-          errorCode = 203,
+          errorCode = ErrorCode.PrisonIncentiveLevelNotGloballyActive,
         )
 
       runBlocking {
@@ -1137,7 +1138,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectErrorResponse(
           HttpStatus.BAD_REQUEST,
           "A level cannot be made inactive and when it is globally required",
-          errorCode = 200,
+          errorCode = ErrorCode.PrisonIncentiveLevelActiveIfRequired,
         )
 
       runBlocking {
@@ -1172,7 +1173,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectErrorResponse(
           HttpStatus.BAD_REQUEST,
           "A level must remain active if there are prisoners on it currently",
-          errorCode = 202,
+          errorCode = ErrorCode.PrisonIncentiveLevelActiveIfPrisonersExist,
         )
 
       runBlocking {
@@ -1300,7 +1301,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectErrorResponse(
           HttpStatus.BAD_REQUEST,
           "A level cannot be made inactive and still be the default for admission",
-          errorCode = 201,
+          errorCode = ErrorCode.PrisonIncentiveLevelActiveIfDefault,
         )
 
       runBlocking {
@@ -1326,7 +1327,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectErrorResponse(
           HttpStatus.BAD_REQUEST,
           "A level cannot be made inactive and when it is globally required",
-          errorCode = 200,
+          errorCode = ErrorCode.PrisonIncentiveLevelActiveIfRequired,
         )
 
       runBlocking {
@@ -1353,7 +1354,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .expectErrorResponse(
           HttpStatus.BAD_REQUEST,
           "A level must remain active if there are prisoners on it currently",
-          errorCode = 202,
+          errorCode = ErrorCode.PrisonIncentiveLevelActiveIfPrisonersExist,
         )
 
       runBlocking {
