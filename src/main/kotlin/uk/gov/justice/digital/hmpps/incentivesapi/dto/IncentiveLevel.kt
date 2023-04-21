@@ -10,7 +10,7 @@ data class IncentiveLevel(
   @Schema(description = "Unique id for the incentive level", example = "STD", minLength = 1, maxLength = 6)
   @JsonProperty(required = true)
   val code: String,
-  @Schema(description = "Name of the incentive level", example = "Standard", minLength = 1)
+  @Schema(description = "Name of the incentive level", example = "Standard", minLength = 1, maxLength = 30)
   @JsonProperty(required = true)
   val name: String,
   @Schema(description = "Indicates that the incentive level is active; inactive levels are historic levels no longer in use", example = "true", defaultValue = "true")
@@ -35,7 +35,7 @@ data class IncentiveLevel(
  * Update payload for IncentiveLevel
  */
 data class IncentiveLevelUpdate(
-  @Schema(description = "Name of the incentive level", example = "Standard", minLength = 1, required = false)
+  @Schema(description = "Name of the incentive level", example = "Standard", minLength = 1, maxLength = 30, required = false)
   val name: String? = null,
   @Schema(description = "Indicates that the incentive level is active; inactive levels are historic levels no longer in use", example = "true", required = false)
   val active: Boolean? = null,
