@@ -237,6 +237,10 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
       val domainEvents = getPublishedDomainEvents()
       val auditMessages = getSentAuditMessages()
 
+      val expectedEventCount = 3
+      assertThat(domainEvents).hasSize(expectedEventCount)
+      assertThat(auditMessages).hasSize(expectedEventCount)
+
       val expectedIncentiveLevelCreateCount = 1
       assertThat(domainEvents.count { it.eventType == "incentives.level.changed" }).isEqualTo(expectedIncentiveLevelCreateCount)
       assertThat(auditMessages.count { it.what == "INCENTIVE_LEVEL_ADDED" }).isEqualTo(expectedIncentiveLevelCreateCount)
@@ -659,6 +663,10 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
       val domainEvents = getPublishedDomainEvents()
       val auditMessages = getSentAuditMessages()
 
+      val expectedEventCount = 3
+      assertThat(domainEvents).hasSize(expectedEventCount)
+      assertThat(auditMessages).hasSize(expectedEventCount)
+
       val expectedIncentiveLevelCreateCount = 1
       assertThat(domainEvents.count { it.eventType == "incentives.level.changed" }).isEqualTo(expectedIncentiveLevelCreateCount)
       assertThat(auditMessages.count { it.what == "INCENTIVE_LEVEL_UPDATED" }).isEqualTo(expectedIncentiveLevelCreateCount)
@@ -915,6 +923,10 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
       val domainEvents = getPublishedDomainEvents()
       val auditMessages = getSentAuditMessages()
+
+      val expectedEventCount = 3
+      assertThat(domainEvents).hasSize(expectedEventCount)
+      assertThat(auditMessages).hasSize(expectedEventCount)
 
       val expectedIncentiveLevelCreateCount = 1
       assertThat(domainEvents.count { it.eventType == "incentives.level.changed" }).isEqualTo(expectedIncentiveLevelCreateCount)
