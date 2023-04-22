@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import jakarta.validation.ValidationException
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Service
@@ -128,8 +127,9 @@ class PrisonIncentiveLevelService(
         }
       }
 
+      var levelCodesNoLongerDefault: List<String> = emptyList()
       if (prisonIncentiveLevel.defaultOnAdmission) {
-        prisonIncentiveLevelRepository.setOtherLevelsNotDefaultForAdmission(prisonId, levelCode).collect()
+        levelCodesNoLongerDefault = prisonIncentiveLevelRepository.setOtherLevelsNotDefaultForAdmission(prisonId, levelCode).toList()
       } else {
         val currentDefaultLevelCode =
           prisonIncentiveLevelRepository.findFirstByPrisonIdAndActiveIsTrueAndDefaultIsTrue(prisonId)?.levelCode
@@ -145,6 +145,12 @@ class PrisonIncentiveLevelService(
       prisonIncentiveLevelRepository.save(prisonIncentiveLevel)
         .copy(levelName = incentiveLevel.name)
         .toDTO()
+        .also {
+          levelCodesNoLongerDefault.forEach { levelCode ->
+            // trigger audit events by submitting a no-change update
+            updatePrisonIncentiveLevel(prisonId, levelCode, PrisonIncentiveLevelUpdateDTO())
+          }
+        }
     }
   }
 
