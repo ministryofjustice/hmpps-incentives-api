@@ -17,12 +17,14 @@ import org.springframework.context.annotation.Primary
 import org.springframework.http.HttpStatus
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorCode
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.helper.expectErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.IncentiveLevelResourceTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import java.time.Clock
 import java.time.LocalDateTime
+import kotlin.text.Regex
 
 class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
   @TestConfiguration
@@ -306,21 +308,35 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(defaultLevelCodes).isEqualTo(listOf("WRI" to "ENH"))
       }
 
-      assertDomainEventSent("incentives.prison-level.changed").let {
-        assertThat(it.description).isEqualTo("Incentive level (ENH) in prison WRI has been updated")
-        assertThat(it.additionalInformation?.incentiveLevel).isEqualTo("ENH")
-        assertThat(it.additionalInformation?.prisonId).isEqualTo("WRI")
+      val domainEvents = getPublishedDomainEvents()
+      val auditMessages = getSentAuditMessages()
+
+      val expectedPrisonIncentiveLevelChanges = 2
+      assertThat(domainEvents).hasSize(expectedPrisonIncentiveLevelChanges)
+      assertThat(auditMessages).hasSize(expectedPrisonIncentiveLevelChanges)
+      assertThat(domainEvents.count { it.eventType == "incentives.prison-level.changed" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
+      assertThat(auditMessages.count { it.what == "PRISON_INCENTIVE_LEVEL_UPDATED" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
+
+      assertThat(domainEvents).allMatch {
+        it.additionalInformation?.prisonId == "WRI" &&
+          it.description.matches(Regex("^Incentive level \\(...\\) in prison WRI has been updated$"))
       }
-      assertAuditMessageSentWithMap("PRISON_INCENTIVE_LEVEL_UPDATED").let {
-        assertThat(it).containsAllEntriesOf(
-          mapOf(
-            "prisonId" to "WRI",
-            "levelCode" to "ENH",
-            "active" to true,
-            "defaultOnAdmission" to true,
-          ),
-        )
+      assertThat(
+        domainEvents.map { it.additionalInformation?.incentiveLevel }.toSet(),
+      ).isEqualTo(setOf("STD", "ENH"))
+
+      val auditMessageDetails = auditMessages.map { objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java) }
+      assertThat(auditMessageDetails).allMatch { it.prisonId == "WRI" }
+      assertThat(auditMessageDetails).allMatch { it.active }
+      val auditMessageDefaultLevels = auditMessageDetails.associate {
+        it.levelCode to it.defaultOnAdmission
       }
+      assertThat(auditMessageDefaultLevels).isEqualTo(
+        mapOf(
+          "ENH" to true,
+          "STD" to false,
+        ),
+      )
     }
 
     @Test
@@ -828,21 +844,35 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(defaultLevelCodes).isEqualTo(listOf("WRI" to "ENH"))
       }
 
-      assertDomainEventSent("incentives.prison-level.changed").let {
-        assertThat(it.description).isEqualTo("Incentive level (ENH) in prison WRI has been updated")
-        assertThat(it.additionalInformation?.incentiveLevel).isEqualTo("ENH")
-        assertThat(it.additionalInformation?.prisonId).isEqualTo("WRI")
+      val domainEvents = getPublishedDomainEvents()
+      val auditMessages = getSentAuditMessages()
+
+      val expectedPrisonIncentiveLevelChanges = 2
+      assertThat(domainEvents).hasSize(expectedPrisonIncentiveLevelChanges)
+      assertThat(auditMessages).hasSize(expectedPrisonIncentiveLevelChanges)
+      assertThat(domainEvents.count { it.eventType == "incentives.prison-level.changed" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
+      assertThat(auditMessages.count { it.what == "PRISON_INCENTIVE_LEVEL_UPDATED" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
+
+      assertThat(domainEvents).allMatch {
+        it.additionalInformation?.prisonId == "WRI" &&
+          it.description.matches(Regex("^Incentive level \\(...\\) in prison WRI has been updated$"))
       }
-      assertAuditMessageSentWithMap("PRISON_INCENTIVE_LEVEL_UPDATED").let {
-        assertThat(it).containsAllEntriesOf(
-          mapOf(
-            "prisonId" to "WRI",
-            "levelCode" to "ENH",
-            "remandTransferLimitInPence" to 66_00,
-            "visitOrders" to 2,
-          ),
-        )
+      assertThat(
+        domainEvents.map { it.additionalInformation?.incentiveLevel }.toSet(),
+      ).isEqualTo(setOf("STD", "ENH"))
+
+      val auditMessageDetails = auditMessages.map { objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java) }
+      assertThat(auditMessageDetails).allMatch { it.prisonId == "WRI" }
+      assertThat(auditMessageDetails).allMatch { it.active }
+      val auditMessageDefaultLevels = auditMessageDetails.associate {
+        it.levelCode to it.defaultOnAdmission
       }
+      assertThat(auditMessageDefaultLevels).isEqualTo(
+        mapOf(
+          "ENH" to true,
+          "STD" to false,
+        ),
+      )
     }
 
     @Test

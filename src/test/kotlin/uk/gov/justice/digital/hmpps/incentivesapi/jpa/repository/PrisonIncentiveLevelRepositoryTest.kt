@@ -242,6 +242,17 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
   }
 
   @Test
+  fun `sets other levels to be non-default`(): Unit = runBlocking {
+    generateDefaultData()
+
+    var previouslyDefaultLevelCode = repository.setOtherLevelsNotDefaultForAdmission("MDI", "ENH").toSet()
+    assertThat(previouslyDefaultLevelCode).isEqualTo(setOf("STD"))
+
+    previouslyDefaultLevelCode = repository.setOtherLevelsNotDefaultForAdmission("MDI", "ENH").toSet()
+    assertThat(previouslyDefaultLevelCode).isEqualTo(emptySet<String>())
+  }
+
+  @Test
   fun `find prisons that have active levels`(): Unit = runBlocking {
     generateDefaultData()
     // Generate inactive prisons that will not be returned:

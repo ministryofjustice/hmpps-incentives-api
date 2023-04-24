@@ -127,8 +127,9 @@ class PrisonIncentiveLevelService(
         }
       }
 
+      var levelCodesNoLongerDefault: List<String> = emptyList()
       if (prisonIncentiveLevel.defaultOnAdmission) {
-        prisonIncentiveLevelRepository.setOtherLevelsNotDefaultForAdmission(prisonId, levelCode)
+        levelCodesNoLongerDefault = prisonIncentiveLevelRepository.setOtherLevelsNotDefaultForAdmission(prisonId, levelCode).toList()
       } else {
         val currentDefaultLevelCode =
           prisonIncentiveLevelRepository.findFirstByPrisonIdAndActiveIsTrueAndDefaultIsTrue(prisonId)?.levelCode
@@ -144,6 +145,12 @@ class PrisonIncentiveLevelService(
       prisonIncentiveLevelRepository.save(prisonIncentiveLevel)
         .copy(levelName = incentiveLevel.name)
         .toDTO()
+        .also {
+          levelCodesNoLongerDefault.forEach { levelCode ->
+            // trigger audit events by submitting a no-change update
+            updatePrisonIncentiveLevel(prisonId, levelCode, PrisonIncentiveLevelUpdateDTO())
+          }
+        }
     }
   }
 
