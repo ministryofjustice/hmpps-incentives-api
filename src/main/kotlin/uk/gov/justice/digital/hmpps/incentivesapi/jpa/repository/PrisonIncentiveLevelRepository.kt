@@ -71,6 +71,7 @@ interface PrisonIncentiveLevelRepository : CoroutineCrudRepository<PrisonIncenti
 
   /**
    * Sets levels other than the one privided to be non-default for this prison
+   * Returns the level codes that changed; there should only be zero or one if the data was consistent
    * Used to ensure there is only one default level for admission in a prison
    */
   @Query(
