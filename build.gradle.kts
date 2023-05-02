@@ -1,10 +1,10 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.1.4-beta-3"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.1.4"
   id("org.springdoc.openapi-gradle-plugin") version "1.6.0"
   id("jacoco")
   id("org.sonarqube") version "4.0.0.2929"
-  kotlin("plugin.spring") version "1.8.10"
-  kotlin("plugin.jpa") version "1.8.10"
+  kotlin("plugin.spring") version "1.8.21"
+  kotlin("plugin.jpa") version "1.8.21"
 }
 
 dependencyCheck {
@@ -29,7 +29,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
   implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
 
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:2.0.0-beta-14")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:2.0.0-beta-16")
 
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
@@ -44,7 +44,7 @@ dependencies {
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
   implementation("io.opentelemetry:opentelemetry-api:1.25.0")
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:1.25.0")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:1.25.1")
 
   implementation("org.apache.commons:commons-lang3")
   implementation("org.apache.commons:commons-text:1.10.0")
@@ -78,13 +78,6 @@ openApi {
   outputDir.set(file("$buildDir/docs"))
   outputFileName.set("openapi.json")
   customBootRun.args.set(listOf("--spring.profiles.active=dev,localstack,docs"))
-}
-
-// Fixes error when using openapi-gradle-plugin 1.6 with gradle 8
-afterEvaluate {
-  tasks.named("forkedSpringBootRun") {
-    dependsOn(tasks.named("inspectClassesForKotlinIC"))
-  }
 }
 
 java {
