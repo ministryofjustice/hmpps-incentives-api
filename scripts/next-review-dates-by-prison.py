@@ -38,6 +38,7 @@ parser = argparse.ArgumentParser(usage=f'''
 parser.add_argument('dates', type=argparse.FileType('r'), help='CSV export from incentives database')
 parser.add_argument('prisoners', type=argparse.FileType('r'), help='CSV export from prisoner money database')
 parser.add_argument('output', type=argparse.FileType('w'), help='CSV to write out')
+parser.add_argument('--private-beta', action='store_true', help='Limit results to private beta prisons')
 args = parser.parse_args()
 
 today = datetime.date.today()
@@ -79,20 +80,6 @@ levels = pd.DataFrame(
     ),
 )
 
-# private beta groups
-prisons = pd.DataFrame(
-    dict(prison_name=[
-        'Belmarsh', 'Cardiff', 'Channings Wood', 'Dartmoor', 'Exeter', 'Garth', 'Guys Marsh', 'High Down',
-        'Swansea', 'Usk', 'Wakefield', 'Warren Hill', 'Werrington', 'Winchester', 'Woodhill',
-    ]),
-    index=pd.Index(
-        ['BAI', 'CFI', 'CWI', 'DAI', 'EXI', 'GHI', 'GMI', 'HOI', 'SWI', 'UKI', 'WDI', 'WII', 'WNI', 'WCI', 'WHI'],
-        name='prison_id',
-    ),
-)
-
-indices = pd.DataFrame(index=pd.MultiIndex.from_product([prisons.index, levels.index], names=('prison_id', 'level')))
-
 population_by_prison_and_level = joined_df.groupby(['prison_id', 'level']).size()
 population_by_prison_and_level.name = f'Population as of {today_str}'
 population_by_prison_and_level = population_by_prison_and_level.to_frame()
@@ -106,12 +93,24 @@ stats_table = population_by_prison_and_level.join(overdue_by_prison_and_level, h
 stats_table[stats_table.columns[1]].fillna(0, inplace=True)
 stats_table = stats_table.convert_dtypes()
 
-# private beta prisons
-filtered_stats_table = indices.join(stats_table, how='inner')
+if args.private_beta:
+    # private beta prisons
+    prisons = pd.DataFrame(
+        dict(prison_name=[
+            'Belmarsh', 'Cardiff', 'Channings Wood', 'Dartmoor', 'Exeter', 'Garth', 'Guys Marsh', 'High Down',
+            'Swansea', 'Usk', 'Wakefield', 'Warren Hill', 'Werrington', 'Winchester', 'Woodhill',
+        ]),
+        index=pd.Index(
+            ['BAI', 'CFI', 'CWI', 'DAI', 'EXI', 'GHI', 'GMI', 'HOI', 'SWI', 'UKI', 'WDI', 'WII', 'WNI', 'WCI', 'WHI'],
+            name='prison_id',
+        ),
+    )
+    indices = pd.DataFrame(index=pd.MultiIndex.from_product([prisons.index, levels.index], names=('prison_id', 'level')))
+    stats_table = indices.join(stats_table, how='inner')
 
 print('Population and overdue by prison and level:')
-print(filtered_stats_table)
-filtered_stats_table.to_csv(args.output)
+print(stats_table)
+stats_table.to_csv(args.output)
 
 print('Population and overdue by prison only:')
-print(filtered_stats_table.groupby('prison_id').sum())
+print(stats_table.groupby('prison_id').sum())
