@@ -47,12 +47,13 @@ class PrisonerIepLevelReviewServiceTest {
   private val incentiveLevelService: IncentiveLevelService = mock()
   private val prisonIncentiveLevelService: PrisonIncentiveLevelService = mock()
 
-  private val iepLevelService = IepLevelService(incentiveLevelService, prisonIncentiveLevelService)
+  private val iepLevelService = IepLevelService(incentiveLevelService)
 
   private val prisonerIepLevelReviewService = PrisonerIepLevelReviewService(
     prisonApiService,
     prisonerIepLevelRepository,
     iepLevelService,
+    prisonIncentiveLevelService,
     snsService,
     auditService,
     authenticationFacade,

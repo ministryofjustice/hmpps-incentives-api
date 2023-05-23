@@ -2,35 +2,24 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.incentivesapi.config.DataIntegrityException
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
 
 @Service
 class IepLevelService(
   private val incentiveLevelService: IncentiveLevelService,
-  private val prisonIncentiveLevelService: PrisonIncentiveLevelService,
 ) {
-
-  suspend fun getIepLevelsForPrison(prisonId: String): List<IepLevel> {
-    var i = 1
-    return prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)
-      .map {
-        IepLevel(
-          iepLevel = it.levelCode,
-          iepDescription = it.levelName,
-          sequence = i++,
-          default = it.defaultOnAdmission,
-          active = it.active,
-        )
-      }
-  }
-
-  fun chooseDefaultLevel(prisonId: String, prisonLevels: List<IepLevel>): String {
-    val activePrisonLevels = prisonLevels.filter(IepLevel::active)
-    return activePrisonLevels.firstOrNull(IepLevel::default)?.iepLevel
+  /**
+   * Selects the default level (for new admissions) for a prison
+   * NB: this existed largely for compatibility with NOMIS which allowed there to be no default set,
+   * business rules now prevent this from happening
+   */
+  fun chooseDefaultLevel(prisonId: String, prisonLevels: List<PrisonIncentiveLevel>): String {
+    val activePrisonLevels = prisonLevels.filter(PrisonIncentiveLevel::active)
+    return activePrisonLevels.firstOrNull(PrisonIncentiveLevel::defaultOnAdmission)?.levelCode
       // fall back to standard if available
-      ?: activePrisonLevels.firstOrNull { it.iepLevel == "STD" }?.iepLevel
+      ?: activePrisonLevels.firstOrNull { it.levelCode == "STD" }?.levelCode
       // fall back to first available level
-      ?: activePrisonLevels.firstOrNull()?.iepLevel
+      ?: activePrisonLevels.firstOrNull()?.levelCode
       // there are no available incentive levels at all at this prison
       ?: throw DataIntegrityException("$prisonId has no available incentive levels")
   }
@@ -40,9 +29,11 @@ class IepLevelService(
    * person’s level when they are transferred, we need to find the "nearest highest" level
    * according to HMPPS policy. Falls back to prison's default level when there's nothing else to do.
    */
-  suspend fun findNearestHighestLevel(prisonId: String, prisonLevels: List<IepLevel>, levelCode: String): String {
+  suspend fun findNearestHighestLevel(prisonId: String, prisonLevels: List<PrisonIncentiveLevel>, levelCode: String): String {
     val defaultLevelCode = chooseDefaultLevel(prisonId, prisonLevels)
-    val levelCodesAvailableInPrison = prisonLevels.filter(IepLevel::active).map(IepLevel::iepLevel).toSet()
+    val levelCodesAvailableInPrison = prisonLevels.filter(PrisonIncentiveLevel::active)
+      .map(PrisonIncentiveLevel::levelCode)
+      .toSet()
 
     data class KnownLevel(val code: String, val available: Boolean)
     val allKnownLevels = incentiveLevelService.getAllIncentiveLevels()

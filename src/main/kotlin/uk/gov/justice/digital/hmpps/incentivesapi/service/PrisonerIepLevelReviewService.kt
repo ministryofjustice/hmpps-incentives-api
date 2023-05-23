@@ -34,6 +34,7 @@ class PrisonerIepLevelReviewService(
   private val prisonApiService: PrisonApiService,
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository,
   private val iepLevelService: IepLevelService,
+  private val prisonIncentiveLevelService: PrisonIncentiveLevelService, // NB: unaudited!
   private val snsService: SnsService,
   private val auditService: AuditService,
   private val authenticationFacade: AuthenticationFacade,
@@ -213,8 +214,8 @@ class PrisonerIepLevelReviewService(
   }
 
   private suspend fun getIepLevelForReviewType(prisonerInfo: PrisonerAtLocation, reviewType: ReviewType): String {
-    val iepLevelsForPrison = iepLevelService.getIepLevelsForPrison(prisonerInfo.agencyId)
-    val defaultLevelCode = iepLevelService.chooseDefaultLevel(prisonerInfo.agencyId, iepLevelsForPrison)
+    val prisonIncentiveLevels = prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonerInfo.agencyId)
+    val defaultLevelCode = iepLevelService.chooseDefaultLevel(prisonerInfo.agencyId, prisonIncentiveLevels)
 
     return when (reviewType) {
       ReviewType.INITIAL, ReviewType.READMISSION -> {
@@ -230,7 +231,7 @@ class PrisonerIepLevelReviewService(
           val levelCodeBeforeTransfer =
             iepHistory.sortedBy(IepDetail::iepTime).lastOrNull { it.agencyId != prisonerInfo.agencyId }?.iepCode
               ?: defaultLevelCode // if no previous prison
-          iepLevelService.findNearestHighestLevel(prisonerInfo.agencyId, iepLevelsForPrison, levelCodeBeforeTransfer)
+          iepLevelService.findNearestHighestLevel(prisonerInfo.agencyId, prisonIncentiveLevels, levelCodeBeforeTransfer)
         } catch (e: IncentiveReviewNotFoundException) {
           defaultLevelCode // this is to handle no reviews - only an issue before migration
         }

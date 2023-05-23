@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
-import uk.gov.justice.digital.hmpps.incentivesapi.service.IepLevelService
+import uk.gov.justice.digital.hmpps.incentivesapi.service.PrisonIncentiveLevelAuditedService
 import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 
 @RestController
@@ -20,7 +20,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 @Tag(name = "Prison incentive levels", description = "Retrieve incentive levels for a prison")
 @Deprecated("Use `/incentive/prison-levels/…`")
 class IepLevelsResource(
-  private val iepLevelService: IepLevelService,
+  private val prisonIncentiveLevelService: PrisonIncentiveLevelAuditedService,
 ) {
   @Deprecated("Use `/incentive/prison-levels/{prisonId}`")
   @GetMapping("/levels/{prisonId}")
@@ -57,6 +57,14 @@ class IepLevelsResource(
     ensure {
       ("prisonId" to prisonId).hasLengthAtLeast(3).hasLengthAtMost(5)
     }
-    return iepLevelService.getIepLevelsForPrison(prisonId)
+    return prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId).mapIndexed { index, prisonIncentiveLevel ->
+      IepLevel(
+        iepLevel = prisonIncentiveLevel.levelCode,
+        iepDescription = prisonIncentiveLevel.levelName,
+        sequence = index + 1,
+        default = prisonIncentiveLevel.defaultOnAdmission,
+        active = prisonIncentiveLevel.active,
+      )
+    }
   }
 }

@@ -7,99 +7,13 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
-import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.incentivesapi.config.DataIntegrityException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 
 class IepLevelServiceTest {
-
-  private val prisonApiService: PrisonApiService = mock()
   private val incentiveLevelService: IncentiveLevelService = mock()
-  private val prisonIncentiveLevelService: PrisonIncentiveLevelService = mock()
-  private val iepLevelService =
-    IepLevelService(incentiveLevelService, prisonIncentiveLevelService)
-
-  @Nested
-  inner class getIepLevelsForPrison {
-    val prisonId = "XXX"
-
-    @Test
-    fun `query database if feature flag is true`() {
-      runBlocking {
-        // Given
-        whenever(prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)).thenReturn(
-          listOf(
-            PrisonIncentiveLevel(
-              levelCode = "BAS",
-              levelName = "Basic",
-              prisonId = prisonId,
-              defaultOnAdmission = true,
-              remandTransferLimitInPence = 0,
-              remandSpendLimitInPence = 0,
-              convictedTransferLimitInPence = 0,
-              convictedSpendLimitInPence = 0,
-              visitOrders = 0,
-              privilegedVisitOrders = 0,
-            ),
-            PrisonIncentiveLevel(
-              levelCode = "STD", levelName = "Standard",
-              prisonId = prisonId,
-              defaultOnAdmission = true,
-              remandTransferLimitInPence = 0,
-              remandSpendLimitInPence = 0,
-              convictedTransferLimitInPence = 0,
-              convictedSpendLimitInPence = 0,
-              visitOrders = 0,
-              privilegedVisitOrders = 0,
-            ),
-            PrisonIncentiveLevel(
-              levelCode = "ENH", levelName = "Enhanced",
-              prisonId = prisonId,
-              remandTransferLimitInPence = 0,
-              remandSpendLimitInPence = 0,
-              convictedTransferLimitInPence = 0,
-              convictedSpendLimitInPence = 0,
-              visitOrders = 0,
-              privilegedVisitOrders = 0,
-            ),
-            PrisonIncentiveLevel(
-              levelCode = "ENH2", levelName = "Enhanced 2",
-              prisonId = prisonId,
-              remandTransferLimitInPence = 0,
-              remandSpendLimitInPence = 0,
-              convictedTransferLimitInPence = 0,
-              convictedSpendLimitInPence = 0,
-              visitOrders = 0,
-              privilegedVisitOrders = 0,
-            ),
-            PrisonIncentiveLevel(
-              levelCode = "ENH3", levelName = "Enhanced 3",
-              prisonId = prisonId,
-              remandTransferLimitInPence = 0,
-              remandSpendLimitInPence = 0,
-              convictedTransferLimitInPence = 0,
-              convictedSpendLimitInPence = 0,
-              visitOrders = 0,
-              privilegedVisitOrders = 0,
-            ),
-          ),
-        )
-
-        // When
-        val iepLevelsForPrison = iepLevelService.getIepLevelsForPrison(prisonId)
-
-        // Then - all configured IepLevel record are returned
-        verifyNoInteractions(prisonApiService)
-        assertThat(iepLevelsForPrison).hasSize(5)
-        assertThat(iepLevelsForPrison.first().default).isTrue
-        assertThat(iepLevelsForPrison.last().iepLevel).isEqualTo("ENH3")
-        assertThat(iepLevelsForPrison.last().sequence).isEqualTo(5)
-      }
-    }
-  }
+  private val iepLevelService = IepLevelService(incentiveLevelService)
 
   @Nested
   inner class `finding nearest levels` {
@@ -123,9 +37,9 @@ class IepLevelServiceTest {
     fun `when target level is available`(): Unit = runBlocking {
       // the case for most transfers (most prisons use the same set of levels)
       val prisonLevels = listOf(
-        IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1),
-        IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2, default = true),
-        IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3),
+        prisonIncentiveLevel(prisonId, "BAS"),
+        prisonIncentiveLevel(prisonId, "STD"), // default & active
+        prisonIncentiveLevel(prisonId, "ENH"),
       )
       for (level in listOf("BAS", "STD", "ENH")) {
         assertThat(iepLevelService.findNearestHighestLevel(prisonId, prisonLevels, level)).isEqualTo(level)
@@ -136,9 +50,9 @@ class IepLevelServiceTest {
     fun `when target level is not present, nor is there a higher one`(): Unit = runBlocking {
       // can happen when transferring from a prison that has high levels to a typical prison
       val prisonLevels = listOf(
-        IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1),
-        IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2, default = true),
-        IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3),
+        prisonIncentiveLevel(prisonId, "BAS"),
+        prisonIncentiveLevel(prisonId, "STD"), // default & active
+        prisonIncentiveLevel(prisonId, "ENH"),
       )
       assertThat(iepLevelService.findNearestHighestLevel(prisonId, prisonLevels, "EN2")).isEqualTo("ENH")
     }
@@ -147,12 +61,12 @@ class IepLevelServiceTest {
     fun `when target and many other high levels are unavailable`(): Unit = runBlocking {
       // exaggerated version of transferring from a prison that has high levels to another prison
       val prisonLevels = listOf(
-        IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1, default = true),
-        IepLevel(iepLevel = "ENT", iepDescription = "Entry", sequence = 2),
-        IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 3, active = false),
-        IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 4, active = false),
-        IepLevel(iepLevel = "EN2", iepDescription = "Enhanced 2", sequence = 5, active = false),
-        IepLevel(iepLevel = "EN3", iepDescription = "Enhanced 3", sequence = 6, active = false),
+        prisonIncentiveLevel(prisonId, "BAS", defaultOnAdmission = true, active = true),
+        prisonIncentiveLevel(prisonId, "ENT", active = true),
+        prisonIncentiveLevel(prisonId, "STD", defaultOnAdmission = false, active = false),
+        prisonIncentiveLevel(prisonId, "ENH", active = false),
+        prisonIncentiveLevel(prisonId, "EN2", active = false),
+        prisonIncentiveLevel(prisonId, "EN3", active = false),
       )
       assertThat(iepLevelService.findNearestHighestLevel(prisonId, prisonLevels, "EN3")).isEqualTo("BAS")
     }
@@ -161,10 +75,10 @@ class IepLevelServiceTest {
     fun `when target level is not present, but there is a higher one higher`(): Unit = runBlocking {
       // not likely to happen, but covers case where a prison may have mistakenly removed a level
       val prisonLevels = listOf(
-        IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1),
-        IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2, default = true),
-        IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3),
-        IepLevel(iepLevel = "EN3", iepDescription = "Enhanced 3", sequence = 6),
+        prisonIncentiveLevel(prisonId, "BAS"),
+        prisonIncentiveLevel(prisonId, "STD"), // default & active
+        prisonIncentiveLevel(prisonId, "ENH"),
+        prisonIncentiveLevel(prisonId, "EN3"),
       )
       assertThat(iepLevelService.findNearestHighestLevel(prisonId, prisonLevels, "EN2")).isEqualTo("EN3")
     }
@@ -173,12 +87,12 @@ class IepLevelServiceTest {
     fun `when target and many other low levels are unavailable`(): Unit = runBlocking {
       // exaggerated version of prisons with predominantly high levels
       val prisonLevels = listOf(
-        IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1, active = false),
-        IepLevel(iepLevel = "ENT", iepDescription = "Entry", sequence = 2),
-        IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 3, active = false),
-        IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 4, active = false),
-        IepLevel(iepLevel = "EN2", iepDescription = "Enhanced 2", sequence = 5),
-        IepLevel(iepLevel = "EN3", iepDescription = "Enhanced 3", sequence = 6, default = true),
+        prisonIncentiveLevel(prisonId, "BAS", active = false),
+        prisonIncentiveLevel(prisonId, "ENT"),
+        prisonIncentiveLevel(prisonId, "STD", defaultOnAdmission = false, active = false),
+        prisonIncentiveLevel(prisonId, "ENH", active = false),
+        prisonIncentiveLevel(prisonId, "EN2"),
+        prisonIncentiveLevel(prisonId, "EN3", defaultOnAdmission = true),
       )
       assertThat(iepLevelService.findNearestHighestLevel(prisonId, prisonLevels, "BAS")).isEqualTo("EN2")
     }
@@ -187,10 +101,10 @@ class IepLevelServiceTest {
     fun `when target level is present but inactive`(): Unit = runBlocking {
       // can happen when a prison disables a high level
       val prisonLevels = listOf(
-        IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1),
-        IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2, default = true),
-        IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3),
-        IepLevel(iepLevel = "EN2", iepDescription = "Enhanced 2", sequence = 4, active = false),
+        prisonIncentiveLevel(prisonId, "BAS"),
+        prisonIncentiveLevel(prisonId, "STD"), // default & active
+        prisonIncentiveLevel(prisonId, "ENH"),
+        prisonIncentiveLevel(prisonId, "EN2", active = false),
       )
       assertThat(iepLevelService.findNearestHighestLevel(prisonId, prisonLevels, "EN2")).isEqualTo("ENH")
     }
@@ -199,9 +113,9 @@ class IepLevelServiceTest {
     fun `when target level is globally inactive`(): Unit = runBlocking {
       // unlikely to happen, but feasible if a prisoner has not had a review in a long time
       val prisonLevels = listOf(
-        IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1),
-        IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2, default = true),
-        IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3),
+        prisonIncentiveLevel(prisonId, "BAS"),
+        prisonIncentiveLevel(prisonId, "STD"), // default & active
+        prisonIncentiveLevel(prisonId, "ENH"),
       )
       assertThat(iepLevelService.findNearestHighestLevel(prisonId, prisonLevels, "ENT")).isEqualTo("STD")
     }
@@ -210,9 +124,9 @@ class IepLevelServiceTest {
     fun `falls back to the prison's default when target is not found`(): Unit = runBlocking {
       // extreme edge case when a level is globally removed
       val prisonLevels = listOf(
-        IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1),
-        IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2, default = true),
-        IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3),
+        prisonIncentiveLevel(prisonId, "BAS"),
+        prisonIncentiveLevel(prisonId, "STD"), // default & active
+        prisonIncentiveLevel(prisonId, "ENH"),
       )
       assertThat(iepLevelService.findNearestHighestLevel(prisonId, prisonLevels, "ABC")).isEqualTo("STD")
     }
@@ -221,9 +135,9 @@ class IepLevelServiceTest {
     fun `falls back to standard when target is not found and there is no default`(): Unit = runBlocking {
       // extreme edge case when a level is globally removed AND the prison does not have a default set but standard is available
       val prisonLevels = listOf(
-        IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1),
-        IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2),
-        IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3),
+        prisonIncentiveLevel(prisonId, "BAS"),
+        prisonIncentiveLevel(prisonId, "STD", defaultOnAdmission = false, active = true),
+        prisonIncentiveLevel(prisonId, "ENH"),
       )
       assertThat(iepLevelService.findNearestHighestLevel(prisonId, prisonLevels, "ABC")).isEqualTo("STD")
     }
@@ -232,9 +146,9 @@ class IepLevelServiceTest {
     fun `falls back to the prison's first level when target is not found and there is no default or standard`(): Unit = runBlocking {
       // extreme edge case when a level is globally removed AND the prison does not have a default set AND standard is unavailable
       val prisonLevels = listOf(
-        IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1),
-        IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2, active = false),
-        IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3),
+        prisonIncentiveLevel(prisonId, "BAS"),
+        prisonIncentiveLevel(prisonId, "STD", defaultOnAdmission = false, active = false),
+        prisonIncentiveLevel(prisonId, "ENH"),
       )
       assertThat(iepLevelService.findNearestHighestLevel(prisonId, prisonLevels, "ABC")).isEqualTo("BAS")
     }
@@ -243,9 +157,9 @@ class IepLevelServiceTest {
     fun `fails when a prison does not have any available levels`(): Unit = runBlocking {
       // extreme edge case when the prison does not have any levels
       val prisonLevels = listOf(
-        IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1, active = false),
-        IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2, active = false),
-        IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3, active = false),
+        prisonIncentiveLevel(prisonId, "BAS", active = false),
+        prisonIncentiveLevel(prisonId, "STD", defaultOnAdmission = false, active = false),
+        prisonIncentiveLevel(prisonId, "ENH", active = false),
       )
       assertThatThrownBy {
         runBlocking { iepLevelService.findNearestHighestLevel(prisonId, prisonLevels, "STD") }
@@ -256,9 +170,9 @@ class IepLevelServiceTest {
     fun `fails when there are no available levels in a prison because a default cannot be chosen`(): Unit = runBlocking {
       // extreme edge case when a level is globally removed AND the prison does not have any levels
       val prisonLevels = listOf(
-        IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1, active = false),
-        IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2, active = false),
-        IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3, active = false),
+        prisonIncentiveLevel(prisonId, "BAS", active = false),
+        prisonIncentiveLevel(prisonId, "STD", defaultOnAdmission = false, active = false),
+        prisonIncentiveLevel(prisonId, "ENH", active = false),
       )
       assertThatThrownBy {
         runBlocking { iepLevelService.findNearestHighestLevel(prisonId, prisonLevels, "ABC") }

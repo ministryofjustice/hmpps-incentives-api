@@ -20,8 +20,8 @@ import org.springframework.data.domain.Sort
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ListOfDataNotFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonLocation
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
@@ -33,13 +33,13 @@ import java.time.ZoneId
 
 class IncentiveReviewsServiceTest {
   private val prisonApiService: PrisonApiService = mock()
-  private val iepLevelService: IepLevelService = mock()
+  private val prisonIncentiveLevelService: PrisonIncentiveLevelAuditedService = mock()
   private val offenderSearchService: OffenderSearchService = mock()
   private val behaviourService: BehaviourService = mock()
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository = mock()
   private val nextReviewDateGetterService: NextReviewDateGetterService = mock()
   private var clock: Clock = Clock.fixed(Instant.parse("2022-08-01T12:45:00.00Z"), ZoneId.of("Europe/London"))
-  private val incentiveReviewsService = IncentiveReviewsService(offenderSearchService, prisonApiService, iepLevelService, prisonerIepLevelRepository, nextReviewDateGetterService, behaviourService, clock)
+  private val incentiveReviewsService = IncentiveReviewsService(offenderSearchService, prisonApiService, prisonIncentiveLevelService, prisonerIepLevelRepository, nextReviewDateGetterService, behaviourService, clock)
 
   @BeforeEach
   fun setUp(): Unit = runBlocking {
@@ -69,12 +69,43 @@ class IncentiveReviewsServiceTest {
       ),
     )
 
-    whenever(iepLevelService.getIepLevelsForPrison("MDI"))
+    whenever(prisonIncentiveLevelService.getActivePrisonIncentiveLevels("MDI"))
       .thenReturn(
         listOf(
-          IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1),
-          IepLevel(iepLevel = "STD", iepDescription = "Standard", sequence = 2),
-          IepLevel(iepLevel = "ENH", iepDescription = "Enhanced", sequence = 3),
+          PrisonIncentiveLevel(
+            prisonId = "MDI",
+            levelCode = "BAS",
+            levelName = "Basic",
+            remandTransferLimitInPence = 27_50,
+            remandSpendLimitInPence = 275_00,
+            convictedTransferLimitInPence = 5_50,
+            convictedSpendLimitInPence = 55_00,
+            visitOrders = 1,
+            privilegedVisitOrders = 0,
+          ),
+          PrisonIncentiveLevel(
+            prisonId = "MDI",
+            levelCode = "STD",
+            levelName = "Standard",
+            defaultOnAdmission = true,
+            remandTransferLimitInPence = 60_50,
+            remandSpendLimitInPence = 605_00,
+            convictedTransferLimitInPence = 19_80,
+            convictedSpendLimitInPence = 198_00,
+            visitOrders = 1,
+            privilegedVisitOrders = 0,
+          ),
+          PrisonIncentiveLevel(
+            prisonId = "MDI",
+            levelCode = "ENH",
+            levelName = "Enhanced",
+            remandTransferLimitInPence = 66_00,
+            remandSpendLimitInPence = 660_00,
+            convictedTransferLimitInPence = 33_00,
+            convictedSpendLimitInPence = 330_00,
+            visitOrders = 1,
+            privilegedVisitOrders = 0,
+          ),
         ),
       )
   }
