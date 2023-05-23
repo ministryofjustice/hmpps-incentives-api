@@ -57,7 +57,7 @@ class IncentiveStoreService(
     update: IncentiveRecordUpdate,
     incentiveRecord: PrisonerIepLevel,
   ): PrisonerIepLevel {
-    if (update?.current == true) {
+    if (update.current == true) {
       prisonerIepLevelRepository.updateIncentivesToNotCurrentForBookingAndIncentive(incentiveRecord.bookingId, incentiveRecord.id)
     }
 
