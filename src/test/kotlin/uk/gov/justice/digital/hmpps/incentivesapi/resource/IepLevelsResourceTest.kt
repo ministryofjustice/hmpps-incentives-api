@@ -6,6 +6,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.IncentiveLevelResourceTestBase
 
+@Deprecated("Delete once IepLevelsResource class is removed")
 class IepLevelsResourceTest : IncentiveLevelResourceTestBase() {
 
   @BeforeEach
@@ -43,6 +44,7 @@ class IepLevelsResourceTest : IncentiveLevelResourceTestBase() {
       .expectStatus().isOk
       .expectBody()
       .json(
+        // language=json
         """
         [
             {

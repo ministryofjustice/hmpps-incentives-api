@@ -18,9 +18,11 @@ import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 @RestController
 @RequestMapping("/iep", produces = [MediaType.APPLICATION_JSON_VALUE])
 @Tag(name = "Prison incentive levels", description = "Retrieve incentive levels for a prison")
+@Deprecated("Use `/incentive/prison-levels/…`")
 class IepLevelsResource(
   private val iepLevelService: IepLevelService,
 ) {
+  @Deprecated("Use `/incentive/prison-levels/{prisonId}`")
   @GetMapping("/levels/{prisonId}")
   @Operation(
     summary = "Returns the valid IEP levels for specified prison",
