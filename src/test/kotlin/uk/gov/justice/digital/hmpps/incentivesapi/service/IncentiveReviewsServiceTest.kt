@@ -69,7 +69,7 @@ class IncentiveReviewsServiceTest {
       ),
     )
 
-    whenever(iepLevelService.getIepLevelsForPrison("MDI", useClientCredentials = true))
+    whenever(iepLevelService.getIepLevelsForPrison("MDI"))
       .thenReturn(
         listOf(
           IepLevel(iepLevel = "BAS", iepDescription = "Basic", sequence = 1),

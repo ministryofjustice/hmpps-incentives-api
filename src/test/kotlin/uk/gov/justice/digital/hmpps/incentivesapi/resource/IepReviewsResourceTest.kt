@@ -32,18 +32,6 @@ class IepReviewsResourceTest : IncentiveLevelResourceTestBase() {
   }
 
   @Test
-  fun `Prison API '404 Not Found' responses are handled instead of responding 500 Internal Server Error`() {
-    val bookingId: Long = 1234134
-
-    prisonApiMockServer.stubApi404for("/api/bookings/$bookingId/iepSummary?withDetails=true")
-
-    webTestClient.get().uri("/iep/reviews/booking/$bookingId?use-nomis-data=true")
-      .headers(setAuthorisation())
-      .exchange()
-      .expectStatus().isNotFound
-  }
-
-  @Test
   fun `handle undefined path variable`() {
     webTestClient.get().uri("/iep/reviews/booking/undefined")
       .headers(setAuthorisation())
@@ -78,10 +66,8 @@ class IepReviewsResourceTest : IncentiveLevelResourceTestBase() {
     val bookingId = 3330000L
     val prisonerNumber = "A1234AC"
 
-    prisonApiMockServer.stubIepLevels()
     prisonApiMockServer.stubGetPrisonerInfoByBooking(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = 77778L)
     prisonApiMockServer.stubGetLocationById(locationId = 77778L, locationDesc = "1-2-003")
-    prisonApiMockServer.stubAddIep(bookingId = bookingId)
     prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
 
     webTestClient.post().uri("/iep/reviews/booking/$bookingId")
@@ -131,8 +117,6 @@ class IepReviewsResourceTest : IncentiveLevelResourceTestBase() {
 
     prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = locationId)
     prisonApiMockServer.stubGetLocationById(locationId = locationId, locationDesc = "1-2-003")
-    prisonApiMockServer.stubAddIep(bookingId = bookingId)
-    prisonApiMockServer.stubIepLevels()
     prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
 
     webTestClient.post().uri("/iep/reviews/prisoner/$prisonerNumber")
@@ -208,8 +192,6 @@ class IepReviewsResourceTest : IncentiveLevelResourceTestBase() {
       locationId = 77778L,
     )
     prisonApiMockServer.stubGetLocationById(locationId = 77778L, locationDesc = "1-2-003")
-    prisonApiMockServer.stubAddIep(bookingId = bookingId)
-    prisonApiMockServer.stubIepLevels()
     prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
 
     webTestClient.post().uri("/iep/reviews/booking/$bookingId")
@@ -233,7 +215,6 @@ class IepReviewsResourceTest : IncentiveLevelResourceTestBase() {
       locationId = 77779L,
     )
     prisonApiMockServer.stubGetLocationById(locationId = 77779L, locationDesc = "1-2-004")
-    prisonApiMockServer.stubAddIep(bookingId = bookingId2)
     prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId2, prisonerNumber2)
 
     webTestClient.post().uri("/iep/reviews/booking/$bookingId2")

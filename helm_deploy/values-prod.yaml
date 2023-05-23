@@ -10,7 +10,6 @@ generic-service:
     API_BASE_URL_OAUTH: https://sign-in.hmpps.service.justice.gov.uk/auth
     API_BASE_URL_PRISON: https://api.prison.service.justice.gov.uk
     API_BASE_URL_OFFENDER_SEARCH: https://prisoner-offender-search.prison.service.justice.gov.uk
-    FEATURE_INCENTIVES_REFERENCE_DATA_SOURCE_OF_TRUTH: false
 
   postgresDatabaseRestore:
     enabled: true

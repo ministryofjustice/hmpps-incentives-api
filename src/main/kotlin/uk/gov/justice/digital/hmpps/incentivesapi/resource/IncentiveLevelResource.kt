@@ -28,7 +28,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 
 @RestController
 @RequestMapping("/incentive", produces = [MediaType.APPLICATION_JSON_VALUE])
-@Tag(name = "[Not in use yet!] Incentive levels", description = "Incentive levels and their global associated information") // TODO: remove warning when FEATURE_INCENTIVES_REFERENCE_DATA_SOURCE_OF_TRUTH is removed
+@Tag(name = "Incentive levels", description = "Incentive levels and their global associated information")
 class IncentiveLevelResource(
   private val incentiveLevelService: IncentiveLevelAuditedService,
 ) {

@@ -98,7 +98,6 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
     @BeforeEach
     fun setUp() {
       prisonApiMockServer.stubCaseNoteSummary()
-      prisonApiMockServer.stubIepLevels()
     }
 
     @Test
@@ -257,7 +256,6 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
   @Test
   fun `loads prisoner details even when location description not found`() {
     offenderSearchMockServer.stubFindOffenders("MDI")
-    prisonApiMockServer.stubApi404for("/api/locations/code/MDI-1")
     prisonApiMockServer.stubCaseNoteSummary()
     listOf("BAS", "STD", "ENH", "ENT").forEach { levelCode ->
       listOf("MDI").forEach { prisonId ->
@@ -348,8 +346,6 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
     offenderSearchMockServer.stubFindOffenders("MDI")
     prisonApiMockServer.stubLocation("MDI-1")
     prisonApiMockServer.stubCaseNoteSummary()
-    prisonApiMockServer.stubIepLevels()
-    prisonApiMockServer.stubAgenciesIepLevels("MDI")
 
     if (sort == IncentiveReviewSort.IS_NEW_TO_PRISON) {
       // convert one prisoner to be "new to prison" so that sorting is possible
@@ -384,8 +380,6 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
       offenderSearchMockServer.stubFindOffenders("MDI")
       prisonApiMockServer.stubLocation("MDI-1")
       prisonApiMockServer.stubCaseNoteSummary()
-      prisonApiMockServer.stubIepLevels()
-      prisonApiMockServer.stubAgenciesIepLevels("MDI")
     }
 
     private fun loadPage(page: Int) = webTestClient.get()
@@ -432,7 +426,6 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
     offenderSearchMockServer.stubFindOffenders("MDI")
     prisonApiMockServer.stubLocation("MDI-1")
     prisonApiMockServer.stubCaseNoteSummary()
-    prisonApiMockServer.stubIepLevels()
 
     prisonerIepLevelRepository.deleteAll()
 

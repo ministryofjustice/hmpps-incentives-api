@@ -25,7 +25,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 
 @RestController
 @RequestMapping("/incentive/prison-levels", produces = [MediaType.APPLICATION_JSON_VALUE])
-@Tag(name = "[Not in use yet!] Prison incentive levels", description = "Incentive levels and their per-prison associated information") // TODO: remove warning when FEATURE_INCENTIVES_REFERENCE_DATA_SOURCE_OF_TRUTH is removed
+@Tag(name = "Prison incentive levels and associated Information", description = "Incentive levels and their per-prison associated information")
 class PrisonIncentiveLevelResource(
   private val prisonIncentiveLevelService: PrisonIncentiveLevelAuditedService,
 ) {

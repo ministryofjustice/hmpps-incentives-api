@@ -6,11 +6,8 @@ import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorCode
-import uk.gov.justice.digital.hmpps.incentivesapi.config.FeatureFlagsService
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataWithCodeFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ValidationExceptionWithErrorCode
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.toIncentivesServiceDto
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveLevelRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.util.flow.associateByTo
@@ -30,19 +27,12 @@ class IncentiveLevelService(
   private val clock: Clock,
   private val incentiveLevelRepository: IncentiveLevelRepository,
   private val prisonIncentiveLevelService: PrisonIncentiveLevelService,
-  private val featureFlagsService: FeatureFlagsService,
-  private val prisonApiService: PrisonApiService,
 ) {
   /**
    * Returns all incentive levels, including inactive ones, in globally-defined order
    */
-  suspend fun getAllIncentiveLevels(): List<IncentiveLevelDTO> {
-    return if (featureFlagsService.isIncentiveReferenceDataMasteredOutsideNomisInIncentivesDatabase()) {
-      incentiveLevelRepository.findAllByOrderBySequence().toListOfDTO()
-    } else {
-      prisonApiService.getIepLevels().sortedBy(IepLevel::sequence).map { it.toIncentivesServiceDto() }
-    }
-  }
+  suspend fun getAllIncentiveLevels(): List<IncentiveLevelDTO> =
+    incentiveLevelRepository.findAllByOrderBySequence().toListOfDTO()
 
   suspend fun getAllIncentiveLevelsMapByCode(): Map<String, IncentiveLevelDTO> {
     return getAllIncentiveLevels().associateBy(IncentiveLevelDTO::code)
@@ -51,13 +41,8 @@ class IncentiveLevelService(
   /**
    * Returns all active incentive levels, in globally-defined order
    */
-  suspend fun getActiveIncentiveLevels(): List<IncentiveLevelDTO> {
-    return if (featureFlagsService.isIncentiveReferenceDataMasteredOutsideNomisInIncentivesDatabase()) {
-      incentiveLevelRepository.findAllByActiveIsTrueOrderBySequence().toListOfDTO()
-    } else {
-      prisonApiService.getIepLevels().filter(IepLevel::active).sortedBy(IepLevel::sequence).map { it.toIncentivesServiceDto() }
-    }
-  }
+  suspend fun getActiveIncentiveLevels(): List<IncentiveLevelDTO> =
+    incentiveLevelRepository.findAllByActiveIsTrueOrderBySequence().toListOfDTO()
 
   /**
    * Returns an incentive level, whether active or not, by code
