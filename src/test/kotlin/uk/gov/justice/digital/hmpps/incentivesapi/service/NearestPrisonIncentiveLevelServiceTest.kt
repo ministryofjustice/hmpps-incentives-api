@@ -11,9 +11,9 @@ import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.incentivesapi.config.DataIntegrityException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 
-class IepLevelServiceTest {
+class NearestPrisonIncentiveLevelServiceTest {
   private val incentiveLevelService: IncentiveLevelService = mock()
-  private val iepLevelService = IepLevelService(incentiveLevelService)
+  private val nearestPrisonIncentiveLevelService = NearestPrisonIncentiveLevelService(incentiveLevelService)
 
   @Nested
   inner class `finding nearest levels` {
@@ -42,7 +42,7 @@ class IepLevelServiceTest {
         prisonIncentiveLevel(prisonId, "ENH"),
       )
       for (level in listOf("BAS", "STD", "ENH")) {
-        assertThat(iepLevelService.findNearestHighestLevel(prisonId, prisonLevels, level)).isEqualTo(level)
+        assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, prisonLevels, level)).isEqualTo(level)
       }
     }
 
@@ -54,7 +54,7 @@ class IepLevelServiceTest {
         prisonIncentiveLevel(prisonId, "STD"), // default & active
         prisonIncentiveLevel(prisonId, "ENH"),
       )
-      assertThat(iepLevelService.findNearestHighestLevel(prisonId, prisonLevels, "EN2")).isEqualTo("ENH")
+      assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, prisonLevels, "EN2")).isEqualTo("ENH")
     }
 
     @Test
@@ -68,7 +68,7 @@ class IepLevelServiceTest {
         prisonIncentiveLevel(prisonId, "EN2", active = false),
         prisonIncentiveLevel(prisonId, "EN3", active = false),
       )
-      assertThat(iepLevelService.findNearestHighestLevel(prisonId, prisonLevels, "EN3")).isEqualTo("BAS")
+      assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, prisonLevels, "EN3")).isEqualTo("BAS")
     }
 
     @Test
@@ -80,7 +80,7 @@ class IepLevelServiceTest {
         prisonIncentiveLevel(prisonId, "ENH"),
         prisonIncentiveLevel(prisonId, "EN3"),
       )
-      assertThat(iepLevelService.findNearestHighestLevel(prisonId, prisonLevels, "EN2")).isEqualTo("EN3")
+      assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, prisonLevels, "EN2")).isEqualTo("EN3")
     }
 
     @Test
@@ -94,7 +94,7 @@ class IepLevelServiceTest {
         prisonIncentiveLevel(prisonId, "EN2"),
         prisonIncentiveLevel(prisonId, "EN3", defaultOnAdmission = true),
       )
-      assertThat(iepLevelService.findNearestHighestLevel(prisonId, prisonLevels, "BAS")).isEqualTo("EN2")
+      assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, prisonLevels, "BAS")).isEqualTo("EN2")
     }
 
     @Test
@@ -106,7 +106,7 @@ class IepLevelServiceTest {
         prisonIncentiveLevel(prisonId, "ENH"),
         prisonIncentiveLevel(prisonId, "EN2", active = false),
       )
-      assertThat(iepLevelService.findNearestHighestLevel(prisonId, prisonLevels, "EN2")).isEqualTo("ENH")
+      assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, prisonLevels, "EN2")).isEqualTo("ENH")
     }
 
     @Test
@@ -117,7 +117,7 @@ class IepLevelServiceTest {
         prisonIncentiveLevel(prisonId, "STD"), // default & active
         prisonIncentiveLevel(prisonId, "ENH"),
       )
-      assertThat(iepLevelService.findNearestHighestLevel(prisonId, prisonLevels, "ENT")).isEqualTo("STD")
+      assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, prisonLevels, "ENT")).isEqualTo("STD")
     }
 
     @Test
@@ -128,7 +128,7 @@ class IepLevelServiceTest {
         prisonIncentiveLevel(prisonId, "STD"), // default & active
         prisonIncentiveLevel(prisonId, "ENH"),
       )
-      assertThat(iepLevelService.findNearestHighestLevel(prisonId, prisonLevels, "ABC")).isEqualTo("STD")
+      assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, prisonLevels, "ABC")).isEqualTo("STD")
     }
 
     @Test
@@ -139,7 +139,7 @@ class IepLevelServiceTest {
         prisonIncentiveLevel(prisonId, "STD", defaultOnAdmission = false, active = true),
         prisonIncentiveLevel(prisonId, "ENH"),
       )
-      assertThat(iepLevelService.findNearestHighestLevel(prisonId, prisonLevels, "ABC")).isEqualTo("STD")
+      assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, prisonLevels, "ABC")).isEqualTo("STD")
     }
 
     @Test
@@ -150,7 +150,7 @@ class IepLevelServiceTest {
         prisonIncentiveLevel(prisonId, "STD", defaultOnAdmission = false, active = false),
         prisonIncentiveLevel(prisonId, "ENH"),
       )
-      assertThat(iepLevelService.findNearestHighestLevel(prisonId, prisonLevels, "ABC")).isEqualTo("BAS")
+      assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, prisonLevels, "ABC")).isEqualTo("BAS")
     }
 
     @Test
@@ -162,7 +162,7 @@ class IepLevelServiceTest {
         prisonIncentiveLevel(prisonId, "ENH", active = false),
       )
       assertThatThrownBy {
-        runBlocking { iepLevelService.findNearestHighestLevel(prisonId, prisonLevels, "STD") }
+        runBlocking { nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, prisonLevels, "STD") }
       }.isInstanceOf(DataIntegrityException::class.java)
     }
 
@@ -175,7 +175,7 @@ class IepLevelServiceTest {
         prisonIncentiveLevel(prisonId, "ENH", active = false),
       )
       assertThatThrownBy {
-        runBlocking { iepLevelService.findNearestHighestLevel(prisonId, prisonLevels, "ABC") }
+        runBlocking { nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, prisonLevels, "ABC") }
       }.isInstanceOf(DataIntegrityException::class.java)
     }
   }

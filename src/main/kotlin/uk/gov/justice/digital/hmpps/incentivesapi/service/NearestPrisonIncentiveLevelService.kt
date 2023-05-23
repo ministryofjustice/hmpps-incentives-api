@@ -5,7 +5,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.config.DataIntegrityException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
 
 @Service
-class IepLevelService(
+class NearestPrisonIncentiveLevelService(
   private val incentiveLevelService: IncentiveLevelService,
 ) {
   /**

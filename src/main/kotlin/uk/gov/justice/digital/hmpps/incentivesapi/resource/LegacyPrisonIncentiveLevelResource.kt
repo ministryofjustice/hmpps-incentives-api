@@ -48,7 +48,7 @@ class LegacyPrisonIncentiveLevelResource(
       ),
     ],
   )
-  suspend fun getPrisonIepLevels(
+  suspend fun getPrisonIncentiveLevels(
     @Schema(description = "Prison id", example = "MDI", required = true, minLength = 3, maxLength = 6)
     @PathVariable
     prisonId: String,
