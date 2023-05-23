@@ -45,120 +45,6 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
     )
   }
 
-  fun stubIepLevels() {
-    stubFor(
-      get("/api/reference-domains/domains/IEP_LEVEL/codes").willReturn(
-        aResponse()
-          .withHeader("Content-Type", "application/json")
-          .withBody(
-            // language=json
-            """
-              [
-                {
-                  "domain": "IEP_LEVEL",
-                  "code": "BAS",
-                  "description": "Basic",
-                  "listSeq": 1,
-                  "activeFlag": "Y"
-                },
-                {
-                  "domain": "IEP_LEVEL",
-                  "code": "ENT",
-                  "description": "Entry",
-                  "listSeq": 2,
-                  "activeFlag": "N"
-                },
-                {
-                  "domain": "IEP_LEVEL",
-                  "code": "STD",
-                  "description": "Standard",
-                  "listSeq": 3,
-                  "activeFlag": "Y"
-                },
-                {
-                  "domain": "IEP_LEVEL",
-                  "code": "ENH",
-                  "description": "Enhanced",
-                  "listSeq": 4,
-                  "activeFlag": "Y"
-                },
-                {
-                  "domain": "IEP_LEVEL",
-                  "code": "EN2",
-                  "description": "Enhanced 2",
-                  "listSeq": 5,
-                  "activeFlag": "Y"
-                },
-                {
-                  "domain": "IEP_LEVEL",
-                  "code": "EN3",
-                  "description": "Enhanced 3",
-                  "listSeq": 6,
-                  "activeFlag": "Y"
-                }
-              ]
-            """,
-          ),
-      ),
-    )
-  }
-
-  fun stubAgenciesIepLevels(agencyId: String) {
-    stubFor(
-      get("/api/agencies/$agencyId/iepLevels").willReturn(
-        aResponse()
-          .withHeader("Content-Type", "application/json")
-          .withBody(
-            // language=json
-            """
-              [
-                  {
-                      "iepLevel": "BAS",
-                      "iepDescription": "Basic",
-                      "sequence": 1,
-                      "defaultLevel": false
-                  },
-                  {
-                      "iepLevel": "STD",
-                      "iepDescription": "Standard",
-                      "sequence": 3,
-                      "defaultLevel": true
-                  },
-                  {
-                      "iepLevel": "ENH",
-                      "iepDescription": "Enhanced",
-                      "sequence": 4,
-                      "defaultLevel": false
-                  }
-              ]
-            """,
-          ),
-      ),
-    )
-  }
-
-  fun stubApi404for(url: String = "/api/bookings/1234134/iepSummary?withDetails=true") {
-    stubFor(
-      get(url).willReturn(
-        aResponse()
-          .withHeader("Content-Type", "application/json")
-          .withStatus(404)
-          .withBody(
-            // language=json
-            """
-            {
-              "status": 404,
-              "userMessage": "Entity Not Found",
-              "errorCode": 42,
-              "developerMessage": "This is a test 404 Not Found response",
-              "moreInfo": "This is a test 404 Not Found response"
-            }
-            """,
-          ),
-      ),
-    )
-  }
-
   fun stubCaseNoteSummary() {
     stubFor(
       post("/api/case-notes/usage-by-types")
@@ -274,16 +160,6 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
               """,
             ),
         ),
-    )
-  }
-
-  fun stubAddIep(bookingId: Long) {
-    stubFor(
-      post("/api/bookings/$bookingId/iepLevels").willReturn(
-        aResponse()
-          .withHeader("Content-Type", "application/json")
-          .withStatus(204),
-      ),
     )
   }
 

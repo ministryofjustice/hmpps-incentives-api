@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.incentivesapi.config.FeatureFlagsService
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveLevelRepository
 import java.time.Clock
 import java.time.LocalDateTime
@@ -20,14 +19,10 @@ class IncentiveLevelAuditedService(
   private val snsService: SnsService,
   incentiveLevelRepository: IncentiveLevelRepository,
   prisonIncentiveLevelAuditedService: PrisonIncentiveLevelAuditedService,
-  featureFlagsService: FeatureFlagsService,
-  prisonApiService: PrisonApiService,
 ) : IncentiveLevelService(
   clock = clock,
   incentiveLevelRepository = incentiveLevelRepository,
   prisonIncentiveLevelService = prisonIncentiveLevelAuditedService,
-  featureFlagsService,
-  prisonApiService,
 ) {
   override suspend fun createIncentiveLevel(dto: IncentiveLevelDTO): IncentiveLevelDTO {
     return super.createIncentiveLevel(dto)

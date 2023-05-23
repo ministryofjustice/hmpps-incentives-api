@@ -127,7 +127,7 @@ class IncentiveReviewsService(
       }
     }
 
-    val prisonLevels = iepLevelService.getIepLevelsForPrison(prisonId, useClientCredentials = true)
+    val prisonLevels = iepLevelService.getIepLevelsForPrison(prisonId)
     val levels: List<IncentiveReviewLevel> = prisonLevels.map { iepLevel ->
       IncentiveReviewLevel(
         levelCode = iepLevel.iepLevel,

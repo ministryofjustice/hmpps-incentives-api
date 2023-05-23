@@ -17,13 +17,12 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.incentivesapi.config.AuthenticationFacade
-import uk.gov.justice.digital.hmpps.incentivesapi.config.FeatureFlagsService
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveRecordUpdate
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.IepLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Location
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
@@ -47,9 +46,8 @@ class PrisonerIepLevelReviewServiceTest {
   private val incentiveStoreService: IncentiveStoreService = mock()
   private val incentiveLevelService: IncentiveLevelService = mock()
   private val prisonIncentiveLevelService: PrisonIncentiveLevelService = mock()
-  private val featureFlagsService: FeatureFlagsService = mock()
 
-  private val iepLevelService = IepLevelService(prisonApiService, incentiveLevelService, prisonIncentiveLevelService, featureFlagsService)
+  private val iepLevelService = IepLevelService(incentiveLevelService, prisonIncentiveLevelService)
 
   private val prisonerIepLevelReviewService = PrisonerIepLevelReviewService(
     prisonApiService,
@@ -226,18 +224,34 @@ class PrisonerIepLevelReviewServiceTest {
       whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(prisonerAtLocation)
       whenever(prisonApiService.getLocationById(prisonerAtLocation.assignedLivingUnitId, true)).thenReturn(location)
       // Enhanced is the default for this prison so use that
-      whenever(prisonApiService.getIepLevelsForPrison("MDI", true)).thenReturn(
-        flowOf(
-          IepLevel(
-            iepLevel = "STD",
-            iepDescription = "Standard",
-            sequence = 1,
+      whenever(prisonIncentiveLevelService.getActivePrisonIncentiveLevels("MDI")).thenReturn(
+        /* value = */
+        listOf(
+          PrisonIncentiveLevel(
+            levelCode = "STD",
+            levelName = "Standard",
+            prisonId = "MDI",
+            active = true,
+            defaultOnAdmission = false,
+            remandTransferLimitInPence = 0,
+            remandSpendLimitInPence = 0,
+            convictedTransferLimitInPence = 0,
+            convictedSpendLimitInPence = 0,
+            visitOrders = 0,
+            privilegedVisitOrders = 0,
           ),
-          IepLevel(
-            iepLevel = "ENH",
-            iepDescription = "Enhanced",
-            sequence = 1,
-            default = true,
+          PrisonIncentiveLevel(
+            levelCode = "ENH",
+            levelName = "Enhanced",
+            prisonId = "MDI",
+            active = true,
+            defaultOnAdmission = true,
+            remandTransferLimitInPence = 0,
+            remandSpendLimitInPence = 0,
+            convictedTransferLimitInPence = 0,
+            convictedSpendLimitInPence = 0,
+            visitOrders = 0,
+            privilegedVisitOrders = 0,
           ),
         ),
       )
