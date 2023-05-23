@@ -6,8 +6,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.IncentiveLevelResourceTestBase
 
-@Deprecated("Delete once IepLevelsResource class is removed")
-class IepLevelsResourceTest : IncentiveLevelResourceTestBase() {
+@Deprecated("Delete once LegacyPrisonIncentiveLevelResource class is removed")
+class LegacyPrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
   @BeforeEach
   fun setUp(): Unit = runBlocking {
