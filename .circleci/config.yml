@@ -86,15 +86,17 @@ jobs:
       - checkout
       - attach_workspace:
           at: ~/docs
-      # Create a folder for results to live in
-      - run: "[ -d lint-results ] || mkdir lint-results"
+      - run:
+          name: Create a folder for results to live in
+          command: "[ -d build/lint-results ] || mkdir -p build/lint-results"
       - run:
           name: Run Spectral Lint
-          command: npx @stoplight/spectral-cli lint ~/docs/openapi.json
-            -o lint-results/junit.xml
-            -f junit
+          command: |
+            npx @stoplight/spectral-cli@6.7.0 lint ~/docs/openapi.json \
+              -o build/lint-results/junit.xml \
+              -f junit
       - store_test_results:
-          path: lint-results
+          path: build/lint-results
 
 workflows:
   version: 2
