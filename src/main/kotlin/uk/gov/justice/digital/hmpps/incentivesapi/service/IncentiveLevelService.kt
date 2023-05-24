@@ -31,9 +31,13 @@ class IncentiveLevelService(
   /**
    * Returns all incentive levels, including inactive ones, in globally-defined order
    */
-  suspend fun getAllIncentiveLevels(): List<IncentiveLevelDTO> =
-    incentiveLevelRepository.findAllByOrderBySequence().toListOfDTO()
+  suspend fun getAllIncentiveLevels(): List<IncentiveLevelDTO> {
+    return incentiveLevelRepository.findAllByOrderBySequence().toListOfDTO()
+  }
 
+  /**
+   * Returns all incentive levels, including inactive ones, as a map of code-to-details
+   */
   suspend fun getAllIncentiveLevelsMapByCode(): Map<String, IncentiveLevelDTO> {
     return getAllIncentiveLevels().associateBy(IncentiveLevelDTO::code)
   }
@@ -41,8 +45,9 @@ class IncentiveLevelService(
   /**
    * Returns all active incentive levels, in globally-defined order
    */
-  suspend fun getActiveIncentiveLevels(): List<IncentiveLevelDTO> =
-    incentiveLevelRepository.findAllByActiveIsTrueOrderBySequence().toListOfDTO()
+  suspend fun getActiveIncentiveLevels(): List<IncentiveLevelDTO> {
+    return incentiveLevelRepository.findAllByActiveIsTrueOrderBySequence().toListOfDTO()
+  }
 
   /**
    * Returns an incentive level, whether active or not, by code
