@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import jakarta.validation.ValidationException
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Service
@@ -165,6 +166,31 @@ class PrisonIncentiveLevelService(
         PrisonIncentiveLevelUpdateDTO(active = true),
       )
     }
+  }
+
+  /**
+   * Deactivate all incentive levels for a given prison; useful for when prisons are closed
+   */
+  @Transactional
+  suspend fun deactivateAllPrisonIncentiveLevels(prisonId: String): List<PrisonIncentiveLevelDTO> {
+    val prisonIncentiveLevels = prisonIncentiveLevelRepository.findAllByPrisonId(prisonId).toList()
+    val prisonIncentiveLevelsWithPrisoners = prisonIncentiveLevels.filter { prisonIncentiveLevel ->
+      countPrisonersService.prisonersExistOnLevelInPrison(prisonId, prisonIncentiveLevel.levelCode)
+    }
+    if (prisonIncentiveLevelsWithPrisoners.isNotEmpty()) {
+      throw ValidationExceptionWithErrorCode(
+        "A level must remain active if there are prisoners on it currently",
+        ErrorCode.PrisonIncentiveLevelActiveIfPrisonersExist,
+        moreInfo = prisonIncentiveLevelsWithPrisoners.map(PrisonIncentiveLevel::levelCode).joinToString(","),
+      )
+    }
+    prisonIncentiveLevelRepository.saveAll(
+      prisonIncentiveLevels.filter(PrisonIncentiveLevel::active)
+        .map { prisonIncentiveLevel ->
+          prisonIncentiveLevel.withUpdate(PrisonIncentiveLevelUpdateDTO(active = false))
+        },
+    ).collect()
+    return getAllPrisonIncentiveLevels(prisonId)
   }
 
   private fun PrisonIncentiveLevel.withUpdate(update: PrisonIncentiveLevelUpdateDTO): PrisonIncentiveLevel = copy(

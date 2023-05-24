@@ -1217,6 +1217,297 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
     }
 
     @Test
+    fun `does nothing when trying to deactivate all prison incentive levels if none exist`() {
+      webTestClient.delete()
+        .uri("/incentive/prison-levels/BAI")
+        .withLocalAuthorisation()
+        .header("Content-Type", "application/json")
+        .exchange()
+        .expectStatus().isOk
+        .expectBody().json(
+          // language=json
+          """
+          []
+          """,
+          true,
+        )
+
+      runBlocking {
+        assertThat(prisonIncentiveLevelRepository.count()).isZero
+      }
+
+      assertNoDomainEventSent()
+      assertNoAuditMessageSent()
+    }
+
+    @Test
+    fun `deactivates all prison incentive levels when all are already inactive`() {
+      makePrisonIncentiveLevel("BAI", "BAS")
+      makePrisonIncentiveLevel("BAI", "STD") // Standard is the default for admission
+      makePrisonIncentiveLevel("BAI", "ENH")
+      runBlocking {
+        prisonIncentiveLevelRepository.findAllByPrisonId("BAI").map {
+          prisonIncentiveLevelRepository.save(it.copy(active = false))
+        }
+      }
+
+      webTestClient.delete()
+        .uri("/incentive/prison-levels/BAI")
+        .withLocalAuthorisation()
+        .header("Content-Type", "application/json")
+        .exchange()
+        .expectStatus().isOk
+        .expectBody().json(
+          // language=json
+          """
+          [
+            {
+              "levelCode": "BAS", "levelName": "Basic", "prisonId": "BAI", "active": false, "defaultOnAdmission": false,
+              "remandTransferLimitInPence": 2750, "remandSpendLimitInPence": 27500, "convictedTransferLimitInPence": 550, "convictedSpendLimitInPence": 5500,
+              "visitOrders": 2, "privilegedVisitOrders": 1
+            },
+            {
+              "levelCode": "STD", "levelName": "Standard", "prisonId": "BAI", "active": false, "defaultOnAdmission": true,
+              "remandTransferLimitInPence": 6050, "remandSpendLimitInPence": 60500, "convictedTransferLimitInPence": 1980, "convictedSpendLimitInPence": 19800,
+              "visitOrders": 2, "privilegedVisitOrders": 1
+            },
+            {
+              "levelCode": "ENH", "levelName": "Enhanced", "prisonId": "BAI", "active": false, "defaultOnAdmission": false,
+              "remandTransferLimitInPence": 6600, "remandSpendLimitInPence": 66000, "convictedTransferLimitInPence": 3300, "convictedSpendLimitInPence": 33000,
+              "visitOrders": 2, "privilegedVisitOrders": 1
+            }
+          ]
+          """,
+          true,
+        )
+
+      runBlocking {
+        val prisonIncentiveLevels = prisonIncentiveLevelRepository.findAllByPrisonId("BAI").toList()
+        assertThat(prisonIncentiveLevels).hasSize(3)
+        assertThat(prisonIncentiveLevels).allMatch { !it.active }
+      }
+
+      val domainEvents = getPublishedDomainEvents()
+      val auditMessages = getSentAuditMessages()
+
+      val expectedPrisonIncentiveLevelChanges = 3
+      assertThat(domainEvents).hasSize(expectedPrisonIncentiveLevelChanges)
+      assertThat(auditMessages).hasSize(expectedPrisonIncentiveLevelChanges)
+      assertThat(domainEvents.count { it.eventType == "incentives.prison-level.changed" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
+      assertThat(auditMessages.count { it.what == "PRISON_INCENTIVE_LEVEL_UPDATED" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
+
+      assertThat(domainEvents).allMatch {
+        it.additionalInformation?.prisonId == "BAI" &&
+          it.description.matches(Regex("^Incentive level \\(...\\) in prison BAI has been updated$"))
+      }
+      assertThat(
+        domainEvents.map { it.additionalInformation?.incentiveLevel }.toSet(),
+      ).isEqualTo(setOf("BAS", "STD", "ENH"))
+
+      val auditMessageDetails = auditMessages.map { objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java) }
+      assertThat(auditMessageDetails).allMatch { it.prisonId == "BAI" }
+      assertThat(auditMessageDetails).allMatch { !it.active }
+    }
+
+    @Test
+    fun `deactivates all prison incentive levels when only non-default for admission are active`() {
+      makePrisonIncentiveLevel("BAI", "BAS")
+      makePrisonIncentiveLevel("BAI", "STD") // Standard is the default for admission
+      makePrisonIncentiveLevel("BAI", "ENH")
+      runBlocking {
+        prisonIncentiveLevelRepository.findAllByPrisonId("BAI").map {
+          if (it.levelCode != "STD") {
+            prisonIncentiveLevelRepository.save(it.copy(active = false))
+          }
+        }
+      }
+
+      webTestClient.delete()
+        .uri("/incentive/prison-levels/BAI")
+        .withLocalAuthorisation()
+        .header("Content-Type", "application/json")
+        .exchange()
+        .expectStatus().isOk
+        .expectBody().json(
+          // language=json
+          """
+          [
+            {
+              "levelCode": "BAS", "levelName": "Basic", "prisonId": "BAI", "active": false, "defaultOnAdmission": false,
+              "remandTransferLimitInPence": 2750, "remandSpendLimitInPence": 27500, "convictedTransferLimitInPence": 550, "convictedSpendLimitInPence": 5500,
+              "visitOrders": 2, "privilegedVisitOrders": 1
+            },
+            {
+              "levelCode": "STD", "levelName": "Standard", "prisonId": "BAI", "active": false, "defaultOnAdmission": true,
+              "remandTransferLimitInPence": 6050, "remandSpendLimitInPence": 60500, "convictedTransferLimitInPence": 1980, "convictedSpendLimitInPence": 19800,
+              "visitOrders": 2, "privilegedVisitOrders": 1
+            },
+            {
+              "levelCode": "ENH", "levelName": "Enhanced", "prisonId": "BAI", "active": false, "defaultOnAdmission": false,
+              "remandTransferLimitInPence": 6600, "remandSpendLimitInPence": 66000, "convictedTransferLimitInPence": 3300, "convictedSpendLimitInPence": 33000,
+              "visitOrders": 2, "privilegedVisitOrders": 1
+            }
+          ]
+          """,
+          true,
+        )
+
+      runBlocking {
+        val prisonIncentiveLevels = prisonIncentiveLevelRepository.findAllByPrisonId("BAI").toList()
+        assertThat(prisonIncentiveLevels).hasSize(3)
+        assertThat(prisonIncentiveLevels).allMatch { !it.active }
+      }
+
+      val domainEvents = getPublishedDomainEvents()
+      val auditMessages = getSentAuditMessages()
+
+      val expectedPrisonIncentiveLevelChanges = 3
+      assertThat(domainEvents).hasSize(expectedPrisonIncentiveLevelChanges)
+      assertThat(auditMessages).hasSize(expectedPrisonIncentiveLevelChanges)
+      assertThat(domainEvents.count { it.eventType == "incentives.prison-level.changed" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
+      assertThat(auditMessages.count { it.what == "PRISON_INCENTIVE_LEVEL_UPDATED" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
+
+      assertThat(domainEvents).allMatch {
+        it.additionalInformation?.prisonId == "BAI" &&
+          it.description.matches(Regex("^Incentive level \\(...\\) in prison BAI has been updated$"))
+      }
+      assertThat(
+        domainEvents.map { it.additionalInformation?.incentiveLevel }.toSet(),
+      ).isEqualTo(setOf("BAS", "STD", "ENH"))
+
+      val auditMessageDetails = auditMessages.map { objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java) }
+      assertThat(auditMessageDetails).allMatch { it.prisonId == "BAI" }
+      assertThat(auditMessageDetails).allMatch { !it.active }
+    }
+
+    @Test
+    fun `deactivates all prison incentive levels even when default for admission is active`() {
+      makePrisonIncentiveLevel("BAI", "BAS")
+      makePrisonIncentiveLevel("BAI", "STD") // Standard is the default for admission
+      makePrisonIncentiveLevel("BAI", "ENH")
+
+      webTestClient.delete()
+        .uri("/incentive/prison-levels/BAI")
+        .withLocalAuthorisation()
+        .header("Content-Type", "application/json")
+        .exchange()
+        .expectStatus().isOk
+        .expectBody().json(
+          // language=json
+          """
+          [
+            {
+              "levelCode": "BAS", "levelName": "Basic", "prisonId": "BAI", "active": false, "defaultOnAdmission": false,
+              "remandTransferLimitInPence": 2750, "remandSpendLimitInPence": 27500, "convictedTransferLimitInPence": 550, "convictedSpendLimitInPence": 5500,
+              "visitOrders": 2, "privilegedVisitOrders": 1
+            },
+            {
+              "levelCode": "STD", "levelName": "Standard", "prisonId": "BAI", "active": false, "defaultOnAdmission": true,
+              "remandTransferLimitInPence": 6050, "remandSpendLimitInPence": 60500, "convictedTransferLimitInPence": 1980, "convictedSpendLimitInPence": 19800,
+              "visitOrders": 2, "privilegedVisitOrders": 1
+            },
+            {
+              "levelCode": "ENH", "levelName": "Enhanced", "prisonId": "BAI", "active": false, "defaultOnAdmission": false,
+              "remandTransferLimitInPence": 6600, "remandSpendLimitInPence": 66000, "convictedTransferLimitInPence": 3300, "convictedSpendLimitInPence": 33000,
+              "visitOrders": 2, "privilegedVisitOrders": 1
+            }
+          ]
+          """,
+          true,
+        )
+
+      runBlocking {
+        val prisonIncentiveLevels = prisonIncentiveLevelRepository.findAllByPrisonId("BAI").toList()
+        assertThat(prisonIncentiveLevels).hasSize(3)
+        assertThat(prisonIncentiveLevels).allMatch { !it.active }
+      }
+
+      val domainEvents = getPublishedDomainEvents()
+      val auditMessages = getSentAuditMessages()
+
+      val expectedPrisonIncentiveLevelChanges = 3
+      assertThat(domainEvents).hasSize(expectedPrisonIncentiveLevelChanges)
+      assertThat(auditMessages).hasSize(expectedPrisonIncentiveLevelChanges)
+      assertThat(domainEvents.count { it.eventType == "incentives.prison-level.changed" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
+      assertThat(auditMessages.count { it.what == "PRISON_INCENTIVE_LEVEL_UPDATED" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
+
+      assertThat(domainEvents).allMatch {
+        it.additionalInformation?.prisonId == "BAI" &&
+          it.description.matches(Regex("^Incentive level \\(...\\) in prison BAI has been updated$"))
+      }
+      assertThat(
+        domainEvents.map { it.additionalInformation?.incentiveLevel }.toSet(),
+      ).isEqualTo(setOf("BAS", "STD", "ENH"))
+
+      val auditMessageDetails = auditMessages.map { objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java) }
+      assertThat(auditMessageDetails).allMatch { it.prisonId == "BAI" }
+      assertThat(auditMessageDetails).allMatch { !it.active }
+    }
+
+    @Test
+    fun `requires correct role to deactivate all prison incentive levels`() {
+      makePrisonIncentiveLevel("MDI", "BAS")
+      makePrisonIncentiveLevel("MDI", "STD") // Standard is the default for admission
+      makePrisonIncentiveLevel("MDI", "ENH")
+
+      webTestClient.delete()
+        .uri("/incentive/prison-levels/MDI")
+        .headers(setAuthorisation())
+        .header("Content-Type", "application/json")
+        .exchange()
+        .expectErrorResponse(
+          HttpStatus.FORBIDDEN,
+          "Forbidden",
+        )
+
+      runBlocking {
+        val prisonIncentiveLevels = prisonIncentiveLevelRepository.findAllByPrisonId("MDI").toList()
+        assertThat(prisonIncentiveLevels).hasSize(3)
+        assertThat(prisonIncentiveLevels.filter { it.active }).hasSize(3)
+      }
+
+      assertNoDomainEventSent()
+      assertNoAuditMessageSent()
+    }
+
+    @Test
+    fun `fails to deactivate all prison incentive levels when some levels have prisoners on them`() {
+      makePrisonIncentiveLevel("MDI", "BAS")
+      makePrisonIncentiveLevel("MDI", "STD") // Standard is the default for admission
+      makePrisonIncentiveLevel("MDI", "ENH")
+      makeIncentiveReviews("MDI")
+      // make only BAS & ENH have prisoners on them
+      runBlocking {
+        prisonerIepLevelRepository.deleteAllById(
+          prisonerIepLevelRepository.findAll().filter { review ->
+            review.iepCode != "BAS" && review.iepCode != "ENH"
+          }.map { it.id }.toList(),
+        )
+      }
+
+      webTestClient.delete()
+        .uri("/incentive/prison-levels/MDI")
+        .withLocalAuthorisation()
+        .header("Content-Type", "application/json")
+        .exchange()
+        .expectErrorResponse(
+          HttpStatus.BAD_REQUEST,
+          "A level must remain active if there are prisoners on it currently",
+          errorCode = ErrorCode.PrisonIncentiveLevelActiveIfPrisonersExist,
+          moreInfo = "BAS,ENH",
+        )
+
+      runBlocking {
+        val prisonIncentiveLevels = prisonIncentiveLevelRepository.findAllByPrisonId("MDI").toList()
+        assertThat(prisonIncentiveLevels).hasSize(3)
+        assertThat(prisonIncentiveLevels.filter { it.active }).hasSize(3)
+      }
+
+      assertNoDomainEventSent()
+      assertNoAuditMessageSent()
+    }
+
+    @Test
     fun `deactivates a prison incentive level when one exists`() {
       makePrisonIncentiveLevel("WRI", "EN2")
       `deactivates a prison incentive level when per-prison information does not exist`()
