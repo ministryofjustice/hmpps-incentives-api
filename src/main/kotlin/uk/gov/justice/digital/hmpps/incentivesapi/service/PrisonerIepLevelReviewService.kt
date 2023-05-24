@@ -234,7 +234,6 @@ class PrisonerIepLevelReviewService(
               ?: defaultLevelCode // if no previous prison
           nearestPrisonIncentiveLevelService.findNearestHighestLevel(
             prisonerInfo.agencyId,
-            prisonIncentiveLevels,
             levelCodeBeforeTransfer,
           )
         } catch (e: IncentiveReviewNotFoundException) {

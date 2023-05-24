@@ -13,7 +13,8 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 
 class NearestPrisonIncentiveLevelServiceTest {
   private val incentiveLevelService: IncentiveLevelService = mock()
-  private val nearestPrisonIncentiveLevelService = NearestPrisonIncentiveLevelService(incentiveLevelService)
+  private val prisonIncentiveLevelService: PrisonIncentiveLevelAuditedService = mock()
+  private val nearestPrisonIncentiveLevelService = NearestPrisonIncentiveLevelService(incentiveLevelService, prisonIncentiveLevelService)
 
   @Nested
   inner class `finding nearest levels` {
@@ -36,150 +37,186 @@ class NearestPrisonIncentiveLevelServiceTest {
     @Test
     fun `when target level is available`(): Unit = runBlocking {
       // the case for most transfers (most prisons use the same set of levels)
-      val prisonLevels = listOf(
-        prisonIncentiveLevel(prisonId, "BAS"),
-        prisonIncentiveLevel(prisonId, "STD"), // default & active
-        prisonIncentiveLevel(prisonId, "ENH"),
+      whenever(prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)).thenReturn(
+        listOf(
+          prisonIncentiveLevel(prisonId, "BAS"),
+          prisonIncentiveLevel(prisonId, "STD"), // default & active
+          prisonIncentiveLevel(prisonId, "ENH"),
+        ),
       )
+
       for (level in listOf("BAS", "STD", "ENH")) {
-        assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, prisonLevels, level)).isEqualTo(level)
+        assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, level)).isEqualTo(level)
       }
     }
 
     @Test
     fun `when target level is not present, nor is there a higher one`(): Unit = runBlocking {
       // can happen when transferring from a prison that has high levels to a typical prison
-      val prisonLevels = listOf(
-        prisonIncentiveLevel(prisonId, "BAS"),
-        prisonIncentiveLevel(prisonId, "STD"), // default & active
-        prisonIncentiveLevel(prisonId, "ENH"),
+      whenever(prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)).thenReturn(
+        listOf(
+          prisonIncentiveLevel(prisonId, "BAS"),
+          prisonIncentiveLevel(prisonId, "STD"), // default & active
+          prisonIncentiveLevel(prisonId, "ENH"),
+        ),
       )
-      assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, prisonLevels, "EN2")).isEqualTo("ENH")
+
+      assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, "EN2")).isEqualTo("ENH")
     }
 
     @Test
     fun `when target and many other high levels are unavailable`(): Unit = runBlocking {
       // exaggerated version of transferring from a prison that has high levels to another prison
-      val prisonLevels = listOf(
-        prisonIncentiveLevel(prisonId, "BAS", defaultOnAdmission = true, active = true),
-        prisonIncentiveLevel(prisonId, "ENT", active = true),
-        prisonIncentiveLevel(prisonId, "STD", defaultOnAdmission = false, active = false),
-        prisonIncentiveLevel(prisonId, "ENH", active = false),
-        prisonIncentiveLevel(prisonId, "EN2", active = false),
-        prisonIncentiveLevel(prisonId, "EN3", active = false),
+      whenever(prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)).thenReturn(
+        listOf(
+          prisonIncentiveLevel(prisonId, "BAS", defaultOnAdmission = true, active = true),
+          prisonIncentiveLevel(prisonId, "ENT", active = true),
+          prisonIncentiveLevel(prisonId, "STD", defaultOnAdmission = false, active = false),
+          prisonIncentiveLevel(prisonId, "ENH", active = false),
+          prisonIncentiveLevel(prisonId, "EN2", active = false),
+          prisonIncentiveLevel(prisonId, "EN3", active = false),
+        ),
       )
-      assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, prisonLevels, "EN3")).isEqualTo("BAS")
+
+      assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, "EN3")).isEqualTo("BAS")
     }
 
     @Test
     fun `when target level is not present, but there is a higher one higher`(): Unit = runBlocking {
       // not likely to happen, but covers case where a prison may have mistakenly removed a level
-      val prisonLevels = listOf(
-        prisonIncentiveLevel(prisonId, "BAS"),
-        prisonIncentiveLevel(prisonId, "STD"), // default & active
-        prisonIncentiveLevel(prisonId, "ENH"),
-        prisonIncentiveLevel(prisonId, "EN3"),
+      whenever(prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)).thenReturn(
+        listOf(
+          prisonIncentiveLevel(prisonId, "BAS"),
+          prisonIncentiveLevel(prisonId, "STD"), // default & active
+          prisonIncentiveLevel(prisonId, "ENH"),
+          prisonIncentiveLevel(prisonId, "EN3"),
+        ),
       )
-      assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, prisonLevels, "EN2")).isEqualTo("EN3")
+
+      assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, "EN2")).isEqualTo("EN3")
     }
 
     @Test
     fun `when target and many other low levels are unavailable`(): Unit = runBlocking {
       // exaggerated version of prisons with predominantly high levels
-      val prisonLevels = listOf(
-        prisonIncentiveLevel(prisonId, "BAS", active = false),
-        prisonIncentiveLevel(prisonId, "ENT"),
-        prisonIncentiveLevel(prisonId, "STD", defaultOnAdmission = false, active = false),
-        prisonIncentiveLevel(prisonId, "ENH", active = false),
-        prisonIncentiveLevel(prisonId, "EN2"),
-        prisonIncentiveLevel(prisonId, "EN3", defaultOnAdmission = true),
+      whenever(prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)).thenReturn(
+        listOf(
+          prisonIncentiveLevel(prisonId, "BAS", active = false),
+          prisonIncentiveLevel(prisonId, "ENT"),
+          prisonIncentiveLevel(prisonId, "STD", defaultOnAdmission = false, active = false),
+          prisonIncentiveLevel(prisonId, "ENH", active = false),
+          prisonIncentiveLevel(prisonId, "EN2"),
+          prisonIncentiveLevel(prisonId, "EN3", defaultOnAdmission = true),
+        ),
       )
-      assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, prisonLevels, "BAS")).isEqualTo("EN2")
+
+      assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, "BAS")).isEqualTo("EN2")
     }
 
     @Test
     fun `when target level is present but inactive`(): Unit = runBlocking {
       // can happen when a prison disables a high level
-      val prisonLevels = listOf(
-        prisonIncentiveLevel(prisonId, "BAS"),
-        prisonIncentiveLevel(prisonId, "STD"), // default & active
-        prisonIncentiveLevel(prisonId, "ENH"),
-        prisonIncentiveLevel(prisonId, "EN2", active = false),
+      whenever(prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)).thenReturn(
+        listOf(
+          prisonIncentiveLevel(prisonId, "BAS"),
+          prisonIncentiveLevel(prisonId, "STD"), // default & active
+          prisonIncentiveLevel(prisonId, "ENH"),
+          prisonIncentiveLevel(prisonId, "EN2", active = false),
+        ),
       )
-      assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, prisonLevels, "EN2")).isEqualTo("ENH")
+
+      assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, "EN2")).isEqualTo("ENH")
     }
 
     @Test
     fun `when target level is globally inactive`(): Unit = runBlocking {
       // unlikely to happen, but feasible if a prisoner has not had a review in a long time
-      val prisonLevels = listOf(
-        prisonIncentiveLevel(prisonId, "BAS"),
-        prisonIncentiveLevel(prisonId, "STD"), // default & active
-        prisonIncentiveLevel(prisonId, "ENH"),
+      whenever(prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)).thenReturn(
+        listOf(
+          prisonIncentiveLevel(prisonId, "BAS"),
+          prisonIncentiveLevel(prisonId, "STD"), // default & active
+          prisonIncentiveLevel(prisonId, "ENH"),
+        ),
       )
-      assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, prisonLevels, "ENT")).isEqualTo("STD")
+
+      assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, "ENT")).isEqualTo("STD")
     }
 
     @Test
     fun `falls back to the prison's default when target is not found`(): Unit = runBlocking {
       // extreme edge case when a level is globally removed
-      val prisonLevels = listOf(
-        prisonIncentiveLevel(prisonId, "BAS"),
-        prisonIncentiveLevel(prisonId, "STD"), // default & active
-        prisonIncentiveLevel(prisonId, "ENH"),
+      whenever(prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)).thenReturn(
+        listOf(
+          prisonIncentiveLevel(prisonId, "BAS"),
+          prisonIncentiveLevel(prisonId, "STD"), // default & active
+          prisonIncentiveLevel(prisonId, "ENH"),
+        ),
       )
-      assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, prisonLevels, "ABC")).isEqualTo("STD")
+
+      assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, "ABC")).isEqualTo("STD")
     }
 
     @Test
     fun `fails when target is not found and there is no default`(): Unit = runBlocking {
       // extreme edge case when a level is globally removed AND the prison does not have a default set but standard is available
-      val prisonLevels = listOf(
-        prisonIncentiveLevel(prisonId, "BAS"),
-        prisonIncentiveLevel(prisonId, "STD", defaultOnAdmission = false, active = true),
-        prisonIncentiveLevel(prisonId, "ENH"),
+      whenever(prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)).thenReturn(
+        listOf(
+          prisonIncentiveLevel(prisonId, "BAS"),
+          prisonIncentiveLevel(prisonId, "STD", defaultOnAdmission = false, active = true),
+          prisonIncentiveLevel(prisonId, "ENH"),
+        ),
       )
+
       assertThatThrownBy {
-        runBlocking { assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, prisonLevels, "ABC")) }
+        runBlocking { assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, "ABC")) }
       }.isInstanceOf(DataIntegrityException::class.java)
     }
 
     @Test
     fun `fails when target is not found and there is no default or standard`(): Unit = runBlocking {
       // extreme edge case when a level is globally removed AND the prison does not have a default set AND standard is unavailable
-      val prisonLevels = listOf(
-        prisonIncentiveLevel(prisonId, "BAS"),
-        prisonIncentiveLevel(prisonId, "STD", defaultOnAdmission = false, active = false),
-        prisonIncentiveLevel(prisonId, "ENH"),
+      whenever(prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)).thenReturn(
+        listOf(
+          prisonIncentiveLevel(prisonId, "BAS"),
+          prisonIncentiveLevel(prisonId, "STD", defaultOnAdmission = false, active = false),
+          prisonIncentiveLevel(prisonId, "ENH"),
+        ),
       )
+
       assertThatThrownBy {
-        runBlocking { assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, prisonLevels, "ABC")) }
+        runBlocking { assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, "ABC")) }
       }.isInstanceOf(DataIntegrityException::class.java)
     }
 
     @Test
     fun `fails when a prison does not have any available levels`(): Unit = runBlocking {
       // extreme edge case when the prison does not have any levels
-      val prisonLevels = listOf(
-        prisonIncentiveLevel(prisonId, "BAS", active = false),
-        prisonIncentiveLevel(prisonId, "STD", defaultOnAdmission = false, active = false),
-        prisonIncentiveLevel(prisonId, "ENH", active = false),
+      whenever(prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)).thenReturn(
+        listOf(
+          prisonIncentiveLevel(prisonId, "BAS", active = false),
+          prisonIncentiveLevel(prisonId, "STD", defaultOnAdmission = false, active = false),
+          prisonIncentiveLevel(prisonId, "ENH", active = false),
+        ),
       )
+
       assertThatThrownBy {
-        runBlocking { nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, prisonLevels, "STD") }
+        runBlocking { nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, "STD") }
       }.isInstanceOf(DataIntegrityException::class.java)
     }
 
     @Test
     fun `fails when there are no available levels in a prison because a default cannot be chosen`(): Unit = runBlocking {
       // extreme edge case when a level is globally removed AND the prison does not have any levels
-      val prisonLevels = listOf(
-        prisonIncentiveLevel(prisonId, "BAS", active = false),
-        prisonIncentiveLevel(prisonId, "STD", defaultOnAdmission = false, active = false),
-        prisonIncentiveLevel(prisonId, "ENH", active = false),
+      whenever(prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)).thenReturn(
+        listOf(
+          prisonIncentiveLevel(prisonId, "BAS", active = false),
+          prisonIncentiveLevel(prisonId, "STD", defaultOnAdmission = false, active = false),
+          prisonIncentiveLevel(prisonId, "ENH", active = false),
+        ),
       )
+
       assertThatThrownBy {
-        runBlocking { nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, prisonLevels, "ABC") }
+        runBlocking { nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, "ABC") }
       }.isInstanceOf(DataIntegrityException::class.java)
     }
   }

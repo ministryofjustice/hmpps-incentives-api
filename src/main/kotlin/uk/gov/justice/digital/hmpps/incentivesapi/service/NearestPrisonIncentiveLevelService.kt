@@ -7,14 +7,15 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.findDefaultOnAdmission
 @Service
 class NearestPrisonIncentiveLevelService(
   private val incentiveLevelService: IncentiveLevelService,
+  private val prisonIncentiveLevelService: PrisonIncentiveLevelAuditedService,
 ) {
   /**
    * Because not all levels are enabled at all prisons, and we want to maintain a
    * person’s level when they are transferred, we need to find the "nearest highest" level
    * according to HMPPS policy. Falls back to prison's default level when there's nothing else to do.
    */
-  suspend fun findNearestHighestLevel(prisonId: String, prisonLevels: List<PrisonIncentiveLevel>, levelCode: String): String {
-    // TODO: use PrisonIncentiveLevelService directly rather than require prisonLevels param
+  suspend fun findNearestHighestLevel(prisonId: String, levelCode: String): String {
+    val prisonLevels = prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)
     val defaultLevelCode = prisonLevels.findDefaultOnAdmission().levelCode
     val levelCodesAvailableInPrison = prisonLevels.filter(PrisonIncentiveLevel::active)
       .map(PrisonIncentiveLevel::levelCode)
