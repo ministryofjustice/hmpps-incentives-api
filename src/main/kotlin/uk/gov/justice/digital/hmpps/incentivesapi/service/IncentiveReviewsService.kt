@@ -26,7 +26,7 @@ import java.util.Comparator
 class IncentiveReviewsService(
   private val offenderSearchService: OffenderSearchService,
   private val prisonApiService: PrisonApiService,
-  private val iepLevelService: IepLevelService,
+  private val prisonIncentiveLevelService: PrisonIncentiveLevelAuditedService,
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository,
   private val nextReviewDateGetterService: NextReviewDateGetterService,
   private val behaviourService: BehaviourService,
@@ -127,13 +127,13 @@ class IncentiveReviewsService(
       }
     }
 
-    val prisonLevels = iepLevelService.getIepLevelsForPrison(prisonId)
-    val levels: List<IncentiveReviewLevel> = prisonLevels.map { iepLevel ->
+    val prisonIncentiveLevels = prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)
+    val levels = prisonIncentiveLevels.map { prisonIncentiveLevel ->
       IncentiveReviewLevel(
-        levelCode = iepLevel.iepLevel,
-        levelName = iepLevel.iepDescription,
-        reviewCount = prisonersCounts[iepLevel.iepLevel] ?: 0,
-        overdueCount = overdueCounts[iepLevel.iepLevel] ?: 0,
+        levelCode = prisonIncentiveLevel.levelCode,
+        levelName = prisonIncentiveLevel.levelName,
+        reviewCount = prisonersCounts[prisonIncentiveLevel.levelCode] ?: 0,
+        overdueCount = overdueCounts[prisonIncentiveLevel.levelCode] ?: 0,
       )
     }
 

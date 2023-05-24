@@ -1,12 +1,50 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocation
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerExtraInfo
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
 import java.time.LocalDate
 import java.time.LocalDateTime
+
+fun prisonIncentiveLevel(
+  prisonId: String,
+  levelCode: String,
+  active: Boolean? = null,
+  defaultOnAdmission: Boolean? = null,
+) = PrisonIncentiveLevel(
+  prisonId = prisonId,
+  levelCode = levelCode,
+
+  active = active ?: (levelCode != "ENT"),
+  defaultOnAdmission = defaultOnAdmission ?: (levelCode == "STD"),
+
+  remandTransferLimitInPence = when (levelCode) {
+    "BAS" -> 27_50
+    "STD" -> 60_50
+    else -> 66_00
+  },
+  remandSpendLimitInPence = when (levelCode) {
+    "BAS" -> 275_00
+    "STD" -> 605_00
+    else -> 660_00
+  },
+  convictedTransferLimitInPence = when (levelCode) {
+    "BAS" -> 5_50
+    "STD" -> 19_80
+    else -> 33_00
+  },
+  convictedSpendLimitInPence = when (levelCode) {
+    "BAS" -> 55_00
+    "STD" -> 198_00
+    else -> 330_00
+  },
+
+  visitOrders = 2,
+  privilegedVisitOrders = 1,
+)
 
 fun offenderSearchPrisoner(
   prisonerNumber: String = "A1244AB",

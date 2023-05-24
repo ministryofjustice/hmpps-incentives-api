@@ -5,7 +5,6 @@ import kotlinx.coroutines.flow.takeWhile
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 
-// TODO: move into PrisonerIepLevelReviewService once IepLevelService is removed
 @Service
 class CountPrisonersService(
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository,
