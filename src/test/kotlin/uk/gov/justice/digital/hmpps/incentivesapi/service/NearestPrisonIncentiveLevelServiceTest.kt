@@ -132,25 +132,29 @@ class NearestPrisonIncentiveLevelServiceTest {
     }
 
     @Test
-    fun `falls back to standard when target is not found and there is no default`(): Unit = runBlocking {
+    fun `fails when target is not found and there is no default`(): Unit = runBlocking {
       // extreme edge case when a level is globally removed AND the prison does not have a default set but standard is available
       val prisonLevels = listOf(
         prisonIncentiveLevel(prisonId, "BAS"),
         prisonIncentiveLevel(prisonId, "STD", defaultOnAdmission = false, active = true),
         prisonIncentiveLevel(prisonId, "ENH"),
       )
-      assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, prisonLevels, "ABC")).isEqualTo("STD")
+      assertThatThrownBy {
+        runBlocking { assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, prisonLevels, "ABC")) }
+      }.isInstanceOf(DataIntegrityException::class.java)
     }
 
     @Test
-    fun `falls back to the prison's first level when target is not found and there is no default or standard`(): Unit = runBlocking {
+    fun `fails when target is not found and there is no default or standard`(): Unit = runBlocking {
       // extreme edge case when a level is globally removed AND the prison does not have a default set AND standard is unavailable
       val prisonLevels = listOf(
         prisonIncentiveLevel(prisonId, "BAS"),
         prisonIncentiveLevel(prisonId, "STD", defaultOnAdmission = false, active = false),
         prisonIncentiveLevel(prisonId, "ENH"),
       )
-      assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, prisonLevels, "ABC")).isEqualTo("BAS")
+      assertThatThrownBy {
+        runBlocking { assertThat(nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, prisonLevels, "ABC")) }
+      }.isInstanceOf(DataIntegrityException::class.java)
     }
 
     @Test
