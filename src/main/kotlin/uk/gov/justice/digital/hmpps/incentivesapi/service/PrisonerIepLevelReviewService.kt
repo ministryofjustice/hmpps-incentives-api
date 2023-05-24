@@ -34,8 +34,9 @@ import java.util.function.Supplier
 class PrisonerIepLevelReviewService(
   private val prisonApiService: PrisonApiService,
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository,
+  private val incentiveLevelService: IncentiveLevelAuditedService,
+  private val prisonIncentiveLevelService: PrisonIncentiveLevelAuditedService,
   private val nearestPrisonIncentiveLevelService: NearestPrisonIncentiveLevelService,
-  private val prisonIncentiveLevelService: PrisonIncentiveLevelService, // NB: unaudited!
   private val snsService: SnsService,
   private val auditService: AuditService,
   private val authenticationFacade: AuthenticationFacade,
@@ -43,7 +44,6 @@ class PrisonerIepLevelReviewService(
   private val nextReviewDateGetterService: NextReviewDateGetterService,
   private val nextReviewDateUpdaterService: NextReviewDateUpdaterService,
   private val incentiveStoreService: IncentiveStoreService,
-  private val incentiveLevelService: IncentiveLevelService,
 ) {
   companion object {
     val log: Logger = LoggerFactory.getLogger(this::class.java)

@@ -12,7 +12,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.config.DataIntegrityException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 
 class NearestPrisonIncentiveLevelServiceTest {
-  private val incentiveLevelService: IncentiveLevelService = mock()
+  private val incentiveLevelService: IncentiveLevelAuditedService = mock()
   private val prisonIncentiveLevelService: PrisonIncentiveLevelAuditedService = mock()
   private val nearestPrisonIncentiveLevelService = NearestPrisonIncentiveLevelService(incentiveLevelService, prisonIncentiveLevelService)
 

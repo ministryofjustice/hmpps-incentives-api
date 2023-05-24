@@ -6,7 +6,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.findDefaultOnAdmission
 
 @Service
 class NearestPrisonIncentiveLevelService(
-  private val incentiveLevelService: IncentiveLevelService,
+  private val incentiveLevelService: IncentiveLevelAuditedService,
   private val prisonIncentiveLevelService: PrisonIncentiveLevelAuditedService,
 ) {
   /**

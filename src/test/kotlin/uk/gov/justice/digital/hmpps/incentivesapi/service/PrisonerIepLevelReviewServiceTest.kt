@@ -44,7 +44,7 @@ class PrisonerIepLevelReviewServiceTest {
   private val nextReviewDateGetterService: NextReviewDateGetterService = mock()
   private val nextReviewDateUpdaterService: NextReviewDateUpdaterService = mock()
   private val incentiveStoreService: IncentiveStoreService = mock()
-  private val incentiveLevelService: IncentiveLevelService = mock()
+  private val incentiveLevelService: IncentiveLevelAuditedService = mock()
   private val prisonIncentiveLevelService: PrisonIncentiveLevelAuditedService = mock()
 
   private val nearestPrisonIncentiveLevelService = NearestPrisonIncentiveLevelService(incentiveLevelService, prisonIncentiveLevelService)
@@ -52,8 +52,9 @@ class PrisonerIepLevelReviewServiceTest {
   private val prisonerIepLevelReviewService = PrisonerIepLevelReviewService(
     prisonApiService,
     prisonerIepLevelRepository,
-    nearestPrisonIncentiveLevelService,
+    incentiveLevelService,
     prisonIncentiveLevelService,
+    nearestPrisonIncentiveLevelService,
     snsService,
     auditService,
     authenticationFacade,
@@ -61,7 +62,6 @@ class PrisonerIepLevelReviewServiceTest {
     nextReviewDateGetterService,
     nextReviewDateUpdaterService,
     incentiveStoreService,
-    incentiveLevelService,
   )
 
   @BeforeEach
