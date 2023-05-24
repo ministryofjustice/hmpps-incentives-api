@@ -25,7 +25,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 
 @RestController
 @RequestMapping("/incentive/prison-levels", produces = [MediaType.APPLICATION_JSON_VALUE])
-@Tag(name = "Prison incentive levels and associated Information", description = "Incentive levels and their per-prison associated information")
+@Tag(name = "Prison incentive levels", description = "Incentive levels and their per-prison associated information")
 class PrisonIncentiveLevelResource(
   private val prisonIncentiveLevelService: PrisonIncentiveLevelAuditedService,
 ) {
@@ -46,6 +46,11 @@ class PrisonIncentiveLevelResource(
       ApiResponse(
         responseCode = "403",
         description = "Incorrect permissions to use this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Prison incentive level not found",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
     ],

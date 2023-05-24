@@ -14,7 +14,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import java.time.LocalDate
 
-// TODO: move into inner class CountPrisonersOnLevel of PrisonerIepLevelReviewServiceTest once IepLevelService is removed
 class CountPrisonersServiceTest {
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository = mock()
   private val offenderSearchService: OffenderSearchService = mock()

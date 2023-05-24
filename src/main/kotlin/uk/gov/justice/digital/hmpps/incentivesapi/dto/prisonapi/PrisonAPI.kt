@@ -1,8 +1,5 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi
 
-import com.fasterxml.jackson.annotation.JsonAlias
-import com.fasterxml.jackson.annotation.JsonProperty
-import io.swagger.v3.oas.annotations.media.Schema
 import org.springframework.format.annotation.DateTimeFormat
 import uk.gov.justice.digital.hmpps.incentivesapi.service.PrisonerInfoForNextReviewDate
 import java.time.LocalDate
@@ -64,23 +61,6 @@ data class BookingFromDatePair(
   val bookingId: Long,
   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
   val fromDate: LocalDateTime,
-)
-
-// TODO: this does too many things, split into: • global level as defined in NOMIS reference data • per-prison configured level
-data class IepLevel(
-  @Schema(description = "IEP Code for an IEP level", example = "STD")
-  val iepLevel: String,
-  @Schema(description = "Description of the IEP Level", example = "Standard")
-  val iepDescription: String,
-  @Schema(description = "Sequence to display the IEP Levels for this prison in LOV or other tables", example = "1")
-  val sequence: Int?,
-  @Schema(description = "Indicates that this IEP level is the default for this prison", example = "true")
-  @JsonAlias("defaultLevel")
-  @JsonProperty
-  val default: Boolean = false,
-  @Schema(description = "Indicates that this IEP level is the active", example = "true")
-  val active: Boolean = true,
-  // TODO: the version for NOMIS reference data should include expired date?
 )
 
 data class PrisonLocation(
