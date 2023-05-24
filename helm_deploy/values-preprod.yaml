@@ -7,28 +7,23 @@ generic-service:
   ingress:
     host: incentives-api-preprod.hmpps.service.justice.gov.uk
 
+  serviceAccountName: hmpps-incentives-api-preprod
+
   env:
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.dev.json
     API_BASE_URL_OAUTH: https://sign-in-preprod.hmpps.service.justice.gov.uk/auth
     API_BASE_URL_PRISON: https://api-preprod.prison.service.justice.gov.uk
     API_BASE_URL_OFFENDER_SEARCH: https://prisoner-offender-search-preprod.prison.service.justice.gov.uk
+    HMPPS_SQS_USE_WEB_TOKEN: "true"
 
   namespace_secrets:
     hmpps-domain-events-topic:
-      HMPPS_SQS_TOPICS_DOMAINEVENTS_ACCESS_KEY_ID: "access_key_id"
-      HMPPS_SQS_TOPICS_DOMAINEVENTS_SECRET_ACCESS_KEY: "secret_access_key"
       HMPPS_SQS_TOPICS_DOMAINEVENTS_ARN: "topic_arn"
     sqs-hmpps-audit-secret:
-      HMPPS_SQS_QUEUES_AUDIT_QUEUE_ACCESS_KEY_ID: "access_key_id"
-      HMPPS_SQS_QUEUES_AUDIT_QUEUE_SECRET_ACCESS_KEY: "secret_access_key"
       HMPPS_SQS_QUEUES_AUDIT_QUEUE_NAME: "sqs_queue_name"
     sqs-prisoner-event-queue-secret:
-      HMPPS_SQS_QUEUES_INCENTIVES_QUEUE_ACCESS_KEY_ID: "access_key_id"
-      HMPPS_SQS_QUEUES_INCENTIVES_QUEUE_SECRET_ACCESS_KEY: "secret_access_key"
       HMPPS_SQS_QUEUES_INCENTIVES_QUEUE_NAME: "sqs_queue_name"
     sqs-prisoner-event-queue-dlq-secret:
-      HMPPS_SQS_QUEUES_INCENTIVES_DLQ_ACCESS_KEY_ID: "access_key_id"
-      HMPPS_SQS_QUEUES_INCENTIVES_DLQ_SECRET_ACCESS_KEY: "secret_access_key"
       HMPPS_SQS_QUEUES_INCENTIVES_DLQ_NAME: "sqs_queue_name"
 
 # CloudPlatform AlertManager receiver to route Prometheus alerts to slack
