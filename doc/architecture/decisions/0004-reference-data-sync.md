@@ -431,6 +431,10 @@ Authorised requests will require roles with write scope.
 }
 ```
 
+#### Deactivate all levels in a prison
+
+`DELETE /incentive/prison-levels/{prisonId}`
+
 #### Deactivate a level in a prison
 
 `DELETE /incentive/prison-levels/{prisonId}/level/{levelCode}`

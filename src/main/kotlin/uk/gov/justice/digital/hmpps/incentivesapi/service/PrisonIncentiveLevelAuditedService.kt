@@ -38,6 +38,13 @@ class PrisonIncentiveLevelAuditedService(
       }
   }
 
+  override suspend fun deactivateAllPrisonIncentiveLevels(prisonId: String): List<PrisonIncentiveLevelDTO> {
+    return super.deactivateAllPrisonIncentiveLevels(prisonId)
+      .onEach {
+        auditAndPublishPrisonLevelChangeEvent(it)
+      }
+  }
+
   private suspend fun auditAndPublishPrisonLevelChangeEvent(prisonIncentiveLevel: PrisonIncentiveLevelDTO) {
     auditService.sendMessage(
       AuditType.PRISON_INCENTIVE_LEVEL_UPDATED,
