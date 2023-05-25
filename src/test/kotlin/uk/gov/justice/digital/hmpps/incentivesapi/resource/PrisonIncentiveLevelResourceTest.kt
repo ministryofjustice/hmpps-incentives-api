@@ -1246,9 +1246,11 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
       makePrisonIncentiveLevel("BAI", "STD") // Standard is the default for admission
       makePrisonIncentiveLevel("BAI", "ENH")
       runBlocking {
-        prisonIncentiveLevelRepository.findAllByPrisonId("BAI").map {
-          prisonIncentiveLevelRepository.save(it.copy(active = false))
-        }
+        prisonIncentiveLevelRepository.saveAll(
+          prisonIncentiveLevelRepository.findAllByPrisonId("BAI").map {
+            it.copy(active = false)
+          }.toList(),
+        ).collect()
       }
 
       webTestClient.delete()
@@ -1315,11 +1317,15 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
       makePrisonIncentiveLevel("BAI", "STD") // Standard is the default for admission
       makePrisonIncentiveLevel("BAI", "ENH")
       runBlocking {
-        prisonIncentiveLevelRepository.findAllByPrisonId("BAI").map {
-          if (it.levelCode != "STD") {
-            prisonIncentiveLevelRepository.save(it.copy(active = false))
-          }
-        }
+        prisonIncentiveLevelRepository.saveAll(
+          prisonIncentiveLevelRepository.findAllByPrisonId("BAI").map {
+            if (it.levelCode == "STD") {
+              it
+            } else {
+              it.copy(active = false)
+            }
+          }.toList(),
+        ).collect()
       }
 
       webTestClient.delete()
