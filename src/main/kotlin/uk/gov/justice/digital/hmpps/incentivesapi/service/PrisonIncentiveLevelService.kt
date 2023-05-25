@@ -169,7 +169,8 @@ class PrisonIncentiveLevelService(
   }
 
   /**
-   * Deactivate all incentive levels for a given prison; useful for when prisons are closed
+   * Deactivate all incentive levels for a given prison; useful for when prisons are closed.
+   * NB: returns only the incentive levels that were deactivated
    */
   @Transactional
   suspend fun deactivateAllPrisonIncentiveLevels(prisonId: String): List<PrisonIncentiveLevelDTO> {
@@ -184,13 +185,12 @@ class PrisonIncentiveLevelService(
         moreInfo = prisonIncentiveLevelsWithPrisoners.map(PrisonIncentiveLevel::levelCode).joinToString(","),
       )
     }
-    prisonIncentiveLevelRepository.saveAll(
+    return prisonIncentiveLevelRepository.saveAll(
       prisonIncentiveLevels.filter(PrisonIncentiveLevel::active)
         .map { prisonIncentiveLevel ->
           prisonIncentiveLevel.withUpdate(PrisonIncentiveLevelUpdateDTO(active = false))
         },
-    ).collect()
-    return getAllPrisonIncentiveLevels(prisonId)
+    ).toListOfDTO()
   }
 
   private fun PrisonIncentiveLevel.withUpdate(update: PrisonIncentiveLevelUpdateDTO): PrisonIncentiveLevel = copy(

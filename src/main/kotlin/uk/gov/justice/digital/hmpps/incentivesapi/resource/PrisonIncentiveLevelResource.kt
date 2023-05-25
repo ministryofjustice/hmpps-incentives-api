@@ -248,6 +248,7 @@ class PrisonIncentiveLevelResource(
   @Operation(
     summary = "Deactivate all incentive levels for a prison",
     description = "This can be used when a prison closes. " +
+      "Returns all incentive levels in this prison include those that were already inactive. " +
       "Deactivating a level is only possible if there are no prisoners currently on it." +
       "\n\nRequires role: MAINTAIN_PRISON_IEP_LEVELS with write scope" +
       "\n\nRaises HMPPS domain event: \"incentives.prison-level.changed\"",
@@ -278,7 +279,8 @@ class PrisonIncentiveLevelResource(
     @PathVariable
     prisonId: String,
   ): List<PrisonIncentiveLevel> {
-    return prisonIncentiveLevelService.deactivateAllPrisonIncentiveLevels(prisonId)
+    prisonIncentiveLevelService.deactivateAllPrisonIncentiveLevels(prisonId)
+    return prisonIncentiveLevelService.getAllPrisonIncentiveLevels(prisonId)
   }
 
   @DeleteMapping("{prisonId}/level/{levelCode}")

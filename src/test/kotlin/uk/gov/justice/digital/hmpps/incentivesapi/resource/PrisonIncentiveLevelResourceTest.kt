@@ -1322,26 +1322,8 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           assertThat(prisonIncentiveLevels).allMatch { !it.active }
         }
 
-        val domainEvents = getPublishedDomainEvents()
-        val auditMessages = getSentAuditMessages()
-
-        val expectedPrisonIncentiveLevelChanges = 3
-        assertThat(domainEvents).hasSize(expectedPrisonIncentiveLevelChanges)
-        assertThat(auditMessages).hasSize(expectedPrisonIncentiveLevelChanges)
-        assertThat(domainEvents.count { it.eventType == "incentives.prison-level.changed" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
-        assertThat(auditMessages.count { it.what == "PRISON_INCENTIVE_LEVEL_UPDATED" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
-
-        assertThat(domainEvents).allMatch {
-          it.additionalInformation?.prisonId == "BAI" &&
-            it.description.matches(Regex("^Incentive level \\(...\\) in prison BAI has been updated$"))
-        }
-        assertThat(
-          domainEvents.map { it.additionalInformation?.incentiveLevel }.toSet(),
-        ).isEqualTo(setOf("BAS", "STD", "ENH"))
-
-        val auditMessageDetails = auditMessages.map { objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java) }
-        assertThat(auditMessageDetails).allMatch { it.prisonId == "BAI" }
-        assertThat(auditMessageDetails).allMatch { !it.active }
+        assertNoDomainEventSent()
+        assertNoAuditMessageSent()
       }
 
       @Test
@@ -1352,11 +1334,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         runBlocking {
           prisonIncentiveLevelRepository.saveAll(
             prisonIncentiveLevelRepository.findAllByPrisonId("BAI").map {
-              if (it.levelCode == "STD") {
-                it
-              } else {
-                it.copy(active = false)
-              }
+              it.copy(active = it.levelCode != "STD")
             }.toList(),
           ).collect()
         }
@@ -1400,7 +1378,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         val domainEvents = getPublishedDomainEvents()
         val auditMessages = getSentAuditMessages()
 
-        val expectedPrisonIncentiveLevelChanges = 3
+        val expectedPrisonIncentiveLevelChanges = 2
         assertThat(domainEvents).hasSize(expectedPrisonIncentiveLevelChanges)
         assertThat(auditMessages).hasSize(expectedPrisonIncentiveLevelChanges)
         assertThat(domainEvents.count { it.eventType == "incentives.prison-level.changed" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
@@ -1412,7 +1390,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         }
         assertThat(
           domainEvents.map { it.additionalInformation?.incentiveLevel }.toSet(),
-        ).isEqualTo(setOf("BAS", "STD", "ENH"))
+        ).isEqualTo(setOf("BAS", "ENH"))
 
         val auditMessageDetails = auditMessages.map { objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java) }
         assertThat(auditMessageDetails).allMatch { it.prisonId == "BAI" }
@@ -1502,7 +1480,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         runBlocking {
           val prisonIncentiveLevels = prisonIncentiveLevelRepository.findAllByPrisonId("MDI").toList()
           assertThat(prisonIncentiveLevels).hasSize(3)
-          assertThat(prisonIncentiveLevels.filter { it.active }).hasSize(3)
+          assertThat(prisonIncentiveLevels).allMatch { it.active }
         }
 
         assertNoDomainEventSent()
@@ -1539,7 +1517,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         runBlocking {
           val prisonIncentiveLevels = prisonIncentiveLevelRepository.findAllByPrisonId("MDI").toList()
           assertThat(prisonIncentiveLevels).hasSize(3)
-          assertThat(prisonIncentiveLevels.filter { it.active }).hasSize(3)
+          assertThat(prisonIncentiveLevels).allMatch { it.active }
         }
 
         assertNoDomainEventSent()
