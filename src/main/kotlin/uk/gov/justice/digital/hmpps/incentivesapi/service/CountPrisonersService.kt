@@ -18,7 +18,11 @@ class CountPrisonersService(
     offenderSearchService.findOffendersAtLocation(prisonId)
       .takeWhile { offenders ->
         val bookingIds = offenders.map { it.bookingId }
-        prisonersExistOnLevel = prisonerIepLevelRepository.somePrisonerCurrentlyOnLevel(bookingIds, levelCode)
+        prisonersExistOnLevel = if (bookingIds.isEmpty()) {
+          false
+        } else {
+          prisonerIepLevelRepository.somePrisonerCurrentlyOnLevel(bookingIds, levelCode)
+        }
         !prisonersExistOnLevel
       }
       .collect()
