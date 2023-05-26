@@ -21,6 +21,19 @@ class CountPrisonersServiceTest {
   private val countPrisonersService = CountPrisonersService(prisonerIepLevelRepository, offenderSearchService)
 
   @Test
+  fun `finds no prisoners in a prison`(): Unit = runBlocking {
+    // mock offender search returning no prisoners
+    whenever(offenderSearchService.findOffendersAtLocation("MDI", "")).thenReturn(flowOf(listOf()))
+
+    assertThat(
+      countPrisonersService.prisonersExistOnLevelInPrison("MDI", "STD"),
+    ).isFalse()
+
+    verify(offenderSearchService, times(1)).findOffendersAtLocation("MDI", "")
+    verify(prisonerIepLevelRepository, times(0)).somePrisonerCurrentlyOnLevel(any(), eq("STD"))
+  }
+
+  @Test
   fun `finds prisoners on a level in a prison`(): Unit = runBlocking {
     // mock offender search returning 2 pages of results with 3 prisoners, only 2 of which are on Standard in the repository
     whenever(offenderSearchService.findOffendersAtLocation("MDI", "")).thenReturn(
