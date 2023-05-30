@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveRecordUpdate
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.findDefaultOnAdmission
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocation
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
@@ -33,8 +34,9 @@ import java.util.function.Supplier
 class PrisonerIepLevelReviewService(
   private val prisonApiService: PrisonApiService,
   private val prisonerIepLevelRepository: PrisonerIepLevelRepository,
+  private val incentiveLevelService: IncentiveLevelAuditedService,
+  private val prisonIncentiveLevelService: PrisonIncentiveLevelAuditedService,
   private val nearestPrisonIncentiveLevelService: NearestPrisonIncentiveLevelService,
-  private val prisonIncentiveLevelService: PrisonIncentiveLevelService, // NB: unaudited!
   private val snsService: SnsService,
   private val auditService: AuditService,
   private val authenticationFacade: AuthenticationFacade,
@@ -42,7 +44,6 @@ class PrisonerIepLevelReviewService(
   private val nextReviewDateGetterService: NextReviewDateGetterService,
   private val nextReviewDateUpdaterService: NextReviewDateUpdaterService,
   private val incentiveStoreService: IncentiveStoreService,
-  private val incentiveLevelService: IncentiveLevelService,
 ) {
   companion object {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -215,7 +216,7 @@ class PrisonerIepLevelReviewService(
 
   private suspend fun getIepLevelForReviewType(prisonerInfo: PrisonerAtLocation, reviewType: ReviewType): String {
     val prisonIncentiveLevels = prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonerInfo.agencyId)
-    val defaultLevelCode = nearestPrisonIncentiveLevelService.chooseDefaultLevel(prisonerInfo.agencyId, prisonIncentiveLevels)
+    val defaultLevelCode = prisonIncentiveLevels.findDefaultOnAdmission().levelCode
 
     return when (reviewType) {
       ReviewType.INITIAL, ReviewType.READMISSION -> {
@@ -233,7 +234,6 @@ class PrisonerIepLevelReviewService(
               ?: defaultLevelCode // if no previous prison
           nearestPrisonIncentiveLevelService.findNearestHighestLevel(
             prisonerInfo.agencyId,
-            prisonIncentiveLevels,
             levelCodeBeforeTransfer,
           )
         } catch (e: IncentiveReviewNotFoundException) {

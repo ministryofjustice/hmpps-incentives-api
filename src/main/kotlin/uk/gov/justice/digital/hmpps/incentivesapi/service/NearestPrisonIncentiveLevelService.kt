@@ -1,36 +1,22 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.incentivesapi.config.DataIntegrityException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.findDefaultOnAdmission
 
 @Service
 class NearestPrisonIncentiveLevelService(
-  private val incentiveLevelService: IncentiveLevelService,
+  private val incentiveLevelService: IncentiveLevelAuditedService,
+  private val prisonIncentiveLevelService: PrisonIncentiveLevelAuditedService,
 ) {
-  /**
-   * Selects the default level (for new admissions) for a prison
-   * NB: this existed largely for compatibility with NOMIS which allowed there to be no default set,
-   * business rules now prevent this from happening
-   */
-  fun chooseDefaultLevel(prisonId: String, prisonLevels: List<PrisonIncentiveLevel>): String {
-    val activePrisonLevels = prisonLevels.filter(PrisonIncentiveLevel::active)
-    return activePrisonLevels.firstOrNull(PrisonIncentiveLevel::defaultOnAdmission)?.levelCode
-      // fall back to standard if available
-      ?: activePrisonLevels.firstOrNull { it.levelCode == "STD" }?.levelCode
-      // fall back to first available level
-      ?: activePrisonLevels.firstOrNull()?.levelCode
-      // there are no available incentive levels at all at this prison
-      ?: throw DataIntegrityException("$prisonId has no available incentive levels")
-  }
-
   /**
    * Because not all levels are enabled at all prisons, and we want to maintain a
    * person’s level when they are transferred, we need to find the "nearest highest" level
    * according to HMPPS policy. Falls back to prison's default level when there's nothing else to do.
    */
-  suspend fun findNearestHighestLevel(prisonId: String, prisonLevels: List<PrisonIncentiveLevel>, levelCode: String): String {
-    val defaultLevelCode = chooseDefaultLevel(prisonId, prisonLevels)
+  suspend fun findNearestHighestLevel(prisonId: String, levelCode: String): String {
+    val prisonLevels = prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)
+    val defaultLevelCode = prisonLevels.findDefaultOnAdmission().levelCode
     val levelCodesAvailableInPrison = prisonLevels.filter(PrisonIncentiveLevel::active)
       .map(PrisonIncentiveLevel::levelCode)
       .toSet()

@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.dto
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.swagger.v3.oas.annotations.media.Schema
+import uk.gov.justice.digital.hmpps.incentivesapi.config.DataIntegrityException
 
 /**
  * Publicly exposed representation of an incentive level’s configuration in a prison
@@ -54,6 +55,9 @@ data class PrisonIncentiveLevel(
     privilegedVisitOrders = privilegedVisitOrders,
   )
 }
+
+fun List<PrisonIncentiveLevel>.findDefaultOnAdmission() = find(PrisonIncentiveLevel::defaultOnAdmission)
+  ?: throw DataIntegrityException("No default level for new admissions")
 
 /**
  * Update payload for PrisonIncentiveLevel
