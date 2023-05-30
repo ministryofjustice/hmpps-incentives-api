@@ -758,7 +758,10 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertNoDomainEventSent()
         assertNoAuditMessageSent()
       }
+    }
 
+    @Nested
+    inner class `partially update level` {
       @Test
       fun `partially updates a prison incentive level when one exists`() {
         makePrisonIncentiveLevel("BAI", "BAS")
@@ -901,10 +904,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           ),
         )
       }
-    }
 
-    @Nested
-    inner class `partially update level` {
       @Test
       fun `requires correct role to partially update a prison incentive level`() {
         makePrisonIncentiveLevel("BAI", "BAS")
