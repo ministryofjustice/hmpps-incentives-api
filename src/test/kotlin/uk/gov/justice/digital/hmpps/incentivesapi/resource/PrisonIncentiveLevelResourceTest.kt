@@ -758,7 +758,10 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertNoDomainEventSent()
         assertNoAuditMessageSent()
       }
+    }
 
+    @Nested
+    inner class `partially update level` {
       @Test
       fun `partially updates a prison incentive level when one exists`() {
         makePrisonIncentiveLevel("BAI", "BAS")
@@ -901,10 +904,85 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           ),
         )
       }
-    }
 
-    @Nested
-    inner class `partially update level` {
+      @Test
+      fun `partially updates prison incentive levels if all being activated one-by-one`() {
+        makePrisonIncentiveLevel("MDI", "BAS")
+        makePrisonIncentiveLevel("MDI", "STD") // Standard was the default for admission before deactivation
+        makePrisonIncentiveLevel("MDI", "ENH")
+        runBlocking {
+          prisonIncentiveLevelRepository.saveAll(
+            prisonIncentiveLevelRepository.findAllByPrisonId("MDI").map {
+              it.copy(active = false)
+            }.toList(),
+          ).collect()
+        }
+
+        // NB: the previously-default level must be activated first to conform to business rules
+        for (levelCode in listOf("STD", "BAS", "ENH")) {
+          webTestClient.patch()
+            .uri("/incentive/prison-levels/MDI/level/$levelCode")
+            .withLocalAuthorisation()
+            .header("Content-Type", "application/json")
+            .bodyValue(
+              // language=json
+              """
+              {
+                "active": true
+              }
+              """,
+            )
+            .exchange()
+            .expectStatus().isOk
+        }
+
+        runBlocking {
+          val prisonIncentiveLevels = prisonIncentiveLevelRepository.findAll().toList()
+          assertThat(prisonIncentiveLevels).allMatch { it.active }
+          val defaultLevelCodes = prisonIncentiveLevels.filter { it.defaultOnAdmission }.map { it.levelCode }
+          assertThat(defaultLevelCodes).isEqualTo(listOf("STD"))
+        }
+      }
+
+      @Test
+      fun `partially updates prison incentive levels if all being activated one-by-one when the previous default was not Standard`() {
+        makePrisonIncentiveLevel("MDI", "BAS")
+        makePrisonIncentiveLevel("MDI", "STD")
+        makePrisonIncentiveLevel("MDI", "ENH") // Enhanced was the default for admission before deactivation
+        runBlocking {
+          prisonIncentiveLevelRepository.saveAll(
+            prisonIncentiveLevelRepository.findAllByPrisonId("MDI").map {
+              it.copy(active = false, defaultOnAdmission = it.levelCode == "ENH")
+            }.toList(),
+          ).collect()
+        }
+
+        // NB: the previously-default level must be activated first to conform to business rules
+        for (levelCode in listOf("ENH", "BAS", "STD")) {
+          webTestClient.patch()
+            .uri("/incentive/prison-levels/MDI/level/$levelCode")
+            .withLocalAuthorisation()
+            .header("Content-Type", "application/json")
+            .bodyValue(
+              // language=json
+              """
+              {
+                "active": true
+              }
+              """,
+            )
+            .exchange()
+            .expectStatus().isOk
+        }
+
+        runBlocking {
+          val prisonIncentiveLevels = prisonIncentiveLevelRepository.findAll().toList()
+          assertThat(prisonIncentiveLevels).allMatch { it.active }
+          val defaultLevelCodes = prisonIncentiveLevels.filter { it.defaultOnAdmission }.map { it.levelCode }
+          assertThat(defaultLevelCodes).isEqualTo(listOf("ENH"))
+        }
+      }
+
       @Test
       fun `requires correct role to partially update a prison incentive level`() {
         makePrisonIncentiveLevel("BAI", "BAS")
