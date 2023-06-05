@@ -2,7 +2,7 @@ plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.1.4"
   id("org.springdoc.openapi-gradle-plugin") version "1.6.0"
   id("jacoco")
-  id("org.sonarqube") version "4.0.0.2929"
+  id("org.sonarqube") version "4.2.0.3129"
   kotlin("plugin.spring") version "1.8.21"
   kotlin("plugin.jpa") version "1.8.21"
 }
@@ -59,11 +59,11 @@ dependencies {
   testImplementation("io.jsonwebtoken:jjwt-impl:0.11.5")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.11.5")
   testImplementation("org.mockito:mockito-inline")
-  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.14")
+  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.15")
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("com.github.tomakehurst:wiremock-jre8-standalone:2.35.0")
-  testImplementation("org.testcontainers:localstack:1.18.1")
-  testImplementation("org.testcontainers:postgresql:1.18.1")
+  testImplementation("org.testcontainers:localstack:1.18.3")
+  testImplementation("org.testcontainers:postgresql:1.18.3")
   testImplementation("io.projectreactor:reactor-test")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
   testImplementation("javax.xml.bind:jaxb-api:2.3.1")
