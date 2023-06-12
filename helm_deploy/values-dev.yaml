@@ -8,8 +8,6 @@ generic-service:
     host: incentives-api-dev.hmpps.service.justice.gov.uk
   allowlist: null
 
-  serviceAccountName: hmpps-incentives-api-development
-
   env:
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.dev.json
     API_BASE_URL_OAUTH: https://sign-in-dev.hmpps.service.justice.gov.uk/auth

@@ -2,6 +2,8 @@
 generic-service:
   nameOverride: hmpps-incentives-api
 
+  serviceAccountName: hmpps-incentives-api
+
   replicaCount: 4
 
   image:
