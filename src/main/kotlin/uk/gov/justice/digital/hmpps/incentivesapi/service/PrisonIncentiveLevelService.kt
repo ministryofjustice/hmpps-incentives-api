@@ -228,7 +228,7 @@ class PrisonIncentiveLevelService(
     prisonId: String,
     levelCode: String,
   ): PrisonIncentiveLevel {
-    val fallbackSpendLimits = spendLimitPolicy.getOrDefault(levelCode, spendLimitPolicy["ENH"]!!)
+    val fallback = prisonIncentiveLevelPolicies.getOrDefault(levelCode, prisonIncentiveLevelPolicies["ENH"]!!)
 
     return PrisonIncentiveLevel(
       levelCode = levelCode,
@@ -237,16 +237,18 @@ class PrisonIncentiveLevelService(
       defaultOnAdmission = defaultOnAdmission ?: false,
 
       remandTransferLimitInPence = remandTransferLimitInPence
-        ?: fallbackSpendLimits.remandTransferLimitInPence,
+        ?: fallback.remandTransferLimitInPence,
       remandSpendLimitInPence = remandSpendLimitInPence
-        ?: fallbackSpendLimits.remandSpendLimitInPence,
+        ?: fallback.remandSpendLimitInPence,
       convictedTransferLimitInPence = convictedTransferLimitInPence
-        ?: fallbackSpendLimits.convictedTransferLimitInPence,
+        ?: fallback.convictedTransferLimitInPence,
       convictedSpendLimitInPence = convictedSpendLimitInPence
-        ?: fallbackSpendLimits.convictedSpendLimitInPence,
+        ?: fallback.convictedSpendLimitInPence,
 
-      visitOrders = visitOrders ?: 2,
-      privilegedVisitOrders = privilegedVisitOrders ?: 1,
+      visitOrders = visitOrders
+        ?: fallback.visitOrders,
+      privilegedVisitOrders = privilegedVisitOrders
+        ?: fallback.privilegedVisitOrders,
 
       new = true,
       whenUpdated = LocalDateTime.now(clock),
@@ -257,15 +259,18 @@ class PrisonIncentiveLevelService(
     map { it.toDTO() }.toList()
 }
 
-private data class SpendLimits(
+private data class Policy(
   val remandTransferLimitInPence: Int,
   val remandSpendLimitInPence: Int,
   val convictedTransferLimitInPence: Int,
   val convictedSpendLimitInPence: Int,
+
+  val visitOrders: Int,
+  val privilegedVisitOrders: Int,
 )
 
-private val spendLimitPolicy = mapOf(
-  "BAS" to SpendLimits(27_50, 275_00, 5_50, 55_00),
-  "STD" to SpendLimits(60_50, 605_00, 19_80, 198_00),
-  "ENH" to SpendLimits(66_00, 660_00, 33_00, 330_00),
+private val prisonIncentiveLevelPolicies = mapOf(
+  "BAS" to Policy(27_50, 275_00, 5_50, 55_00, 2, 1),
+  "STD" to Policy(60_50, 605_00, 19_80, 198_00, 2, 1),
+  "ENH" to Policy(66_00, 660_00, 33_00, 330_00, 2, 1),
 )
