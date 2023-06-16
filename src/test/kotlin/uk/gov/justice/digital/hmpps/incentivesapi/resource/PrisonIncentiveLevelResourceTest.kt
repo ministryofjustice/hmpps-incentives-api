@@ -1326,6 +1326,367 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
     }
 
     @Nested
+    inner class `reset levels` {
+      @Test
+      fun `activates required set of levels when none exist`() {
+        webTestClient.put()
+          .uri("/incentive/prison-levels/FEI/reset")
+          .withLocalAuthorisation()
+          .header("Content-Type", "application/json")
+          .bodyValue(
+            // language=json
+            """
+            {}
+            """,
+          )
+          .exchange()
+          .expectStatus().isOk
+          .expectBody().json(
+            // language=json
+            """
+            [
+              {
+                "levelCode": "BAS", "levelName": "Basic", "prisonId": "FEI", "active": true, "defaultOnAdmission": false,
+                "remandTransferLimitInPence": 2750, "remandSpendLimitInPence": 27500, "convictedTransferLimitInPence": 550, "convictedSpendLimitInPence": 5500,
+                "visitOrders": 2, "privilegedVisitOrders": 1
+              },
+              {
+                "levelCode": "STD", "levelName": "Standard", "prisonId": "FEI", "active": true, "defaultOnAdmission": true,
+                "remandTransferLimitInPence": 6050, "remandSpendLimitInPence": 60500, "convictedTransferLimitInPence": 1980, "convictedSpendLimitInPence": 19800,
+                "visitOrders": 2, "privilegedVisitOrders": 1
+              },
+              {
+                "levelCode": "ENH", "levelName": "Enhanced", "prisonId": "FEI", "active": true, "defaultOnAdmission": false,
+                "remandTransferLimitInPence": 6600, "remandSpendLimitInPence": 66000, "convictedTransferLimitInPence": 3300, "convictedSpendLimitInPence": 33000,
+                "visitOrders": 2, "privilegedVisitOrders": 1
+              }
+            ]
+            """,
+            true,
+          )
+
+        runBlocking {
+          val prisonIncentiveLevels = prisonIncentiveLevelRepository.findAllByPrisonId("FEI").toList()
+          assertThat(prisonIncentiveLevels).hasSize(3)
+          assertThat(prisonIncentiveLevels).allMatch { it.active }
+          assertThat(prisonIncentiveLevels.filter { it.defaultOnAdmission }.map { it.levelCode }).isEqualTo(listOf("STD"))
+        }
+
+        val domainEvents = getPublishedDomainEvents()
+        val auditMessages = getSentAuditMessages()
+
+        val expectedPrisonIncentiveLevelChanges = 3
+        assertThat(domainEvents).hasSize(expectedPrisonIncentiveLevelChanges)
+        assertThat(auditMessages).hasSize(expectedPrisonIncentiveLevelChanges)
+        assertThat(domainEvents.count { it.eventType == "incentives.prison-level.changed" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
+        assertThat(auditMessages.count { it.what == "PRISON_INCENTIVE_LEVEL_UPDATED" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
+
+        assertThat(domainEvents).allMatch {
+          it.additionalInformation?.prisonId == "FEI" &&
+            it.description.matches(Regex("^Incentive level \\(...\\) in prison FEI has been updated$"))
+        }
+        assertThat(
+          domainEvents.map { it.additionalInformation?.incentiveLevel }.toSet(),
+        ).isEqualTo(setOf("BAS", "STD", "ENH"))
+
+        val auditMessageDetails = auditMessages.map { objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java) }
+        assertThat(auditMessageDetails).allMatch { it.prisonId == "FEI" }
+        assertThat(auditMessageDetails).allMatch { it.active }
+        val auditMessageDefaultLevels = auditMessageDetails.associate {
+          it.levelCode to it.defaultOnAdmission
+        }
+        assertThat(auditMessageDefaultLevels).isEqualTo(
+          mapOf(
+            "BAS" to false,
+            "STD" to true,
+            "ENH" to false,
+          ),
+        )
+      }
+
+      @Test
+      fun `reports no changes when required set of levels are already active`() {
+        makePrisonIncentiveLevel("FEI", "BAS")
+        makePrisonIncentiveLevel("FEI", "STD") // Standard is the default for admission
+        makePrisonIncentiveLevel("FEI", "ENH")
+        makePrisonIncentiveLevel("FEI", "EN2")
+
+        webTestClient.put()
+          .uri("/incentive/prison-levels/FEI/reset")
+          .withLocalAuthorisation()
+          .header("Content-Type", "application/json")
+          .bodyValue(
+            // language=json
+            """
+            {}
+            """,
+          )
+          .exchange()
+          .expectStatus().isOk
+          .expectBody().json(
+            // language=json
+            """
+            [
+              {
+                "levelCode": "BAS", "levelName": "Basic", "prisonId": "FEI", "active": true, "defaultOnAdmission": false,
+                "remandTransferLimitInPence": 2750, "remandSpendLimitInPence": 27500, "convictedTransferLimitInPence": 550, "convictedSpendLimitInPence": 5500,
+                "visitOrders": 2, "privilegedVisitOrders": 1
+              },
+              {
+                "levelCode": "STD", "levelName": "Standard", "prisonId": "FEI", "active": true, "defaultOnAdmission": true,
+                "remandTransferLimitInPence": 6050, "remandSpendLimitInPence": 60500, "convictedTransferLimitInPence": 1980, "convictedSpendLimitInPence": 19800,
+                "visitOrders": 2, "privilegedVisitOrders": 1
+              },
+              {
+                "levelCode": "ENH", "levelName": "Enhanced", "prisonId": "FEI", "active": true, "defaultOnAdmission": false,
+                "remandTransferLimitInPence": 6600, "remandSpendLimitInPence": 66000, "convictedTransferLimitInPence": 3300, "convictedSpendLimitInPence": 33000,
+                "visitOrders": 2, "privilegedVisitOrders": 1
+              },
+              {
+                "levelCode": "EN2", "levelName": "Enhanced 2", "prisonId": "FEI", "active": true, "defaultOnAdmission": false,
+                "remandTransferLimitInPence": 6600, "remandSpendLimitInPence": 66000, "convictedTransferLimitInPence": 3300, "convictedSpendLimitInPence": 33000,
+                "visitOrders": 2, "privilegedVisitOrders": 1
+              }
+            ]
+            """,
+            true,
+          )
+
+        runBlocking {
+          val prisonIncentiveLevels = prisonIncentiveLevelRepository.findAllByPrisonId("FEI").toList()
+          assertThat(prisonIncentiveLevels).hasSize(4)
+          assertThat(prisonIncentiveLevels).allMatch { it.active }
+          assertThat(prisonIncentiveLevels.filter { it.defaultOnAdmission }.map { it.levelCode }).isEqualTo(listOf("STD"))
+        }
+
+        assertNoDomainEventSent()
+        assertNoAuditMessageSent()
+      }
+
+      @Test
+      fun `sets Standard as the default level for admission even when all required levels are active`() {
+        makePrisonIncentiveLevel("FEI", "BAS")
+        makePrisonIncentiveLevel("FEI", "STD")
+        makePrisonIncentiveLevel("FEI", "ENH") // Enhanced is the default for admission
+        runBlocking {
+          prisonIncentiveLevelRepository.saveAll(
+            prisonIncentiveLevelRepository.findAllByPrisonId("FEI").map {
+              it.copy(defaultOnAdmission = it.levelCode == "ENH")
+            }.toList(),
+          ).collect()
+        }
+
+        webTestClient.put()
+          .uri("/incentive/prison-levels/FEI/reset")
+          .withLocalAuthorisation()
+          .header("Content-Type", "application/json")
+          .bodyValue(
+            // language=json
+            """
+            {}
+            """,
+          )
+          .exchange()
+          .expectStatus().isOk
+          .expectBody().json(
+            // language=json
+            """
+            [
+              {
+                "levelCode": "BAS", "levelName": "Basic", "prisonId": "FEI", "active": true, "defaultOnAdmission": false,
+                "remandTransferLimitInPence": 2750, "remandSpendLimitInPence": 27500, "convictedTransferLimitInPence": 550, "convictedSpendLimitInPence": 5500,
+                "visitOrders": 2, "privilegedVisitOrders": 1
+              },
+              {
+                "levelCode": "STD", "levelName": "Standard", "prisonId": "FEI", "active": true, "defaultOnAdmission": true,
+                "remandTransferLimitInPence": 6050, "remandSpendLimitInPence": 60500, "convictedTransferLimitInPence": 1980, "convictedSpendLimitInPence": 19800,
+                "visitOrders": 2, "privilegedVisitOrders": 1
+              },
+              {
+                "levelCode": "ENH", "levelName": "Enhanced", "prisonId": "FEI", "active": true, "defaultOnAdmission": false,
+                "remandTransferLimitInPence": 6600, "remandSpendLimitInPence": 66000, "convictedTransferLimitInPence": 3300, "convictedSpendLimitInPence": 33000,
+                "visitOrders": 2, "privilegedVisitOrders": 1
+              }
+            ]
+            """,
+            true,
+          )
+
+        runBlocking {
+          val prisonIncentiveLevels = prisonIncentiveLevelRepository.findAllByPrisonId("FEI").toList()
+          assertThat(prisonIncentiveLevels).hasSize(3)
+          assertThat(prisonIncentiveLevels).allMatch { it.active }
+          assertThat(prisonIncentiveLevels.filter { it.defaultOnAdmission }.map { it.levelCode }).isEqualTo(listOf("STD"))
+        }
+
+        val domainEvents = getPublishedDomainEvents()
+        val auditMessages = getSentAuditMessages()
+
+        val expectedPrisonIncentiveLevelChanges = 2
+        assertThat(domainEvents).hasSize(expectedPrisonIncentiveLevelChanges)
+        assertThat(auditMessages).hasSize(expectedPrisonIncentiveLevelChanges)
+        assertThat(domainEvents.count { it.eventType == "incentives.prison-level.changed" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
+        assertThat(auditMessages.count { it.what == "PRISON_INCENTIVE_LEVEL_UPDATED" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
+
+        assertThat(domainEvents).allMatch {
+          it.additionalInformation?.prisonId == "FEI" &&
+            it.description.matches(Regex("^Incentive level \\(...\\) in prison FEI has been updated$"))
+        }
+        assertThat(
+          domainEvents.map { it.additionalInformation?.incentiveLevel }.toSet(),
+        ).isEqualTo(setOf("STD", "ENH"))
+
+        val auditMessageDetails = auditMessages.map { objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java) }
+        assertThat(auditMessageDetails).allMatch { it.prisonId == "FEI" }
+        assertThat(auditMessageDetails).allMatch { it.active }
+        val auditMessageDefaultLevels = auditMessageDetails.associate {
+          it.levelCode to it.defaultOnAdmission
+        }
+        assertThat(auditMessageDefaultLevels).isEqualTo(
+          mapOf(
+            "STD" to true,
+            "ENH" to false,
+          ),
+        )
+      }
+
+      @Test
+      fun `preserves associated information for levels that were previously active`() {
+        makePrisonIncentiveLevel("FEI", "BAS")
+        makePrisonIncentiveLevel("FEI", "STD") // Standard is the default for admission
+        makePrisonIncentiveLevel("FEI", "ENH")
+        runBlocking {
+          prisonIncentiveLevelRepository.saveAll(
+            prisonIncentiveLevelRepository.findAllByPrisonId("FEI").map {
+              it.copy(
+                active = false,
+                remandTransferLimitInPence = 25_50,
+                remandSpendLimitInPence = 255_00,
+                convictedTransferLimitInPence = 4_30,
+                convictedSpendLimitInPence = 43_00,
+                visitOrders = 1,
+                privilegedVisitOrders = 0,
+              )
+            }.toList(),
+          ).collect()
+        }
+
+        webTestClient.put()
+          .uri("/incentive/prison-levels/FEI/reset")
+          .withLocalAuthorisation()
+          .header("Content-Type", "application/json")
+          .bodyValue(
+            // language=json
+            """
+            {}
+            """,
+          )
+          .exchange()
+          .expectStatus().isOk
+          .expectBody().json(
+            // language=json
+            """
+            [
+              {
+                "levelCode": "BAS", "levelName": "Basic", "prisonId": "FEI", "active": true, "defaultOnAdmission": false,
+                "remandTransferLimitInPence": 2550, "remandSpendLimitInPence": 25500, "convictedTransferLimitInPence": 430, "convictedSpendLimitInPence": 4300,
+                "visitOrders": 1, "privilegedVisitOrders": 0
+              },
+              {
+                "levelCode": "STD", "levelName": "Standard", "prisonId": "FEI", "active": true, "defaultOnAdmission": true,
+                "remandTransferLimitInPence": 2550, "remandSpendLimitInPence": 25500, "convictedTransferLimitInPence": 430, "convictedSpendLimitInPence": 4300,
+                "visitOrders": 1, "privilegedVisitOrders": 0
+              },
+              {
+                "levelCode": "ENH", "levelName": "Enhanced", "prisonId": "FEI", "active": true, "defaultOnAdmission": false,
+                "remandTransferLimitInPence": 2550, "remandSpendLimitInPence": 25500, "convictedTransferLimitInPence": 430, "convictedSpendLimitInPence": 4300,
+                "visitOrders": 1, "privilegedVisitOrders": 0
+              }
+            ]
+            """,
+            true,
+          )
+
+        runBlocking {
+          val prisonIncentiveLevels = prisonIncentiveLevelRepository.findAllByPrisonId("FEI").toList()
+          assertThat(prisonIncentiveLevels).hasSize(3)
+          assertThat(prisonIncentiveLevels).allMatch { it.active }
+          assertThat(prisonIncentiveLevels.filter { it.defaultOnAdmission }.map { it.levelCode }).isEqualTo(listOf("STD"))
+        }
+
+        val domainEvents = getPublishedDomainEvents()
+        val auditMessages = getSentAuditMessages()
+
+        val expectedPrisonIncentiveLevelChanges = 3
+        assertThat(domainEvents).hasSize(expectedPrisonIncentiveLevelChanges)
+        assertThat(auditMessages).hasSize(expectedPrisonIncentiveLevelChanges)
+        assertThat(domainEvents.count { it.eventType == "incentives.prison-level.changed" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
+        assertThat(auditMessages.count { it.what == "PRISON_INCENTIVE_LEVEL_UPDATED" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
+
+        assertThat(domainEvents).allMatch {
+          it.additionalInformation?.prisonId == "FEI" &&
+            it.description.matches(Regex("^Incentive level \\(...\\) in prison FEI has been updated$"))
+        }
+        assertThat(
+          domainEvents.map { it.additionalInformation?.incentiveLevel }.toSet(),
+        ).isEqualTo(setOf("BAS", "STD", "ENH"))
+
+        val auditMessageDetails = auditMessages.map { objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java) }
+        assertThat(auditMessageDetails).allMatch { it.prisonId == "FEI" }
+        assertThat(auditMessageDetails).allMatch { it.active }
+        val auditMessageDefaultLevels = auditMessageDetails.associate {
+          it.levelCode to it.defaultOnAdmission
+        }
+        assertThat(auditMessageDefaultLevels).isEqualTo(
+          mapOf(
+            "BAS" to false,
+            "STD" to true,
+            "ENH" to false,
+          ),
+        )
+      }
+
+      @Test
+      fun `requires correct role to reset prison incentive levels`() {
+        makePrisonIncentiveLevel("FEI", "BAS")
+        makePrisonIncentiveLevel("FEI", "STD") // Standard is the default for admission
+        makePrisonIncentiveLevel("FEI", "ENH")
+        runBlocking {
+          prisonIncentiveLevelRepository.saveAll(
+            prisonIncentiveLevelRepository.findAllByPrisonId("FEI").map {
+              it.copy(active = false)
+            }.toList(),
+          ).collect()
+        }
+
+        webTestClient.put()
+          .uri("/incentive/prison-levels/FEI/reset")
+          .headers(setAuthorisation())
+          .header("Content-Type", "application/json")
+          .bodyValue(
+            // language=json
+            """
+            {}
+            """,
+          )
+          .exchange()
+          .expectErrorResponse(
+            HttpStatus.FORBIDDEN,
+            "Forbidden",
+          )
+
+        runBlocking {
+          val prisonIncentiveLevels = prisonIncentiveLevelRepository.findAllByPrisonId("FEI").toList()
+          assertThat(prisonIncentiveLevels).hasSize(3)
+          assertThat(prisonIncentiveLevels).allMatch { !it.active }
+        }
+
+        assertNoDomainEventSent()
+        assertNoAuditMessageSent()
+      }
+    }
+
+    @Nested
     inner class `deactivate all levels` {
       @Test
       fun `does nothing when trying to deactivate all prison incentive levels if none exist`() {

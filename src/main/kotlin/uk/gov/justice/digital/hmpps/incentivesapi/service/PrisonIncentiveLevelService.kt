@@ -168,6 +168,45 @@ class PrisonIncentiveLevelService(
   }
 
   /**
+   * Reset all incentive levels for a given prison; useful for when a new prison is opened.
+   * Activates the required set of levels and ensures that Standard is the default level for admission.
+   * Any levels that are already active will remain active and associated information remains unchanged.
+   * NB: returns only the incentive levels that were changed
+   */
+  @Transactional
+  suspend fun resetPrisonIncentiveLevels(prisonId: String): List<PrisonIncentiveLevelDTO> {
+    val defaultIncentiveLevelCode = "STD"
+    val requiredIncentiveLevelCodes = incentiveLevelRepository.findAllByActiveIsTrueOrderBySequence()
+      .toList()
+      .filter { it.required }
+      .map { it.code }
+
+    val prisonIncentiveLevels = prisonIncentiveLevelRepository.findAllByPrisonId(prisonId).toList()
+    val currentDefaultIncentiveLevelCode = prisonIncentiveLevels.firstOrNull { it.defaultOnAdmission }?.levelCode
+    val currentActiveIncentiveLevelCodes = prisonIncentiveLevels.filter { it.active }.map { it.levelCode }
+
+    val incentiveLevelCodesNeedingUpdate = mutableListOf<String>()
+    val missingActiveIncentiveLevelCodes = requiredIncentiveLevelCodes.toMutableSet()
+    missingActiveIncentiveLevelCodes.removeAll(currentActiveIncentiveLevelCodes)
+    if (currentDefaultIncentiveLevelCode != defaultIncentiveLevelCode || !currentActiveIncentiveLevelCodes.contains(defaultIncentiveLevelCode)) {
+      incentiveLevelCodesNeedingUpdate.add(defaultIncentiveLevelCode)
+      missingActiveIncentiveLevelCodes.remove(defaultIncentiveLevelCode)
+    }
+    incentiveLevelCodesNeedingUpdate.addAll(missingActiveIncentiveLevelCodes)
+
+    return incentiveLevelCodesNeedingUpdate.map { levelCode ->
+      updatePrisonIncentiveLevel(
+        prisonId,
+        levelCode,
+        PrisonIncentiveLevelUpdateDTO(
+          active = true,
+          defaultOnAdmission = levelCode == defaultIncentiveLevelCode,
+        ),
+      )!!
+    }
+  }
+
+  /**
    * Deactivate all incentive levels for a given prison; useful for when prisons are closed.
    * NB: returns only the incentive levels that were deactivated
    */
