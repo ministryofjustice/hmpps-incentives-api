@@ -55,7 +55,7 @@ class IncentiveReviewsService(
     }
     val deferredLocationDescription = async {
       try {
-        prisonApiService.getLocation(cellLocationPrefix).description
+        prisonApiService.getLocation(cellLocationPrefix.removeSuffix("-")).description
       } catch (e: NotFound) {
         "Unknown location"
       }
