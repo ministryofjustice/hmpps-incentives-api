@@ -7,7 +7,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorCode
 class ErrorCodeTest {
   @Test
   fun `error codes should all be unique`() {
-    val errorCodes = ErrorCode.values()
+    val errorCodes = ErrorCode.entries
     val uniqueErrorCodes = errorCodes.map { it.errorCode }.toSet().size
     assertThat(errorCodes).hasSize(uniqueErrorCodes)
   }
