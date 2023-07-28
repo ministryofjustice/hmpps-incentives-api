@@ -142,7 +142,7 @@ class IncentiveReviewsServiceTest {
         prisonId = "MDI",
       ),
     )
-    whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-2-1")
+    whenever(prisonApiService.getLocation(any())).thenReturnLocation("MDI-2")
     whenever(offenderSearchService.getOffendersAtLocation(any(), any())).thenReturn(offenders)
     val nextReviewDatesMap = mapOf(
       110001L to LocalDate.now(clock).plusYears(1),
@@ -150,9 +150,10 @@ class IncentiveReviewsServiceTest {
     )
     whenever(nextReviewDateGetterService.getMany(offenders)).thenReturn(nextReviewDatesMap)
 
-    val reviews = incentiveReviewsService.reviews("MDI", "MDI-2-1", "STD")
+    val reviews = incentiveReviewsService.reviews("MDI", "MDI-2-", "STD")
 
-    verify(offenderSearchService, times(1)).getOffendersAtLocation(any(), eq("MDI-2-1"))
+    verify(offenderSearchService, times(1)).getOffendersAtLocation(any(), eq("MDI-2-"))
+    verify(prisonApiService, times(1)).getLocation(eq("MDI-2"))
     assertThat(reviews.locationDescription).isEqualTo("A houseblock")
     val reviewCount = reviews.levels.find { level -> level.levelCode == "STD" }?.reviewCount
     assertThat(reviewCount).isEqualTo(2)
