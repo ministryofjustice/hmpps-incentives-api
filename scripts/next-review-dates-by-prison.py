@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+# Requirements:
+#    pandas
+
 import argparse
 import datetime
 import textwrap
