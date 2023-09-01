@@ -61,7 +61,7 @@ dependencies {
   testImplementation("org.mockito:mockito-inline")
   testImplementation("io.swagger.parser.v3:swagger-parser:2.1.16")
   testImplementation("org.springframework.security:spring-security-test")
-  testImplementation("com.github.tomakehurst:wiremock-jre8-standalone:2.35.0")
+  testImplementation("com.github.tomakehurst:wiremock-jre8-standalone:3.0.1")
   testImplementation("org.testcontainers:localstack:1.19.0")
   testImplementation("org.testcontainers:postgresql:1.19.0")
   testImplementation("io.projectreactor:reactor-test")
