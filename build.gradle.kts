@@ -1,5 +1,5 @@
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.4.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.4.1"
   id("org.springdoc.openapi-gradle-plugin") version "1.7.0"
   id("jacoco")
   id("org.sonarqube") version "4.3.1.3277"
@@ -43,7 +43,7 @@ dependencies {
 
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
-  implementation("io.opentelemetry:opentelemetry-api:1.29.0")
+  implementation("io.opentelemetry:opentelemetry-api:1.30.0")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:1.29.0")
 
   implementation("org.apache.commons:commons-lang3")
@@ -67,7 +67,7 @@ dependencies {
   testImplementation("io.projectreactor:reactor-test")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
   testImplementation("javax.xml.bind:jaxb-api:2.3.1")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.29.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.30.0")
 
   if (project.hasProperty("docs")) {
     implementation("com.h2database:h2")
