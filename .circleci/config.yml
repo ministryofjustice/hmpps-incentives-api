@@ -18,7 +18,7 @@ jobs:
   validate:
     executor:
       name: hmpps/java_localstack_postgres
-      jdk_tag: "19.0"
+      jdk_tag: "20.0"
       localstack_tag: "1.2"
       services: "sns,sqs"
       postgres_tag: "14"
@@ -52,7 +52,7 @@ jobs:
   generate-api-docs:
     executor:
       name: hmpps/java_localstack_postgres
-      jdk_tag: "19.0"
+      jdk_tag: "20.0"
       localstack_tag: "1.2"
       services: "sns,sqs"
       postgres_tag: "14"
@@ -184,7 +184,7 @@ workflows:
           context:
             - hmpps-common-vars
           cache_key: "v2_0"
-          jdk_tag: "19.0"
+          jdk_tag: "20.0"
       - hmpps/trivy_latest_scan:
           slack_channel: << pipeline.parameters.alerts-slack-channel >>
           context:

@@ -75,19 +75,19 @@ dependencies {
 }
 
 openApi {
-  outputDir.set(file("$buildDir/docs"))
+  outputDir.set(layout.buildDirectory.dir("docs"))
   outputFileName.set("openapi.json")
   customBootRun.args.set(listOf("--spring.profiles.active=dev,localstack,docs"))
 }
 
 java {
-  toolchain.languageVersion.set(JavaLanguageVersion.of(19))
+  toolchain.languageVersion.set(JavaLanguageVersion.of(20))
 }
 
 tasks {
   withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions {
-      jvmTarget = "19"
+      jvmTarget = "20"
     }
   }
 }
