@@ -1,6 +1,7 @@
 ---
 generic-service:
   nameOverride: hmpps-incentives-api
+  productId: "DPS020"
 
   serviceAccountName: hmpps-incentives-api
 
