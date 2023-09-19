@@ -103,7 +103,7 @@ class IncentiveReviewsService(
         )
       }
 
-    val comparator = IncentiveReviewSort.orDefault(sort) comparingIn order
+    val comparator = sort.orDefault() comparingIn order
     val reviewsAtLevel = allReviews
       .filter { it.levelCode == levelCode }
       .sortedWith(comparator)
@@ -168,10 +168,6 @@ enum class IncentiveReviewSort(
   IS_NEW_TO_PRISON("isNewToPrison", IncentiveReview::isNewToPrison, Sort.Direction.DESC),
   ;
 
-  companion object {
-    fun orDefault(sort: IncentiveReviewSort?) = sort ?: NEXT_REVIEW_DATE
-  }
-
   infix fun comparingIn(order: Sort.Direction?): Comparator<IncentiveReview> =
     if ((order ?: defaultOrder).isDescending) {
       compareBy(selector).reversed()
@@ -179,3 +175,5 @@ enum class IncentiveReviewSort(
       compareBy(selector)
     }
 }
+
+fun IncentiveReviewSort?.orDefault() = this ?: IncentiveReviewSort.NEXT_REVIEW_DATE
