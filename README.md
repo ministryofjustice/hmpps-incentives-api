@@ -70,9 +70,27 @@ This assumes you have the [AWS CLI](https://aws.amazon.com/cli/) installed
 be sure it points to `eu-west-2` either by changing your default profile or by passing `--region eu-west-1` to the
 command above.
 
-### Runbook
+## Connecting to AWS resources from a local port
 
+There are custom gradle tasks that make it easier to connect to AWS resources (RDS and ElastiCache Redis)
+in Cloud Platform from a local port:
 
-### Architecture
+```shell
+./gradlew portForwardRDS
+# and
+./gradlew portForwardRedis
+```
+
+These could be useful to, for instance, clear out a development database or edit data live.
+
+They require `kubectl` to already be set up to access the kubernetes cluster;
+essentially these tasks are just convenience wrappers.
+
+Both accept the `--environment` argument to select between `dev`, `preprod` and `prod` namespaces
+or prompt for user input when run.
+
+Both also accept the `--port` argument to choose a different local port, other than the resource’s default.
+
+## Architecture
 
 Architecture decision records start [here](doc/architecture/decisions/0001-use-adr.md)
