@@ -89,33 +89,36 @@ java {
   toolchain.languageVersion = JavaLanguageVersion.of(20)
 }
 
-tasks.register<PortForwardRDSTask>("portForwardRDS") {
-  namespacePrefix = "hmpps-incentives"
-}
-
-tasks.register<PortForwardRedisTask>("portForwardRedis") {
-  namespacePrefix = "hmpps-incentives"
-}
-
-tasks.register<RevealSecretsTask>("revealSecrets") {
-  namespacePrefix = "hmpps-incentives"
-}
-
 tasks {
+  register<PortForwardRDSTask>("portForwardRDS") {
+    namespacePrefix = "hmpps-incentives"
+  }
+
+  register<PortForwardRedisTask>("portForwardRedis") {
+    namespacePrefix = "hmpps-incentives"
+  }
+
+  register<RevealSecretsTask>("revealSecrets") {
+    namespacePrefix = "hmpps-incentives"
+  }
+
   withType<KotlinCompile> {
     kotlinOptions {
       jvmTarget = JavaVersion.VERSION_20.toString()
     }
   }
-}
 
-tasks.test {
-  finalizedBy(tasks.jacocoTestReport)
-}
+  test {
+    // required for jjwt 0.12 - see https://github.com/jwtk/jjwt/issues/849
+    jvmArgs("--add-exports", "java.base/sun.security.util=ALL-UNNAMED")
 
-tasks.jacocoTestReport {
-  dependsOn(tasks.test)
-  reports {
-    xml.required.set(true)
+    finalizedBy(jacocoTestReport)
+  }
+
+  jacocoTestReport {
+    dependsOn(test)
+    reports {
+      xml.required.set(true)
+    }
   }
 }
