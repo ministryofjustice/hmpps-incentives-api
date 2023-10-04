@@ -1,3 +1,8 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import uk.gov.justice.digital.hmpps.gradle.PortForwardRDSTask
+import uk.gov.justice.digital.hmpps.gradle.PortForwardRedisTask
+import uk.gov.justice.digital.hmpps.gradle.RevealSecretsTask
+
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.5.0"
   id("org.springdoc.openapi-gradle-plugin") version "1.7.0"
@@ -81,13 +86,25 @@ openApi {
 }
 
 java {
-  toolchain.languageVersion.set(JavaLanguageVersion.of(20))
+  toolchain.languageVersion = JavaLanguageVersion.of(20)
+}
+
+tasks.register<PortForwardRDSTask>("portForwardRDS") {
+  namespacePrefix = "hmpps-incentives"
+}
+
+tasks.register<PortForwardRedisTask>("portForwardRedis") {
+  namespacePrefix = "hmpps-incentives"
+}
+
+tasks.register<RevealSecretsTask>("revealSecrets") {
+  namespacePrefix = "hmpps-incentives"
 }
 
 tasks {
-  withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+  withType<KotlinCompile> {
     kotlinOptions {
-      jvmTarget = "20"
+      jvmTarget = JavaVersion.VERSION_20.toString()
     }
   }
 }
