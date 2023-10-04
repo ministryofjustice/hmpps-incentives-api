@@ -7,7 +7,7 @@ plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.5.0"
   id("org.springdoc.openapi-gradle-plugin") version "1.7.0"
   id("jacoco")
-  id("org.sonarqube") version "4.4.0.3356"
+  id("org.sonarqube") version "4.4.1.3373"
   kotlin("plugin.spring") version "1.9.10"
   kotlin("plugin.jpa") version "1.9.10"
 }
@@ -34,7 +34,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
   implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
 
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:2.0.1")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:2.1.0")
 
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
@@ -61,9 +61,9 @@ dependencies {
   developmentOnly("org.springframework.boot:spring-boot-devtools")
 
   testImplementation("org.awaitility:awaitility-kotlin")
-  testImplementation("io.jsonwebtoken:jjwt-impl:0.11.5")
-  testImplementation("io.jsonwebtoken:jjwt-jackson:0.11.5")
-  testImplementation("org.mockito:mockito-inline")
+  testImplementation("io.jsonwebtoken:jjwt-impl:0.12.0")
+  testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.0")
+  testImplementation("org.mockito:mockito-inline:5.2.0")
   testImplementation("io.swagger.parser.v3:swagger-parser:2.1.16")
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("com.github.tomakehurst:wiremock-jre8-standalone:3.0.1")
@@ -89,33 +89,36 @@ java {
   toolchain.languageVersion = JavaLanguageVersion.of(20)
 }
 
-tasks.register<PortForwardRDSTask>("portForwardRDS") {
-  namespacePrefix = "hmpps-incentives"
-}
-
-tasks.register<PortForwardRedisTask>("portForwardRedis") {
-  namespacePrefix = "hmpps-incentives"
-}
-
-tasks.register<RevealSecretsTask>("revealSecrets") {
-  namespacePrefix = "hmpps-incentives"
-}
-
 tasks {
+  register<PortForwardRDSTask>("portForwardRDS") {
+    namespacePrefix = "hmpps-incentives"
+  }
+
+  register<PortForwardRedisTask>("portForwardRedis") {
+    namespacePrefix = "hmpps-incentives"
+  }
+
+  register<RevealSecretsTask>("revealSecrets") {
+    namespacePrefix = "hmpps-incentives"
+  }
+
   withType<KotlinCompile> {
     kotlinOptions {
       jvmTarget = JavaVersion.VERSION_20.toString()
     }
   }
-}
 
-tasks.test {
-  finalizedBy(tasks.jacocoTestReport)
-}
+  test {
+    // required for jjwt 0.12 - see https://github.com/jwtk/jjwt/issues/849
+    jvmArgs("--add-exports", "java.base/sun.security.util=ALL-UNNAMED")
 
-tasks.jacocoTestReport {
-  dependsOn(tasks.test)
-  reports {
-    xml.required.set(true)
+    finalizedBy(jacocoTestReport)
+  }
+
+  jacocoTestReport {
+    dependsOn(test)
+    reports {
+      xml.required.set(true)
+    }
   }
 }
