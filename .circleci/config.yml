@@ -21,7 +21,7 @@ parameters:
     default: "14"
   localstack-version:
     type: string
-    default: "2.0"
+    default: "2.3"
 
 jobs:
   validate:

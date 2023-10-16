@@ -98,7 +98,7 @@ services:
       - POSTGRES_DB=incentives
 
   localstack:
-    image: localstack/localstack:2.0
+    image: localstack/localstack:2.3
     networks:
       - hmpps
     container_name: "${LOCALSTACK_DOCKER_NAME-localstack}"
