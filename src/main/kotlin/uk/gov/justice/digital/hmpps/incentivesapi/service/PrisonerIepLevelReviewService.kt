@@ -136,6 +136,7 @@ class PrisonerIepLevelReviewService(
     prisonerIepLevelRepository.findById(id)?.toIepDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
       ?: throw NoDataFoundException(id)
 
+  @Transactional
   suspend fun processOffenderEvent(prisonOffenderEvent: HMPPSDomainEvent) =
     when (prisonOffenderEvent.additionalInformation?.reason) {
       "NEW_ADMISSION" -> createIepForReceivedPrisoner(prisonOffenderEvent, ReviewType.INITIAL)
@@ -158,7 +159,12 @@ class PrisonerIepLevelReviewService(
     if (acctAdded || acctRemoved) {
       updateNextReviewDate(prisonOffenderEvent)
     } else {
-      log.debug("Ignoring 'prisoner-offender-search.prisoner.alerts-updated' event, No ACCT alerts added/removed: prisonerNumber = ${prisonOffenderEvent.additionalInformation?.nomsNumber}, alertsAdded = ${prisonOffenderEvent.additionalInformation?.alertsAdded}, alertsRemoved = ${prisonOffenderEvent.additionalInformation?.alertsRemoved}")
+      log.debug(
+        "Ignoring 'prisoner-offender-search.prisoner.alerts-updated' event, No ACCT alerts added/removed: prisonerNumber = {}, alertsAdded = {}, alertsRemoved = {}",
+        prisonOffenderEvent.additionalInformation?.nomsNumber,
+        prisonOffenderEvent.additionalInformation?.alertsAdded,
+        prisonOffenderEvent.additionalInformation?.alertsRemoved,
+      )
     }
   }
 
@@ -348,7 +354,6 @@ class PrisonerIepLevelReviewService(
     )
   }
 
-  @Transactional
   suspend fun mergedPrisonerDetails(prisonerMergeEvent: HMPPSDomainEvent) {
     val removedPrisonerNumber = prisonerMergeEvent.additionalInformation?.removedNomsNumber!!
     val remainingPrisonerNumber = prisonerMergeEvent.additionalInformation.nomsNumber!!
