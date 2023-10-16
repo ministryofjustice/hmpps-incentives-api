@@ -72,6 +72,9 @@ dependencies {
   testImplementation("io.projectreactor:reactor-test")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
   testImplementation("javax.xml.bind:jaxb-api:2.3.1")
+  testImplementation("io.opentelemetry:opentelemetry-sdk:1.31.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-common:1.31.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-metrics:1.31.0")
   testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.31.0")
 
   if (project.hasProperty("docs")) {
