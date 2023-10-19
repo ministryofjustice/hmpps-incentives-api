@@ -18,6 +18,7 @@ import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.incentivesapi.helper.TestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 @DataR2dbcTest
@@ -223,5 +224,60 @@ class PrisonerIepLevelRepositoryTest : TestBase() {
     assertThat(repository.somePrisonerCurrentlyOnLevel(listOf(123400), "BAS")).isTrue
     // multiple bookings, both exist currently
     assertThat(repository.somePrisonerCurrentlyOnLevel(listOf(123400, 123456), "BAS")).isTrue
+  }
+
+  @Test
+  fun `get number of reviews conducted and prisoners reviewed`(): Unit = runBlocking {
+    repository.saveAll(
+      listOf(
+        // Review in matching date range
+        PrisonerIepLevel(
+          iepCode = "BAS",
+          prisonId = "LEI",
+          locationId = "LEI-1-1-001",
+          bookingId = 111111,
+          current = true,
+          reviewedBy = "TEST_STAFF1",
+          reviewTime = LocalDateTime.of(2023, 7, 1, 12, 0),
+          prisonerNumber = "A1111AA",
+        ),
+        // Review in matching date range, same prisoner
+        PrisonerIepLevel(
+          iepCode = "STD",
+          prisonId = "LEI",
+          locationId = "LEI-1-1-001",
+          bookingId = 111111,
+          current = false,
+          reviewedBy = "TEST_STAFF1",
+          reviewTime = LocalDateTime.of(2023, 7, 8, 12, 0),
+          prisonerNumber = "A1111AA",
+        ),
+        // Review in matching date range, another prisoner
+        PrisonerIepLevel(
+          iepCode = "STD",
+          prisonId = "LEI",
+          locationId = "LEI-1-1-002",
+          bookingId = 222222,
+          current = true,
+          reviewedBy = "TEST_STAFF1",
+          reviewTime = LocalDateTime.of(2023, 7, 20, 12, 0),
+          prisonerNumber = "B2222BB",
+        ),
+        // Review OUTSIDE matching date range - NOT counted
+        PrisonerIepLevel(
+          iepCode = "STD",
+          prisonId = "LEI",
+          locationId = "LEI-1-1-999",
+          bookingId = 999999,
+          current = true,
+          reviewedBy = "TEST_STAFF1",
+          reviewTime = LocalDateTime.of(2023, 6, 30, 12, 0),
+          prisonerNumber = "Z9999ZZ",
+        ),
+      ),
+    ).toList()
+
+    assertThat(repository.getNumberOfReviewsConductedAndPrisonersReviewed(LocalDate.of(2023, 8, 2)))
+      .isEqualTo(ReviewsConductedPrisonersReviewed(3, 2))
   }
 }
