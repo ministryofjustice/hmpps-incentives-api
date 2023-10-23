@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository
 
+import kotlinx.coroutines.flow.Flow
 import org.springframework.data.r2dbc.repository.Query
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import org.springframework.stereotype.Repository
@@ -9,6 +10,10 @@ import java.time.LocalDate
 data class ReviewsConductedPrisonersReviewed(
   val reviewsConducted: Int,
   val prisonersReviewed: Int,
+)
+
+data class PrisonerNumberOverdue(
+  val prisonerNumber: String,
 )
 
 @Repository
@@ -30,4 +35,24 @@ interface KpiRepository : CoroutineCrudRepository<Kpi, LocalDate> {
     """,
   )
   suspend fun getNumberOfReviewsConductedAndPrisonersReviewed(day: LocalDate): ReviewsConductedPrisonersReviewed
+
+  /**
+   * Returns the prisoner numbers overdue a review
+   *
+   * NOTE: These people may no longer be in prison. To get the number of overdue *prisoners* filter out people no longer
+   * in prison.
+   */
+  @Query(
+    //language=postgresql
+    """
+    -- this may include people no longer in prison
+    SELECT DISTINCT ON (prisoner_number) booking_id, prisoner_number, next_review_date
+    FROM prisoner_iep_level
+    JOIN next_review_date USING (booking_id)
+    WHERE next_review_date < CURRENT_DATE
+    ORDER BY prisoner_number
+    ;
+    """,
+  )
+  fun getPrisonerNumbersOverdueReview(): Flow<PrisonerNumberOverdue>
 }
