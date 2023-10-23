@@ -10,12 +10,13 @@ import uk.gov.justice.digital.hmpps.incentivesapi.config.defaultLockAtLeastFor
 import uk.gov.justice.digital.hmpps.incentivesapi.config.defaultLockAtMostFor
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.Kpi
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.KpiRepository
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.ReviewsConductedPrisonersReviewed
+import uk.gov.justice.digital.hmpps.incentivesapi.service.KpiService
 import java.time.LocalDate
 
 @Component
 class UpdateKpis(
   private val kpiRepository: KpiRepository,
+  private val kpiService: KpiService,
 ) {
   companion object {
     val LOG: Logger = LoggerFactory.getLogger(this::class.java)
@@ -31,9 +32,8 @@ class UpdateKpis(
     val day = LocalDate.now()
     LOG.debug("Updating KPIs for $day...")
 
-    val reviewsConductedPrisonersReviewed = getReviewsConductedPrisonersReviewed(day)
-    // TODO
-    val numberOfPrisonersOverdue = getNumberOfPrisonersOverdue()
+    val reviewsConductedPrisonersReviewed = kpiService.getNumberOfReviewsConductedAndPrisonersReviewed(day)
+    val numberOfPrisonersOverdue = kpiService.getNumberOfPrisonersOverdue()
 
     // Logs result, it's a different way for us to get the numbers, possibly easier
     LOG.info("KPIs for $day. Reviews conducted = ${reviewsConductedPrisonersReviewed.reviewsConducted}")
@@ -53,15 +53,5 @@ class UpdateKpis(
     }
 
     LOG.debug("KPIs updated for $day")
-  }
-
-  private fun getReviewsConductedPrisonersReviewed(day: LocalDate): ReviewsConductedPrisonersReviewed = runBlocking {
-    kpiRepository.getNumberOfReviewsConductedAndPrisonersReviewed(day)
-  }
-
-  // TODO: Get number of prisoners overdue a review
-  private fun getNumberOfPrisonersOverdue(): Int {
-    // TODO
-    return 0
   }
 }
