@@ -10,14 +10,12 @@ import uk.gov.justice.digital.hmpps.incentivesapi.config.defaultLockAtLeastFor
 import uk.gov.justice.digital.hmpps.incentivesapi.config.defaultLockAtMostFor
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.Kpi
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.KpiRepository
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.ReviewsConductedPrisonersReviewed
 import java.time.LocalDate
 
 @Component
 class UpdateKpis(
   private val kpiRepository: KpiRepository,
-  private val prisonerIepLevelRepository: PrisonerIepLevelRepository,
 ) {
   companion object {
     val LOG: Logger = LoggerFactory.getLogger(this::class.java)
@@ -58,7 +56,7 @@ class UpdateKpis(
   }
 
   private fun getReviewsConductedPrisonersReviewed(day: LocalDate): ReviewsConductedPrisonersReviewed = runBlocking {
-    prisonerIepLevelRepository.getNumberOfReviewsConductedAndPrisonersReviewed(day)
+    kpiRepository.getNumberOfReviewsConductedAndPrisonersReviewed(day)
   }
 
   // TODO: Get number of prisoners overdue a review
