@@ -5,6 +5,14 @@ import uk.gov.justice.digital.hmpps.incentivesapi.service.PrisonerInfoForNextRev
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+data class Prison(
+  val agencyId: String,
+  val description: String,
+  val longDescription: String,
+  val agencyType: String,
+  val active: Boolean,
+)
+
 data class PrisonerAtLocation(
   val bookingId: Long,
   val facialImageId: Long,
