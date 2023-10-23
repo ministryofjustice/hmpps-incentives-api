@@ -45,7 +45,6 @@ class KpiService(
 
   private fun getPrisonersNumbers(prisonId: String): Set<String> = runBlocking {
     println("Getting list of prisoners for $prisonId...")
-    // TODO: Change page size to 3000 to reduce number of requests for each prison
-    offenderSearchService.getOffendersAtLocation(prisonId).map(OffenderSearchPrisoner::prisonerNumber).toSet()
+    offenderSearchService.getOffendersAtLocation(prisonId, "", 3000).map(OffenderSearchPrisoner::prisonerNumber).toSet()
   }
 }
