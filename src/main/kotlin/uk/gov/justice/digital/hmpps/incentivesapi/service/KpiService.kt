@@ -23,17 +23,17 @@ class KpiService(
 
   fun getNumberOfPrisonersOverdue(): Int = runBlocking {
     // Get a set containing all the prisonerNumber of everyone in prison (any prison)
-    val prisonerNumbersInPrison = mutableSetOf<String>()
+    val allPrisoners = mutableSetOf<String>()
     getPrisons().forEach { prisonId ->
-      prisonerNumbersInPrison.addAll(getPrisonersNumbers(prisonId))
+      allPrisoners.addAll(getPrisonersInPrison(prisonId))
     }
 
-    println("Number of prisoners across the estate: ${prisonerNumbersInPrison.count()}")
+    println("Number of prisoners across the estate: ${allPrisoners.size}")
 
-    // Get prisoner numbers overdue, filter out people no longer in prison and return the count
+    // Get prisoner numbers overdue, "filter" out people no longer in prison and return the count
     kpiRepository
       .getPrisonerNumbersOverdueReview()
-      .filter { prisonerNumbersInPrison.contains(it.prisonerNumber) }.count()
+      .count { allPrisoners.contains(it.prisonerNumber) }
   }
 
   private fun getPrisons(): List<String> = runBlocking {
@@ -43,7 +43,7 @@ class KpiService(
       .map(Prison::agencyId)
   }
 
-  private fun getPrisonersNumbers(prisonId: String): List<String> = runBlocking {
+  private fun getPrisonersInPrison(prisonId: String): List<String> = runBlocking {
     println("Getting list of prisoners for $prisonId...")
     offenderSearchService.getOffendersAtLocation(prisonId, "", 3000).map(OffenderSearchPrisoner::prisonerNumber)
   }
