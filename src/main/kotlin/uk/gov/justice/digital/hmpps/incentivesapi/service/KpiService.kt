@@ -43,8 +43,8 @@ class KpiService(
       .map(Prison::agencyId)
   }
 
-  private fun getPrisonersNumbers(prisonId: String): Set<String> = runBlocking {
+  private fun getPrisonersNumbers(prisonId: String): List<String> = runBlocking {
     println("Getting list of prisoners for $prisonId...")
-    offenderSearchService.getOffendersAtLocation(prisonId, "", 3000).map(OffenderSearchPrisoner::prisonerNumber).toSet()
+    offenderSearchService.getOffendersAtLocation(prisonId, "", 3000).map(OffenderSearchPrisoner::prisonerNumber)
   }
 }
