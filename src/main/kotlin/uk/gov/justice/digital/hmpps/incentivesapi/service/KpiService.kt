@@ -1,5 +1,7 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.runBlocking
@@ -24,8 +26,9 @@ class KpiService(
   fun getNumberOfPrisonersOverdue(): Int = runBlocking {
     // Get a set containing all the prisonerNumber of everyone in prison (any prison)
     val allPrisoners = mutableSetOf<String>()
-    getPrisons().forEach { prisonId ->
-      allPrisoners.addAll(getPrisonersInPrison(prisonId))
+    val prisonersInPrisons = getPrisons().map { prisonId -> async { getPrisonersInPrison(prisonId) } }.awaitAll()
+    prisonersInPrisons.forEach { prisoners ->
+      allPrisoners.addAll(prisoners.map(OffenderSearchPrisoner::prisonerNumber))
     }
 
     println("Number of prisoners across the estate: ${allPrisoners.size}")
@@ -43,8 +46,8 @@ class KpiService(
       .map(Prison::agencyId)
   }
 
-  private fun getPrisonersInPrison(prisonId: String): List<String> = runBlocking {
+  private suspend fun getPrisonersInPrison(prisonId: String): List<OffenderSearchPrisoner> {
     println("Getting list of prisoners for $prisonId...")
-    offenderSearchService.getOffendersAtLocation(prisonId, "", 3000).map(OffenderSearchPrisoner::prisonerNumber)
+    return offenderSearchService.getOffendersAtLocation(prisonId)
   }
 }
