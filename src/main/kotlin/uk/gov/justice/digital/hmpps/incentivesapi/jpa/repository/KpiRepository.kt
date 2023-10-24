@@ -46,11 +46,10 @@ interface KpiRepository : CoroutineCrudRepository<Kpi, LocalDate> {
     //language=postgresql
     """
     -- this may include people no longer in prison
-    SELECT DISTINCT ON (prisoner_number) booking_id, prisoner_number, next_review_date
+    SELECT DISTINCT ON (prisoner_number) booking_id, prisoner_number
     FROM prisoner_iep_level
     JOIN next_review_date USING (booking_id)
     WHERE next_review_date < CURRENT_DATE
-    ORDER BY prisoner_number
     ;
     """,
   )
