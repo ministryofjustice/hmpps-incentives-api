@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.count
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
