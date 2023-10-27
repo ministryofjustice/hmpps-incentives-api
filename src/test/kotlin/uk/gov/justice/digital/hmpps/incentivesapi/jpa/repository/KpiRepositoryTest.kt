@@ -179,6 +179,11 @@ class KpiRepositoryTest : TestBase() {
           bookingId = 222222,
           nextReviewDate = LocalDate.now().minusDays(200),
         ),
+        // Prisoner A1111AA, different booking ID, NOT OVERDUE
+        NextReviewDate(
+          bookingId = 444444,
+          nextReviewDate = LocalDate.now().plusYears(1),
+        ),
         // Prisoner C3333CC
         NextReviewDate(
           bookingId = 333333,
@@ -215,6 +220,17 @@ class KpiRepositoryTest : TestBase() {
           reviewTime = LocalDate.now().minusDays(200).minusYears(1).atTime(12, 0),
           prisonerNumber = "A1111AA",
         ),
+        // Same prisoner number, different booking ID, NOT OVERDUE
+        PrisonerIepLevel(
+          iepCode = "STD",
+          prisonId = "MDI",
+          locationId = "LEI-1-1-001",
+          bookingId = 444444,
+          current = false,
+          reviewedBy = "TEST_STAFF1",
+          reviewTime = LocalDate.now().atTime(12, 0),
+          prisonerNumber = "A1111AA",
+        ),
         // Another prisoner
         PrisonerIepLevel(
           iepCode = "STD",
@@ -243,7 +259,6 @@ class KpiRepositoryTest : TestBase() {
     assertThat(repository.getPrisonerNumbersOverdueReview().toList())
       .isEqualTo(
         listOf(
-          PrisonerNumberOverdue("A1111AA"),
           PrisonerNumberOverdue("C3333CC"),
         ),
       )
