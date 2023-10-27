@@ -8,7 +8,7 @@ import java.time.LocalDateTime
 data class Prison(
   val agencyId: String,
   val description: String,
-  val longDescription: String,
+  val longDescription: String?,
   val agencyType: String,
   val active: Boolean,
 )
