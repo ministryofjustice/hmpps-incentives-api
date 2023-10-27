@@ -32,6 +32,9 @@ class UpdateKpisTest {
   fun setUp() {
     whenever(kpiService.getNumberOfPrisonersOverdue()).thenReturn(numberOfPrisonersOverdue)
     whenever(kpiService.getNumberOfReviewsConductedAndPrisonersReviewed(today)).thenReturn(reviewsConductedPrisonersReviewed)
+    runBlocking {
+      whenever(kpiRepository.existsById(today)).thenReturn(false)
+    }
   }
 
   @Test

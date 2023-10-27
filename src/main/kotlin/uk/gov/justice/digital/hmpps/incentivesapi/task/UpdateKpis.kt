@@ -30,6 +30,13 @@ class UpdateKpis(
   )
   fun updateKpis() {
     val day = LocalDate.now()
+
+    val kpiExists = runBlocking { kpiRepository.existsById(day) }
+    if (kpiExists) {
+      LOG.debug("KPI for $day already exists, skipping...")
+      return
+    }
+
     LOG.debug("Updating KPIs for $day...")
 
     val reviewsConductedPrisonersReviewed = kpiService.getNumberOfReviewsConductedAndPrisonersReviewed(day)
