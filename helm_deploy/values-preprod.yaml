@@ -12,6 +12,8 @@ generic-service:
     API_BASE_URL_OAUTH: https://sign-in-preprod.hmpps.service.justice.gov.uk/auth
     API_BASE_URL_PRISON: https://api-preprod.prison.service.justice.gov.uk
     API_BASE_URL_OFFENDER_SEARCH: https://prisoner-search-preprod.prison.service.justice.gov.uk
+    # First weekday of the month at 10:00am - Offender Search API is turned off during non-working hours in dev/preprod
+    TASK_UPDATE_KPIS_CRON: "0 0 10 1W * *"
 
 # CloudPlatform AlertManager receiver to route Prometheus alerts to slack
 # See https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts
