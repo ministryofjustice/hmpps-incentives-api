@@ -258,9 +258,7 @@ class KpiRepositoryTest : TestBase() {
 
     assertThat(repository.getPrisonerNumbersOverdueReview().toList())
       .isEqualTo(
-        listOf(
-          PrisonerNumberOverdue("C3333CC"),
-        ),
+        listOf("C3333CC"),
       )
   }
 }

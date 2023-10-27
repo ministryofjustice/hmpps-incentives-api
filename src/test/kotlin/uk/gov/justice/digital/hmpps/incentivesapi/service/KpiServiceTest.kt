@@ -11,7 +11,6 @@ import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Prison
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.KpiRepository
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerNumberOverdue
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.ReviewsConductedPrisonersReviewed
 import java.time.LocalDate
 
@@ -46,14 +45,14 @@ class KpiServiceTest {
     fun setUp(): Unit = runBlocking {
       whenever(kpiRepository.getPrisonerNumbersOverdueReview()).thenReturn(
         flowOf(
-          PrisonerNumberOverdue("D1111DD"),
-          PrisonerNumberOverdue("A4444AA"),
-          PrisonerNumberOverdue("A2222AA"),
-          PrisonerNumberOverdue("A1111AA"), // still in prison
-          PrisonerNumberOverdue("B9999BB"),
-          PrisonerNumberOverdue("B7777BB"),
-          PrisonerNumberOverdue("B1111BB"), // still in prison
-          PrisonerNumberOverdue("Z1111ZZ"),
+          "D1111DD",
+          "A4444AA",
+          "A2222AA",
+          "A1111AA", // still in prison
+          "B9999BB",
+          "B7777BB",
+          "B1111BB", // still in prison
+          "Z1111ZZ",
         ),
       )
 

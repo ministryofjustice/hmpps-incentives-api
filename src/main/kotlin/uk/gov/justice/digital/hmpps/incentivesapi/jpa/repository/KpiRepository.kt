@@ -12,10 +12,6 @@ data class ReviewsConductedPrisonersReviewed(
   val prisonersReviewed: Int,
 )
 
-data class PrisonerNumberOverdue(
-  val prisonerNumber: String,
-)
-
 @Repository
 interface KpiRepository : CoroutineCrudRepository<Kpi, LocalDate> {
   /**
@@ -58,5 +54,5 @@ interface KpiRepository : CoroutineCrudRepository<Kpi, LocalDate> {
     ;
     """,
   )
-  fun getPrisonerNumbersOverdueReview(): Flow<PrisonerNumberOverdue>
+  fun getPrisonerNumbersOverdueReview(): Flow<String>
 }

@@ -35,7 +35,7 @@ class KpiService(
     // Get prisoner numbers overdue, "filter" out people no longer in prison and return the count
     kpiRepository
       .getPrisonerNumbersOverdueReview()
-      .count { allPrisoners.contains(it.prisonerNumber) }
+      .count { allPrisoners.contains(it) }
   }
 
   private fun getPrisons(): List<String> = runBlocking {
