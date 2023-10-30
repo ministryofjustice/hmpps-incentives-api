@@ -45,7 +45,7 @@ dependencies {
   runtimeOnly("org.postgresql:postgresql:42.6.0")
 
   // Shedlock dependencies
-  implementation("net.javacrumbs.shedlock:shedlock-spring:5.7.0")
+  implementation("net.javacrumbs.shedlock:shedlock-spring:5.9.1")
   implementation("net.javacrumbs.shedlock:shedlock-provider-r2dbc:5.9.1")
 
   implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.2.0")
@@ -56,7 +56,7 @@ dependencies {
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:1.31.0")
 
   implementation("org.apache.commons:commons-lang3")
-  implementation("org.apache.commons:commons-text:1.10.0")
+  implementation("org.apache.commons:commons-text:1.11.0")
   implementation("commons-codec:commons-codec")
   implementation("com.google.code.gson:gson")
 
