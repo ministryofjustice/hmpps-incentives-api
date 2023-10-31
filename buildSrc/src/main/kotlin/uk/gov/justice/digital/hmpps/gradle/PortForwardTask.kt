@@ -25,7 +25,7 @@ abstract class PortForwardTask : CloudPlatformTask() {
     get
 
   @Optional
-  open var localPort: Int? = null
+  open var localPort: Int? = 12345
     @Input
     get
 

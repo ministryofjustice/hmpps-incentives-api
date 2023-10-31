@@ -10,18 +10,28 @@ parameters:
   releases-slack-channel:
     type: string
     default: dps-releases
+
+  java-version:
+    type: string
+    default: "21.0"
+  postgres-version:
+    type: string
+    default: "15"
+  localstack-version:
+    type: string
+    default: "1.3.1"
   node-version:
     type: string
-    default: 16.15-browsers
+    default: "20.9-browsers"
 
 jobs:
   validate:
     executor:
       name: hmpps/java_localstack_postgres
-      jdk_tag: "20.0"
-      localstack_tag: "1.3.1"
+      jdk_tag: << pipeline.parameters.java-version >>
+      localstack_tag: << pipeline.parameters.localstack-version >>
       services: "sns,sqs"
-      postgres_tag: "14"
+      postgres_tag: << pipeline.parameters.postgres-version >>
       postgres_username: "incentives"
       postgres_password: "incentives"
     environment:
@@ -52,10 +62,10 @@ jobs:
   generate-api-docs:
     executor:
       name: hmpps/java_localstack_postgres
-      jdk_tag: "20.0"
-      localstack_tag: "1.3.1"
+      jdk_tag: << pipeline.parameters.java-version >>
+      localstack_tag: << pipeline.parameters.localstack-version >>
       services: "sns,sqs"
-      postgres_tag: "14"
+      postgres_tag: << pipeline.parameters.postgres-version >>
       postgres_username: "incentives"
       postgres_password: "incentives"
     steps:
@@ -184,7 +194,7 @@ workflows:
           context:
             - hmpps-common-vars
           cache_key: "v2_0"
-          jdk_tag: "20.0"
+          jdk_tag: << pipeline.parameters.java-version >>
       - hmpps/trivy_latest_scan:
           slack_channel: << pipeline.parameters.alerts-slack-channel >>
           context:
