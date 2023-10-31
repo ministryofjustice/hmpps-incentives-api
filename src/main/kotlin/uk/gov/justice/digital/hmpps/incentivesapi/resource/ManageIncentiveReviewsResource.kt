@@ -28,7 +28,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 @RestController
 @RequestMapping("/incentive-reviews", produces = [MediaType.APPLICATION_JSON_VALUE])
 @PreAuthorize("hasRole('ROLE_READ_INCENTIVES')")
-@Tag(name = "Incentive reviews", description = "Retrieve and add incentive review records. Ported from prison-api")
+@Tag(name = "Maintain incentive reviews", description = "Retrieve and add incentive review records. Requires READ_INCENTIVES role")
 class ManageIncentiveReviewsResource(
   private val prisonerIncentiveReviewService: PrisonerIncentiveReviewService,
 ) {

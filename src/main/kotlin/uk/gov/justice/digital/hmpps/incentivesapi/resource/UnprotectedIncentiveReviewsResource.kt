@@ -27,7 +27,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 
 @RestController
 @RequestMapping("/iep", produces = [MediaType.APPLICATION_JSON_VALUE])
-@Tag(name = "Incentive reviews ", description = "Retrieve and add incentive review records.")
+@Tag(name = "Maintain incentive reviews (Deprecated)", description = "Retrieve and add incentive review records. Deprecated - Use /incentive-reviews instead.")
 @Deprecated("Use /incentive-reviews instead")
 class UnprotectedIncentiveReviewsResource(
   private val prisonerIncentiveReviewService: PrisonerIncentiveReviewService,
