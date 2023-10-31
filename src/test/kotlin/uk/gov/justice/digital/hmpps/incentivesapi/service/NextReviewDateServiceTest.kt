@@ -4,7 +4,7 @@ import org.assertj.core.api.AssertionsForClassTypes.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIncentiveLevel
 import java.time.LocalDate
 
 class NextReviewDateServiceTest {
@@ -408,9 +408,9 @@ private fun incentiveRecord(
   prisonId: String,
   iepCode: String = "STD",
   reviewType: ReviewType = ReviewType.REVIEW,
-): PrisonerIepLevel {
+): PrisonerIncentiveLevel {
   val iepDate = LocalDate.parse(iepDateString)
-  return PrisonerIepLevel(
+  return PrisonerIncentiveLevel(
     id = 111,
     prisonerNumber = "A1234BC",
     iepCode = iepCode,

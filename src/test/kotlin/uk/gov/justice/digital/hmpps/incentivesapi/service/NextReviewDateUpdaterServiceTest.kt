@@ -15,7 +15,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.NextReviewDate
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.NextReviewDateRepository
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIncentiveLevelRepository
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDateTime
@@ -23,14 +23,14 @@ import java.time.ZoneId
 
 class NextReviewDateUpdaterServiceTest {
   private var clock: Clock = Clock.fixed(Instant.parse("2022-08-01T12:45:00.00Z"), ZoneId.of("Europe/London"))
-  private val prisonerIepLevelRepository: PrisonerIepLevelRepository = mock()
+  private val prisonerIncentiveLevelRepository: PrisonerIncentiveLevelRepository = mock()
   private val nextReviewDateRepository: NextReviewDateRepository = mock()
   private val prisonApiService: PrisonApiService = mock()
   private val snsService: SnsService = mock()
 
   private val nextReviewDateUpdaterService = NextReviewDateUpdaterService(
     clock,
-    prisonerIepLevelRepository,
+    prisonerIncentiveLevelRepository,
     nextReviewDateRepository,
     prisonApiService,
     snsService,
@@ -47,7 +47,7 @@ class NextReviewDateUpdaterServiceTest {
     fun `updateMany() when no reviews in database`(): Unit = runBlocking {
       val bookingIds = listOf(offender1.bookingId, offender2.bookingId)
       whenever(
-        prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds),
+        prisonerIncentiveLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds),
       ).thenReturn(emptyFlow())
       whenever(nextReviewDateRepository.findAllById(bookingIds))
         .thenReturn(emptyFlow())
@@ -106,7 +106,7 @@ class NextReviewDateUpdaterServiceTest {
       )
       val bookingIds = listOf(offender1.bookingId, offender2.bookingId)
       whenever(
-        prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds),
+        prisonerIncentiveLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds),
       ).thenReturn(offender2Reviews)
 
       whenever(nextReviewDateRepository.existsById(offender1.bookingId)).thenReturn(false)
@@ -200,7 +200,7 @@ class NextReviewDateUpdaterServiceTest {
     )
     whenever(nextReviewDateRepository.findAllById(listOf(bookingId)))
       .thenReturn(emptyFlow())
-    whenever(prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(listOf(bookingId)))
+    whenever(prisonerIncentiveLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(listOf(bookingId)))
       .thenReturn(reviews)
 
     val expectedNextReviewDate = NextReviewDateService(

@@ -17,18 +17,18 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.incentivesapi.helper.TestBase
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIncentiveLevel
 import java.time.LocalDateTime
 
 @DataR2dbcTest
 @ActiveProfiles("test")
 @WithMockUser
-class PrisonerIepLevelRepositoryTest : TestBase() {
+class PrisonerIncentiveLevelRepositoryTest : TestBase() {
   @Autowired
-  lateinit var repository: PrisonerIepLevelRepository
+  lateinit var repository: PrisonerIncentiveLevelRepository
 
-  private fun entity(bookingId: Long, current: Boolean): PrisonerIepLevel =
-    PrisonerIepLevel(
+  private fun entity(bookingId: Long, current: Boolean): PrisonerIncentiveLevel =
+    PrisonerIncentiveLevel(
       iepCode = "BAS",
       prisonId = "LEI",
       locationId = "LEI-1-1-001",
@@ -54,7 +54,7 @@ class PrisonerIepLevelRepositoryTest : TestBase() {
     val bookingId = 1234567L
 
     repository.save(
-      PrisonerIepLevel(
+      PrisonerIncentiveLevel(
         iepCode = "BAS",
         prisonId = "LEI",
         locationId = "LEI-1-1-001",
@@ -67,7 +67,7 @@ class PrisonerIepLevelRepositoryTest : TestBase() {
     )
 
     repository.save(
-      PrisonerIepLevel(
+      PrisonerIncentiveLevel(
         iepCode = "STD",
         prisonId = "MDI",
         locationId = "MDI-1-1-004",
@@ -171,7 +171,7 @@ class PrisonerIepLevelRepositoryTest : TestBase() {
   @Test
   fun `checks if there are prisoners on a level`(): Unit = runBlocking {
     repository.save(
-      PrisonerIepLevel(
+      PrisonerIncentiveLevel(
         iepCode = "BAS",
         prisonId = "LEI",
         locationId = "LEI-1-1-001",
@@ -183,7 +183,7 @@ class PrisonerIepLevelRepositoryTest : TestBase() {
       ),
     )
     repository.save(
-      PrisonerIepLevel(
+      PrisonerIncentiveLevel(
         iepCode = "STD",
         prisonId = "LEI",
         locationId = "LEI-1-1-002",
@@ -207,7 +207,7 @@ class PrisonerIepLevelRepositoryTest : TestBase() {
     assertThat(repository.somePrisonerCurrentlyOnLevel(listOf(123400, 123456), "BAS")).isTrue
 
     repository.save(
-      PrisonerIepLevel(
+      PrisonerIncentiveLevel(
         iepCode = "BAS",
         prisonId = "LEI",
         locationId = "LEI-1-1-001",

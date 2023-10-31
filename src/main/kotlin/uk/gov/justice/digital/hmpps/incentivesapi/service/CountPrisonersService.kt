@@ -3,11 +3,11 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.takeWhile
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIncentiveLevelRepository
 
 @Service
 class CountPrisonersService(
-  private val prisonerIepLevelRepository: PrisonerIepLevelRepository,
+  private val prisonerIncentiveLevelRepository: PrisonerIncentiveLevelRepository,
   private val offenderSearchService: OffenderSearchService,
 ) {
   /**
@@ -21,7 +21,7 @@ class CountPrisonersService(
         prisonersExistOnLevel = if (bookingIds.isEmpty()) {
           false
         } else {
-          prisonerIepLevelRepository.somePrisonerCurrentlyOnLevel(bookingIds, levelCode)
+          prisonerIncentiveLevelRepository.somePrisonerCurrentlyOnLevel(bookingIds, levelCode)
         }
         !prisonersExistOnLevel
       }

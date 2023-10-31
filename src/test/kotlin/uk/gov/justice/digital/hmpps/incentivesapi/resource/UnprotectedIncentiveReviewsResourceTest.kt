@@ -6,17 +6,17 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepReview
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.CreateIncentiveReviewRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.helper.expectErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.IncentiveLevelResourceTestBase
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIncentiveLevelRepository
 import java.time.LocalDate.now
 import java.time.format.DateTimeFormatter
 
-class IepReviewsResourceTest : IncentiveLevelResourceTestBase() {
+class UnprotectedIncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
   @Autowired
-  private lateinit var repository: PrisonerIepLevelRepository
+  private lateinit var repository: PrisonerIncentiveLevelRepository
 
   @BeforeEach
   fun setUp(): Unit = runBlocking {
@@ -45,7 +45,7 @@ class IepReviewsResourceTest : IncentiveLevelResourceTestBase() {
 
     webTestClient.post().uri("/iep/reviews/booking/$bookingId")
       .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read")))
-      .bodyValue(IepReview("STD", "A comment"))
+      .bodyValue(CreateIncentiveReviewRequest("STD", "A comment"))
       .exchange()
       .expectStatus().isForbidden
   }
@@ -56,7 +56,7 @@ class IepReviewsResourceTest : IncentiveLevelResourceTestBase() {
 
     webTestClient.post().uri("/iep/reviews/booking/$bookingId")
       .headers(setAuthorisation(roles = listOf("ROLE_DUMMY"), scopes = listOf("read", "write")))
-      .bodyValue(IepReview("STD", "A comment"))
+      .bodyValue(CreateIncentiveReviewRequest("STD", "A comment"))
       .exchange()
       .expectStatus().isForbidden
   }
@@ -72,13 +72,13 @@ class IepReviewsResourceTest : IncentiveLevelResourceTestBase() {
 
     webTestClient.post().uri("/iep/reviews/booking/$bookingId")
       .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
-      .bodyValue(IepReview("STD", "A comment"))
+      .bodyValue(CreateIncentiveReviewRequest("STD", "A comment"))
       .exchange()
       .expectStatus().isCreated
 
     val today = now().format(DateTimeFormatter.ISO_DATE)
     val nextReviewDate = now().plusYears(1).format(DateTimeFormatter.ISO_DATE)
-    webTestClient.get().uri("/iep/reviews/booking/$bookingId?use-nomis-data=false")
+    webTestClient.get().uri("/iep/reviews/booking/$bookingId")
       .headers(setAuthorisation())
       .exchange()
       .expectStatus().isOk
@@ -91,7 +91,7 @@ class IepReviewsResourceTest : IncentiveLevelResourceTestBase() {
              "iepLevel":"Standard",
              "iepCode": "STD",
              "nextReviewDate": "$nextReviewDate",
-             "iepDetails":[
+             "incentiveReviewDetails":[
                 {
                    "bookingId":$bookingId,
                    "iepDate":"$today",
@@ -121,19 +121,19 @@ class IepReviewsResourceTest : IncentiveLevelResourceTestBase() {
 
     webTestClient.post().uri("/iep/reviews/prisoner/$prisonerNumber")
       .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
-      .bodyValue(IepReview(iepLevel = "BAS", comment = "Basic Level", reviewType = ReviewType.INITIAL))
+      .bodyValue(CreateIncentiveReviewRequest(iepLevel = "BAS", comment = "Basic Level", reviewType = ReviewType.INITIAL))
       .exchange()
       .expectStatus().isCreated
 
     webTestClient.post().uri("/iep/reviews/prisoner/$prisonerNumber")
       .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
-      .bodyValue(IepReview("ENH", "A different comment"))
+      .bodyValue(CreateIncentiveReviewRequest("ENH", "A different comment"))
       .exchange()
       .expectStatus().isCreated
 
     val today = now().format(DateTimeFormatter.ISO_DATE)
     val nextReviewDate = now().plusYears(1).format(DateTimeFormatter.ISO_DATE)
-    webTestClient.get().uri("/iep/reviews/prisoner/$prisonerNumber?use-nomis-data=false")
+    webTestClient.get().uri("/iep/reviews/prisoner/$prisonerNumber")
       .headers(setAuthorisation())
       .exchange()
       .expectStatus().isOk
@@ -147,7 +147,7 @@ class IepReviewsResourceTest : IncentiveLevelResourceTestBase() {
              "iepLevel":"Enhanced",
              "iepCode": "ENH",
              "nextReviewDate":"$nextReviewDate",
-             "iepDetails":[
+             "incentiveReviewDetails":[
                 {
                    "prisonerNumber": $prisonerNumber,
                    "bookingId":$bookingId,
@@ -196,13 +196,13 @@ class IepReviewsResourceTest : IncentiveLevelResourceTestBase() {
 
     webTestClient.post().uri("/iep/reviews/booking/$bookingId")
       .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
-      .bodyValue(IepReview("BAS", "Basic Level"))
+      .bodyValue(CreateIncentiveReviewRequest("BAS", "Basic Level"))
       .exchange()
       .expectStatus().isCreated
 
     webTestClient.post().uri("/iep/reviews/booking/$bookingId")
       .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
-      .bodyValue(IepReview("STD", "Standard Level"))
+      .bodyValue(CreateIncentiveReviewRequest("STD", "Standard Level"))
       .exchange()
       .expectStatus().isCreated
 
@@ -219,11 +219,11 @@ class IepReviewsResourceTest : IncentiveLevelResourceTestBase() {
 
     webTestClient.post().uri("/iep/reviews/booking/$bookingId2")
       .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
-      .bodyValue(IepReview("ENH", "Standard Level"))
+      .bodyValue(CreateIncentiveReviewRequest("ENH", "Standard Level"))
       .exchange()
       .expectStatus().isCreated
 
-    webTestClient.post().uri("/iep/reviews/bookings?use-nomis-data=false")
+    webTestClient.post().uri("/iep/reviews/bookings")
       .headers(setAuthorisation())
       .bodyValue(listOf(3330000L, 3330001L))
       .exchange()

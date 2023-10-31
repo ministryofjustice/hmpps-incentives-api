@@ -22,8 +22,8 @@ import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorCode
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.helper.expectErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.IncentiveLevelResourceTestBase
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIncentiveLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIncentiveLevelRepository
 import java.time.Clock
 import java.time.LocalDateTime
 import kotlin.text.Regex
@@ -37,12 +37,12 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
   }
 
   @Autowired
-  private lateinit var prisonerIepLevelRepository: PrisonerIepLevelRepository
+  private lateinit var prisonerIncentiveLevelRepository: PrisonerIncentiveLevelRepository
 
   @BeforeEach
   fun setUp(): Unit = runBlocking {
     prisonIncentiveLevelRepository.deleteAll()
-    prisonerIepLevelRepository.deleteAll()
+    prisonerIncentiveLevelRepository.deleteAll()
 
     offenderSearchMockServer.stubFindOffenders("BAI")
     offenderSearchMockServer.stubFindOffenders("MDI")
@@ -51,7 +51,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
   @AfterEach
   override fun tearDown(): Unit = runBlocking {
-    prisonerIepLevelRepository.deleteAll()
+    prisonerIncentiveLevelRepository.deleteAll()
     super.tearDown()
   }
 
@@ -1934,8 +1934,8 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         makeIncentiveReviews("MDI")
         // make only BAS & ENH have prisoners on them
         runBlocking {
-          prisonerIepLevelRepository.deleteAllById(
-            prisonerIepLevelRepository.findAll().filter { review ->
+          prisonerIncentiveLevelRepository.deleteAllById(
+            prisonerIncentiveLevelRepository.findAll().filter { review ->
               review.iepCode != "BAS" && review.iepCode != "ENH"
             }.map { it.id }.toList(),
           )
@@ -2151,9 +2151,9 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
   private fun makeIncentiveReviews(prisonId: String): Unit = runBlocking {
     // prisoner numbers and booking ids match stubbed offender search response
-    prisonerIepLevelRepository.saveAll(
+    prisonerIncentiveLevelRepository.saveAll(
       listOf(
-        PrisonerIepLevel(
+        PrisonerIncentiveLevel(
           prisonerNumber = "A1234AA",
           bookingId = 1234134,
           iepCode = "STD",
@@ -2162,7 +2162,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           reviewedBy = "TEST_STAFF1",
           reviewTime = LocalDateTime.now(clock).minusDays(1),
         ),
-        PrisonerIepLevel(
+        PrisonerIncentiveLevel(
           prisonerNumber = "A1234AB",
           bookingId = 1234135,
           iepCode = "EN2",
@@ -2171,7 +2171,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           reviewedBy = "TEST_STAFF1",
           reviewTime = LocalDateTime.now(clock).minusDays(1),
         ),
-        PrisonerIepLevel(
+        PrisonerIncentiveLevel(
           prisonerNumber = "A1234AC",
           bookingId = 1234136,
           iepCode = "ENH",
@@ -2180,7 +2180,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           reviewedBy = "TEST_STAFF1",
           reviewTime = LocalDateTime.now(clock).minusDays(1),
         ),
-        PrisonerIepLevel(
+        PrisonerIncentiveLevel(
           prisonerNumber = "A1234AD",
           bookingId = 1234137,
           iepCode = "EN2",
@@ -2189,7 +2189,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           reviewedBy = "TEST_STAFF1",
           reviewTime = LocalDateTime.now(clock).minusDays(1),
         ),
-        PrisonerIepLevel(
+        PrisonerIncentiveLevel(
           prisonerNumber = "A1234AE",
           bookingId = 1234138,
           iepCode = "BAS",

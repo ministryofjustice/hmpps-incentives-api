@@ -13,14 +13,14 @@ import org.mockito.kotlin.verifyNoInteractions
 
 class PrisonOffenderEventListenerTest {
   private lateinit var listener: PrisonOffenderEventListener
-  private val prisonerIepLevelReviewService: PrisonerIepLevelReviewService = mock()
+  private val prisonerIncentiveReviewService: PrisonerIncentiveReviewService = mock()
   private val objectMapper = ObjectMapper().findAndRegisterModules().apply {
     configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
   }
 
   @BeforeEach
   fun setUp() {
-    listener = PrisonOffenderEventListener(prisonerIepLevelReviewService, objectMapper)
+    listener = PrisonOffenderEventListener(prisonerIncentiveReviewService, objectMapper)
   }
 
   @Test
@@ -29,7 +29,7 @@ class PrisonOffenderEventListenerTest {
     listener.onPrisonOffenderEvent("/messages/prisonerReceivedReasonAdmission.json".readResourceAsText())
 
     // Then
-    verify(prisonerIepLevelReviewService, times(1)).processOffenderEvent(any())
+    verify(prisonerIncentiveReviewService, times(1)).processOffenderEvent(any())
   }
 
   @Test
@@ -38,7 +38,7 @@ class PrisonOffenderEventListenerTest {
     listener.onPrisonOffenderEvent("/messages/prisonerReceivedReasonTransferred.json".readResourceAsText())
 
     // Then
-    verify(prisonerIepLevelReviewService, times(1)).processOffenderEvent(any())
+    verify(prisonerIncentiveReviewService, times(1)).processOffenderEvent(any())
   }
 
   @Test
@@ -47,7 +47,7 @@ class PrisonOffenderEventListenerTest {
     listener.onPrisonOffenderEvent("/messages/prisonerReleased.json".readResourceAsText())
 
     // Then
-    verifyNoInteractions(prisonerIepLevelReviewService)
+    verifyNoInteractions(prisonerIncentiveReviewService)
   }
 
   @Test
@@ -56,7 +56,7 @@ class PrisonOffenderEventListenerTest {
     listener.onPrisonOffenderEvent("/messages/prisonerMerged.json".readResourceAsText())
 
     // Then
-    verify(prisonerIepLevelReviewService, times(1)).processOffenderEvent(any())
+    verify(prisonerIncentiveReviewService, times(1)).processOffenderEvent(any())
   }
 
   @Test
@@ -65,7 +65,7 @@ class PrisonOffenderEventListenerTest {
     listener.onPrisonOffenderEvent("/messages/prisonerAlertsUpdated.json".readResourceAsText())
 
     // Then
-    verify(prisonerIepLevelReviewService, times(1)).processPrisonerAlertsUpdatedEvent(any())
+    verify(prisonerIncentiveReviewService, times(1)).processPrisonerAlertsUpdatedEvent(any())
   }
 
   private fun String.readResourceAsText(): String {

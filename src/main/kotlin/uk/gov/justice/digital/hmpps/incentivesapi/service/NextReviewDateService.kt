@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIncentiveLevel
 import java.time.LocalDate
 import java.time.Period
 
@@ -10,7 +10,7 @@ data class NextReviewDateInput(
   val hasAcctOpen: Boolean,
   val dateOfBirth: LocalDate,
   val receptionDate: LocalDate,
-  val incentiveRecords: List<PrisonerIepLevel>,
+  val incentiveRecords: List<PrisonerIncentiveLevel>,
 )
 
 class NextReviewDateService(private val input: NextReviewDateInput) {
@@ -70,7 +70,7 @@ class NextReviewDateService(private val input: NextReviewDateInput) {
     return ageOnDate < 18
   }
 
-  private fun lastReview(): PrisonerIepLevel? {
+  private fun lastReview(): PrisonerIncentiveLevel? {
     return reviews().firstOrNull()
   }
 
@@ -97,7 +97,7 @@ class NextReviewDateService(private val input: NextReviewDateInput) {
     return reviews(includeReadmissions = true).firstOrNull()?.reviewType == ReviewType.READMISSION
   }
 
-  private fun reviews(includeReadmissions: Boolean = false): List<PrisonerIepLevel> {
+  private fun reviews(includeReadmissions: Boolean = false): List<PrisonerIncentiveLevel> {
     return input.incentiveRecords.filter { incentiveRecord ->
       incentiveRecord.isRealReview() ||
         (includeReadmissions && incentiveRecord.reviewType == ReviewType.READMISSION)

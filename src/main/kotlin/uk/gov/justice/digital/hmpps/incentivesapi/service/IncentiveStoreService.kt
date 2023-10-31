@@ -6,13 +6,13 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveRecordUpdate
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIncentiveLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIncentiveLevelRepository
 
 @Service
 @Transactional
 class IncentiveStoreService(
-  private val prisonerIepLevelRepository: PrisonerIepLevelRepository,
+  private val prisonerIncentiveLevelRepository: PrisonerIncentiveLevelRepository,
   private val nextReviewDateUpdaterService: NextReviewDateUpdaterService,
 ) {
   companion object {
@@ -20,48 +20,48 @@ class IncentiveStoreService(
   }
 
   suspend fun saveIncentiveReview(
-    incentiveLevel: PrisonerIepLevel,
-  ): PrisonerIepLevel {
+    incentiveLevel: PrisonerIncentiveLevel,
+  ): PrisonerIncentiveLevel {
     if (incentiveLevel.current) {
-      prisonerIepLevelRepository.updateIncentivesToNotCurrentForBooking(incentiveLevel.bookingId)
+      prisonerIncentiveLevelRepository.updateIncentivesToNotCurrentForBooking(incentiveLevel.bookingId)
     }
 
-    val review = prisonerIepLevelRepository.save(incentiveLevel)
+    val review = prisonerIncentiveLevelRepository.save(incentiveLevel)
     nextReviewDateUpdaterService.update(incentiveLevel.bookingId)
     return review
   }
 
   suspend fun updateMergedReviews(
-    reviewsToUpdate: List<PrisonerIepLevel>,
+    reviewsToUpdate: List<PrisonerIncentiveLevel>,
     remainingBookingId: Long,
   ) {
-    val savedReviews = prisonerIepLevelRepository.saveAll(reviewsToUpdate)
+    val savedReviews = prisonerIncentiveLevelRepository.saveAll(reviewsToUpdate)
     log.debug("${savedReviews.count()} records saved")
     nextReviewDateUpdaterService.update(remainingBookingId)
   }
 
-  suspend fun deleteIncentiveRecord(incentiveRecord: PrisonerIepLevel) {
-    prisonerIepLevelRepository.delete(incentiveRecord)
+  suspend fun deleteIncentiveRecord(incentiveRecord: PrisonerIncentiveLevel) {
+    prisonerIncentiveLevelRepository.delete(incentiveRecord)
     nextReviewDateUpdaterService.update(incentiveRecord.bookingId)
 
     // If the deleted record had `current=true`, the latest IEP review becomes current
     if (incentiveRecord.current) {
       // The deleted record was current, set new current to the latest IEP review
-      prisonerIepLevelRepository.findFirstByBookingIdOrderByReviewTimeDesc(incentiveRecord.bookingId)?.run {
-        prisonerIepLevelRepository.save(this.copy(current = true))
+      prisonerIncentiveLevelRepository.findFirstByBookingIdOrderByReviewTimeDesc(incentiveRecord.bookingId)?.run {
+        prisonerIncentiveLevelRepository.save(this.copy(current = true))
       }
     }
   }
 
   suspend fun updateIncentiveRecord(
     update: IncentiveRecordUpdate,
-    incentiveRecord: PrisonerIepLevel,
-  ): PrisonerIepLevel {
+    incentiveRecord: PrisonerIncentiveLevel,
+  ): PrisonerIncentiveLevel {
     if (update.current == true) {
-      prisonerIepLevelRepository.updateIncentivesToNotCurrentForBookingAndIncentive(incentiveRecord.bookingId, incentiveRecord.id)
+      prisonerIncentiveLevelRepository.updateIncentivesToNotCurrentForBookingAndIncentive(incentiveRecord.bookingId, incentiveRecord.id)
     }
 
-    val updatedIncentiveRecord = prisonerIepLevelRepository.save(
+    val updatedIncentiveRecord = prisonerIncentiveLevelRepository.save(
       incentiveRecord.copy(
         reviewTime = update.reviewTime ?: incentiveRecord.reviewTime,
         commentText = update.comment ?: incentiveRecord.commentText,

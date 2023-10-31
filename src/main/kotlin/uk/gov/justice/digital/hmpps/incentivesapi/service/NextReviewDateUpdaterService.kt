@@ -5,9 +5,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.NextReviewDate
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.NextReviewDateRepository
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIncentiveLevelRepository
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -18,7 +18,7 @@ import java.time.LocalDateTime
 @Service
 class NextReviewDateUpdaterService(
   private val clock: Clock,
-  private val prisonerIepLevelRepository: PrisonerIepLevelRepository,
+  private val prisonerIncentiveLevelRepository: PrisonerIncentiveLevelRepository,
   private val nextReviewDateRepository: NextReviewDateRepository,
   private val prisonApiService: PrisonApiService,
   private val snsService: SnsService,
@@ -55,10 +55,10 @@ class NextReviewDateUpdaterService(
     val nextReviewDatesBeforeUpdate: Map<Long, LocalDate> = nextReviewDateRepository.findAllById(bookingIds).toList().toMapByBookingId()
 
     // NOTE: This is to account for bookingIds potentially without any review record
-    val bookingIdsNoReviews = bookingIds.associateWith { emptyList<PrisonerIepLevel>() }
-    val reviewsMap = bookingIdsNoReviews + prisonerIepLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds)
+    val bookingIdsNoReviews = bookingIds.associateWith { emptyList<PrisonerIncentiveLevel>() }
+    val reviewsMap = bookingIdsNoReviews + prisonerIncentiveLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds)
       .toList()
-      .groupBy(PrisonerIepLevel::bookingId)
+      .groupBy(PrisonerIncentiveLevel::bookingId)
 
     val nextReviewDateRecords = reviewsMap.map { (bookingId, incentiveRecords) ->
       val offender = offendersMap[bookingId]!!

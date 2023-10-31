@@ -3,8 +3,8 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepDetail
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.IepSummary
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewDetail
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import java.time.Clock
 import java.time.Instant
@@ -12,14 +12,14 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 
-class IepSummaryDateTest {
+class IncentiveReviewSummaryDateTest {
   private var clock: Clock = Clock.fixed(Instant.parse("2022-08-01T12:45:00.00Z"), ZoneId.of("Europe/London"))
 
   @Nested
   inner class GetDaysOnLevel {
     @Test
     fun `calc days on level when level added 60 days ago`() {
-      val iepSummary = IepSummary(
+      val incentiveReviewSummary = IncentiveReviewSummary(
         id = 222,
         bookingId = 1L,
         prisonerNumber = "A1234BC",
@@ -28,8 +28,8 @@ class IepSummaryDateTest {
         iepCode = "ENH",
         iepTime = LocalDateTime.of(2022, 6, 2, 12, 45, 0),
         nextReviewDate = LocalDate.of(2022, 6, 2).plusYears(1),
-        iepDetails = listOf(
-          IepDetail(
+        incentiveReviewDetails = listOf(
+          IncentiveReviewDetail(
             id = 222,
             bookingId = 1L,
             prisonerNumber = "A1234BC",
@@ -42,7 +42,7 @@ class IepSummaryDateTest {
             userId = "TEST_USER",
             auditModuleName = "PRISON_API",
           ),
-          IepDetail(
+          IncentiveReviewDetail(
             id = 111,
             bookingId = 1L,
             prisonerNumber = "A1234BC",
@@ -58,12 +58,12 @@ class IepSummaryDateTest {
         ),
       )
 
-      assertThat(iepSummary.daysSinceReviewCalc(clock)).isEqualTo(60)
+      assertThat(incentiveReviewSummary.daysSinceReviewCalc(clock)).isEqualTo(60)
     }
 
     @Test
     fun `calc days on level when initial entry into prison`() {
-      val iepSummary = IepSummary(
+      val incentiveReviewSummary = IncentiveReviewSummary(
         id = 111,
         bookingId = 1L,
         prisonerNumber = "A1234BC",
@@ -72,8 +72,8 @@ class IepSummaryDateTest {
         iepCode = "BAS",
         iepTime = LocalDateTime.of(2022, 7, 29, 12, 45, 0),
         nextReviewDate = LocalDate.of(2022, 7, 29).plusDays(7),
-        iepDetails = listOf(
-          IepDetail(
+        incentiveReviewDetails = listOf(
+          IncentiveReviewDetail(
             id = 111,
             bookingId = 1L,
             prisonerNumber = "A1234BC",
@@ -90,12 +90,12 @@ class IepSummaryDateTest {
         ),
       )
 
-      assertThat(iepSummary.daysSinceReviewCalc(clock)).isEqualTo(3)
+      assertThat(incentiveReviewSummary.daysSinceReviewCalc(clock)).isEqualTo(3)
     }
 
     @Test
     fun `calc days on level when initial entry into prison and review 3 days later but up a level`() {
-      val iepSummary = IepSummary(
+      val incentiveReviewSummary = IncentiveReviewSummary(
         id = 222,
         bookingId = 1L,
         prisonerNumber = "A1234BC",
@@ -104,8 +104,8 @@ class IepSummaryDateTest {
         iepCode = "STD",
         iepTime = LocalDateTime.of(2022, 8, 1, 8, 30, 0),
         nextReviewDate = LocalDate.of(2022, 8, 1).plusYears(1),
-        iepDetails = listOf(
-          IepDetail(
+        incentiveReviewDetails = listOf(
+          IncentiveReviewDetail(
             id = 222,
             bookingId = 1L,
             prisonerNumber = "A1234BC",
@@ -119,7 +119,7 @@ class IepSummaryDateTest {
             userId = "TESTUSER",
             auditModuleName = "PRISON_API",
           ),
-          IepDetail(
+          IncentiveReviewDetail(
             id = 111,
             bookingId = 1L,
             prisonerNumber = "A1234BC",
@@ -136,12 +136,12 @@ class IepSummaryDateTest {
         ),
       )
 
-      assertThat(iepSummary.daysSinceReviewCalc(clock)).isEqualTo(0)
+      assertThat(incentiveReviewSummary.daysSinceReviewCalc(clock)).isEqualTo(0)
     }
 
     @Test
     fun `calc days on level when entry into a new prison and review 3 days later but same level`() {
-      val iepSummary = IepSummary(
+      val incentiveReviewSummary = IncentiveReviewSummary(
         id = 333,
         bookingId = 1L,
         prisonerNumber = "A1234BC",
@@ -150,8 +150,8 @@ class IepSummaryDateTest {
         iepCode = "BAS",
         iepTime = LocalDateTime.of(2022, 7, 31, 19, 0, 0),
         nextReviewDate = LocalDate.of(2022, 7, 31).plusDays(28),
-        iepDetails = listOf(
-          IepDetail(
+        incentiveReviewDetails = listOf(
+          IncentiveReviewDetail(
             id = 333,
             bookingId = 1L,
             prisonerNumber = "A1234BC",
@@ -165,7 +165,7 @@ class IepSummaryDateTest {
             userId = "TESTUSER",
             auditModuleName = "PRISON_API",
           ),
-          IepDetail(
+          IncentiveReviewDetail(
             id = 222,
             bookingId = 1L,
             prisonerNumber = "A1234BC",
@@ -179,7 +179,7 @@ class IepSummaryDateTest {
             userId = "ADMISSION",
             auditModuleName = "OIDADMIS",
           ),
-          IepDetail(
+          IncentiveReviewDetail(
             id = 111,
             bookingId = 1L,
             prisonerNumber = "A1234BC",
@@ -196,12 +196,12 @@ class IepSummaryDateTest {
         ),
       )
 
-      assertThat(iepSummary.daysSinceReviewCalc(clock)).isEqualTo(1)
+      assertThat(incentiveReviewSummary.daysSinceReviewCalc(clock)).isEqualTo(1)
     }
 
     @Test
     fun `calc days on level when new level added today`() {
-      val iepSummary = IepSummary(
+      val incentiveReviewSummary = IncentiveReviewSummary(
         id = 222,
         bookingId = 1L,
         prisonerNumber = "A1234BC",
@@ -210,8 +210,8 @@ class IepSummaryDateTest {
         iepCode = "ENH",
         iepTime = LocalDateTime.of(2022, 8, 1, 8, 30, 0),
         nextReviewDate = LocalDate.of(2022, 8, 1).plusYears(1),
-        iepDetails = listOf(
-          IepDetail(
+        incentiveReviewDetails = listOf(
+          IncentiveReviewDetail(
             id = 222,
             bookingId = 1L,
             prisonerNumber = "A1234BC",
@@ -224,7 +224,7 @@ class IepSummaryDateTest {
             userId = "TEST_USER",
             auditModuleName = "PRISON_API",
           ),
-          IepDetail(
+          IncentiveReviewDetail(
             id = 111,
             bookingId = 1L,
             prisonerNumber = "A1234BC",
@@ -240,12 +240,12 @@ class IepSummaryDateTest {
         ),
       )
 
-      assertThat(iepSummary.daysSinceReviewCalc(clock)).isEqualTo(0)
+      assertThat(incentiveReviewSummary.daysSinceReviewCalc(clock)).isEqualTo(0)
     }
 
     @Test
     fun `calc days on level when multiple reviews resulting in same level`() {
-      val iepSummary = IepSummary(
+      val incentiveReviewSummary = IncentiveReviewSummary(
         id = 333,
         bookingId = 1L,
         prisonerNumber = "A1234BC",
@@ -254,8 +254,8 @@ class IepSummaryDateTest {
         iepCode = "ENH",
         iepTime = LocalDateTime.of(2022, 7, 2, 12, 30, 0),
         nextReviewDate = LocalDate.of(2022, 7, 2).plusYears(1),
-        iepDetails = listOf(
-          IepDetail(
+        incentiveReviewDetails = listOf(
+          IncentiveReviewDetail(
             id = 333,
             bookingId = 1L,
             prisonerNumber = "A1234BC",
@@ -268,7 +268,7 @@ class IepSummaryDateTest {
             userId = "TEST_USER",
             auditModuleName = "PRISON_API",
           ),
-          IepDetail(
+          IncentiveReviewDetail(
             id = 222,
             bookingId = 1L,
             prisonerNumber = "A1234BC",
@@ -281,7 +281,7 @@ class IepSummaryDateTest {
             userId = "TEST_USER",
             auditModuleName = "PRISON_API",
           ),
-          IepDetail(
+          IncentiveReviewDetail(
             id = 111,
             bookingId = 1L,
             prisonerNumber = "A1234BC",
@@ -297,7 +297,7 @@ class IepSummaryDateTest {
         ),
       )
 
-      assertThat(iepSummary.daysSinceReviewCalc(clock)).isEqualTo(30)
+      assertThat(incentiveReviewSummary.daysSinceReviewCalc(clock)).isEqualTo(30)
     }
   }
 }

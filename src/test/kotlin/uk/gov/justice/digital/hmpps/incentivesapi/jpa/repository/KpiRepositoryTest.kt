@@ -16,7 +16,7 @@ import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.incentivesapi.helper.TestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.Kpi
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.NextReviewDate
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIncentiveLevel
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -29,7 +29,7 @@ class KpiRepositoryTest : TestBase() {
   lateinit var repository: KpiRepository
 
   @Autowired
-  lateinit var reviewsRepository: PrisonerIepLevelRepository
+  lateinit var reviewsRepository: PrisonerIncentiveLevelRepository
 
   @Autowired
   lateinit var nextReviewDateRepository: NextReviewDateRepository
@@ -115,7 +115,7 @@ class KpiRepositoryTest : TestBase() {
     reviewsRepository.saveAll(
       listOf(
         // Review in matching date range
-        PrisonerIepLevel(
+        PrisonerIncentiveLevel(
           iepCode = "BAS",
           prisonId = "LEI",
           locationId = "LEI-1-1-001",
@@ -126,7 +126,7 @@ class KpiRepositoryTest : TestBase() {
           prisonerNumber = "A1111AA",
         ),
         // Review in matching date range, same prisoner
-        PrisonerIepLevel(
+        PrisonerIncentiveLevel(
           iepCode = "STD",
           prisonId = "LEI",
           locationId = "LEI-1-1-001",
@@ -137,7 +137,7 @@ class KpiRepositoryTest : TestBase() {
           prisonerNumber = "A1111AA",
         ),
         // Review in matching date range, another prisoner
-        PrisonerIepLevel(
+        PrisonerIncentiveLevel(
           iepCode = "STD",
           prisonId = "LEI",
           locationId = "LEI-1-1-002",
@@ -148,7 +148,7 @@ class KpiRepositoryTest : TestBase() {
           prisonerNumber = "B2222BB",
         ),
         // Review OUTSIDE matching date range - NOT counted
-        PrisonerIepLevel(
+        PrisonerIncentiveLevel(
           iepCode = "STD",
           prisonId = "LEI",
           locationId = "LEI-1-1-999",
@@ -199,7 +199,7 @@ class KpiRepositoryTest : TestBase() {
     reviewsRepository.saveAll(
       listOf(
         // A prisoner
-        PrisonerIepLevel(
+        PrisonerIncentiveLevel(
           iepCode = "BAS",
           prisonId = "LEI",
           locationId = "LEI-1-1-001",
@@ -210,7 +210,7 @@ class KpiRepositoryTest : TestBase() {
           prisonerNumber = "A1111AA",
         ),
         // Same prisoner number, different booking ID
-        PrisonerIepLevel(
+        PrisonerIncentiveLevel(
           iepCode = "STD",
           prisonId = "MDI",
           locationId = "LEI-1-1-001",
@@ -221,7 +221,7 @@ class KpiRepositoryTest : TestBase() {
           prisonerNumber = "A1111AA",
         ),
         // Same prisoner number, different booking ID, NOT OVERDUE
-        PrisonerIepLevel(
+        PrisonerIncentiveLevel(
           iepCode = "STD",
           prisonId = "MDI",
           locationId = "LEI-1-1-001",
@@ -232,7 +232,7 @@ class KpiRepositoryTest : TestBase() {
           prisonerNumber = "A1111AA",
         ),
         // Another prisoner
-        PrisonerIepLevel(
+        PrisonerIncentiveLevel(
           iepCode = "STD",
           prisonId = "LEI",
           locationId = "LEI-1-1-002",
@@ -243,7 +243,7 @@ class KpiRepositoryTest : TestBase() {
           prisonerNumber = "C3333CC",
         ),
         // Another prisoner (not overdue a review)
-        PrisonerIepLevel(
+        PrisonerIncentiveLevel(
           iepCode = "STD",
           prisonId = "MDI",
           locationId = "MDI-1-1-999",
