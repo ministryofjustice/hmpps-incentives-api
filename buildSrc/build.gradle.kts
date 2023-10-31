@@ -5,7 +5,7 @@ version = "1.0-SNAPSHOT"
 description = "Custom gradle tasks"
 
 plugins {
-  kotlin("jvm") version "1.9.10"
+  kotlin("jvm") version "1.9.20"
 }
 
 repositories {
@@ -13,11 +13,11 @@ repositories {
 }
 
 java {
-  toolchain.languageVersion = JavaLanguageVersion.of(20)
+  toolchain.languageVersion = JavaLanguageVersion.of(21)
 }
 
 tasks {
   withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = JavaVersion.VERSION_20.toString()
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_21.toString()
   }
 }
