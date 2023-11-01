@@ -23,7 +23,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.helper.expectErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.IncentiveLevelResourceTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIncentiveLevelRepository
 import java.time.Clock
 import java.time.LocalDateTime
 import kotlin.text.Regex
@@ -37,12 +37,12 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
   }
 
   @Autowired
-  private lateinit var incentiveReviewRepository: IncentiveReviewRepository
+  private lateinit var prisonerIncentiveLevelRepository: PrisonerIncentiveLevelRepository
 
   @BeforeEach
   fun setUp(): Unit = runBlocking {
     prisonIncentiveLevelRepository.deleteAll()
-    incentiveReviewRepository.deleteAll()
+    prisonerIncentiveLevelRepository.deleteAll()
 
     offenderSearchMockServer.stubFindOffenders("BAI")
     offenderSearchMockServer.stubFindOffenders("MDI")
@@ -51,7 +51,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
   @AfterEach
   override fun tearDown(): Unit = runBlocking {
-    incentiveReviewRepository.deleteAll()
+    prisonerIncentiveLevelRepository.deleteAll()
     super.tearDown()
   }
 
@@ -1934,8 +1934,8 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         makeIncentiveReviews("MDI")
         // make only BAS & ENH have prisoners on them
         runBlocking {
-          incentiveReviewRepository.deleteAllById(
-            incentiveReviewRepository.findAll().filter { review ->
+          prisonerIncentiveLevelRepository.deleteAllById(
+            prisonerIncentiveLevelRepository.findAll().filter { review ->
               review.levelCode != "BAS" && review.levelCode != "ENH"
             }.map { it.id }.toList(),
           )
@@ -2151,7 +2151,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
   private fun makeIncentiveReviews(prisonId: String): Unit = runBlocking {
     // prisoner numbers and booking ids match stubbed offender search response
-    incentiveReviewRepository.saveAll(
+    prisonerIncentiveLevelRepository.saveAll(
       listOf(
         IncentiveReview(
           prisonerNumber = "A1234AA",

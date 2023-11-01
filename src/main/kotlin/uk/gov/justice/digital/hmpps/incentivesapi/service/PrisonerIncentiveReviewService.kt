@@ -24,7 +24,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.findDefaultOnAdmission
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocation
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIncentiveLevelRepository
 import java.time.Clock
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -33,7 +33,7 @@ import java.util.function.Supplier
 @Service
 class PrisonerIncentiveReviewService(
   private val prisonApiService: PrisonApiService,
-  private val incentiveReviewRepository: IncentiveReviewRepository,
+  private val prisonerIncentiveLevelRepository: PrisonerIncentiveLevelRepository,
   private val incentiveLevelService: IncentiveLevelAuditedService,
   private val prisonIncentiveLevelService: PrisonIncentiveLevelAuditedService,
   private val nearestPrisonIncentiveLevelService: NearestPrisonIncentiveLevelService,
@@ -53,13 +53,13 @@ class PrisonerIncentiveReviewService(
     bookingId: Long,
     withDetails: Boolean = true,
   ): IncentiveReviewSummary {
-    val reviews = incentiveReviewRepository.findAllByBookingIdOrderByReviewTimeDesc(bookingId)
+    val reviews = prisonerIncentiveLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(bookingId)
     if (reviews.count() == 0) throw IncentiveReviewNotFoundException("No Incentive Reviews for booking ID $bookingId")
     return buildIepSummary(reviews, incentiveLevelService.getAllIncentiveLevelsMapByCode(), withDetails)
   }
 
   suspend fun getPrisonerIncentiveHistory(prisonerNumber: String): IncentiveReviewSummary {
-    val reviews = incentiveReviewRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(prisonerNumber)
+    val reviews = prisonerIncentiveLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(prisonerNumber)
     if (reviews.count() == 0) {
       throw IncentiveReviewNotFoundException("No Incentive Reviews for prisoner number $prisonerNumber")
     }
@@ -85,7 +85,7 @@ class PrisonerIncentiveReviewService(
       throw ValidationException("Please provide fields to update")
     }
 
-    val prisonerIepLevel = incentiveReviewRepository.findById(id) ?: throw NoDataFoundException(id)
+    val prisonerIepLevel = prisonerIncentiveLevelRepository.findById(id) ?: throw NoDataFoundException(id)
 
     // Check bookingId on found record matches the bookingId provided
     if (prisonerIepLevel.bookingId != bookingId) {
@@ -94,7 +94,7 @@ class PrisonerIncentiveReviewService(
     }
 
     val iepDetail = incentiveStoreService.updateIncentiveRecord(update, prisonerIepLevel)
-      .toIncentiveReviewDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
+      .toIepDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
 
     publishReviewDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_UPDATED)
     publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_UPDATED)
@@ -103,7 +103,7 @@ class PrisonerIncentiveReviewService(
   }
 
   suspend fun deleteIncentiveRecord(bookingId: Long, id: Long) {
-    val incentiveReview: IncentiveReview? = incentiveReviewRepository.findById(id)
+    val incentiveReview: IncentiveReview? = prisonerIncentiveLevelRepository.findById(id)
     if (incentiveReview == null) {
       log.debug("IncentiveReview with ID $id not found")
       throw NoDataFoundException(id)
@@ -116,14 +116,14 @@ class PrisonerIncentiveReviewService(
 
     incentiveStoreService.deleteIncentiveRecord(incentiveReview)
 
-    val iepDetail = incentiveReview.toIncentiveReviewDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
+    val iepDetail = incentiveReview.toIepDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
     publishReviewDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_DELETED)
     publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_DELETED)
   }
 
   suspend fun getCurrentIncentiveLevelForPrisoners(bookingIds: List<Long>): List<CurrentIncentiveLevel> {
     val incentiveLevels = incentiveLevelService.getAllIncentiveLevelsMapByCode()
-    return incentiveReviewRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(bookingIds)
+    return prisonerIncentiveLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(bookingIds)
       .map {
         CurrentIncentiveLevel(
           iepLevel = incentiveLevels[it.levelCode]?.name ?: "Unmapped",
@@ -133,7 +133,7 @@ class PrisonerIncentiveReviewService(
   }
 
   suspend fun getReviewById(id: Long): IncentiveReviewDetail =
-    incentiveReviewRepository.findById(id)?.toIncentiveReviewDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
+    prisonerIncentiveLevelRepository.findById(id)?.toIepDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
       ?: throw NoDataFoundException(id)
 
   suspend fun processOffenderEvent(prisonOffenderEvent: HMPPSDomainEvent) =
@@ -200,7 +200,7 @@ class PrisonerIncentiveReviewService(
         ),
       )
 
-      val iepDetail = incentiveReview.toIncentiveReviewDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
+      val iepDetail = incentiveReview.toIepDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
       publishReviewDomainEvent(
         iepDetail,
         IncentivesDomainEventType.IEP_REVIEW_INSERTED,
@@ -256,7 +256,7 @@ class PrisonerIncentiveReviewService(
     incentiveLevels: Map<String, IncentiveLevel>,
     withDetails: Boolean = true,
   ): IncentiveReviewSummary {
-    val iepDetails = levels.map { it.toIncentiveReviewDetail(incentiveLevels) }.toList()
+    val iepDetails = levels.map { it.toIepDetail(incentiveLevels) }.toList()
 
     val currentIep = iepDetails.firstOrNull() ?: throw IncentiveReviewNotFoundException("Not Found incentive reviews")
 
@@ -302,7 +302,7 @@ class PrisonerIncentiveReviewService(
         reviewType = createIncentiveReviewRequest.reviewType ?: ReviewType.REVIEW,
         prisonerNumber = prisonerInfo.offenderNo,
       ),
-    ).toIncentiveReviewDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
+    ).toIepDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
 
     // Propagate new IEP review to other services
     publishReviewDomainEvent(newIepReview, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
@@ -354,12 +354,12 @@ class PrisonerIncentiveReviewService(
     val remainingPrisonerNumber = prisonerMergeEvent.additionalInformation.nomsNumber!!
     log.info("Processing merge event: Prisoner Number Merge $removedPrisonerNumber -> $remainingPrisonerNumber")
 
-    val activeReviews = incentiveReviewRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(removedPrisonerNumber)
+    val activeReviews = prisonerIncentiveLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(removedPrisonerNumber)
       .map { review -> review.copy(prisonerNumber = remainingPrisonerNumber) }
 
     val remainingBookingId = prisonApiService.getPrisonerInfo(remainingPrisonerNumber, true).bookingId
     val reviewsFromOldBooking =
-      incentiveReviewRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(remainingPrisonerNumber)
+      prisonerIncentiveLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(remainingPrisonerNumber)
         .map { review -> review.copy(bookingId = remainingBookingId, current = false, new = true, id = 0) }
 
     val reviewsToUpdate = merge(activeReviews, reviewsFromOldBooking).toList()

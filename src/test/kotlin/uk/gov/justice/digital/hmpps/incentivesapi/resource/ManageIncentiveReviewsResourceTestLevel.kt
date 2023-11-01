@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReview
 import java.time.LocalDate.now
 import java.time.format.DateTimeFormatter
 
-class ManageIncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
+class ManageIncentiveReviewsResourceTestLevel : IncentiveLevelResourceTestBase() {
   @Autowired
   private lateinit var repository: IncentiveReviewRepository
 

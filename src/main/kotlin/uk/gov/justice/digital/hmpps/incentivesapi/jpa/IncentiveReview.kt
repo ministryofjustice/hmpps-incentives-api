@@ -35,7 +35,7 @@ data class IncentiveReview(
 
   val whenCreated: LocalDateTime? = null,
 
-) : Persistable<Long>, IsRealReview {
+  ) : Persistable<Long>, IsRealReview {
 
   override fun isNew(): Boolean = new
 

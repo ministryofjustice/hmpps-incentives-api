@@ -14,9 +14,9 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.incentivesapi.helper.TestBase
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.Kpi
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.NextReviewDate
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -29,7 +29,7 @@ class KpiRepositoryTest : TestBase() {
   lateinit var repository: KpiRepository
 
   @Autowired
-  lateinit var reviewsRepository: IncentiveReviewRepository
+  lateinit var reviewsRepository: PrisonerIncentiveLevelRepository
 
   @Autowired
   lateinit var nextReviewDateRepository: NextReviewDateRepository

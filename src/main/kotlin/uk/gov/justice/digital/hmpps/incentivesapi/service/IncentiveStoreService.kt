@@ -7,12 +7,12 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveRecordUpdate
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIncentiveLevelRepository
 
 @Service
 @Transactional
 class IncentiveStoreService(
-  private val incentiveReviewRepository: IncentiveReviewRepository,
+  private val prisonerIncentiveLevelRepository: PrisonerIncentiveLevelRepository,
   private val nextReviewDateUpdaterService: NextReviewDateUpdaterService,
 ) {
   companion object {
@@ -23,10 +23,10 @@ class IncentiveStoreService(
     incentiveLevel: IncentiveReview,
   ): IncentiveReview {
     if (incentiveLevel.current) {
-      incentiveReviewRepository.updateIncentivesToNotCurrentForBooking(incentiveLevel.bookingId)
+      prisonerIncentiveLevelRepository.updateIncentivesToNotCurrentForBooking(incentiveLevel.bookingId)
     }
 
-    val review = incentiveReviewRepository.save(incentiveLevel)
+    val review = prisonerIncentiveLevelRepository.save(incentiveLevel)
     nextReviewDateUpdaterService.update(incentiveLevel.bookingId)
     return review
   }
@@ -35,20 +35,20 @@ class IncentiveStoreService(
     reviewsToUpdate: List<IncentiveReview>,
     remainingBookingId: Long,
   ) {
-    val savedReviews = incentiveReviewRepository.saveAll(reviewsToUpdate)
+    val savedReviews = prisonerIncentiveLevelRepository.saveAll(reviewsToUpdate)
     log.debug("${savedReviews.count()} records saved")
     nextReviewDateUpdaterService.update(remainingBookingId)
   }
 
   suspend fun deleteIncentiveRecord(incentiveRecord: IncentiveReview) {
-    incentiveReviewRepository.delete(incentiveRecord)
+    prisonerIncentiveLevelRepository.delete(incentiveRecord)
     nextReviewDateUpdaterService.update(incentiveRecord.bookingId)
 
     // If the deleted record had `current=true`, the latest IEP review becomes current
     if (incentiveRecord.current) {
       // The deleted record was current, set new current to the latest IEP review
-      incentiveReviewRepository.findFirstByBookingIdOrderByReviewTimeDesc(incentiveRecord.bookingId)?.run {
-        incentiveReviewRepository.save(this.copy(current = true))
+      prisonerIncentiveLevelRepository.findFirstByBookingIdOrderByReviewTimeDesc(incentiveRecord.bookingId)?.run {
+        prisonerIncentiveLevelRepository.save(this.copy(current = true))
       }
     }
   }
@@ -58,10 +58,10 @@ class IncentiveStoreService(
     incentiveRecord: IncentiveReview,
   ): IncentiveReview {
     if (update.current == true) {
-      incentiveReviewRepository.updateIncentivesToNotCurrentForBookingAndIncentive(incentiveRecord.bookingId, incentiveRecord.id)
+      prisonerIncentiveLevelRepository.updateIncentivesToNotCurrentForBookingAndIncentive(incentiveRecord.bookingId, incentiveRecord.id)
     }
 
-    val updatedIncentiveRecord = incentiveReviewRepository.save(
+    val updatedIncentiveRecord = prisonerIncentiveLevelRepository.save(
       incentiveRecord.copy(
         reviewTime = update.reviewTime ?: incentiveRecord.reviewTime,
         commentText = update.comment ?: incentiveRecord.commentText,

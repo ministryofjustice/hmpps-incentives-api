@@ -4,10 +4,10 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.NextReviewDate
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.NextReviewDateRepository
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIncentiveLevelRepository
 import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -18,7 +18,7 @@ import java.time.LocalDateTime
 @Service
 class NextReviewDateUpdaterService(
   private val clock: Clock,
-  private val incentiveReviewRepository: IncentiveReviewRepository,
+  private val prisonerIncentiveLevelRepository: PrisonerIncentiveLevelRepository,
   private val nextReviewDateRepository: NextReviewDateRepository,
   private val prisonApiService: PrisonApiService,
   private val snsService: SnsService,
@@ -56,7 +56,7 @@ class NextReviewDateUpdaterService(
 
     // NOTE: This is to account for bookingIds potentially without any review record
     val bookingIdsNoReviews = bookingIds.associateWith { emptyList<IncentiveReview>() }
-    val reviewsMap = bookingIdsNoReviews + incentiveReviewRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds)
+    val reviewsMap = bookingIdsNoReviews + prisonerIncentiveLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds)
       .toList()
       .groupBy(IncentiveReview::bookingId)
 
