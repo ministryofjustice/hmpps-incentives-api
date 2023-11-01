@@ -29,7 +29,7 @@ class KpiRepositoryTest : TestBase() {
   lateinit var repository: KpiRepository
 
   @Autowired
-  lateinit var reviewsRepository: PrisonerIncentiveLevelRepository
+  lateinit var reviewsRepository: IncentiveReviewRepository
 
   @Autowired
   lateinit var nextReviewDateRepository: NextReviewDateRepository

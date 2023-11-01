@@ -26,7 +26,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Location
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIncentiveLevelRepository
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDateTime
@@ -36,7 +36,7 @@ import java.time.format.DateTimeFormatter
 class IncentiveReviewReviewServiceTest {
 
   private val prisonApiService: PrisonApiService = mock()
-  private val prisonerIncentiveLevelRepository: PrisonerIncentiveLevelRepository = mock()
+  private val incentiveReviewRepository: IncentiveReviewRepository = mock()
   private val authenticationFacade: AuthenticationFacade = mock()
   private val clock: Clock = Clock.fixed(Instant.parse("2022-08-01T12:45:00.00Z"), ZoneId.of("Europe/London"))
   private val snsService: SnsService = mock()
@@ -51,7 +51,7 @@ class IncentiveReviewReviewServiceTest {
 
   private val prisonerIncentiveReviewService = PrisonerIncentiveReviewService(
     prisonApiService,
-    prisonerIncentiveLevelRepository,
+    incentiveReviewRepository,
     incentiveLevelService,
     prisonIncentiveLevelService,
     nearestPrisonIncentiveLevelService,
@@ -68,7 +68,7 @@ class IncentiveReviewReviewServiceTest {
   fun setUp(): Unit = runBlocking {
     // Fixes tests which do not explicitly mock findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc
     // while other tests may override the call to the repo
-    whenever(prisonerIncentiveLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(any()))
+    whenever(incentiveReviewRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(any()))
       .thenReturn(emptyFlow())
 
     whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
@@ -186,7 +186,7 @@ class IncentiveReviewReviewServiceTest {
       whenever(nextReviewDateGetterService.get(bookingId)).thenReturn(expectedNextReviewDate)
 
       // Given
-      whenever(prisonerIncentiveLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(bookingId)).thenReturn(
+      whenever(incentiveReviewRepository.findAllByBookingIdOrderByReviewTimeDesc(bookingId)).thenReturn(
         currentAndPreviousLevels,
       )
 
@@ -195,7 +195,7 @@ class IncentiveReviewReviewServiceTest {
         prisonerIncentiveReviewService.getPrisonerIncentiveHistory(bookingId, withDetails = false)
 
       // Then
-      verify(prisonerIncentiveLevelRepository, times(1)).findAllByBookingIdOrderByReviewTimeDesc(bookingId)
+      verify(incentiveReviewRepository, times(1)).findAllByBookingIdOrderByReviewTimeDesc(bookingId)
       assertThat(result.incentiveReviewDetails.size).isZero
       assertThat(result.nextReviewDate).isEqualTo(expectedNextReviewDate)
     }
@@ -352,7 +352,7 @@ class IncentiveReviewReviewServiceTest {
       prisonerIncentiveReviewService.processOffenderEvent(prisonOffenderEvent(reason))
 
       // Then
-      verifyNoInteractions(prisonerIncentiveLevelRepository)
+      verifyNoInteractions(incentiveReviewRepository)
     }
 
     @Test
@@ -401,14 +401,14 @@ class IncentiveReviewReviewServiceTest {
         reviewTime = LocalDateTime.now().minusDays(200),
       )
 
-      whenever(prisonerIncentiveLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDesc("A8765SS"))
+      whenever(incentiveReviewRepository.findAllByPrisonerNumberOrderByReviewTimeDesc("A8765SS"))
         .thenReturn(
           flowOf(
             newReview,
           ),
         )
 
-      whenever(prisonerIncentiveLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDesc("A1244AB"))
+      whenever(incentiveReviewRepository.findAllByPrisonerNumberOrderByReviewTimeDesc("A1244AB"))
         .thenReturn(
           flowOf(
             oldReview2,
@@ -452,7 +452,7 @@ class IncentiveReviewReviewServiceTest {
       prisonerIncentiveReviewService.processOffenderEvent(prisonOffenderEvent)
 
       // Then
-      verifyNoInteractions(prisonerIncentiveLevelRepository)
+      verifyNoInteractions(incentiveReviewRepository)
     }
   }
 
@@ -499,10 +499,10 @@ class IncentiveReviewReviewServiceTest {
     @BeforeEach
     fun setUp(): Unit = runBlocking {
       // Mock find query
-      whenever(prisonerIncentiveLevelRepository.findById(id)).thenReturn(incentiveRecord)
+      whenever(incentiveReviewRepository.findById(id)).thenReturn(incentiveRecord)
 
       // Mock IncentiveReview being updated
-      whenever(prisonerIncentiveLevelRepository.delete(incentiveRecord)).thenReturn(Unit)
+      whenever(incentiveReviewRepository.delete(incentiveRecord)).thenReturn(Unit)
 
       whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
     }
@@ -557,10 +557,10 @@ class IncentiveReviewReviewServiceTest {
         val olderIepReview = incentiveRecord.copy(id = currentIepReview.id - 1, current = false)
 
         // Mock find query
-        whenever(prisonerIncentiveLevelRepository.findById(id)).thenReturn(currentIepReview)
+        whenever(incentiveReviewRepository.findById(id)).thenReturn(currentIepReview)
 
         // Mock find of the latest IEP review
-        whenever(prisonerIncentiveLevelRepository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId))
+        whenever(incentiveReviewRepository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId))
           .thenReturn(olderIepReview)
 
         // When
@@ -579,10 +579,10 @@ class IncentiveReviewReviewServiceTest {
         val olderIepReview = incentiveRecord.copy(id = currentIepReview.id - 1, current = false)
 
         // Mock find query
-        whenever(prisonerIncentiveLevelRepository.findById(id)).thenReturn(currentIepReview)
+        whenever(incentiveReviewRepository.findById(id)).thenReturn(currentIepReview)
 
         // Mock find of the latest IEP review
-        whenever(prisonerIncentiveLevelRepository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId))
+        whenever(incentiveReviewRepository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId))
           .thenReturn(olderIepReview)
 
         // When
@@ -643,7 +643,7 @@ class IncentiveReviewReviewServiceTest {
     @BeforeEach
     fun setUp(): Unit = runBlocking {
       // Mock find query
-      whenever(prisonerIncentiveLevelRepository.findById(id)).thenReturn(incentiveRecord)
+      whenever(incentiveReviewRepository.findById(id)).thenReturn(incentiveRecord)
 
       // Mock IncentiveReview being updated
       whenever(incentiveStoreService.updateIncentiveRecord(update, incentiveRecord))

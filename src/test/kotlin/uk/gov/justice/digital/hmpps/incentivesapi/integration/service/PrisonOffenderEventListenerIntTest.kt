@@ -18,7 +18,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.NextReviewDateRepository
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIncentiveLevelRepository
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.service.AdditionalInformation
 import uk.gov.justice.digital.hmpps.incentivesapi.service.HMPPSDomainEvent
 import java.time.Duration
@@ -30,7 +30,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     get() = await.atMost(Duration.ofSeconds(30))
 
   @Autowired
-  private lateinit var prisonerIncentiveLevelRepository: PrisonerIncentiveLevelRepository
+  private lateinit var incentiveReviewRepository: IncentiveReviewRepository
 
   @Autowired
   private lateinit var nextReviewDateRepository: NextReviewDateRepository
@@ -38,14 +38,14 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
   @BeforeEach
   fun setUp(): Unit = runBlocking {
     prisonApiMockServer.resetRequests()
-    prisonerIncentiveLevelRepository.deleteAll()
+    incentiveReviewRepository.deleteAll()
     nextReviewDateRepository.deleteAll()
   }
 
   @AfterEach
   fun tearDown(): Unit = runBlocking {
     prisonApiMockServer.resetRequests()
-    prisonerIncentiveLevelRepository.deleteAll()
+    incentiveReviewRepository.deleteAll()
     nextReviewDateRepository.deleteAll()
   }
 
@@ -60,7 +60,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     prisonApiMockServer.stubGetLocationById(locationId = locationId, locationDesc = "1-2-003")
     prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
 
-    val reviewsCount = prisonerIncentiveLevelRepository.count()
+    val reviewsCount = incentiveReviewRepository.count()
 
     // When
     publishPrisonerReceivedMessage(reason)
@@ -68,7 +68,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     awaitAtMost30Secs untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
     awaitAtMost30Secs untilCallTo {
       runBlocking {
-        prisonerIncentiveLevelRepository.count() > reviewsCount
+        incentiveReviewRepository.count() > reviewsCount
       }
     } matches { it == true }
     awaitAtMost30Secs untilCallTo { prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber") } matches { it == 1 }
@@ -77,7 +77,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     // Then
     awaitAtMost30Secs untilCallTo {
       runBlocking {
-        val booking = prisonerIncentiveLevelRepository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId)
+        val booking = incentiveReviewRepository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId)
         assertThat(booking?.reviewType).isEqualTo(ReviewType.INITIAL)
       }
     }
@@ -102,7 +102,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     // Then
     awaitAtMost30Secs untilCallTo {
       runBlocking {
-        val booking = prisonerIncentiveLevelRepository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId)
+        val booking = incentiveReviewRepository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId)
         assertThat(booking?.reviewType).isEqualTo(ReviewType.TRANSFER)
       }
     }
@@ -119,7 +119,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
 
     prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
 
-    prisonerIncentiveLevelRepository.save(
+    incentiveReviewRepository.save(
       IncentiveReview(
         bookingId = bookingId,
         prisonerNumber = removedNomsNumber,
@@ -131,7 +131,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
         reviewTime = LocalDateTime.now().minusDays(2),
       ),
     )
-    prisonerIncentiveLevelRepository.save(
+    incentiveReviewRepository.save(
       IncentiveReview(
         bookingId = oldBookingId,
         prisonerNumber = prisonerNumber,
@@ -143,7 +143,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
         reviewTime = LocalDateTime.now().minusDays(50),
       ),
     )
-    prisonerIncentiveLevelRepository.save(
+    incentiveReviewRepository.save(
       IncentiveReview(
         bookingId = oldBookingId,
         prisonerNumber = prisonerNumber,
@@ -176,7 +176,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     // Prisoner was not suitable to return to Standard level
     val lastReviewTime = LocalDateTime.now()
     // Second review after 7 days, still on Basic
-    prisonerIncentiveLevelRepository.save(
+    incentiveReviewRepository.save(
       IncentiveReview(
         bookingId = bookingId,
         prisonerNumber = prisonerNumber,
@@ -190,7 +190,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
       ),
     )
     // First review
-    prisonerIncentiveLevelRepository.save(
+    incentiveReviewRepository.save(
       IncentiveReview(
         bookingId = bookingId,
         prisonerNumber = prisonerNumber,

@@ -14,7 +14,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIncentiveLevelRepository
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.util.flow.toMap
 import uk.gov.justice.digital.hmpps.incentivesapi.util.paginateWith
 import java.time.Clock
@@ -27,7 +27,7 @@ class IncentiveReviewsService(
   private val offenderSearchService: OffenderSearchService,
   private val prisonApiService: PrisonApiService,
   private val prisonIncentiveLevelService: PrisonIncentiveLevelAuditedService,
-  private val prisonerIncentiveLevelRepository: PrisonerIncentiveLevelRepository,
+  private val incentiveReviewRepository: IncentiveReviewRepository,
   private val nextReviewDateGetterService: NextReviewDateGetterService,
   private val behaviourService: BehaviourService,
   private val clock: Clock,
@@ -66,7 +66,7 @@ class IncentiveReviewsService(
     val bookingIds = offenders.map(OffenderSearchPrisoner::bookingId)
 
     val deferredBehaviourCaseNotesSinceLastReview = async {
-      val reviews = prisonerIncentiveLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds = bookingIds)
+      val reviews = incentiveReviewRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds = bookingIds)
       behaviourService.getBehaviours(reviews.toList())
     }
     val deferredIncentiveLevels = async { getIncentiveLevelsForOffenders(bookingIds) }
@@ -147,7 +147,7 @@ class IncentiveReviewsService(
   }
 
   private suspend fun getIncentiveLevelsForOffenders(bookingIds: List<Long>): Map<Long, IncentiveReview> =
-    prisonerIncentiveLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(bookingIds)
+    incentiveReviewRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(bookingIds)
       .toMap(IncentiveReview::bookingId)
 }
 

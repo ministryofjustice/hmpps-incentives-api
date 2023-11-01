@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 
 @Repository
-interface PrisonerIncentiveLevelRepository : CoroutineCrudRepository<IncentiveReview, Long> {
+interface IncentiveReviewRepository : CoroutineCrudRepository<IncentiveReview, Long> {
   fun findAllByPrisonerNumberOrderByReviewTimeDesc(prisonerNumber: String): Flow<IncentiveReview>
   fun findAllByBookingIdOrderByReviewTimeDesc(bookingId: Long): Flow<IncentiveReview>
   fun findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(bookingIds: List<Long>): Flow<IncentiveReview>
