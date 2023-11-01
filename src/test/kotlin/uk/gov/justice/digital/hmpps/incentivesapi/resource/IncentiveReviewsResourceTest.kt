@@ -20,7 +20,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.NextReviewDateR
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveReviewSort
 import java.time.LocalDateTime
 
-class IncentiveLevelReviewsResourceTest : IncentiveLevelResourceTestBase() {
+class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
   @Autowired
   private lateinit var incentiveReviewRepository: IncentiveReviewRepository
 

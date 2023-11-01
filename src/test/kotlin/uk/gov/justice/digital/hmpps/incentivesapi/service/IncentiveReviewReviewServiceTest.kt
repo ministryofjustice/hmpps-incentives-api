@@ -75,7 +75,7 @@ class IncentiveReviewReviewServiceTest {
   }
 
   @Nested
-  inner class AddCreateIncentiveLevelReviewRequest {
+  inner class AddCreateIncentiveReviewRequest {
 
     private val bookingId = 1234567L
     private val prisonerNumber = "A1234BC"

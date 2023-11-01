@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import java.time.LocalDate
 
 @Schema(description = "Incentive review information for a prisoner")
-data class IncentiveLevelReview(
+data class IncentiveReview(
   @Schema(description = "Prisoner number", example = "A1234BC")
   val prisonerNumber: String,
   @Schema(description = "Internal reference for a period in prison", example = "1234567")
@@ -55,7 +55,7 @@ data class IncentiveReviewResponse(
   val levels: List<IncentiveReviewLevel>,
 
   @Schema(description = "Prisoner incentive reviews")
-  val reviews: List<IncentiveLevelReview>,
+  val reviews: List<IncentiveReview>,
 
   @Schema(description = "Description of given location", example = "Houseblock 1")
   val locationDescription: String,

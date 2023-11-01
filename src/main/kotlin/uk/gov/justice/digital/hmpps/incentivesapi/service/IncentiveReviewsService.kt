@@ -9,7 +9,6 @@ import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClientResponseException.NotFound
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ListOfDataNotFoundException
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevelReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
@@ -21,6 +20,7 @@ import java.time.Clock
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.Comparator
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReview as IncentiveReviewDTO
 
 @Service
 class IncentiveReviewsService(
@@ -88,7 +88,7 @@ class IncentiveReviewsService(
 
     val allReviews = offenders
       .map {
-        IncentiveLevelReview(
+        IncentiveReviewDTO(
           prisonerNumber = it.prisonerNumber,
           bookingId = it.bookingId,
           firstName = WordUtils.capitalizeFully(it.firstName),
@@ -154,21 +154,21 @@ class IncentiveReviewsService(
 @Suppress("unused") // not all enum variants are referred to in code
 enum class IncentiveReviewSort(
   val field: String,
-  private val selector: (IncentiveLevelReview) -> Comparable<*>,
+  private val selector: (IncentiveReviewDTO) -> Comparable<*>,
   private val defaultOrder: Sort.Direction,
 ) {
-  NEXT_REVIEW_DATE("nextReviewDate", IncentiveLevelReview::nextReviewDate, Sort.Direction.ASC),
+  NEXT_REVIEW_DATE("nextReviewDate", IncentiveReviewDTO::nextReviewDate, Sort.Direction.ASC),
   DAYS_SINCE_LAST_REVIEW("daysSinceLastReview", { it.daysSinceLastReview ?: Int.MAX_VALUE }, Sort.Direction.DESC),
-  FIRST_NAME("firstName", IncentiveLevelReview::firstName, Sort.Direction.ASC),
-  LAST_NAME("lastName", IncentiveLevelReview::lastName, Sort.Direction.ASC),
-  PRISONER_NUMBER("prisonerNumber", IncentiveLevelReview::prisonerNumber, Sort.Direction.ASC),
-  POSITIVE_BEHAVIOURS("positiveBehaviours", IncentiveLevelReview::positiveBehaviours, Sort.Direction.DESC),
-  NEGATIVE_BEHAVIOURS("negativeBehaviours", IncentiveLevelReview::negativeBehaviours, Sort.Direction.DESC),
-  HAS_ACCT_OPEN("hasAcctOpen", IncentiveLevelReview::hasAcctOpen, Sort.Direction.DESC),
-  IS_NEW_TO_PRISON("isNewToPrison", IncentiveLevelReview::isNewToPrison, Sort.Direction.DESC),
+  FIRST_NAME("firstName", IncentiveReviewDTO::firstName, Sort.Direction.ASC),
+  LAST_NAME("lastName", IncentiveReviewDTO::lastName, Sort.Direction.ASC),
+  PRISONER_NUMBER("prisonerNumber", IncentiveReviewDTO::prisonerNumber, Sort.Direction.ASC),
+  POSITIVE_BEHAVIOURS("positiveBehaviours", IncentiveReviewDTO::positiveBehaviours, Sort.Direction.DESC),
+  NEGATIVE_BEHAVIOURS("negativeBehaviours", IncentiveReviewDTO::negativeBehaviours, Sort.Direction.DESC),
+  HAS_ACCT_OPEN("hasAcctOpen", IncentiveReviewDTO::hasAcctOpen, Sort.Direction.DESC),
+  IS_NEW_TO_PRISON("isNewToPrison", IncentiveReviewDTO::isNewToPrison, Sort.Direction.DESC),
   ;
 
-  infix fun comparingIn(order: Sort.Direction?): Comparator<IncentiveLevelReview> =
+  infix fun comparingIn(order: Sort.Direction?): Comparator<IncentiveReviewDTO> =
     if ((order ?: defaultOrder).isDescending) {
       compareBy(selector).reversed()
     } else {

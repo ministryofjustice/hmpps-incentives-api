@@ -18,7 +18,6 @@ import org.mockito.kotlin.whenever
 import org.mockito.stubbing.OngoingStubbing
 import org.springframework.data.domain.Sort
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ListOfDataNotFoundException
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevelReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
@@ -30,8 +29,9 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReview as IncentiveReviewDTO
 
-class IncentiveLevelReviewsServiceTest {
+class IncentiveReviewsServiceTest {
   private val prisonApiService: PrisonApiService = mock()
   private val prisonIncentiveLevelService: PrisonIncentiveLevelAuditedService = mock()
   private val offenderSearchService: OffenderSearchService = mock()
@@ -159,7 +159,7 @@ class IncentiveLevelReviewsServiceTest {
     assertThat(reviewCount).isEqualTo(2)
     assertThat(reviews.reviews).isEqualTo(
       listOf(
-        IncentiveLevelReview(
+        IncentiveReviewDTO(
           prisonerNumber = "A1409AE",
           bookingId = 110001,
           firstName = "James",
@@ -172,7 +172,7 @@ class IncentiveLevelReviewsServiceTest {
           nextReviewDate = nextReviewDatesMap[110001L]!!,
           daysSinceLastReview = null,
         ),
-        IncentiveLevelReview(
+        IncentiveReviewDTO(
           prisonerNumber = "G6123VU",
           bookingId = 110002,
           firstName = "Rhys",
@@ -226,7 +226,7 @@ class IncentiveLevelReviewsServiceTest {
     // Then
     assertThat(reviews.reviews).isEqualTo(
       listOf(
-        IncentiveLevelReview(
+        IncentiveReviewDTO(
           prisonerNumber = prisonerNumber,
           bookingId = 110002,
           firstName = "Rhys",
@@ -260,7 +260,7 @@ class IncentiveLevelReviewsServiceTest {
     // Then
     assertThat(reviews.reviews).isEqualTo(
       listOf(
-        IncentiveLevelReview(
+        IncentiveReviewDTO(
           prisonerNumber = prisonerNumber,
           bookingId = 110002,
           firstName = "Rhys",
@@ -321,7 +321,7 @@ class IncentiveLevelReviewsServiceTest {
     assertThat(reviewCount).isEqualTo(2)
     assertThat(reviews.reviews).isEqualTo(
       listOf(
-        IncentiveLevelReview(
+        IncentiveReviewDTO(
           prisonerNumber = "A1409AE",
           bookingId = 110001,
           firstName = "Rhys",
@@ -334,7 +334,7 @@ class IncentiveLevelReviewsServiceTest {
           nextReviewDate = someFutureNextReviewDate,
           daysSinceLastReview = null,
         ),
-        IncentiveLevelReview(
+        IncentiveReviewDTO(
           prisonerNumber = "G6123VX",
           bookingId = 110003,
           firstName = "Rhys",
@@ -376,7 +376,7 @@ class IncentiveLevelReviewsServiceTest {
       // Then
       assertThat(reviews.reviews).isEqualTo(
         listOf(
-          IncentiveLevelReview(
+          IncentiveReviewDTO(
             prisonerNumber = "G6123VU",
             bookingId = 110002,
             firstName = "Rhys",
@@ -389,7 +389,7 @@ class IncentiveLevelReviewsServiceTest {
             nextReviewDate = nextReviewDatesMap[110002L]!!,
             daysSinceLastReview = null,
           ),
-          IncentiveLevelReview(
+          IncentiveReviewDTO(
             prisonerNumber = "A1409AE",
             bookingId = 110001,
             firstName = "Rhys",
@@ -421,7 +421,7 @@ class IncentiveLevelReviewsServiceTest {
       val reviews = incentiveReviewsService.reviews("MDI", "MDI-2-1", "STD", order = Sort.Direction.DESC)
 
       // Then
-      assertThat(reviews.reviews).isSortedAccordingTo(compareByDescending(IncentiveLevelReview::nextReviewDate))
+      assertThat(reviews.reviews).isSortedAccordingTo(compareByDescending(IncentiveReviewDTO::nextReviewDate))
     }
 
     @Test
@@ -445,7 +445,7 @@ class IncentiveLevelReviewsServiceTest {
       )
 
       // Then
-      assertThat(reviews.reviews).isSortedAccordingTo(compareByDescending(IncentiveLevelReview::prisonerNumber))
+      assertThat(reviews.reviews).isSortedAccordingTo(compareByDescending(IncentiveReviewDTO::prisonerNumber))
     }
   }
 
