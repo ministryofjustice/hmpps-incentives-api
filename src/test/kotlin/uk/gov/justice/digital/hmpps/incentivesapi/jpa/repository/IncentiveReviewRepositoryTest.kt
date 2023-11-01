@@ -17,19 +17,19 @@ import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.incentivesapi.helper.TestBase
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIncentiveLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import java.time.LocalDateTime
 
 @DataR2dbcTest
 @ActiveProfiles("test")
 @WithMockUser
-class PrisonerIncentiveLevelRepositoryTest : TestBase() {
+class IncentiveReviewRepositoryTest : TestBase() {
   @Autowired
-  lateinit var repository: PrisonerIncentiveLevelRepository
+  lateinit var repository: IncentiveReviewRepository
 
-  private fun entity(bookingId: Long, current: Boolean): PrisonerIncentiveLevel =
-    PrisonerIncentiveLevel(
-      iepCode = "BAS",
+  private fun entity(bookingId: Long, current: Boolean): IncentiveReview =
+    IncentiveReview(
+      levelCode = "BAS",
       prisonId = "LEI",
       locationId = "LEI-1-1-001",
       bookingId = bookingId,
@@ -54,8 +54,8 @@ class PrisonerIncentiveLevelRepositoryTest : TestBase() {
     val bookingId = 1234567L
 
     repository.save(
-      PrisonerIncentiveLevel(
-        iepCode = "BAS",
+      IncentiveReview(
+        levelCode = "BAS",
         prisonId = "LEI",
         locationId = "LEI-1-1-001",
         bookingId = bookingId,
@@ -67,8 +67,8 @@ class PrisonerIncentiveLevelRepositoryTest : TestBase() {
     )
 
     repository.save(
-      PrisonerIncentiveLevel(
-        iepCode = "STD",
+      IncentiveReview(
+        levelCode = "STD",
         prisonId = "MDI",
         locationId = "MDI-1-1-004",
         bookingId = bookingId,
@@ -83,7 +83,7 @@ class PrisonerIncentiveLevelRepositoryTest : TestBase() {
       launch {
         val prisonerLevelCurrent = repository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(listOf(bookingId)).first()
         with(prisonerLevelCurrent) {
-          assertThat(iepCode).isEqualTo("STD")
+          assertThat(levelCode).isEqualTo("STD")
           assertThat(prisonId).isEqualTo("MDI")
           assertThat(current).isEqualTo(true)
           assertThat(reviewedBy).isEqualTo("TEST_STAFF1")
@@ -93,7 +93,7 @@ class PrisonerIncentiveLevelRepositoryTest : TestBase() {
       launch {
         val prisonerLevelFirst = repository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId)
         with(prisonerLevelFirst!!) {
-          assertThat(iepCode).isEqualTo("STD")
+          assertThat(levelCode).isEqualTo("STD")
           assertThat(prisonId).isEqualTo("MDI")
           assertThat(current).isEqualTo(true)
           assertThat(reviewedBy).isEqualTo("TEST_STAFF1")
@@ -171,8 +171,8 @@ class PrisonerIncentiveLevelRepositoryTest : TestBase() {
   @Test
   fun `checks if there are prisoners on a level`(): Unit = runBlocking {
     repository.save(
-      PrisonerIncentiveLevel(
-        iepCode = "BAS",
+      IncentiveReview(
+        levelCode = "BAS",
         prisonId = "LEI",
         locationId = "LEI-1-1-001",
         bookingId = 123456,
@@ -183,8 +183,8 @@ class PrisonerIncentiveLevelRepositoryTest : TestBase() {
       ),
     )
     repository.save(
-      PrisonerIncentiveLevel(
-        iepCode = "STD",
+      IncentiveReview(
+        levelCode = "STD",
         prisonId = "LEI",
         locationId = "LEI-1-1-002",
         bookingId = 123456,
@@ -207,8 +207,8 @@ class PrisonerIncentiveLevelRepositoryTest : TestBase() {
     assertThat(repository.somePrisonerCurrentlyOnLevel(listOf(123400, 123456), "BAS")).isTrue
 
     repository.save(
-      PrisonerIncentiveLevel(
-        iepCode = "BAS",
+      IncentiveReview(
+        levelCode = "BAS",
         prisonId = "LEI",
         locationId = "LEI-1-1-001",
         bookingId = 123400,

@@ -5,6 +5,7 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.ReadOnlyProperty
 import org.springframework.data.annotation.Transient
 import org.springframework.data.domain.Persistable
+import org.springframework.data.relational.core.mapping.Column
 import org.springframework.data.relational.core.mapping.Table
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IsRealReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
@@ -12,7 +13,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 @Table("prisoner_iep_level")
-data class PrisonerIncentiveLevel(
+data class IncentiveReview(
   @Id
   val id: Long = 0,
 
@@ -22,7 +23,8 @@ data class PrisonerIncentiveLevel(
   val locationId: String? = null,
   val reviewTime: LocalDateTime,
   val reviewedBy: String? = null,
-  val iepCode: String,
+  @Column("iep_code")
+  val levelCode: String,
   val commentText: String? = null,
   val current: Boolean = true,
   override val reviewType: ReviewType = ReviewType.REVIEW,

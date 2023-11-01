@@ -25,8 +25,8 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Location
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIncentiveLevel
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIncentiveLevelRepository
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDateTime
@@ -36,7 +36,7 @@ import java.time.format.DateTimeFormatter
 class PrisonerIncentiveReviewServiceTest {
 
   private val prisonApiService: PrisonApiService = mock()
-  private val prisonerIncentiveLevelRepository: PrisonerIncentiveLevelRepository = mock()
+  private val incentiveReviewRepository: IncentiveReviewRepository = mock()
   private val authenticationFacade: AuthenticationFacade = mock()
   private val clock: Clock = Clock.fixed(Instant.parse("2022-08-01T12:45:00.00Z"), ZoneId.of("Europe/London"))
   private val snsService: SnsService = mock()
@@ -51,7 +51,7 @@ class PrisonerIncentiveReviewServiceTest {
 
   private val prisonerIncentiveReviewService = PrisonerIncentiveReviewService(
     prisonApiService,
-    prisonerIncentiveLevelRepository,
+    incentiveReviewRepository,
     incentiveLevelService,
     prisonIncentiveLevelService,
     nearestPrisonIncentiveLevelService,
@@ -68,7 +68,7 @@ class PrisonerIncentiveReviewServiceTest {
   fun setUp(): Unit = runBlocking {
     // Fixes tests which do not explicitly mock findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc
     // while other tests may override the call to the repo
-    whenever(prisonerIncentiveLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(any()))
+    whenever(incentiveReviewRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(any()))
       .thenReturn(emptyFlow())
 
     whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
@@ -90,8 +90,8 @@ class PrisonerIncentiveReviewServiceTest {
       comment = "A review took place",
       reviewType = ReviewType.REVIEW,
     )
-    private val prisonerIncentiveLevel = PrisonerIncentiveLevel(
-      iepCode = createIncentiveReviewRequest.iepLevel,
+    private val incentiveReview = IncentiveReview(
+      levelCode = createIncentiveReviewRequest.iepLevel,
       commentText = createIncentiveReviewRequest.comment,
       reviewType = createIncentiveReviewRequest.reviewType!!,
       prisonId = prisonerInfo.agencyId,
@@ -107,7 +107,7 @@ class PrisonerIncentiveReviewServiceTest {
     fun setUp(): Unit = runBlocking {
       whenever(prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId)).thenReturn(location)
       whenever(authenticationFacade.getUsername()).thenReturn(reviewerUserName)
-      whenever(incentiveStoreService.saveIncentiveReview(any())).thenReturn(prisonerIncentiveLevel.copy(id = 42))
+      whenever(incentiveStoreService.saveIncentiveReview(any())).thenReturn(incentiveReview.copy(id = 42))
       whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
     }
 
@@ -135,7 +135,7 @@ class PrisonerIncentiveReviewServiceTest {
 
     private suspend fun testAddIepReviewCommonFunctionality() {
       // IEP review is saved
-      verify(incentiveStoreService, times(1)).saveIncentiveReview(prisonerIncentiveLevel)
+      verify(incentiveStoreService, times(1)).saveIncentiveReview(incentiveReview)
 
       // A domain even is published
       verify(snsService, times(1)).publishDomainEvent(
@@ -153,7 +153,7 @@ class PrisonerIncentiveReviewServiceTest {
         AuditType.IEP_REVIEW_ADDED,
         "42",
         iepDetailFromIepLevel(
-          prisonerIncentiveLevel,
+          incentiveReview,
           iepCode = "ENH",
           iepDescription = "Enhanced",
           id = 42,
@@ -175,7 +175,7 @@ class PrisonerIncentiveReviewServiceTest {
   }
 
   @Nested
-  inner class GetPrisonerIncentiveLevelHistory {
+  inner class GetIncentiveReviewHistory {
 
     @Test
     fun `will not return iep details if withDetails is false`(): Unit = runBlocking {
@@ -186,7 +186,7 @@ class PrisonerIncentiveReviewServiceTest {
       whenever(nextReviewDateGetterService.get(bookingId)).thenReturn(expectedNextReviewDate)
 
       // Given
-      whenever(prisonerIncentiveLevelRepository.findAllByBookingIdOrderByReviewTimeDesc(bookingId)).thenReturn(
+      whenever(incentiveReviewRepository.findAllByBookingIdOrderByReviewTimeDesc(bookingId)).thenReturn(
         currentAndPreviousLevels,
       )
 
@@ -195,7 +195,7 @@ class PrisonerIncentiveReviewServiceTest {
         prisonerIncentiveReviewService.getPrisonerIncentiveHistory(bookingId, withDetails = false)
 
       // Then
-      verify(prisonerIncentiveLevelRepository, times(1)).findAllByBookingIdOrderByReviewTimeDesc(bookingId)
+      verify(incentiveReviewRepository, times(1)).findAllByBookingIdOrderByReviewTimeDesc(bookingId)
       assertThat(result.incentiveReviewDetails.size).isZero
       assertThat(result.nextReviewDate).isEqualTo(expectedNextReviewDate)
     }
@@ -205,7 +205,7 @@ class PrisonerIncentiveReviewServiceTest {
   inner class ProcessReceivedPrisoner {
     @BeforeEach
     fun setUp(): Unit = runBlocking {
-      // This ensures save works and an id is set on the PrisonerIncentiveLevel
+      // This ensures save works and an id is set on the IncentiveReview
       whenever(incentiveStoreService.saveIncentiveReview(any())).thenAnswer { i -> i.arguments[0] }
       whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
     }
@@ -261,8 +261,8 @@ class PrisonerIncentiveReviewServiceTest {
       prisonerIncentiveReviewService.processOffenderEvent(prisonOffenderEvent)
 
       // Then
-      val expectedPrisonerIncentiveLevel = PrisonerIncentiveLevel(
-        iepCode = "ENH",
+      val expectedIncentiveReview = IncentiveReview(
+        levelCode = "ENH",
         commentText = "Default level assigned on arrival",
         bookingId = prisonerAtLocation().bookingId,
         prisonId = location.agencyId,
@@ -274,12 +274,12 @@ class PrisonerIncentiveReviewServiceTest {
         prisonerNumber = prisonerAtLocation().offenderNo,
       )
 
-      verify(incentiveStoreService, times(1)).saveIncentiveReview(expectedPrisonerIncentiveLevel)
+      verify(incentiveStoreService, times(1)).saveIncentiveReview(expectedIncentiveReview)
 
       verify(snsService, times(1)).publishDomainEvent(
         eventType = IncentivesDomainEventType.IEP_REVIEW_INSERTED,
         description = "An IEP review has been added",
-        occurredAt = expectedPrisonerIncentiveLevel.reviewTime,
+        occurredAt = expectedIncentiveReview.reviewTime,
         additionalInformation = AdditionalInformation(
           id = 0,
           nomsNumber = prisonerAtLocation().offenderNo,
@@ -289,8 +289,8 @@ class PrisonerIncentiveReviewServiceTest {
         .sendMessage(
           AuditType.IEP_REVIEW_ADDED,
           "0",
-          iepDetailFromIepLevel(expectedPrisonerIncentiveLevel, "Enhanced", "ENH"),
-          expectedPrisonerIncentiveLevel.reviewedBy,
+          iepDetailFromIepLevel(expectedIncentiveReview, "Enhanced", "ENH"),
+          expectedIncentiveReview.reviewedBy,
         )
     }
 
@@ -352,7 +352,7 @@ class PrisonerIncentiveReviewServiceTest {
       prisonerIncentiveReviewService.processOffenderEvent(prisonOffenderEvent(reason))
 
       // Then
-      verifyNoInteractions(prisonerIncentiveLevelRepository)
+      verifyNoInteractions(incentiveReviewRepository)
     }
 
     @Test
@@ -366,49 +366,49 @@ class PrisonerIncentiveReviewServiceTest {
       whenever(prisonApiService.getPrisonerInfo("A1244AB", true))
         .thenReturn(prisonerAtLocation)
 
-      val newReview = PrisonerIncentiveLevel(
+      val newReview = IncentiveReview(
         id = 1L,
         prisonerNumber = "A8765SS",
         bookingId = 1234567L,
         prisonId = "LEI",
         locationId = "LEI-1-1-001",
         reviewedBy = "TEST_STAFF1",
-        iepCode = "BAS",
+        levelCode = "BAS",
         current = true,
         reviewTime = LocalDateTime.now().minusDays(2),
       )
-      val oldReview1 = PrisonerIncentiveLevel(
+      val oldReview1 = IncentiveReview(
         id = 3L,
         prisonerNumber = "A1244AB",
         bookingId = 555555L,
         prisonId = "LEI",
         locationId = "LEI-1-1-001",
         reviewedBy = "TEST_STAFF1",
-        iepCode = "STD",
+        levelCode = "STD",
         current = true,
         reviewTime = LocalDateTime.now().minusDays(100),
       )
 
-      val oldReview2 = PrisonerIncentiveLevel(
+      val oldReview2 = IncentiveReview(
         id = 2L,
         prisonerNumber = "A1244AB",
         bookingId = 555555L,
         prisonId = "LEI",
         locationId = "LEI-1-1-001",
         reviewedBy = "TEST_STAFF1",
-        iepCode = "BAS",
+        levelCode = "BAS",
         current = false,
         reviewTime = LocalDateTime.now().minusDays(200),
       )
 
-      whenever(prisonerIncentiveLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDesc("A8765SS"))
+      whenever(incentiveReviewRepository.findAllByPrisonerNumberOrderByReviewTimeDesc("A8765SS"))
         .thenReturn(
           flowOf(
             newReview,
           ),
         )
 
-      whenever(prisonerIncentiveLevelRepository.findAllByPrisonerNumberOrderByReviewTimeDesc("A1244AB"))
+      whenever(incentiveReviewRepository.findAllByPrisonerNumberOrderByReviewTimeDesc("A1244AB"))
         .thenReturn(
           flowOf(
             oldReview2,
@@ -452,7 +452,7 @@ class PrisonerIncentiveReviewServiceTest {
       prisonerIncentiveReviewService.processOffenderEvent(prisonOffenderEvent)
 
       // Then
-      verifyNoInteractions(prisonerIncentiveLevelRepository)
+      verifyNoInteractions(incentiveReviewRepository)
     }
   }
 
@@ -466,9 +466,9 @@ class PrisonerIncentiveReviewServiceTest {
     private val iepLevelDescription = "Enhanced"
     private val reviewTime = LocalDateTime.now().minusDays(10)
 
-    private val incentiveRecord = PrisonerIncentiveLevel(
+    private val incentiveRecord = IncentiveReview(
       id = id,
-      iepCode = iepLevelCode,
+      levelCode = iepLevelCode,
       commentText = "A review took place",
       bookingId = bookingId,
       prisonId = "MDI",
@@ -499,10 +499,10 @@ class PrisonerIncentiveReviewServiceTest {
     @BeforeEach
     fun setUp(): Unit = runBlocking {
       // Mock find query
-      whenever(prisonerIncentiveLevelRepository.findById(id)).thenReturn(incentiveRecord)
+      whenever(incentiveReviewRepository.findById(id)).thenReturn(incentiveRecord)
 
-      // Mock PrisonerIncentiveLevel being updated
-      whenever(prisonerIncentiveLevelRepository.delete(incentiveRecord)).thenReturn(Unit)
+      // Mock IncentiveReview being updated
+      whenever(incentiveReviewRepository.delete(incentiveRecord)).thenReturn(Unit)
 
       whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
     }
@@ -557,10 +557,10 @@ class PrisonerIncentiveReviewServiceTest {
         val olderIepReview = incentiveRecord.copy(id = currentIepReview.id - 1, current = false)
 
         // Mock find query
-        whenever(prisonerIncentiveLevelRepository.findById(id)).thenReturn(currentIepReview)
+        whenever(incentiveReviewRepository.findById(id)).thenReturn(currentIepReview)
 
         // Mock find of the latest IEP review
-        whenever(prisonerIncentiveLevelRepository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId))
+        whenever(incentiveReviewRepository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId))
           .thenReturn(olderIepReview)
 
         // When
@@ -579,10 +579,10 @@ class PrisonerIncentiveReviewServiceTest {
         val olderIepReview = incentiveRecord.copy(id = currentIepReview.id - 1, current = false)
 
         // Mock find query
-        whenever(prisonerIncentiveLevelRepository.findById(id)).thenReturn(currentIepReview)
+        whenever(incentiveReviewRepository.findById(id)).thenReturn(currentIepReview)
 
         // Mock find of the latest IEP review
-        whenever(prisonerIncentiveLevelRepository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId))
+        whenever(incentiveReviewRepository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId))
           .thenReturn(olderIepReview)
 
         // When
@@ -609,9 +609,9 @@ class PrisonerIncentiveReviewServiceTest {
       current = null,
     )
 
-    private val incentiveRecord = PrisonerIncentiveLevel(
+    private val incentiveRecord = IncentiveReview(
       id = id,
-      iepCode = "ENH",
+      levelCode = "ENH",
       commentText = "Existing comment, before patch",
       bookingId = bookingId,
       prisonId = "MDI",
@@ -643,9 +643,9 @@ class PrisonerIncentiveReviewServiceTest {
     @BeforeEach
     fun setUp(): Unit = runBlocking {
       // Mock find query
-      whenever(prisonerIncentiveLevelRepository.findById(id)).thenReturn(incentiveRecord)
+      whenever(incentiveReviewRepository.findById(id)).thenReturn(incentiveRecord)
 
-      // Mock PrisonerIncentiveLevel being updated
+      // Mock IncentiveReview being updated
       whenever(incentiveStoreService.updateIncentiveRecord(update, incentiveRecord))
         .thenReturn(expectedIncentiveRecord)
 
@@ -719,8 +719,8 @@ class PrisonerIncentiveReviewServiceTest {
     }
   }
 
-  private val previousLevel = PrisonerIncentiveLevel(
-    iepCode = "BAS",
+  private val previousLevel = IncentiveReview(
+    levelCode = "BAS",
     prisonId = "LEI",
     locationId = "LEI-1-1-001",
     bookingId = 1234567,
@@ -730,9 +730,9 @@ class PrisonerIncentiveReviewServiceTest {
     prisonerNumber = "A1234AB",
   )
 
-  private val currentLevel = PrisonerIncentiveLevel(
+  private val currentLevel = IncentiveReview(
     id = 1,
-    iepCode = "STD",
+    levelCode = "STD",
     prisonId = "MDI",
     locationId = "MDI-1-1-004",
     bookingId = 1234567,
@@ -791,7 +791,7 @@ class PrisonerIncentiveReviewServiceTest {
   private val location = Location(agencyId = "MDI", locationId = 77777L, description = "Houseblock 1")
 
   private fun iepDetailFromIepLevel(
-    prisonerIncentiveLevel: PrisonerIncentiveLevel,
+    incentiveReview: IncentiveReview,
     iepDescription: String,
     iepCode: String,
     id: Long = 0,
@@ -800,15 +800,15 @@ class PrisonerIncentiveReviewServiceTest {
       id = id,
       iepLevel = iepDescription,
       iepCode = iepCode,
-      comments = prisonerIncentiveLevel.commentText,
-      bookingId = prisonerIncentiveLevel.bookingId,
-      agencyId = prisonerIncentiveLevel.prisonId,
-      locationId = prisonerIncentiveLevel.locationId,
-      userId = prisonerIncentiveLevel.reviewedBy,
-      iepDate = prisonerIncentiveLevel.reviewTime.toLocalDate(),
-      iepTime = prisonerIncentiveLevel.reviewTime,
-      reviewType = prisonerIncentiveLevel.reviewType,
-      prisonerNumber = prisonerIncentiveLevel.prisonerNumber,
+      comments = incentiveReview.commentText,
+      bookingId = incentiveReview.bookingId,
+      agencyId = incentiveReview.prisonId,
+      locationId = incentiveReview.locationId,
+      userId = incentiveReview.reviewedBy,
+      iepDate = incentiveReview.reviewTime.toLocalDate(),
+      iepTime = incentiveReview.reviewTime,
+      reviewType = incentiveReview.reviewType,
+      prisonerNumber = incentiveReview.prisonerNumber,
       auditModuleName = "INCENTIVES_API",
     )
 

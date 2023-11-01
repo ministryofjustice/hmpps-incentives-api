@@ -13,8 +13,8 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIncentiveLevel
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIncentiveLevelRepository
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.util.flow.toMap
 import uk.gov.justice.digital.hmpps.incentivesapi.util.paginateWith
 import java.time.Clock
@@ -27,7 +27,7 @@ class IncentiveReviewsService(
   private val offenderSearchService: OffenderSearchService,
   private val prisonApiService: PrisonApiService,
   private val prisonIncentiveLevelService: PrisonIncentiveLevelAuditedService,
-  private val prisonerIncentiveLevelRepository: PrisonerIncentiveLevelRepository,
+  private val incentiveReviewRepository: IncentiveReviewRepository,
   private val nextReviewDateGetterService: NextReviewDateGetterService,
   private val behaviourService: BehaviourService,
   private val clock: Clock,
@@ -66,7 +66,7 @@ class IncentiveReviewsService(
     val bookingIds = offenders.map(OffenderSearchPrisoner::bookingId)
 
     val deferredBehaviourCaseNotesSinceLastReview = async {
-      val reviews = prisonerIncentiveLevelRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds = bookingIds)
+      val reviews = incentiveReviewRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds = bookingIds)
       behaviourService.getBehaviours(reviews.toList())
     }
     val deferredIncentiveLevels = async { getIncentiveLevelsForOffenders(bookingIds) }
@@ -93,7 +93,7 @@ class IncentiveReviewsService(
           bookingId = it.bookingId,
           firstName = WordUtils.capitalizeFully(it.firstName),
           lastName = WordUtils.capitalizeFully(it.lastName),
-          levelCode = incentiveLevels[it.bookingId]!!.iepCode,
+          levelCode = incentiveLevels[it.bookingId]!!.levelCode,
           positiveBehaviours = behaviourCaseNotesSinceLastReview[BookingTypeKey(it.bookingId, "POS")]?.totalCaseNotes ?: 0,
           negativeBehaviours = behaviourCaseNotesSinceLastReview[BookingTypeKey(it.bookingId, "NEG")]?.totalCaseNotes ?: 0,
           hasAcctOpen = it.hasAcctOpen,
@@ -146,9 +146,9 @@ class IncentiveReviewsService(
     )
   }
 
-  private suspend fun getIncentiveLevelsForOffenders(bookingIds: List<Long>): Map<Long, PrisonerIncentiveLevel> =
-    prisonerIncentiveLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(bookingIds)
-      .toMap(PrisonerIncentiveLevel::bookingId)
+  private suspend fun getIncentiveLevelsForOffenders(bookingIds: List<Long>): Map<Long, uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview> =
+    incentiveReviewRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(bookingIds)
+      .toMap(IncentiveReview::bookingId)
 }
 
 @Suppress("unused") // not all enum variants are referred to in code
