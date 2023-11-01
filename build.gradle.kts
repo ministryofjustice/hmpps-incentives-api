@@ -92,8 +92,8 @@ openApi {
   customBootRun.args.set(listOf("--spring.profiles.active=dev,localstack,docs"))
 }
 
-java {
-  toolchain.languageVersion = JavaLanguageVersion.of(21)
+kotlin {
+  jvmToolchain(21)
 }
 
 tasks {
