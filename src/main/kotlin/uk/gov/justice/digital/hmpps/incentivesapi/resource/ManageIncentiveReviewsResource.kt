@@ -27,14 +27,14 @@ import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 
 @RestController
 @RequestMapping("/incentive-reviews", produces = [MediaType.APPLICATION_JSON_VALUE])
-@PreAuthorize("hasRole('ROLE_READ_INCENTIVES')")
-@Tag(name = "Maintain incentive reviews", description = "Retrieve and add incentive review records. Requires READ_INCENTIVES role")
+@PreAuthorize("hasRole('ROLE_INCENTIVE_REVIEWS') and hasAuthority('SCOPE_read')")
+@Tag(name = "Maintain incentive reviews", description = "Retrieve and add incentive review records. Requires INCENTIVE_REVIEWS role and read scope")
 class ManageIncentiveReviewsResource(
   private val prisonerIncentiveReviewService: PrisonerIncentiveReviewService,
 ) {
   @GetMapping("/booking/{bookingId}")
   @Operation(
-    summary = "Returns a history of incentive reviews for a prisoner",
+    summary = "Returns a history of incentive reviews for a prisoner, Requires INCENTIVE_REVIEWS role and read scope",
     description = "Booking ID is an internal ID for a prisoner in NOMIS",
     responses = [
       ApiResponse(
@@ -70,7 +70,7 @@ class ManageIncentiveReviewsResource(
 
   @GetMapping("/id/{id}")
   @Operation(
-    summary = "Returns a specified Incentive Review",
+    summary = "Returns a specified Incentive Review, Requires INCENTIVE_REVIEWS role and read scope",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -102,7 +102,7 @@ class ManageIncentiveReviewsResource(
 
   @PostMapping("/bookings")
   @Operation(
-    summary = "Returns a history of incentive reviews for a list of prisoners",
+    summary = "Returns a history of incentive reviews for a list of prisoners, Requires INCENTIVE_REVIEWS role and read scope",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -138,7 +138,7 @@ class ManageIncentiveReviewsResource(
 
   @GetMapping("/prisoner/{prisonerNumber}")
   @Operation(
-    summary = "Returns a history of incentive reviews for a prisoner",
+    summary = "Returns a history of incentive reviews for a prisoner, Requires INCENTIVE_REVIEWS role and read scope",
     description = "Prisoner Number is an unique reference for a prisoner in NOMIS",
     responses = [
       ApiResponse(
@@ -170,11 +170,11 @@ class ManageIncentiveReviewsResource(
     prisonerIncentiveReviewService.getPrisonerIncentiveHistory(prisonerNumber)
 
   @PostMapping("/booking/{bookingId}")
-  @PreAuthorize("hasRole('MAINTAIN_IEP') and hasAuthority('SCOPE_write')")
+  @PreAuthorize("hasRole('ROLE_INCENTIVE_REVIEWS') and hasAuthority('SCOPE_write')")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Adds a new incentive review for this specific prisoner by booking Id",
-    description = "Booking ID is an internal ID for a prisoner in NOMIS, requires MAINTAIN_IEP role and write scope",
+    description = "Booking ID is an internal ID for a prisoner in NOMIS, requires INCENTIVE_REVIEWS role and write scope",
     responses = [
       ApiResponse(
         responseCode = "201",
@@ -211,11 +211,11 @@ class ManageIncentiveReviewsResource(
   ): IncentiveReviewDetail = prisonerIncentiveReviewService.addIepReview(bookingId, createIncentiveReviewRequest)
 
   @PostMapping("/prisoner/{prisonerNumber}")
-  @PreAuthorize("hasRole('MAINTAIN_IEP') and hasAuthority('SCOPE_write')")
+  @PreAuthorize("hasRole('ROLE_INCENTIVE_REVIEWS') and hasAuthority('SCOPE_write')")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Adds a new Incentive Review for this specific prisoner by prisoner number",
-    description = "Prisoner Number is an unique reference for a prisoner in NOMIS, requires MAINTAIN_IEP role and write scope",
+    description = "Prisoner Number is an unique reference for a prisoner in NOMIS, requires INCENTIVE_REVIEWS role and write scope",
     responses = [
       ApiResponse(
         responseCode = "201",

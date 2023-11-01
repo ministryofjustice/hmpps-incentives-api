@@ -44,7 +44,7 @@ class ManageIncentiveReviewsResourceTestLevel : IncentiveLevelResourceTestBase()
     val bookingId = 3330000L
 
     webTestClient.post().uri("/incentive-reviews/booking/$bookingId")
-      .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read")))
+      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read")))
       .bodyValue(CreateIncentiveReviewRequest("STD", "A comment"))
       .exchange()
       .expectStatus().isForbidden
@@ -71,7 +71,7 @@ class ManageIncentiveReviewsResourceTestLevel : IncentiveLevelResourceTestBase()
     prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
 
     webTestClient.post().uri("/incentive-reviews/booking/$bookingId")
-      .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
+      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read", "write")))
       .bodyValue(CreateIncentiveReviewRequest("STD", "A comment"))
       .exchange()
       .expectStatus().isCreated
@@ -79,7 +79,7 @@ class ManageIncentiveReviewsResourceTestLevel : IncentiveLevelResourceTestBase()
     val today = now().format(DateTimeFormatter.ISO_DATE)
     val nextReviewDate = now().plusYears(1).format(DateTimeFormatter.ISO_DATE)
     webTestClient.get().uri("/incentive-reviews/booking/$bookingId")
-      .headers(setAuthorisation(roles = listOf("ROLE_READ_INCENTIVES"), scopes = listOf("read")))
+      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read")))
       .exchange()
       .expectStatus().isOk
       .expectBody().json(
@@ -120,13 +120,13 @@ class ManageIncentiveReviewsResourceTestLevel : IncentiveLevelResourceTestBase()
     prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
 
     webTestClient.post().uri("/incentive-reviews/prisoner/$prisonerNumber")
-      .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
+      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read", "write")))
       .bodyValue(CreateIncentiveReviewRequest(iepLevel = "BAS", comment = "Basic Level", reviewType = ReviewType.INITIAL))
       .exchange()
       .expectStatus().isCreated
 
     webTestClient.post().uri("/incentive-reviews/prisoner/$prisonerNumber")
-      .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
+      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read", "write")))
       .bodyValue(CreateIncentiveReviewRequest("ENH", "A different comment"))
       .exchange()
       .expectStatus().isCreated
@@ -134,7 +134,7 @@ class ManageIncentiveReviewsResourceTestLevel : IncentiveLevelResourceTestBase()
     val today = now().format(DateTimeFormatter.ISO_DATE)
     val nextReviewDate = now().plusYears(1).format(DateTimeFormatter.ISO_DATE)
     webTestClient.get().uri("/incentive-reviews/prisoner/$prisonerNumber")
-      .headers(setAuthorisation(roles = listOf("ROLE_READ_INCENTIVES"), scopes = listOf("read")))
+      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read")))
       .exchange()
       .expectStatus().isOk
       .expectBody().json(
@@ -195,13 +195,13 @@ class ManageIncentiveReviewsResourceTestLevel : IncentiveLevelResourceTestBase()
     prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
 
     webTestClient.post().uri("/incentive-reviews/booking/$bookingId")
-      .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
+      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read", "write")))
       .bodyValue(CreateIncentiveReviewRequest("BAS", "Basic Level"))
       .exchange()
       .expectStatus().isCreated
 
     webTestClient.post().uri("/incentive-reviews/booking/$bookingId")
-      .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
+      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read", "write")))
       .bodyValue(CreateIncentiveReviewRequest("STD", "Standard Level"))
       .exchange()
       .expectStatus().isCreated
@@ -218,13 +218,13 @@ class ManageIncentiveReviewsResourceTestLevel : IncentiveLevelResourceTestBase()
     prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId2, prisonerNumber2)
 
     webTestClient.post().uri("/incentive-reviews/booking/$bookingId2")
-      .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
+      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read", "write")))
       .bodyValue(CreateIncentiveReviewRequest("ENH", "Standard Level"))
       .exchange()
       .expectStatus().isCreated
 
     webTestClient.post().uri("/incentive-reviews/bookings")
-      .headers(setAuthorisation(roles = listOf("ROLE_READ_INCENTIVES"), scopes = listOf("read")))
+      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read")))
       .bodyValue(listOf(3330000L, 3330001L))
       .exchange()
       .expectStatus().isOk
