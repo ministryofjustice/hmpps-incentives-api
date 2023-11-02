@@ -11,14 +11,14 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
 import java.time.LocalDate
 
 class CountPrisonersServiceTest {
-  private val prisonerIepLevelRepository: PrisonerIepLevelRepository = mock()
+  private val incentiveReviewRepository: IncentiveReviewRepository = mock()
   private val offenderSearchService: OffenderSearchService = mock()
 
-  private val countPrisonersService = CountPrisonersService(prisonerIepLevelRepository, offenderSearchService)
+  private val countPrisonersService = CountPrisonersService(incentiveReviewRepository, offenderSearchService)
 
   @Test
   fun `finds no prisoners in a prison`(): Unit = runBlocking {
@@ -30,7 +30,7 @@ class CountPrisonersServiceTest {
     ).isFalse()
 
     verify(offenderSearchService, times(1)).findOffendersAtLocation("MDI", "")
-    verify(prisonerIepLevelRepository, times(0)).somePrisonerCurrentlyOnLevel(any(), eq("STD"))
+    verify(incentiveReviewRepository, times(0)).somePrisonerCurrentlyOnLevel(any(), eq("STD"))
   }
 
   @Test
@@ -71,9 +71,9 @@ class CountPrisonersServiceTest {
         ),
       ),
     )
-    whenever(prisonerIepLevelRepository.somePrisonerCurrentlyOnLevel(listOf(110001, 110002), "STD"))
+    whenever(incentiveReviewRepository.somePrisonerCurrentlyOnLevel(listOf(110001, 110002), "STD"))
       .thenReturn(true)
-    whenever(prisonerIepLevelRepository.somePrisonerCurrentlyOnLevel(listOf(110003), "STD"))
+    whenever(incentiveReviewRepository.somePrisonerCurrentlyOnLevel(listOf(110003), "STD"))
       .thenReturn(true)
     // NB: second call is not made because first page already returned true
 
@@ -82,6 +82,6 @@ class CountPrisonersServiceTest {
     ).isTrue
 
     verify(offenderSearchService, times(1)).findOffendersAtLocation("MDI", "")
-    verify(prisonerIepLevelRepository, times(1)).somePrisonerCurrentlyOnLevel(any(), eq("STD"))
+    verify(incentiveReviewRepository, times(1)).somePrisonerCurrentlyOnLevel(any(), eq("STD"))
   }
 }

@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import java.time.LocalDate
 import java.time.Period
 
@@ -10,7 +10,7 @@ data class NextReviewDateInput(
   val hasAcctOpen: Boolean,
   val dateOfBirth: LocalDate,
   val receptionDate: LocalDate,
-  val incentiveRecords: List<PrisonerIepLevel>,
+  val incentiveRecords: List<IncentiveReview>,
 )
 
 class NextReviewDateService(private val input: NextReviewDateInput) {
@@ -70,12 +70,12 @@ class NextReviewDateService(private val input: NextReviewDateInput) {
     return ageOnDate < 18
   }
 
-  private fun lastReview(): PrisonerIepLevel? {
+  private fun lastReview(): IncentiveReview? {
     return reviews().firstOrNull()
   }
 
   private fun isOnBasic(): Boolean {
-    return lastReview()?.iepCode == IncentiveLevel.BasicCode
+    return lastReview()?.levelCode == IncentiveLevel.BasicCode
   }
 
   private fun lastReviewDate(): LocalDate {
@@ -85,7 +85,7 @@ class NextReviewDateService(private val input: NextReviewDateInput) {
   private fun wasConfirmedBasic(): Boolean {
     val reviews = reviews()
 
-    return isOnBasic() && reviews.size >= 2 && reviews[1].iepCode == IncentiveLevel.BasicCode
+    return isOnBasic() && reviews.size >= 2 && reviews[1].levelCode == IncentiveLevel.BasicCode
   }
 
   private fun isNewPrisoner(): Boolean {
@@ -97,7 +97,7 @@ class NextReviewDateService(private val input: NextReviewDateInput) {
     return reviews(includeReadmissions = true).firstOrNull()?.reviewType == ReviewType.READMISSION
   }
 
-  private fun reviews(includeReadmissions: Boolean = false): List<PrisonerIepLevel> {
+  private fun reviews(includeReadmissions: Boolean = false): List<IncentiveReview> {
     return input.incentiveRecords.filter { incentiveRecord ->
       incentiveRecord.isRealReview() ||
         (includeReadmissions && incentiveRecord.reviewType == ReviewType.READMISSION)

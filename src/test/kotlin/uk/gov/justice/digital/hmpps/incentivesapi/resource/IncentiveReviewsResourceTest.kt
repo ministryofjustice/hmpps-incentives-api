@@ -14,15 +14,15 @@ import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.helper.expectErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.IncentiveLevelResourceTestBase
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.NextReviewDateRepository
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.PrisonerIepLevelRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveReviewSort
 import java.time.LocalDateTime
 
 class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
   @Autowired
-  private lateinit var prisonerIepLevelRepository: PrisonerIepLevelRepository
+  private lateinit var incentiveReviewRepository: IncentiveReviewRepository
 
   @Autowired
   private lateinit var nextReviewDateRepository: NextReviewDateRepository
@@ -34,7 +34,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
     offenderSearchMockServer.resetAll()
     prisonApiMockServer.resetAll()
 
-    prisonerIepLevelRepository.deleteAll()
+    incentiveReviewRepository.deleteAll()
     nextReviewDateRepository.deleteAll()
     // Prisoners on Standard and not overdue
     persistPrisonerIepLevel(bookingId = 1234134, prisonerNumber = "A1234AA", iepCode = "STD", iepTime = timeNow.minusDays(2))
@@ -51,13 +51,13 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
     prisonerNumber: String,
     iepCode: String,
     iepTime: LocalDateTime,
-  ) = prisonerIepLevelRepository.save(
-    PrisonerIepLevel(
+  ) = incentiveReviewRepository.save(
+    IncentiveReview(
       bookingId = bookingId,
       prisonerNumber = prisonerNumber,
       reviewTime = iepTime,
       prisonId = "MDI",
-      iepCode = iepCode,
+      levelCode = iepCode,
       reviewType = ReviewType.REVIEW,
       current = true,
       locationId = "1-1-002",
@@ -69,7 +69,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
   @AfterEach
   override fun tearDown(): Unit = runBlocking {
     prisonApiMockServer.resetRequests()
-    prisonerIepLevelRepository.deleteAll()
+    incentiveReviewRepository.deleteAll()
     nextReviewDateRepository.deleteAll()
     super.tearDown()
   }
@@ -350,9 +350,9 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
     if (sort == IncentiveReviewSort.IS_NEW_TO_PRISON) {
       // convert one prisoner to be "new to prison" so that sorting is possible
       var prisonerIepLevel =
-        prisonerIepLevelRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(listOf(1234136)).first()
+        incentiveReviewRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(listOf(1234136)).first()
       prisonerIepLevel = prisonerIepLevel.copy(reviewType = ReviewType.INITIAL)
-      prisonerIepLevelRepository.save(prisonerIepLevel)
+      incentiveReviewRepository.save(prisonerIepLevel)
     }
 
     fun loadReviewsField(sortParam: String, orderParam: String, responseField: String) = webTestClient.get()
@@ -427,7 +427,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
     prisonApiMockServer.stubLocation("MDI-1")
     prisonApiMockServer.stubCaseNoteSummary()
 
-    prisonerIepLevelRepository.deleteAll()
+    incentiveReviewRepository.deleteAll()
 
     webTestClient.get()
       .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD")

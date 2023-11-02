@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class PrisonOffenderEventListener(
-  private val prisonerIepLevelReviewService: PrisonerIepLevelReviewService,
+  private val prisonerIncentiveReviewService: PrisonerIncentiveReviewService,
   private val mapper: ObjectMapper,
 ) {
   companion object {
@@ -28,10 +28,10 @@ class PrisonOffenderEventListener(
     val hmppsDomainEvent = mapper.readValue(message, HMPPSDomainEvent::class.java)
     when (eventType) {
       "prisoner-offender-search.prisoner.received", "prison-offender-events.prisoner.merged" -> {
-        prisonerIepLevelReviewService.processOffenderEvent(hmppsDomainEvent)
+        prisonerIncentiveReviewService.processOffenderEvent(hmppsDomainEvent)
       }
       "prisoner-offender-search.prisoner.alerts-updated" -> {
-        prisonerIepLevelReviewService.processPrisonerAlertsUpdatedEvent(hmppsDomainEvent)
+        prisonerIncentiveReviewService.processPrisonerAlertsUpdatedEvent(hmppsDomainEvent)
       }
       else -> {
         log.debug("Ignoring message with type $eventType")

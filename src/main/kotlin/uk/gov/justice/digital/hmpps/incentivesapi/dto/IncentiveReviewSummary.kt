@@ -12,13 +12,13 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "IEP Review Summary for Prisoner")
-data class IepSummary(
+@Schema(description = "Incentive Review Summary for Prisoner")
+data class IncentiveReviewSummary(
   @Schema(description = "Unique ID for this review (new Incentives data model only)", required = true, example = "12345")
   val id: Long,
-  @Schema(description = "IEP Code", example = "STD", required = true)
+  @Schema(description = "Incentive Level Code", example = "STD", required = true)
   val iepCode: String,
-  @Schema(description = "IEP Level", example = "Standard", required = true)
+  @Schema(description = "Incentive Level", example = "Standard", required = true)
   val iepLevel: String,
   @Schema(description = "Prisoner number (NOMS)", required = true, example = "A1234BC")
   val prisonerNumber: String,
@@ -30,8 +30,9 @@ data class IepSummary(
   val iepTime: LocalDateTime,
   @Schema(description = "Location  of prisoner when review took place within prison (i.e. their cell)", example = "1-2-003", required = false)
   val locationId: String? = null,
-  @Schema(description = "IEP Review History (descending in time)", required = true)
-  var iepDetails: List<IepDetail>,
+  @Schema(description = "Incentive Review History (descending in time)", required = true)
+  @JsonProperty("iepDetails")
+  var incentiveReviewDetails: List<IncentiveReviewDetail>,
   @Schema(description = "Date of next review", example = "2022-12-31", required = true)
   val nextReviewDate: LocalDate,
 ) {
@@ -53,13 +54,13 @@ data class IepSummary(
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Detail IEP review details")
-data class IepDetail(
+@Schema(description = "Detailed incentive review details")
+data class IncentiveReviewDetail(
   @Schema(description = "Unique ID for this review (new Incentives data model only)", required = true, example = "12345")
   val id: Long,
-  @Schema(description = "IEP Level", required = true, example = "Standard")
+  @Schema(description = "Incentive Level", required = true, example = "Standard")
   val iepLevel: String,
-  @Schema(description = "IEP Code", required = true, example = "STD")
+  @Schema(description = "Incentive Level Code", required = true, example = "STD")
   val iepCode: String,
   @Schema(description = "Review comments", required = false, example = "A review took place")
   val comments: String? = null,
@@ -77,26 +78,26 @@ data class IepDetail(
   val locationId: String? = null,
   @Schema(description = "Username of the reviewer", required = true, example = "USER_1_GEN")
   val userId: String?,
-  @Schema(description = "Type of IEP Level change", required = true, example = "REVIEW")
+  @Schema(description = "Type of Incentive Level change", required = true, example = "REVIEW")
   override val reviewType: ReviewType,
   @Schema(description = "Internal audit field holding which system/screen recorded the review", required = true, example = SYSTEM_USERNAME)
   val auditModuleName: String = SYSTEM_USERNAME,
 ) : IsRealReview
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Current IEP Level")
-data class CurrentIepLevel(
+@Schema(description = "Current Incentive Level")
+data class CurrentIncentiveLevel(
   @Schema(description = "Booking ID", required = true, example = "1234567")
   val bookingId: Long,
-  @Schema(description = "IEP Level", required = true, example = "Standard")
+  @Schema(description = "Incentive Level", required = true, example = "Standard")
   val iepLevel: String,
 )
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@Schema(description = "Request to add a new IEP Review")
-data class IepReview(
+@Schema(description = "Request to add a new incentive review")
+data class CreateIncentiveReviewRequest(
   @Schema(
-    description = "IEP Level",
+    description = "Incentive Level",
     required = true,
     allowableValues = ["BAS", "STD", "ENH", "EN2", "EN3"],
     example = "STD",

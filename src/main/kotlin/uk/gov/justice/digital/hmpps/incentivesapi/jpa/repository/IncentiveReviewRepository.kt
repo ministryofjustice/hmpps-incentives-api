@@ -5,15 +5,15 @@ import org.springframework.data.r2dbc.repository.Modifying
 import org.springframework.data.r2dbc.repository.Query
 import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import org.springframework.stereotype.Repository
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonerIepLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 
 @Repository
-interface PrisonerIepLevelRepository : CoroutineCrudRepository<PrisonerIepLevel, Long> {
-  fun findAllByPrisonerNumberOrderByReviewTimeDesc(prisonerNumber: String): Flow<PrisonerIepLevel>
-  fun findAllByBookingIdOrderByReviewTimeDesc(bookingId: Long): Flow<PrisonerIepLevel>
-  fun findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(bookingIds: List<Long>): Flow<PrisonerIepLevel>
-  fun findAllByBookingIdInOrderByReviewTimeDesc(bookingIds: List<Long>): Flow<PrisonerIepLevel>
-  suspend fun findFirstByBookingIdOrderByReviewTimeDesc(bookingId: Long): PrisonerIepLevel?
+interface IncentiveReviewRepository : CoroutineCrudRepository<IncentiveReview, Long> {
+  fun findAllByPrisonerNumberOrderByReviewTimeDesc(prisonerNumber: String): Flow<IncentiveReview>
+  fun findAllByBookingIdOrderByReviewTimeDesc(bookingId: Long): Flow<IncentiveReview>
+  fun findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(bookingIds: List<Long>): Flow<IncentiveReview>
+  fun findAllByBookingIdInOrderByReviewTimeDesc(bookingIds: List<Long>): Flow<IncentiveReview>
+  suspend fun findFirstByBookingIdOrderByReviewTimeDesc(bookingId: Long): IncentiveReview?
 
   @Modifying
   @Query("UPDATE prisoner_iep_level SET current = false WHERE booking_id = :bookingId AND current = true and id != :incentiveId")
