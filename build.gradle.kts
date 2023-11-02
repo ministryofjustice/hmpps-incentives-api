@@ -4,7 +4,7 @@ import uk.gov.justice.digital.hmpps.gradle.PortForwardRedisTask
 import uk.gov.justice.digital.hmpps.gradle.RevealSecretsTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.7.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.8.0"
   id("org.springdoc.openapi-gradle-plugin") version "1.8.0"
   id("jacoco")
   id("org.sonarqube") version "4.4.1.3373"
@@ -92,8 +92,8 @@ openApi {
   customBootRun.args.set(listOf("--spring.profiles.active=dev,localstack,docs"))
 }
 
-java {
-  toolchain.languageVersion = JavaLanguageVersion.of(21)
+kotlin {
+  jvmToolchain(21)
 }
 
 tasks {
