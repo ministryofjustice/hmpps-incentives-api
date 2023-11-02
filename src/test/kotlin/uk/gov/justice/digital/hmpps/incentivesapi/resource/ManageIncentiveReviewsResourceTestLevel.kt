@@ -135,8 +135,8 @@ class ManageIncentiveReviewsResourceTestLevel : IncentiveLevelResourceTestBase()
       .exchange()
       .expectStatus().isCreated
 
-    val previousReviewTime = reviewTime.format(DateTimeFormatter.ISO_DATE)
-    val lastReviewTime = previousTime.format(DateTimeFormatter.ISO_DATE)
+    val previousReviewTime = previousTime.format(DateTimeFormatter.ISO_DATE)
+    val lastReviewTime = reviewTime.format(DateTimeFormatter.ISO_DATE)
     val nextReviewDate = reviewTime.plusYears(1).format(DateTimeFormatter.ISO_DATE)
     webTestClient.get().uri("/incentive-reviews/prisoner/$prisonerNumber")
       .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read")))
