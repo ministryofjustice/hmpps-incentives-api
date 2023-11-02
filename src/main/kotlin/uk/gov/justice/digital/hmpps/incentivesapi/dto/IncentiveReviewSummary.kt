@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.swagger.v3.oas.annotations.media.Schema
+import jakarta.validation.constraints.Size
 import uk.gov.justice.digital.hmpps.incentivesapi.SYSTEM_USERNAME
 import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 import java.time.Clock
@@ -112,6 +113,13 @@ data class CreateIncentiveReviewRequest(
 
   @Schema(description = "Review Type", example = "REVIEW", required = false, defaultValue = "REVIEW")
   val reviewType: ReviewType? = ReviewType.REVIEW,
+
+  @Schema(description = "Date and time of the review, if not provided will default to today's time", required = false, example = "2023-06-07", defaultValue = "now")
+  val reviewTime: LocalDateTime? = null,
+
+  @Schema(description = "The username of the member of staff undertaking the review, if not provided will use the user in the JWT access token", required = false, example = "ASMITH", minLength = 1, maxLength = 30)
+  @field:Size(min = 1, max = 30, message = "Reviewed by must be a maximum of 30 characters")
+  val reviewedBy: String? = null,
 ) {
   init {
     ensure {

@@ -208,7 +208,7 @@ class ManageIncentiveReviewsResource(
     )
     @RequestBody
     createIncentiveReviewRequest: CreateIncentiveReviewRequest,
-  ): IncentiveReviewDetail = prisonerIncentiveReviewService.addIepReview(bookingId, createIncentiveReviewRequest)
+  ): IncentiveReviewDetail = prisonerIncentiveReviewService.addIncentiveReview(bookingId, createIncentiveReviewRequest)
 
   @PostMapping("/prisoner/{prisonerNumber}")
   @PreAuthorize("hasRole('ROLE_INCENTIVE_REVIEWS') and hasAuthority('SCOPE_write')")
@@ -249,5 +249,5 @@ class ManageIncentiveReviewsResource(
     )
     @RequestBody
     createIncentiveReviewRequest: CreateIncentiveReviewRequest,
-  ): IncentiveReviewDetail = prisonerIncentiveReviewService.addIepReview(prisonerNumber, createIncentiveReviewRequest)
+  ): IncentiveReviewDetail = prisonerIncentiveReviewService.addIncentiveReview(prisonerNumber, createIncentiveReviewRequest)
 }
