@@ -12,6 +12,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.helper.expectErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.IncentiveLevelResourceTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
 import java.time.LocalDate.now
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 class ManageIncentiveReviewsResourceTestLevel : IncentiveLevelResourceTestBase() {
@@ -119,20 +120,24 @@ class ManageIncentiveReviewsResourceTestLevel : IncentiveLevelResourceTestBase()
     prisonApiMockServer.stubGetLocationById(locationId = locationId, locationDesc = "1-2-003")
     prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
 
+    val now = LocalDateTime.now()
+    val previousTime = now.minusDays(2)
     webTestClient.post().uri("/incentive-reviews/prisoner/$prisonerNumber")
       .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read", "write")))
-      .bodyValue(CreateIncentiveReviewRequest(iepLevel = "BAS", comment = "Basic Level", reviewType = ReviewType.INITIAL))
+      .bodyValue(CreateIncentiveReviewRequest(iepLevel = "BAS", comment = "Basic Level", reviewType = ReviewType.INITIAL, reviewTime = previousTime))
       .exchange()
       .expectStatus().isCreated
 
+    val reviewTime = now.minusDays(1)
     webTestClient.post().uri("/incentive-reviews/prisoner/$prisonerNumber")
       .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read", "write")))
-      .bodyValue(CreateIncentiveReviewRequest("ENH", "A different comment"))
+      .bodyValue(CreateIncentiveReviewRequest("ENH", "A different comment", reviewedBy = "DIFFERENT_USER", reviewTime = reviewTime))
       .exchange()
       .expectStatus().isCreated
 
-    val today = now().format(DateTimeFormatter.ISO_DATE)
-    val nextReviewDate = now().plusYears(1).format(DateTimeFormatter.ISO_DATE)
+    val previousReviewTime = reviewTime.format(DateTimeFormatter.ISO_DATE)
+    val lastReviewTime = previousTime.format(DateTimeFormatter.ISO_DATE)
+    val nextReviewDate = reviewTime.plusYears(1).format(DateTimeFormatter.ISO_DATE)
     webTestClient.get().uri("/incentive-reviews/prisoner/$prisonerNumber")
       .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read")))
       .exchange()
@@ -142,8 +147,8 @@ class ManageIncentiveReviewsResourceTestLevel : IncentiveLevelResourceTestBase()
             {
              "bookingId":$bookingId,
              "prisonerNumber": $prisonerNumber,
-             "daysSinceReview":0,
-             "iepDate":"$today",
+             "daysSinceReview":1,
+             "iepDate":"$lastReviewTime",
              "iepLevel":"Enhanced",
              "iepCode": "ENH",
              "nextReviewDate":"$nextReviewDate",
@@ -151,12 +156,12 @@ class ManageIncentiveReviewsResourceTestLevel : IncentiveLevelResourceTestBase()
                 {
                    "prisonerNumber": $prisonerNumber,
                    "bookingId":$bookingId,
-                   "iepDate":"$today",
+                   "iepDate":"$lastReviewTime",
                    "agencyId": $prisonId,
                    "iepLevel":"Enhanced",
                    "iepCode": "ENH",
                    "comments":"A different comment",
-                   "userId":"INCENTIVES_ADM",
+                   "userId":"DIFFERENT_USER",
                    "locationId": "1-2-003",
                    "reviewType": "REVIEW",
                    "auditModuleName":"INCENTIVES_API"
@@ -164,7 +169,7 @@ class ManageIncentiveReviewsResourceTestLevel : IncentiveLevelResourceTestBase()
                 {
                    "prisonerNumber": $prisonerNumber,
                    "bookingId":$bookingId,
-                   "iepDate":"$today",
+                   "iepDate":"$previousReviewTime",
                    "agencyId": $prisonId,
                    "iepLevel":"Basic",
                    "iepCode": "BAS",

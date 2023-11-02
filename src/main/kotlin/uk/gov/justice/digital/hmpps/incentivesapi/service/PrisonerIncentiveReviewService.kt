@@ -66,14 +66,14 @@ class PrisonerIncentiveReviewService(
     return buildIepSummary(reviews, incentiveLevelService.getAllIncentiveLevelsMapByCode())
   }
 
-  suspend fun addIepReview(prisonerNumber: String, createIncentiveReviewRequest: CreateIncentiveReviewRequest): IncentiveReviewDetail {
+  suspend fun addIncentiveReview(prisonerNumber: String, createIncentiveReviewRequest: CreateIncentiveReviewRequest): IncentiveReviewDetail {
     val prisonerInfo = prisonApiService.getPrisonerInfo(prisonerNumber)
-    return addIepReviewForPrisonerAtLocation(prisonerInfo, createIncentiveReviewRequest)
+    return addIncentiveReviewForPrisonerAtLocation(prisonerInfo, createIncentiveReviewRequest)
   }
 
-  suspend fun addIepReview(bookingId: Long, createIncentiveReviewRequest: CreateIncentiveReviewRequest): IncentiveReviewDetail {
+  suspend fun addIncentiveReview(bookingId: Long, createIncentiveReviewRequest: CreateIncentiveReviewRequest): IncentiveReviewDetail {
     val prisonerInfo = prisonApiService.getPrisonerInfo(bookingId)
-    return addIepReviewForPrisonerAtLocation(prisonerInfo, createIncentiveReviewRequest)
+    return addIncentiveReviewForPrisonerAtLocation(prisonerInfo, createIncentiveReviewRequest)
   }
 
   suspend fun updateIncentiveRecord(
@@ -138,10 +138,10 @@ class PrisonerIncentiveReviewService(
 
   suspend fun processOffenderEvent(prisonOffenderEvent: HMPPSDomainEvent) =
     when (prisonOffenderEvent.additionalInformation?.reason) {
-      "NEW_ADMISSION" -> createIepForReceivedPrisoner(prisonOffenderEvent, ReviewType.INITIAL)
+      "NEW_ADMISSION" -> createIncentiveReviewForReceivedPrisoner(prisonOffenderEvent, ReviewType.INITIAL)
       // NOTE: This may NOT be a recall. Someone could be readmitted back to prison for a number of other reasons (e.g. remands)
-      "READMISSION" -> createIepForReceivedPrisoner(prisonOffenderEvent, ReviewType.READMISSION)
-      "TRANSFERRED" -> createIepForReceivedPrisoner(prisonOffenderEvent, ReviewType.TRANSFER)
+      "READMISSION" -> createIncentiveReviewForReceivedPrisoner(prisonOffenderEvent, ReviewType.READMISSION)
+      "TRANSFERRED" -> createIncentiveReviewForReceivedPrisoner(prisonOffenderEvent, ReviewType.TRANSFER)
       "MERGE" -> mergedPrisonerDetails(prisonOffenderEvent)
       else -> {
         log.debug("Ignoring prisonOffenderEvent with reason ${prisonOffenderEvent.additionalInformation?.reason}")
@@ -170,10 +170,10 @@ class PrisonerIncentiveReviewService(
     }
   }
 
-  private suspend fun createIepForReceivedPrisoner(prisonOffenderEvent: HMPPSDomainEvent, reviewType: ReviewType) {
+  private suspend fun createIncentiveReviewForReceivedPrisoner(prisonOffenderEvent: HMPPSDomainEvent, reviewType: ReviewType) {
     prisonOffenderEvent.additionalInformation?.nomsNumber?.let {
       val prisonerInfo = prisonApiService.getPrisonerInfo(it, true)
-      val iepLevel = getIepLevelForReviewType(prisonerInfo, reviewType)
+      val iepLevel = getIncentiveLevelForReviewType(prisonerInfo, reviewType)
       val comment = getReviewCommentForEvent(prisonOffenderEvent)
 
       val createIncentiveReviewRequest = CreateIncentiveReviewRequest(
@@ -214,7 +214,7 @@ class PrisonerIncentiveReviewService(
     }
   }
 
-  private suspend fun getIepLevelForReviewType(prisonerInfo: PrisonerAtLocation, reviewType: ReviewType): String {
+  private suspend fun getIncentiveLevelForReviewType(prisonerInfo: PrisonerAtLocation, reviewType: ReviewType): String {
     val prisonIncentiveLevels = prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonerInfo.agencyId)
     val defaultLevelCode = prisonIncentiveLevels.findDefaultOnAdmission().levelCode
 
@@ -280,14 +280,14 @@ class PrisonerIncentiveReviewService(
     return incentiveReviewSummary
   }
 
-  suspend fun addIepReviewForPrisonerAtLocation(
+  suspend fun addIncentiveReviewForPrisonerAtLocation(
     prisonerInfo: PrisonerAtLocation,
     createIncentiveReviewRequest: CreateIncentiveReviewRequest,
   ): IncentiveReviewDetail {
     val locationInfo = prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId)
 
-    val reviewTime = LocalDateTime.now(clock)
-    val reviewerUserName = authenticationFacade.getUsername()
+    val reviewTime = createIncentiveReviewRequest.reviewTime ?: LocalDateTime.now(clock)
+    val reviewerUserName = createIncentiveReviewRequest.reviewedBy ?: authenticationFacade.getUsername()
 
     val newIepReview = incentiveStoreService.saveIncentiveReview(
       IncentiveReview(

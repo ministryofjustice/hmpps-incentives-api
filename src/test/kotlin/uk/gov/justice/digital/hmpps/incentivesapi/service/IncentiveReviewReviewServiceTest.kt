@@ -117,7 +117,7 @@ class IncentiveReviewReviewServiceTest {
       whenever(prisonApiService.getPrisonerInfo(prisonerNumber)).thenReturn(prisonerInfo)
 
       // When
-      prisonerIncentiveReviewService.addIepReview(prisonerNumber, createIncentiveReviewRequest)
+      prisonerIncentiveReviewService.addIncentiveReview(prisonerNumber, createIncentiveReviewRequest)
 
       testAddIepReviewCommonFunctionality()
     }
@@ -128,7 +128,7 @@ class IncentiveReviewReviewServiceTest {
       whenever(prisonApiService.getPrisonerInfo(bookingId)).thenReturn(prisonerInfo)
 
       // When
-      prisonerIncentiveReviewService.addIepReview(bookingId, createIncentiveReviewRequest)
+      prisonerIncentiveReviewService.addIncentiveReview(bookingId, createIncentiveReviewRequest)
 
       testAddIepReviewCommonFunctionality()
     }
@@ -168,7 +168,7 @@ class IncentiveReviewReviewServiceTest {
       whenever(prisonApiService.getPrisonerInfo(bookingId)).thenReturn(prisonerInfo)
 
       // When
-      prisonerIncentiveReviewService.addIepReview(bookingId, createIncentiveReviewRequest)
+      prisonerIncentiveReviewService.addIncentiveReview(bookingId, createIncentiveReviewRequest)
 
       verify(incentiveStoreService).saveIncentiveReview(any())
     }
