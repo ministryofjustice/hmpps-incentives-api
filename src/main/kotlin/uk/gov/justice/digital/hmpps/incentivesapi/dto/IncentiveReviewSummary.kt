@@ -31,6 +31,7 @@ data class IncentiveReviewSummary(
   @Schema(description = "Location  of prisoner when review took place within prison (i.e. their cell)", example = "1-2-003", required = false)
   val locationId: String? = null,
   @Schema(description = "Incentive Review History (descending in time)", required = true)
+  @JsonProperty("iepDetails")
   var incentiveReviewDetails: List<IncentiveReviewDetail>,
   @Schema(description = "Date of next review", example = "2022-12-31", required = true)
   val nextReviewDate: LocalDate,
