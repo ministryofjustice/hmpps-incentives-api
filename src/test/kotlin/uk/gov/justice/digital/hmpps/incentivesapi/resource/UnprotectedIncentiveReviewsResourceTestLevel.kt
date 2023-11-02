@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReview
 import java.time.LocalDate.now
 import java.time.format.DateTimeFormatter
 
+@Deprecated("This test class is deprecated. Use ManageIncentiveReviewsResourceTestLevel instead.")
 class UnprotectedIncentiveReviewsResourceTestLevel : IncentiveLevelResourceTestBase() {
   @Autowired
   private lateinit var repository: IncentiveReviewRepository
@@ -91,7 +92,7 @@ class UnprotectedIncentiveReviewsResourceTestLevel : IncentiveLevelResourceTestB
              "iepLevel":"Standard",
              "iepCode": "STD",
              "nextReviewDate": "$nextReviewDate",
-             "incentiveReviewDetails":[
+             "iepDetails":[
                 {
                    "bookingId":$bookingId,
                    "iepDate":"$today",
@@ -147,7 +148,7 @@ class UnprotectedIncentiveReviewsResourceTestLevel : IncentiveLevelResourceTestB
              "iepLevel":"Enhanced",
              "iepCode": "ENH",
              "nextReviewDate":"$nextReviewDate",
-             "incentiveReviewDetails":[
+             "iepDetails":[
                 {
                    "prisonerNumber": $prisonerNumber,
                    "bookingId":$bookingId,

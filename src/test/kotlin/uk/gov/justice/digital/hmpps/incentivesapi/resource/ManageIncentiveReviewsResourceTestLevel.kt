@@ -91,7 +91,7 @@ class ManageIncentiveReviewsResourceTestLevel : IncentiveLevelResourceTestBase()
              "iepLevel":"Standard",
              "iepCode": "STD",
              "nextReviewDate": "$nextReviewDate",
-             "incentiveReviewDetails":[
+             "iepDetails":[
                 {
                    "bookingId":$bookingId,
                    "iepDate":"$today",
@@ -147,7 +147,7 @@ class ManageIncentiveReviewsResourceTestLevel : IncentiveLevelResourceTestBase()
              "iepLevel":"Enhanced",
              "iepCode": "ENH",
              "nextReviewDate":"$nextReviewDate",
-             "incentiveReviewDetails":[
+             "iepDetails":[
                 {
                    "prisonerNumber": $prisonerNumber,
                    "bookingId":$bookingId,
