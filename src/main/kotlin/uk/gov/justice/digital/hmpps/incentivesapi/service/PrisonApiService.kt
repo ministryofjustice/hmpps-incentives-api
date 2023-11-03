@@ -26,7 +26,7 @@ class PrisonApiService(
   }
 
   fun retrieveCaseNoteCountsByFromDate(types: List<String>, prisonerByLastReviewDate: Map<Long, LocalDateTime>): Flow<PrisonerCaseNoteByTypeSubType> =
-    prisonWebClient.post()
+    prisonWebClientClientCredentials.post()
       .uri("/api/case-notes/usage-by-types")
       .bodyValue(
         CaseNoteUsageTypesRequest(
