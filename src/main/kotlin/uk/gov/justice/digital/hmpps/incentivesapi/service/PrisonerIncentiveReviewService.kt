@@ -284,6 +284,9 @@ class PrisonerIncentiveReviewService(
     prisonerInfo: PrisonerAtLocation,
     createIncentiveReviewRequest: CreateIncentiveReviewRequest,
   ): IncentiveReviewDetail {
+    if (createIncentiveReviewRequest.reviewTime != null && createIncentiveReviewRequest.reviewTime.isAfter(LocalDateTime.now(clock))) {
+      throw ValidationException("Review time cannot be in the future")
+    }
     val locationInfo = prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId)
 
     val reviewTime = createIncentiveReviewRequest.reviewTime ?: LocalDateTime.now(clock)
