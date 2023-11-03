@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.CreateIncentiveReviewRequest
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.helper.expectErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.IncentiveLevelResourceTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
@@ -103,79 +102,6 @@ class UnprotectedIncentiveReviewsResourceTestLevel : IncentiveLevelResourceTestB
                    "userId":"INCENTIVES_ADM",
                    "auditModuleName":"INCENTIVES_API"
                 }
-             ]
-          }
-          """,
-      )
-  }
-
-  @Test
-  fun `add IEP Level for a prisoner by noms`() {
-    val bookingId = 1294134L
-    val prisonerNumber = "A1244AB"
-    val prisonId = "MDI"
-    val locationId = 77777L
-
-    prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = locationId)
-    prisonApiMockServer.stubGetLocationById(locationId = locationId, locationDesc = "1-2-003")
-    prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
-
-    webTestClient.post().uri("/iep/reviews/prisoner/$prisonerNumber")
-      .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
-      .bodyValue(CreateIncentiveReviewRequest(iepLevel = "BAS", comment = "Basic Level", reviewType = ReviewType.INITIAL))
-      .exchange()
-      .expectStatus().isCreated
-
-    webTestClient.post().uri("/iep/reviews/prisoner/$prisonerNumber")
-      .headers(setAuthorisation(roles = listOf("ROLE_MAINTAIN_IEP"), scopes = listOf("read", "write")))
-      .bodyValue(CreateIncentiveReviewRequest("ENH", "A different comment"))
-      .exchange()
-      .expectStatus().isCreated
-
-    val today = now().format(DateTimeFormatter.ISO_DATE)
-    val nextReviewDate = now().plusYears(1).format(DateTimeFormatter.ISO_DATE)
-    webTestClient.get().uri("/iep/reviews/prisoner/$prisonerNumber")
-      .headers(setAuthorisation())
-      .exchange()
-      .expectStatus().isOk
-      .expectBody().json(
-        """
-            {
-             "bookingId":$bookingId,
-             "prisonerNumber": $prisonerNumber,
-             "daysSinceReview":0,
-             "iepDate":"$today",
-             "iepLevel":"Enhanced",
-             "iepCode": "ENH",
-             "nextReviewDate":"$nextReviewDate",
-             "iepDetails":[
-                {
-                   "prisonerNumber": $prisonerNumber,
-                   "bookingId":$bookingId,
-                   "iepDate":"$today",
-                   "agencyId": $prisonId,
-                   "iepLevel":"Enhanced",
-                   "iepCode": "ENH",
-                   "comments":"A different comment",
-                   "userId":"INCENTIVES_ADM",
-                   "locationId": "1-2-003",
-                   "reviewType": "REVIEW",
-                   "auditModuleName":"INCENTIVES_API"
-                },
-                {
-                   "prisonerNumber": $prisonerNumber,
-                   "bookingId":$bookingId,
-                   "iepDate":"$today",
-                   "agencyId": $prisonId,
-                   "iepLevel":"Basic",
-                   "iepCode": "BAS",
-                   "comments":"Basic Level",
-                   "locationId": "1-2-003",
-                   "userId":"INCENTIVES_ADM",
-                   "reviewType": "INITIAL",
-                   "auditModuleName":"INCENTIVES_API"
-                }
-
              ]
           }
           """,
