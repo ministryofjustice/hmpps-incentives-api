@@ -213,45 +213,4 @@ class UnprotectedIncentiveReviewsResource(
     @RequestBody
     createIncentiveReviewRequest: CreateIncentiveReviewRequest,
   ): IncentiveReviewDetail = prisonerIncentiveReviewService.addIncentiveReview(bookingId, createIncentiveReviewRequest)
-
-  @PostMapping("/reviews/prisoner/{prisonerNumber}")
-  @PreAuthorize("hasRole('MAINTAIN_IEP') and hasAuthority('SCOPE_write')")
-  @ResponseStatus(HttpStatus.CREATED)
-  @Operation(
-    summary = "Adds a new Incentive Review for this specific prisoner by prisoner number",
-    description = "Prisoner Number is an unique reference for a prisoner in NOMIS, requires MAINTAIN_IEP role and write scope",
-    responses = [
-      ApiResponse(
-        responseCode = "201",
-        description = "Incentive Review Added",
-      ),
-      ApiResponse(
-        responseCode = "400",
-        description = "Incorrect data specified to add new incentive review",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun addIncentiveReview(
-    @Schema(description = "Prisoner Number", example = "A1234AB", required = true, pattern = "^[A-Z0-9]{1,20}$")
-    @PathVariable
-    prisonerNumber: String,
-    @Schema(
-      description = "Incentive Review",
-      required = true,
-      implementation = CreateIncentiveReviewRequest::class,
-    )
-    @RequestBody
-    createIncentiveReviewRequest: CreateIncentiveReviewRequest,
-  ): IncentiveReviewDetail = prisonerIncentiveReviewService.addIncentiveReview(prisonerNumber, createIncentiveReviewRequest)
 }
