@@ -66,8 +66,6 @@ generic-service:
     groups:
       - internal
 
-    health-kick: "35.177.252.195/32"
-
 generic-prometheus-alerts:
   targetApplication: hmpps-incentives-api
   sqsAlertsOldestThreshold: 10
