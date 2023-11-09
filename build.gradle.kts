@@ -45,8 +45,8 @@ dependencies {
   runtimeOnly("org.postgresql:postgresql:42.6.0")
 
   // Shedlock dependencies
-  implementation("net.javacrumbs.shedlock:shedlock-spring:5.9.1")
-  implementation("net.javacrumbs.shedlock:shedlock-provider-r2dbc:5.9.1")
+  implementation("net.javacrumbs.shedlock:shedlock-spring:5.10.0")
+  implementation("net.javacrumbs.shedlock:shedlock-provider-r2dbc:5.10.0")
 
   implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.2.0")
 
