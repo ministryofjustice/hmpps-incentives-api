@@ -3,7 +3,9 @@ package uk.gov.justice.digital.hmpps.incentivesapi.task
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -29,16 +31,15 @@ class UpdateKpisTest {
   )
 
   @BeforeEach
-  fun setUp() {
+  fun setUp(): Unit = runBlocking {
     whenever(kpiService.getNumberOfPrisonersOverdue()).thenReturn(numberOfPrisonersOverdue)
     whenever(kpiService.getNumberOfReviewsConductedAndPrisonersReviewed(today)).thenReturn(reviewsConductedPrisonersReviewed)
-    runBlocking {
-      whenever(kpiRepository.existsById(today)).thenReturn(false)
-    }
   }
 
   @Test
   fun `updateKpis() update the kpi table with the KPIs numbers for the month`(): Unit = runBlocking {
+    whenever(kpiRepository.existsById(today)).thenReturn(false)
+
     task.updateKpis()
 
     verify(kpiRepository, times(1)).save(
@@ -49,5 +50,14 @@ class UpdateKpisTest {
         previousMonthPrisonersReviewed = reviewsConductedPrisonersReviewed.prisonersReviewed,
       ),
     )
+  }
+
+  @Test
+  fun `updateKpis() skips month if already in DB`(): Unit = runBlocking {
+    whenever(kpiRepository.existsById(today)).thenReturn(true)
+
+    task.updateKpis()
+
+    verify(kpiRepository, never()).save(any())
   }
 }

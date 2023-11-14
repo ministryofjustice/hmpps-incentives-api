@@ -28,13 +28,13 @@ class UpdateKpis(
     lockAtLeastFor = defaultLockAtLeastFor,
     lockAtMostFor = defaultLockAtMostFor,
   )
-  fun updateKpis() {
+  fun updateKpis(): Unit = runBlocking {
     val day = LocalDate.now()
 
-    val kpiExists = runBlocking { kpiRepository.existsById(day) }
+    val kpiExists = kpiRepository.existsById(day)
     if (kpiExists) {
       LOG.debug("KPI for $day already exists, skipping...")
-      return
+      return@runBlocking
     }
 
     LOG.debug("Updating KPIs for $day...")
@@ -48,16 +48,14 @@ class UpdateKpis(
     LOG.info("KPIs for $day. Prisoners overdue = $numberOfPrisonersOverdue")
 
     // Store the result in the DB table
-    runBlocking {
-      kpiRepository.save(
-        Kpi(
-          day = day,
-          overdueReviews = numberOfPrisonersOverdue,
-          previousMonthReviewsConducted = reviewsConductedPrisonersReviewed.reviewsConducted,
-          previousMonthPrisonersReviewed = reviewsConductedPrisonersReviewed.prisonersReviewed,
-        ),
-      )
-    }
+    kpiRepository.save(
+      Kpi(
+        day = day,
+        overdueReviews = numberOfPrisonersOverdue,
+        previousMonthReviewsConducted = reviewsConductedPrisonersReviewed.reviewsConducted,
+        previousMonthPrisonersReviewed = reviewsConductedPrisonersReviewed.prisonersReviewed,
+      ),
+    )
 
     LOG.debug("KPIs updated for $day")
   }
