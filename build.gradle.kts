@@ -52,7 +52,7 @@ dependencies {
 
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
-  implementation("io.opentelemetry:opentelemetry-api:1.31.0")
+  implementation("io.opentelemetry:opentelemetry-api:1.32.0")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:1.31.0")
 
   implementation("org.apache.commons:commons-lang3")
@@ -71,15 +71,15 @@ dependencies {
   testImplementation("io.swagger.parser.v3:swagger-parser:2.1.18")
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("com.github.tomakehurst:wiremock-jre8-standalone:3.0.1")
-  testImplementation("org.testcontainers:localstack:1.19.1")
-  testImplementation("org.testcontainers:postgresql:1.19.1")
+  testImplementation("org.testcontainers:localstack:1.19.2")
+  testImplementation("org.testcontainers:postgresql:1.19.2")
   testImplementation("io.projectreactor:reactor-test")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
   testImplementation("javax.xml.bind:jaxb-api:2.3.1")
-  testImplementation("io.opentelemetry:opentelemetry-sdk:1.31.0")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-common:1.31.0")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-metrics:1.31.0")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.31.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk:1.32.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-common:1.32.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-metrics:1.32.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.32.0")
 
   if (project.hasProperty("docs")) {
     implementation("com.h2database:h2")
