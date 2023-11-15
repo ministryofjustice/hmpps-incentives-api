@@ -1,8 +1,6 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.NextReviewDate
@@ -93,24 +91,22 @@ class NextReviewDateUpdaterService(
     return nextReviewDatesAfterUpdate
   }
 
-  private suspend fun publishDomainEvents(
+  private fun publishDomainEvents(
     bookingIdsChanged: List<Long>,
     offendersMap: Map<Long, PrisonerInfoForNextReviewDate>,
     nextReviewDatesMap: Map<Long, LocalDate>,
-  ) = runBlocking {
+  ) {
     bookingIdsChanged.forEach { bookingId ->
-      launch {
-        snsService.publishDomainEvent(
-          eventType = IncentivesDomainEventType.PRISONER_NEXT_REVIEW_DATE_CHANGED,
-          description = "A prisoner's next incentive review date has changed",
-          occurredAt = LocalDateTime.now(clock),
-          additionalInformation = AdditionalInformation(
-            id = bookingId,
-            nomsNumber = offendersMap[bookingId]!!.prisonerNumber,
-            nextReviewDate = nextReviewDatesMap[bookingId],
-          ),
-        )
-      }
+      snsService.publishDomainEvent(
+        eventType = IncentivesDomainEventType.PRISONER_NEXT_REVIEW_DATE_CHANGED,
+        description = "A prisoner's next incentive review date has changed",
+        occurredAt = LocalDateTime.now(clock),
+        additionalInformation = AdditionalInformation(
+          id = bookingId,
+          nomsNumber = offendersMap[bookingId]!!.prisonerNumber,
+          nextReviewDate = nextReviewDatesMap[bookingId],
+        ),
+      )
     }
   }
 }

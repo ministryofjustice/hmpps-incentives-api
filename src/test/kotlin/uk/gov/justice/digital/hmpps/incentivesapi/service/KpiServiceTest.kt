@@ -129,7 +129,7 @@ class KpiServiceTest {
     }
 
     @Test
-    fun `getNumberOfPrisonersOverdue() returns the correct number of overdue prisoners`() {
+    fun `getNumberOfPrisonersOverdue() returns the correct number of overdue prisoners`(): Unit = runBlocking {
       assertThat(kpiService.getNumberOfPrisonersOverdue()).isEqualTo(2)
     }
   }
