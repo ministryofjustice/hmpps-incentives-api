@@ -12,7 +12,7 @@ ENV BUILD_NUMBER ${BUILD_NUMBER:-1_0_0}
 COPY . .
 RUN ./gradlew clean assemble -Dorg.gradle.daemon=false
 
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:21-jre-jammy
 LABEL maintainer="HMPPS Digital Studio <info@digital.justice.gov.uk>"
 
 ARG BUILD_NUMBER
