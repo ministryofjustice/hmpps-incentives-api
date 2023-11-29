@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.bind.support.WebExchangeBindException
 import org.springframework.web.reactive.function.client.WebClientResponseException.NotFound
+import org.springframework.web.reactive.resource.NoResourceFoundException
 import org.springframework.web.server.ServerWebInputException
 import org.springframework.web.server.UnsupportedMediaTypeStatusException
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveReviewNotFoundException
@@ -124,6 +125,20 @@ class HmppsIncentivesApiExceptionHandler {
         ErrorResponse(
           status = NOT_FOUND,
           userMessage = "Not Found: ${e.message}",
+          developerMessage = e.message,
+        ),
+      )
+  }
+
+  @ExceptionHandler(NoResourceFoundException::class)
+  fun handleNoResourceFoundException(e: NoResourceFoundException): ResponseEntity<ErrorResponse?>? {
+    log.debug("No resource found exception caught: {}", e.message)
+    return ResponseEntity
+      .status(NOT_FOUND)
+      .body(
+        ErrorResponse(
+          status = NOT_FOUND,
+          userMessage = "No resource found: ${e.message}",
           developerMessage = e.message,
         ),
       )
