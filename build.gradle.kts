@@ -4,12 +4,12 @@ import uk.gov.justice.digital.hmpps.gradle.PortForwardRedisTask
 import uk.gov.justice.digital.hmpps.gradle.RevealSecretsTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.10.1"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.11.0"
   id("org.springdoc.openapi-gradle-plugin") version "1.8.0"
   id("jacoco")
   id("org.sonarqube") version "4.4.1.3373"
-  kotlin("plugin.spring") version "1.9.21"
-  kotlin("plugin.jpa") version "1.9.21"
+  kotlin("plugin.spring") version "1.9.22"
+  kotlin("plugin.jpa") version "1.9.22"
 }
 
 dependencyCheck {
@@ -42,17 +42,17 @@ dependencies {
   runtimeOnly("org.flywaydb:flyway-core")
   runtimeOnly("org.postgresql:r2dbc-postgresql")
   runtimeOnly("org.springframework.boot:spring-boot-starter-jdbc")
-  runtimeOnly("org.postgresql:postgresql:42.7.0")
+  runtimeOnly("org.postgresql:postgresql:42.7.1")
 
   // Shedlock dependencies
-  implementation("net.javacrumbs.shedlock:shedlock-spring:5.10.0")
-  implementation("net.javacrumbs.shedlock:shedlock-provider-r2dbc:5.10.0")
+  implementation("net.javacrumbs.shedlock:shedlock-spring:5.10.2")
+  implementation("net.javacrumbs.shedlock:shedlock-provider-r2dbc:5.10.2")
 
   implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.3.0")
 
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
-  implementation("io.opentelemetry:opentelemetry-api:1.32.0")
+  implementation("io.opentelemetry:opentelemetry-api:1.33.0")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:1.32.0")
 
   implementation("org.apache.commons:commons-lang3")
@@ -76,10 +76,10 @@ dependencies {
   testImplementation("io.projectreactor:reactor-test")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
   testImplementation("javax.xml.bind:jaxb-api:2.3.1")
-  testImplementation("io.opentelemetry:opentelemetry-sdk:1.32.0")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-common:1.32.0")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-metrics:1.32.0")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.32.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk:1.33.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-common:1.33.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-metrics:1.33.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.33.0")
 
   if (project.hasProperty("docs")) {
     implementation("com.h2database:h2")
