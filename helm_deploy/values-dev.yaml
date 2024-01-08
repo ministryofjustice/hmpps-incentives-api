@@ -1,6 +1,3 @@
----
-# Per environment values which override defaults in hmpps-incentives-api/values.yaml
-
 generic-service:
   replicaCount: 2
 
@@ -9,6 +6,7 @@ generic-service:
 
   ingress:
     host: incentives-api-dev.hmpps.service.justice.gov.uk
+
   allowlist: null
 
   env:
@@ -19,10 +17,9 @@ generic-service:
     # First weekday of the month at 10:00am - Offender Search API is turned off during non-working hours in dev/preprod
     TASK_UPDATE_KPIS_CRON: "0 0 10 1W * *"
 
-# CloudPlatform AlertManager receiver to route Prometheus alerts to slack
-# See https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts
 generic-prometheus-alerts:
   alertSeverity: digital-prison-service-dev
+  businessHoursOnly: true
   rdsAlertsDatabases:
     cloud-platform-c75ed66addfe4c30: "incentives api"
   sqsAlertsQueueNames:

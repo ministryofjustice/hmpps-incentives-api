@@ -1,6 +1,3 @@
----
-# Per environment values which override defaults in hmpps-incentives-api/values.yaml
-
 generic-service:
 
   ingress:
@@ -25,8 +22,6 @@ generic-service:
         DB_PASS_PREPROD: "database_password"
         DB_HOST_PREPROD: "rds_instance_address"
 
-# CloudPlatform AlertManager receiver to route Prometheus alerts to slack
-# See https://user-guide.cloud-platform.service.justice.gov.uk/documentation/monitoring-an-app/how-to-create-alarms.html#creating-your-own-custom-alerts
 generic-prometheus-alerts:
   alertSeverity: digital-prison-service
   rdsAlertsDatabases:
