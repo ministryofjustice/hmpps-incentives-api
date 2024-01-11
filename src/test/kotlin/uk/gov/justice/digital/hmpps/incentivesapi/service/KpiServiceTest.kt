@@ -14,6 +14,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.KpiRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.ReviewsConductedPrisonersReviewed
 import java.time.LocalDate
 
+@Suppress("ktlint:standard:discouraged-comment-location")
 class KpiServiceTest {
   private val kpiRepository: KpiRepository = mock()
   private val prisonApiService: PrisonApiService = mock()

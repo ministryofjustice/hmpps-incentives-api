@@ -10,6 +10,7 @@ import java.time.LocalDateTime
 /**
  * Database representation of an incentive level’s configuration in a prison
  */
+@Suppress("ktlint:standard:no-blank-line-in-list", "ktlint:standard:discouraged-comment-location")
 data class PrisonIncentiveLevel(
   @Id
   val id: Int = 0,
@@ -36,5 +37,6 @@ data class PrisonIncentiveLevel(
   val new: Boolean,
 ) : Persistable<Int> {
   override fun getId(): Int = id
+
   override fun isNew(): Boolean = new
 }

@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevelUpdate as In
  */
 @Service
 @Transactional(readOnly = true)
+@Suppress("ktlint:standard:discouraged-comment-location")
 class IncentiveLevelService(
   private val clock: Clock,
   private val incentiveLevelRepository: IncentiveLevelRepository,

@@ -7,6 +7,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.config.DataIntegrityException
 /**
  * Publicly exposed representation of an incentive level’s configuration in a prison
  */
+@Suppress("ktlint:standard:no-blank-line-in-list")
 data class PrisonIncentiveLevel(
   @Schema(description = "The incentive level code this refers to", example = "STD", minLength = 1, maxLength = 6)
   @JsonProperty(required = true)
@@ -64,6 +65,7 @@ fun List<PrisonIncentiveLevel>.findDefaultOnAdmission() =
 /**
  * Update payload for PrisonIncentiveLevel
  */
+@Suppress("ktlint:standard:no-blank-line-in-list")
 data class PrisonIncentiveLevelUpdate(
   @Schema(description = "Indicates that this incentive level is enabled in this prison", example = "true", required = false)
   val active: Boolean? = null,

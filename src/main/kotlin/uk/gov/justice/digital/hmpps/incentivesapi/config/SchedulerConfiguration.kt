@@ -9,15 +9,16 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Profile
 import org.springframework.scheduling.annotation.EnableScheduling
 
-const val defaultLockAtLeastFor = "PT5M"
-const val defaultLockAtMostFor = "PT10M"
+const val LOCK_AT_LEAST_FOR = "PT5M"
+
+const val LOCK_AT_MOST_FOR = "PT10M"
 
 @Configuration
 @EnableScheduling
 @Profile("!test") // prevent scheduler running during integration tests
 @EnableSchedulerLock(
-  defaultLockAtLeastFor = defaultLockAtLeastFor,
-  defaultLockAtMostFor = defaultLockAtMostFor,
+  defaultLockAtLeastFor = LOCK_AT_LEAST_FOR,
+  defaultLockAtMostFor = LOCK_AT_MOST_FOR,
 )
 class SchedulerConfiguration {
   @Bean

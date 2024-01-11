@@ -13,6 +13,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 @Table("prisoner_iep_level")
+@Suppress("ktlint:standard:no-blank-line-in-list")
 data class IncentiveReview(
   @Id
   val id: Long = 0,
@@ -34,9 +35,7 @@ data class IncentiveReview(
   val new: Boolean = true,
 
   val whenCreated: LocalDateTime? = null,
-
 ) : Persistable<Long>, IsRealReview {
-
   override fun isNew(): Boolean = new
 
   override fun getId(): Long = id

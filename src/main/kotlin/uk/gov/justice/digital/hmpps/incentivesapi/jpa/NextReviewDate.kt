@@ -8,6 +8,7 @@ import org.springframework.data.domain.Persistable
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+@Suppress("ktlint:standard:no-blank-line-in-list")
 data class NextReviewDate(
   @Id
   val bookingId: Long,
@@ -24,5 +25,6 @@ data class NextReviewDate(
   val new: Boolean = true,
 ) : Persistable<Long> {
   override fun getId(): Long = bookingId
+
   override fun isNew(): Boolean = new
 }

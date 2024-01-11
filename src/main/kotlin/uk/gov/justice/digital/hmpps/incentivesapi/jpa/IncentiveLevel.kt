@@ -10,6 +10,7 @@ import java.time.LocalDateTime
 /**
  * Database representation of an incentive level
  */
+@Suppress("ktlint:standard:no-blank-line-in-list")
 data class IncentiveLevel(
   @Id
   val code: String,
@@ -17,6 +18,7 @@ data class IncentiveLevel(
   val sequence: Int,
   val active: Boolean = true,
   val required: Boolean = false,
+
   @ReadOnlyProperty
   val whenCreated: LocalDateTime = LocalDateTime.now(),
   val whenUpdated: LocalDateTime = LocalDateTime.now(),
@@ -26,5 +28,6 @@ data class IncentiveLevel(
   val new: Boolean,
 ) : Persistable<String> {
   override fun getId(): String = code
+
   override fun isNew(): Boolean = new
 }

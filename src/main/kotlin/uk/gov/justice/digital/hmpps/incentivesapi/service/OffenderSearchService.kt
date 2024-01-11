@@ -9,6 +9,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisonerList
 
 @Service
+@Suppress("ktlint:standard:discouraged-comment-location")
 class OffenderSearchService(private val offenderSearchWebClient: WebClient) {
   /**
    * Searches for offenders in a prison using an optional cell location prefix (e.g. MDI-1)

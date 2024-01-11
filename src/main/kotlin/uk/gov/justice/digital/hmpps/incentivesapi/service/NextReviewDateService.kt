@@ -74,7 +74,7 @@ class NextReviewDateService(private val input: NextReviewDateInput) {
   }
 
   private fun isOnBasic(): Boolean {
-    return lastReview()?.levelCode == IncentiveLevel.BasicCode
+    return lastReview()?.levelCode == IncentiveLevel.BASIC_CODE
   }
 
   private fun lastReviewDate(): LocalDate {
@@ -84,7 +84,7 @@ class NextReviewDateService(private val input: NextReviewDateInput) {
   private fun wasConfirmedBasic(): Boolean {
     val reviews = reviews()
 
-    return isOnBasic() && reviews.size >= 2 && reviews[1].levelCode == IncentiveLevel.BasicCode
+    return isOnBasic() && reviews.size >= 2 && reviews[1].levelCode == IncentiveLevel.BASIC_CODE
   }
 
   private fun isNewPrisoner(): Boolean {

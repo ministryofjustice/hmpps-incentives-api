@@ -8,6 +8,7 @@ import org.springframework.data.domain.Persistable
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+@Suppress("ktlint:standard:no-blank-line-in-list")
 data class Kpi(
   @Id
   val day: LocalDate,
@@ -26,5 +27,6 @@ data class Kpi(
   val new: Boolean = true,
 ) : Persistable<LocalDate> {
   override fun getId(): LocalDate = day
+
   override fun isNew(): Boolean = new
 }

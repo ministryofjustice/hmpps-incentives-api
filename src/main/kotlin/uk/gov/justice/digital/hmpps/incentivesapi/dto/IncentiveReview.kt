@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 import java.time.LocalDate
 
 @Schema(description = "Incentive review information for a prisoner")
+@Suppress("ktlint:standard:no-blank-line-in-list")
 data class IncentiveReview(
   @Schema(description = "Prisoner number", example = "A1234BC")
   val prisonerNumber: String,
@@ -35,6 +36,7 @@ data class IncentiveReview(
 )
 
 @Schema(description = "An Incentive level available at the given location, with the total and overdue number of prisoners at this level")
+@Suppress("ktlint:standard:no-blank-line-in-list")
 data class IncentiveReviewLevel(
   @Schema(description = "Level code", example = "STD")
   val levelCode: String,
@@ -50,6 +52,7 @@ data class IncentiveReviewLevel(
 )
 
 @Schema(description = "Incentive reviews list for prisoners at a given location")
+@Suppress("ktlint:standard:no-blank-line-in-list")
 data class IncentiveReviewResponse(
   @Schema(description = "List of levels available at the given location, with the total and overdue number of prisoners at each level")
   val levels: List<IncentiveReviewLevel>,

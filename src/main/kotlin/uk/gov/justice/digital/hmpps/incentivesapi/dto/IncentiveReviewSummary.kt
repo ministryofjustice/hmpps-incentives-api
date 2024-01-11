@@ -37,7 +37,6 @@ data class IncentiveReviewSummary(
   @Schema(description = "Date of next review", example = "2022-12-31", required = true)
   val nextReviewDate: LocalDate,
 ) {
-
   // NOTE: This is part of the public `GET /iep/reviews/` API response format.
   //       Ignore IntelliJ saying it's "not used".
   @get:Schema(description = "Days since last review", example = "23", required = true)
@@ -96,6 +95,7 @@ data class CurrentIncentiveLevel(
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Request to add a new incentive review")
+@Suppress("ktlint:standard:no-blank-line-in-list")
 data class CreateIncentiveReviewRequest(
   @Schema(
     description = "Incentive Level",

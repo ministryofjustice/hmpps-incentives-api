@@ -11,6 +11,7 @@ import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.incentivesapi.config.DataIntegrityException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 
+@Suppress("ktlint:standard:discouraged-comment-location", "ktlint:standard:no-blank-line-in-list")
 class NearestPrisonIncentiveLevelServiceTest {
   private val incentiveLevelService: IncentiveLevelAuditedService = mock()
   private val prisonIncentiveLevelService: PrisonIncentiveLevelAuditedService = mock()

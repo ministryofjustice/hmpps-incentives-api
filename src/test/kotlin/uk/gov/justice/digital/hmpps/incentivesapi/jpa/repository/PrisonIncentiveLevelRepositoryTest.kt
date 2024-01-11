@@ -20,6 +20,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonIncentiveLevel
 @DataR2dbcTest
 @ActiveProfiles("test")
 @WithMockUser
+@Suppress("ktlint:standard:discouraged-comment-location")
 class PrisonIncentiveLevelRepositoryTest : TestBase() {
   @Autowired
   lateinit var repository: PrisonIncentiveLevelRepository

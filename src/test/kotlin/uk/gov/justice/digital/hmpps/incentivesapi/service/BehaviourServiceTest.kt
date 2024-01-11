@@ -14,6 +14,7 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 
+@Suppress("ktlint:standard:discouraged-comment-location")
 class BehaviourServiceTest {
   private val prisonApiService: PrisonApiService = mock()
   private var clock: Clock = Clock.fixed(Instant.parse("2022-08-01T12:45:00.00Z"), ZoneId.of("Europe/London"))

@@ -51,6 +51,7 @@ class IncentiveReviewsResource(private val incentiveReviewsService: IncentiveRev
       ),
     ],
   )
+  @Suppress("ktlint:standard:function-signature", "ktlint:standard:no-blank-line-in-list")
   suspend fun getReviews(
     @Schema(description = "Prison ID", required = true, example = "MDI", minLength = 3, maxLength = 5)
     @PathVariable
