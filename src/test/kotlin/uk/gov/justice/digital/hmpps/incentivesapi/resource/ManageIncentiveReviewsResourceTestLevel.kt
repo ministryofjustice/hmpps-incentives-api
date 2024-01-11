@@ -20,17 +20,19 @@ class ManageIncentiveReviewsResourceTestLevel : IncentiveLevelResourceTestBase()
   private lateinit var repository: IncentiveReviewRepository
 
   @BeforeEach
-  fun setUp(): Unit = runBlocking {
-    prisonApiMockServer.resetAll()
-    repository.deleteAll()
-  }
+  fun setUp(): Unit =
+    runBlocking {
+      prisonApiMockServer.resetAll()
+      repository.deleteAll()
+    }
 
   @AfterEach
-  override fun tearDown(): Unit = runBlocking {
-    prisonApiMockServer.resetRequests()
-    repository.deleteAll()
-    super.tearDown()
-  }
+  override fun tearDown(): Unit =
+    runBlocking {
+      prisonApiMockServer.resetRequests()
+      repository.deleteAll()
+      super.tearDown()
+    }
 
   @Test
   fun `handle undefined path variable`() {

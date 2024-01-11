@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
 
 class TopicHealthCheckTest : SqsIntegrationTestBase() {
-
   @Test
   fun `Outbound topic health ok`() {
     webTestClient.get()

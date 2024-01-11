@@ -40,31 +40,34 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
   private lateinit var incentiveReviewRepository: IncentiveReviewRepository
 
   @BeforeEach
-  fun setUp(): Unit = runBlocking {
-    prisonIncentiveLevelRepository.deleteAll()
-    incentiveReviewRepository.deleteAll()
+  fun setUp(): Unit =
+    runBlocking {
+      prisonIncentiveLevelRepository.deleteAll()
+      incentiveReviewRepository.deleteAll()
 
-    offenderSearchMockServer.stubFindOffenders("BAI")
-    offenderSearchMockServer.stubFindOffenders("MDI")
-    offenderSearchMockServer.stubFindOffenders("WRI")
-  }
+      offenderSearchMockServer.stubFindOffenders("BAI")
+      offenderSearchMockServer.stubFindOffenders("MDI")
+      offenderSearchMockServer.stubFindOffenders("WRI")
+    }
 
   @AfterEach
-  override fun tearDown(): Unit = runBlocking {
-    incentiveReviewRepository.deleteAll()
-    super.tearDown()
-  }
+  override fun tearDown(): Unit =
+    runBlocking {
+      incentiveReviewRepository.deleteAll()
+      super.tearDown()
+    }
 
   @Nested
   inner class `read-only endpoints` {
     @BeforeEach
-    fun setUp() = runBlocking {
-      listOf("BAS", "STD", "ENH", "ENT").forEach { levelCode ->
-        listOf("BAI", "MDI", "WRI").forEach { prisonId ->
-          makePrisonIncentiveLevel(prisonId, levelCode)
+    fun setUp() =
+      runBlocking {
+        listOf("BAS", "STD", "ENH", "ENT").forEach { levelCode ->
+          listOf("BAI", "MDI", "WRI").forEach { prisonId ->
+            makePrisonIncentiveLevel(prisonId, levelCode)
+          }
         }
       }
-    }
 
     @ParameterizedTest
     @ValueSource(
@@ -212,15 +215,16 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
   @Nested
   inner class `modifying endpoints` {
-    private fun <T : WebTestClient.RequestHeadersSpec<*>> T.withLocalAuthorisation(): T = apply {
-      headers(
-        setAuthorisation(
-          user = "USER_ADM",
-          roles = listOf("ROLE_MAINTAIN_PRISON_IEP_LEVELS"),
-          scopes = listOf("read", "write"),
-        ),
-      )
-    }
+    private fun <T : WebTestClient.RequestHeadersSpec<*>> T.withLocalAuthorisation(): T =
+      apply {
+        headers(
+          setAuthorisation(
+            user = "USER_ADM",
+            roles = listOf("ROLE_MAINTAIN_PRISON_IEP_LEVELS"),
+            scopes = listOf("read", "write"),
+          ),
+        )
+      }
 
     @Nested
     inner class `update level` {
@@ -355,9 +359,10 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         val auditMessageDetails = auditMessages.map { objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java) }
         assertThat(auditMessageDetails).allMatch { it.prisonId == "WRI" }
         assertThat(auditMessageDetails).allMatch { it.active }
-        val auditMessageDefaultLevels = auditMessageDetails.associate {
-          it.levelCode to it.defaultOnAdmission
-        }
+        val auditMessageDefaultLevels =
+          auditMessageDetails.associate {
+            it.levelCode to it.defaultOnAdmission
+          }
         assertThat(auditMessageDefaultLevels).isEqualTo(
           mapOf(
             "ENH" to true,
@@ -894,9 +899,10 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         val auditMessageDetails = auditMessages.map { objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java) }
         assertThat(auditMessageDetails).allMatch { it.prisonId == "WRI" }
         assertThat(auditMessageDetails).allMatch { it.active }
-        val auditMessageDefaultLevels = auditMessageDetails.associate {
-          it.levelCode to it.defaultOnAdmission
-        }
+        val auditMessageDefaultLevels =
+          auditMessageDetails.associate {
+            it.levelCode to it.defaultOnAdmission
+          }
         assertThat(auditMessageDefaultLevels).isEqualTo(
           mapOf(
             "ENH" to true,
@@ -1392,9 +1398,10 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         val auditMessageDetails = auditMessages.map { objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java) }
         assertThat(auditMessageDetails).allMatch { it.prisonId == "FEI" }
         assertThat(auditMessageDetails).allMatch { it.active }
-        val auditMessageDefaultLevels = auditMessageDetails.associate {
-          it.levelCode to it.defaultOnAdmission
-        }
+        val auditMessageDefaultLevels =
+          auditMessageDetails.associate {
+            it.levelCode to it.defaultOnAdmission
+          }
         assertThat(auditMessageDefaultLevels).isEqualTo(
           mapOf(
             "BAS" to false,
@@ -1539,9 +1546,10 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         val auditMessageDetails = auditMessages.map { objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java) }
         assertThat(auditMessageDetails).allMatch { it.prisonId == "FEI" }
         assertThat(auditMessageDetails).allMatch { it.active }
-        val auditMessageDefaultLevels = auditMessageDetails.associate {
-          it.levelCode to it.defaultOnAdmission
-        }
+        val auditMessageDefaultLevels =
+          auditMessageDetails.associate {
+            it.levelCode to it.defaultOnAdmission
+          }
         assertThat(auditMessageDefaultLevels).isEqualTo(
           mapOf(
             "STD" to true,
@@ -1634,9 +1642,10 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         val auditMessageDetails = auditMessages.map { objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java) }
         assertThat(auditMessageDetails).allMatch { it.prisonId == "FEI" }
         assertThat(auditMessageDetails).allMatch { it.active }
-        val auditMessageDefaultLevels = auditMessageDetails.associate {
-          it.levelCode to it.defaultOnAdmission
-        }
+        val auditMessageDefaultLevels =
+          auditMessageDetails.associate {
+            it.levelCode to it.defaultOnAdmission
+          }
         assertThat(auditMessageDefaultLevels).isEqualTo(
           mapOf(
             "BAS" to false,
@@ -2149,56 +2158,57 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
     }
   }
 
-  private fun makeIncentiveReviews(prisonId: String): Unit = runBlocking {
-    // prisoner numbers and booking ids match stubbed offender search response
-    incentiveReviewRepository.saveAll(
-      listOf(
-        IncentiveReview(
-          prisonerNumber = "A1234AA",
-          bookingId = 1234134,
-          levelCode = "STD",
-          prisonId = prisonId,
-          locationId = "$prisonId-1-1-001",
-          reviewedBy = "TEST_STAFF1",
-          reviewTime = LocalDateTime.now(clock).minusDays(1),
+  private fun makeIncentiveReviews(prisonId: String): Unit =
+    runBlocking {
+      // prisoner numbers and booking ids match stubbed offender search response
+      incentiveReviewRepository.saveAll(
+        listOf(
+          IncentiveReview(
+            prisonerNumber = "A1234AA",
+            bookingId = 1234134,
+            levelCode = "STD",
+            prisonId = prisonId,
+            locationId = "$prisonId-1-1-001",
+            reviewedBy = "TEST_STAFF1",
+            reviewTime = LocalDateTime.now(clock).minusDays(1),
+          ),
+          IncentiveReview(
+            prisonerNumber = "A1234AB",
+            bookingId = 1234135,
+            levelCode = "EN2",
+            prisonId = prisonId,
+            locationId = "$prisonId-1-1-002",
+            reviewedBy = "TEST_STAFF1",
+            reviewTime = LocalDateTime.now(clock).minusDays(1),
+          ),
+          IncentiveReview(
+            prisonerNumber = "A1234AC",
+            bookingId = 1234136,
+            levelCode = "ENH",
+            prisonId = prisonId,
+            locationId = "$prisonId-1-1-003",
+            reviewedBy = "TEST_STAFF1",
+            reviewTime = LocalDateTime.now(clock).minusDays(1),
+          ),
+          IncentiveReview(
+            prisonerNumber = "A1234AD",
+            bookingId = 1234137,
+            levelCode = "EN2",
+            prisonId = prisonId,
+            locationId = "$prisonId-1-1-004",
+            reviewedBy = "TEST_STAFF1",
+            reviewTime = LocalDateTime.now(clock).minusDays(1),
+          ),
+          IncentiveReview(
+            prisonerNumber = "A1234AE",
+            bookingId = 1234138,
+            levelCode = "BAS",
+            prisonId = prisonId,
+            locationId = "$prisonId-1-1-005",
+            reviewedBy = "TEST_STAFF1",
+            reviewTime = LocalDateTime.now(clock).minusDays(1),
+          ),
         ),
-        IncentiveReview(
-          prisonerNumber = "A1234AB",
-          bookingId = 1234135,
-          levelCode = "EN2",
-          prisonId = prisonId,
-          locationId = "$prisonId-1-1-002",
-          reviewedBy = "TEST_STAFF1",
-          reviewTime = LocalDateTime.now(clock).minusDays(1),
-        ),
-        IncentiveReview(
-          prisonerNumber = "A1234AC",
-          bookingId = 1234136,
-          levelCode = "ENH",
-          prisonId = prisonId,
-          locationId = "$prisonId-1-1-003",
-          reviewedBy = "TEST_STAFF1",
-          reviewTime = LocalDateTime.now(clock).minusDays(1),
-        ),
-        IncentiveReview(
-          prisonerNumber = "A1234AD",
-          bookingId = 1234137,
-          levelCode = "EN2",
-          prisonId = prisonId,
-          locationId = "$prisonId-1-1-004",
-          reviewedBy = "TEST_STAFF1",
-          reviewTime = LocalDateTime.now(clock).minusDays(1),
-        ),
-        IncentiveReview(
-          prisonerNumber = "A1234AE",
-          bookingId = 1234138,
-          levelCode = "BAS",
-          prisonId = prisonId,
-          locationId = "$prisonId-1-1-005",
-          reviewedBy = "TEST_STAFF1",
-          reviewTime = LocalDateTime.now(clock).minusDays(1),
-        ),
-      ),
-    ).collect()
-  }
+      ).collect()
+    }
 }

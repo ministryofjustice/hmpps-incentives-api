@@ -52,7 +52,10 @@ class PrisonIncentiveLevelService(
   /**
    * Returns an incentive level, whether it's active or not, for given prison and level code, along with associated information
    */
-  suspend fun getPrisonIncentiveLevel(prisonId: String, levelCode: String): PrisonIncentiveLevelDTO? {
+  suspend fun getPrisonIncentiveLevel(
+    prisonId: String,
+    levelCode: String,
+  ): PrisonIncentiveLevelDTO? {
     return prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode(prisonId, levelCode)?.toDTO()
   }
 
@@ -95,9 +98,10 @@ class PrisonIncentiveLevelService(
 
     return incentiveLevelRepository.findById(levelCode)?.let { incentiveLevel ->
       val originalPrisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode(prisonId, levelCode)
-      val prisonIncentiveLevel = originalPrisonIncentiveLevel
-        ?.withUpdate(update)
-        ?: update.toNewEntity(prisonId, levelCode)
+      val prisonIncentiveLevel =
+        originalPrisonIncentiveLevel
+          ?.withUpdate(update)
+          ?: update.toNewEntity(prisonId, levelCode)
 
       if (!incentiveLevel.active && prisonIncentiveLevel.active) {
         throw ValidationExceptionWithErrorCode(
@@ -176,10 +180,11 @@ class PrisonIncentiveLevelService(
   @Transactional
   suspend fun resetPrisonIncentiveLevels(prisonId: String): List<PrisonIncentiveLevelDTO> {
     val defaultIncentiveLevelCode = "STD"
-    val requiredIncentiveLevelCodes = incentiveLevelRepository.findAllByActiveIsTrueOrderBySequence()
-      .toList()
-      .filter { it.required }
-      .map { it.code }
+    val requiredIncentiveLevelCodes =
+      incentiveLevelRepository.findAllByActiveIsTrueOrderBySequence()
+        .toList()
+        .filter { it.required }
+        .map { it.code }
 
     val prisonIncentiveLevels = prisonIncentiveLevelRepository.findAllByPrisonId(prisonId).toList()
     val currentDefaultIncentiveLevelCode = prisonIncentiveLevels.firstOrNull { it.defaultOnAdmission }?.levelCode
@@ -213,9 +218,10 @@ class PrisonIncentiveLevelService(
   @Transactional
   suspend fun deactivateAllPrisonIncentiveLevels(prisonId: String): List<PrisonIncentiveLevelDTO> {
     val prisonIncentiveLevels = prisonIncentiveLevelRepository.findAllByPrisonId(prisonId).toList()
-    val prisonIncentiveLevelsWithPrisoners = prisonIncentiveLevels.filter { prisonIncentiveLevel ->
-      countPrisonersService.prisonersExistOnLevelInPrison(prisonId, prisonIncentiveLevel.levelCode)
-    }
+    val prisonIncentiveLevelsWithPrisoners =
+      prisonIncentiveLevels.filter { prisonIncentiveLevel ->
+        countPrisonersService.prisonersExistOnLevelInPrison(prisonId, prisonIncentiveLevel.levelCode)
+      }
     if (prisonIncentiveLevelsWithPrisoners.isNotEmpty()) {
       throw ValidationExceptionWithErrorCode(
         "A level must remain active if there are prisoners on it currently",
@@ -231,37 +237,34 @@ class PrisonIncentiveLevelService(
     ).toListOfDTO()
   }
 
-  private fun PrisonIncentiveLevel.withUpdate(update: PrisonIncentiveLevelUpdateDTO): PrisonIncentiveLevel = copy(
-    active = update.active ?: active,
-    defaultOnAdmission = update.defaultOnAdmission ?: defaultOnAdmission,
+  private fun PrisonIncentiveLevel.withUpdate(update: PrisonIncentiveLevelUpdateDTO): PrisonIncentiveLevel =
+    copy(
+      active = update.active ?: active,
+      defaultOnAdmission = update.defaultOnAdmission ?: defaultOnAdmission,
+      remandTransferLimitInPence = update.remandTransferLimitInPence ?: remandTransferLimitInPence,
+      remandSpendLimitInPence = update.remandSpendLimitInPence ?: remandSpendLimitInPence,
+      convictedTransferLimitInPence = update.convictedTransferLimitInPence ?: convictedTransferLimitInPence,
+      convictedSpendLimitInPence = update.convictedSpendLimitInPence ?: convictedSpendLimitInPence,
+      visitOrders = update.visitOrders ?: visitOrders,
+      privilegedVisitOrders = update.privilegedVisitOrders ?: privilegedVisitOrders,
+      new = false,
+      whenUpdated = LocalDateTime.now(clock),
+    )
 
-    remandTransferLimitInPence = update.remandTransferLimitInPence ?: remandTransferLimitInPence,
-    remandSpendLimitInPence = update.remandSpendLimitInPence ?: remandSpendLimitInPence,
-    convictedTransferLimitInPence = update.convictedTransferLimitInPence ?: convictedTransferLimitInPence,
-    convictedSpendLimitInPence = update.convictedSpendLimitInPence ?: convictedSpendLimitInPence,
-
-    visitOrders = update.visitOrders ?: visitOrders,
-    privilegedVisitOrders = update.privilegedVisitOrders ?: privilegedVisitOrders,
-
-    new = false,
-    whenUpdated = LocalDateTime.now(clock),
-  )
-
-  private fun PrisonIncentiveLevel.toDTO(): PrisonIncentiveLevelDTO = PrisonIncentiveLevelDTO(
-    levelCode = levelCode,
-    levelName = levelName!!, // NB: entity will always have a level name if loaded using correct repository method
-    prisonId = prisonId,
-    active = active,
-    defaultOnAdmission = defaultOnAdmission,
-
-    remandTransferLimitInPence = remandTransferLimitInPence,
-    remandSpendLimitInPence = remandSpendLimitInPence,
-    convictedTransferLimitInPence = convictedTransferLimitInPence,
-    convictedSpendLimitInPence = convictedSpendLimitInPence,
-
-    visitOrders = visitOrders,
-    privilegedVisitOrders = privilegedVisitOrders,
-  )
+  private fun PrisonIncentiveLevel.toDTO(): PrisonIncentiveLevelDTO =
+    PrisonIncentiveLevelDTO(
+      levelCode = levelCode,
+      levelName = levelName!!, // NB: entity will always have a level name if loaded using correct repository method
+      prisonId = prisonId,
+      active = active,
+      defaultOnAdmission = defaultOnAdmission,
+      remandTransferLimitInPence = remandTransferLimitInPence,
+      remandSpendLimitInPence = remandSpendLimitInPence,
+      convictedTransferLimitInPence = convictedTransferLimitInPence,
+      convictedSpendLimitInPence = convictedSpendLimitInPence,
+      visitOrders = visitOrders,
+      privilegedVisitOrders = privilegedVisitOrders,
+    )
 
   private fun PrisonIncentiveLevelUpdateDTO.toNewEntity(
     prisonId: String,
@@ -274,21 +277,24 @@ class PrisonIncentiveLevelService(
       prisonId = prisonId,
       active = active ?: true,
       defaultOnAdmission = defaultOnAdmission ?: false,
-
-      remandTransferLimitInPence = remandTransferLimitInPence
-        ?: fallback.remandTransferLimitInPence,
-      remandSpendLimitInPence = remandSpendLimitInPence
-        ?: fallback.remandSpendLimitInPence,
-      convictedTransferLimitInPence = convictedTransferLimitInPence
-        ?: fallback.convictedTransferLimitInPence,
-      convictedSpendLimitInPence = convictedSpendLimitInPence
-        ?: fallback.convictedSpendLimitInPence,
-
-      visitOrders = visitOrders
-        ?: fallback.visitOrders,
-      privilegedVisitOrders = privilegedVisitOrders
-        ?: fallback.privilegedVisitOrders,
-
+      remandTransferLimitInPence =
+        remandTransferLimitInPence
+          ?: fallback.remandTransferLimitInPence,
+      remandSpendLimitInPence =
+        remandSpendLimitInPence
+          ?: fallback.remandSpendLimitInPence,
+      convictedTransferLimitInPence =
+        convictedTransferLimitInPence
+          ?: fallback.convictedTransferLimitInPence,
+      convictedSpendLimitInPence =
+        convictedSpendLimitInPence
+          ?: fallback.convictedSpendLimitInPence,
+      visitOrders =
+        visitOrders
+          ?: fallback.visitOrders,
+      privilegedVisitOrders =
+        privilegedVisitOrders
+          ?: fallback.privilegedVisitOrders,
       new = true,
       whenUpdated = LocalDateTime.now(clock),
     )
@@ -303,13 +309,13 @@ private data class Policy(
   val remandSpendLimitInPence: Int,
   val convictedTransferLimitInPence: Int,
   val convictedSpendLimitInPence: Int,
-
   val visitOrders: Int,
   val privilegedVisitOrders: Int,
 )
 
-private val prisonIncentiveLevelPolicies = mapOf(
-  "BAS" to Policy(27_50, 275_00, 5_50, 55_00, 2, 1),
-  "STD" to Policy(60_50, 605_00, 19_80, 198_00, 2, 1),
-  "ENH" to Policy(66_00, 660_00, 33_00, 330_00, 2, 1),
-)
+private val prisonIncentiveLevelPolicies =
+  mapOf(
+    "BAS" to Policy(27_50, 275_00, 5_50, 55_00, 2, 1),
+    "STD" to Policy(60_50, 605_00, 19_80, 198_00, 2, 1),
+    "ENH" to Policy(66_00, 660_00, 33_00, 330_00, 2, 1),
+  )

@@ -14,9 +14,10 @@ import org.mockito.kotlin.verifyNoInteractions
 class PrisonOffenderEventListenerTest {
   private lateinit var listener: PrisonOffenderEventListener
   private val prisonerIncentiveReviewService: PrisonerIncentiveReviewService = mock()
-  private val objectMapper = ObjectMapper().findAndRegisterModules().apply {
-    configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-  }
+  private val objectMapper =
+    ObjectMapper().findAndRegisterModules().apply {
+      configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    }
 
   @BeforeEach
   fun setUp() {
@@ -24,49 +25,54 @@ class PrisonOffenderEventListenerTest {
   }
 
   @Test
-  fun `process admission prisoner message`(): Unit = runBlocking {
-    // When
-    listener.onPrisonOffenderEvent("/messages/prisonerReceivedReasonAdmission.json".readResourceAsText())
+  fun `process admission prisoner message`(): Unit =
+    runBlocking {
+      // When
+      listener.onPrisonOffenderEvent("/messages/prisonerReceivedReasonAdmission.json".readResourceAsText())
 
-    // Then
-    verify(prisonerIncentiveReviewService, times(1)).processOffenderEvent(any())
-  }
-
-  @Test
-  fun `process transferred prisoner message`(): Unit = runBlocking {
-    // When
-    listener.onPrisonOffenderEvent("/messages/prisonerReceivedReasonTransferred.json".readResourceAsText())
-
-    // Then
-    verify(prisonerIncentiveReviewService, times(1)).processOffenderEvent(any())
-  }
+      // Then
+      verify(prisonerIncentiveReviewService, times(1)).processOffenderEvent(any())
+    }
 
   @Test
-  fun `do not process eventType of prisoner released`(): Unit = runBlocking {
-    // When
-    listener.onPrisonOffenderEvent("/messages/prisonerReleased.json".readResourceAsText())
+  fun `process transferred prisoner message`(): Unit =
+    runBlocking {
+      // When
+      listener.onPrisonOffenderEvent("/messages/prisonerReceivedReasonTransferred.json".readResourceAsText())
 
-    // Then
-    verifyNoInteractions(prisonerIncentiveReviewService)
-  }
-
-  @Test
-  fun `process merged prisoner message`(): Unit = runBlocking {
-    // When
-    listener.onPrisonOffenderEvent("/messages/prisonerMerged.json".readResourceAsText())
-
-    // Then
-    verify(prisonerIncentiveReviewService, times(1)).processOffenderEvent(any())
-  }
+      // Then
+      verify(prisonerIncentiveReviewService, times(1)).processOffenderEvent(any())
+    }
 
   @Test
-  fun `process prisoner alerts updated message`(): Unit = runBlocking {
-    // When
-    listener.onPrisonOffenderEvent("/messages/prisonerAlertsUpdated.json".readResourceAsText())
+  fun `do not process eventType of prisoner released`(): Unit =
+    runBlocking {
+      // When
+      listener.onPrisonOffenderEvent("/messages/prisonerReleased.json".readResourceAsText())
 
-    // Then
-    verify(prisonerIncentiveReviewService, times(1)).processPrisonerAlertsUpdatedEvent(any())
-  }
+      // Then
+      verifyNoInteractions(prisonerIncentiveReviewService)
+    }
+
+  @Test
+  fun `process merged prisoner message`(): Unit =
+    runBlocking {
+      // When
+      listener.onPrisonOffenderEvent("/messages/prisonerMerged.json".readResourceAsText())
+
+      // Then
+      verify(prisonerIncentiveReviewService, times(1)).processOffenderEvent(any())
+    }
+
+  @Test
+  fun `process prisoner alerts updated message`(): Unit =
+    runBlocking {
+      // When
+      listener.onPrisonOffenderEvent("/messages/prisonerAlertsUpdated.json".readResourceAsText())
+
+      // Then
+      verify(prisonerIncentiveReviewService, times(1)).processPrisonerAlertsUpdatedEvent(any())
+    }
 
   private fun String.readResourceAsText(): String {
     return PrisonOffenderEventListenerTest::class.java.getResource(this)?.readText()

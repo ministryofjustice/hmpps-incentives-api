@@ -14,7 +14,6 @@ class NextReviewDateGetterService(
   private val prisonApiService: PrisonApiService,
   private val nextReviewDateUpdaterService: NextReviewDateUpdaterService,
 ) {
-
   suspend fun get(bookingId: Long): LocalDate {
     return nextReviewDateRepository.findById(bookingId)?.nextReviewDate ?: run {
       val prisonerInfo = prisonApiService.getPrisonerExtraInfo(bookingId, useClientCredentials = true)

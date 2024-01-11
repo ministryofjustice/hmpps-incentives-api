@@ -143,23 +143,25 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
   @Nested
   inner class `modifying endpoints` {
-    private fun <T : WebTestClient.RequestHeadersSpec<*>> T.withCentralAuthorisation(): T = apply {
-      headers(
-        setAuthorisation(
-          user = "USER_ADM",
-          roles = listOf("ROLE_MAINTAIN_INCENTIVE_LEVELS"),
-          scopes = listOf("read", "write"),
-        ),
-      )
-    }
+    private fun <T : WebTestClient.RequestHeadersSpec<*>> T.withCentralAuthorisation(): T =
+      apply {
+        headers(
+          setAuthorisation(
+            user = "USER_ADM",
+            roles = listOf("ROLE_MAINTAIN_INCENTIVE_LEVELS"),
+            scopes = listOf("read", "write"),
+          ),
+        )
+      }
 
     @Nested
     inner class `create level` {
       @Test
       fun `creates a level`() {
-        val maxSequence = runBlocking {
-          incentiveLevelRepository.findMaxSequence()!!
-        }
+        val maxSequence =
+          runBlocking {
+            incentiveLevelRepository.findMaxSequence()!!
+          }
 
         webTestClient.post()
           .uri("/incentive/levels")

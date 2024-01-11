@@ -20,28 +20,31 @@ class PrisonOffenderEventListener(
 
   @SqsListener("incentives", factory = "hmppsQueueContainerFactoryProxy")
   @WithSpan(value = "hmpps-incentives-prisoner-event-queue", kind = SpanKind.SERVER)
-  fun onPrisonOffenderEvent(requestJson: String) = runBlocking {
-    val (message, messageAttributes) = mapper.readValue(requestJson, HMPPSMessage::class.java)
-    val eventType = messageAttributes.eventType.Value
-    log.info("Received message $message, type $eventType")
+  fun onPrisonOffenderEvent(requestJson: String) =
+    runBlocking {
+      val (message, messageAttributes) = mapper.readValue(requestJson, HMPPSMessage::class.java)
+      val eventType = messageAttributes.eventType.Value
+      log.info("Received message $message, type $eventType")
 
-    val hmppsDomainEvent = mapper.readValue(message, HMPPSDomainEvent::class.java)
-    when (eventType) {
-      "prisoner-offender-search.prisoner.received", "prison-offender-events.prisoner.merged" -> {
-        prisonerIncentiveReviewService.processOffenderEvent(hmppsDomainEvent)
-      }
-      "prisoner-offender-search.prisoner.alerts-updated" -> {
-        prisonerIncentiveReviewService.processPrisonerAlertsUpdatedEvent(hmppsDomainEvent)
-      }
-      else -> {
-        log.debug("Ignoring message with type $eventType")
+      val hmppsDomainEvent = mapper.readValue(message, HMPPSDomainEvent::class.java)
+      when (eventType) {
+        "prisoner-offender-search.prisoner.received", "prison-offender-events.prisoner.merged" -> {
+          prisonerIncentiveReviewService.processOffenderEvent(hmppsDomainEvent)
+        }
+        "prisoner-offender-search.prisoner.alerts-updated" -> {
+          prisonerIncentiveReviewService.processPrisonerAlertsUpdatedEvent(hmppsDomainEvent)
+        }
+        else -> {
+          log.debug("Ignoring message with type $eventType")
+        }
       }
     }
-  }
 }
 
 data class HMPPSEventType(val Value: String, val Type: String)
+
 data class HMPPSMessageAttributes(val eventType: HMPPSEventType)
+
 data class HMPPSMessage(
   val Message: String,
   val MessageAttributes: HMPPSMessageAttributes,

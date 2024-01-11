@@ -23,7 +23,6 @@ import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 class SqsIntegrationTestBase : IntegrationTestBase() {
-
   @Autowired
   private lateinit var hmppsQueueService: HmppsQueueService
 

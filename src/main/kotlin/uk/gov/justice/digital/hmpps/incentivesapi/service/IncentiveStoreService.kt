@@ -61,13 +61,14 @@ class IncentiveStoreService(
       incentiveReviewRepository.updateIncentivesToNotCurrentForBookingAndIncentive(incentiveRecord.bookingId, incentiveRecord.id)
     }
 
-    val updatedIncentiveRecord = incentiveReviewRepository.save(
-      incentiveRecord.copy(
-        reviewTime = update.reviewTime ?: incentiveRecord.reviewTime,
-        commentText = update.comment ?: incentiveRecord.commentText,
-        current = update.current ?: incentiveRecord.current,
-      ),
-    )
+    val updatedIncentiveRecord =
+      incentiveReviewRepository.save(
+        incentiveRecord.copy(
+          reviewTime = update.reviewTime ?: incentiveRecord.reviewTime,
+          commentText = update.comment ?: incentiveRecord.commentText,
+          current = update.current ?: incentiveRecord.current,
+        ),
+      )
     nextReviewDateUpdaterService.update(updatedIncentiveRecord.bookingId)
     return updatedIncentiveRecord
   }

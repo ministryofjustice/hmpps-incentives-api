@@ -8,7 +8,9 @@ import org.springframework.web.reactive.function.client.WebClient
 import java.time.Duration
 
 @Component
-class AuthHealthCheck @Autowired constructor(
-  @Qualifier("authWebClient") authWebClient: WebClient,
-  @Value("\${api.health-timeout-ms}") timeout: Duration,
-) : HealthCheck(authWebClient, timeout)
+class AuthHealthCheck
+  @Autowired
+  constructor(
+    @Qualifier("authWebClient") authWebClient: WebClient,
+    @Value("\${api.health-timeout-ms}") timeout: Duration,
+  ) : HealthCheck(authWebClient, timeout)

@@ -13,16 +13,20 @@ class CountPrisonersService(
   /**
    * True if there are currently any prisoners on a given incentive level at a prison
    */
-  suspend fun prisonersExistOnLevelInPrison(prisonId: String, levelCode: String): Boolean {
+  suspend fun prisonersExistOnLevelInPrison(
+    prisonId: String,
+    levelCode: String,
+  ): Boolean {
     var prisonersExistOnLevel = false
     offenderSearchService.findOffendersAtLocation(prisonId)
       .takeWhile { offenders ->
         val bookingIds = offenders.map { it.bookingId }
-        prisonersExistOnLevel = if (bookingIds.isEmpty()) {
-          false
-        } else {
-          incentiveReviewRepository.somePrisonerCurrentlyOnLevel(bookingIds, levelCode)
-        }
+        prisonersExistOnLevel =
+          if (bookingIds.isEmpty()) {
+            false
+          } else {
+            incentiveReviewRepository.somePrisonerCurrentlyOnLevel(bookingIds, levelCode)
+          }
         !prisonersExistOnLevel
       }
       .collect()

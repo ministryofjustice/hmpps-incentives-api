@@ -19,12 +19,13 @@ class BehaviourService(
   suspend fun getBehaviours(reviews: List<IncentiveReview>): BehaviourSummary {
     val lastRealReviews = getLastRealReviewForOffenders(reviews)
     val lastReviewsOrDefaultPeriods = lastRealReviews.mapValues { truncateReviewDate(it.value) }
-    val caseNoteCountsByType = getCaseNoteUsageByLastReviewDate(
-      prisonApiService.retrieveCaseNoteCountsByFromDate(
-        behaviourCaseNoteMap.keys.toList(),
-        lastReviewsOrDefaultPeriods,
-      ).toList(),
-    )
+    val caseNoteCountsByType =
+      getCaseNoteUsageByLastReviewDate(
+        prisonApiService.retrieveCaseNoteCountsByFromDate(
+          behaviourCaseNoteMap.keys.toList(),
+          lastReviewsOrDefaultPeriods,
+        ).toList(),
+      )
     return BehaviourSummary(caseNoteCountsByType, lastRealReviews)
   }
 

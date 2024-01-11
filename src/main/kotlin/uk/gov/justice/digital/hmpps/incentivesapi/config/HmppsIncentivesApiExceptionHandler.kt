@@ -23,11 +23,15 @@ import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveReviewNotFoun
 
 @RestControllerAdvice
 class HmppsIncentivesApiExceptionHandler {
-
   @ExceptionHandler(MethodArgumentNotValidException::class)
   fun handleMethodArgumentNotValidException(e: MethodArgumentNotValidException): ResponseEntity<ErrorResponse> {
     log.debug("Validation error (400) returned: {}", e.message)
-    val message = if (e.hasFieldErrors()) { e.fieldError?.defaultMessage } else { e.message }
+    val message =
+      if (e.hasFieldErrors()) {
+        e.fieldError?.defaultMessage
+      } else {
+        e.message
+      }
     return ResponseEntity
       .status(BAD_REQUEST)
       .body(
@@ -65,18 +69,20 @@ class HmppsIncentivesApiExceptionHandler {
       .body(
         ErrorResponse(
           status = BAD_REQUEST,
-          errorCode = if (e is ValidationExceptionWithErrorCode) {
-            e.errorCode
-          } else {
-            null
-          },
+          errorCode =
+            if (e is ValidationExceptionWithErrorCode) {
+              e.errorCode
+            } else {
+              null
+            },
           userMessage = "Validation failure: ${e.message}",
           developerMessage = e.message,
-          moreInfo = if (e is ValidationExceptionWithErrorCode) {
-            e.moreInfo
-          } else {
-            null
-          },
+          moreInfo =
+            if (e is ValidationExceptionWithErrorCode) {
+              e.moreInfo
+            } else {
+              null
+            },
         ),
       )
   }
@@ -84,7 +90,12 @@ class HmppsIncentivesApiExceptionHandler {
   @ExceptionHandler(WebExchangeBindException::class)
   fun handleWebExchangeBindException(e: WebExchangeBindException): ResponseEntity<ErrorResponse> {
     log.info("Validation exception: {}", e.message)
-    val message = if (e.hasFieldErrors()) { e.fieldError?.defaultMessage } else { e.message }
+    val message =
+      if (e.hasFieldErrors()) {
+        e.fieldError?.defaultMessage
+      } else {
+        e.message
+      }
     return ResponseEntity
       .status(BAD_REQUEST)
       .body(
@@ -98,11 +109,12 @@ class HmppsIncentivesApiExceptionHandler {
 
   @ExceptionHandler(UnsupportedMediaTypeStatusException::class)
   fun handleUnsupportedMediaTypeStatusException(e: UnsupportedMediaTypeStatusException): ResponseEntity<ErrorResponse> {
-    val supportedTypes = if (e.supportedMediaTypes.isEmpty()) {
-      "accepted types not specified"
-    } else {
-      e.supportedMediaTypes.joinToString(", ", prefix = "accepted types: ")
-    }
+    val supportedTypes =
+      if (e.supportedMediaTypes.isEmpty()) {
+        "accepted types not specified"
+      } else {
+        e.supportedMediaTypes.joinToString(", ", prefix = "accepted types: ")
+      }
     val message = "Unsupported media type ${e.contentType}; $supportedTypes"
     log.info(message)
     return ResponseEntity

@@ -7,7 +7,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.config.PostgresContainer
 
 @ActiveProfiles("test")
 abstract class TestBase {
-
   companion object {
     private val pgContainer = PostgresContainer.instance
 

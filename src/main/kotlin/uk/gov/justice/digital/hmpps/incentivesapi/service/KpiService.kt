@@ -17,27 +17,27 @@ class KpiService(
   private val prisonApiService: PrisonApiService,
   private val offenderSearchService: OffenderSearchService,
 ) {
-
   suspend fun getNumberOfReviewsConductedAndPrisonersReviewed(day: LocalDate): ReviewsConductedPrisonersReviewed {
     return kpiRepository.getNumberOfReviewsConductedAndPrisonersReviewed(day)
   }
 
-  suspend fun getNumberOfPrisonersOverdue(): Int = coroutineScope {
-    // Get a set containing all the prisonerNumber of everyone in prison (any prison)
-    val allPrisoners = mutableSetOf<String>()
-    getPrisons().map { prisonId ->
-      async { getPrisonersInPrison(prisonId) }
-    }.awaitAll().forEach { prisoners ->
-      allPrisoners.addAll(prisoners.map(OffenderSearchPrisoner::prisonerNumber))
+  suspend fun getNumberOfPrisonersOverdue(): Int =
+    coroutineScope {
+      // Get a set containing all the prisonerNumber of everyone in prison (any prison)
+      val allPrisoners = mutableSetOf<String>()
+      getPrisons().map { prisonId ->
+        async { getPrisonersInPrison(prisonId) }
+      }.awaitAll().forEach { prisoners ->
+        allPrisoners.addAll(prisoners.map(OffenderSearchPrisoner::prisonerNumber))
+      }
+
+      println("Number of prisoners across the estate: ${allPrisoners.size}")
+
+      // Get prisoner numbers overdue, "filter" out people no longer in prison and return the count
+      kpiRepository
+        .getPrisonerNumbersOverdueReview()
+        .count { allPrisoners.contains(it) }
     }
-
-    println("Number of prisoners across the estate: ${allPrisoners.size}")
-
-    // Get prisoner numbers overdue, "filter" out people no longer in prison and return the count
-    kpiRepository
-      .getPrisonerNumbersOverdueReview()
-      .count { allPrisoners.contains(it) }
-  }
 
   private suspend fun getPrisons(): List<String> {
     println("Getting list of prisons from Prison API...")

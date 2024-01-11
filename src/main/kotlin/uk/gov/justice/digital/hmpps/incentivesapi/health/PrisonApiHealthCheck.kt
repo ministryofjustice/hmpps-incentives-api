@@ -8,7 +8,9 @@ import org.springframework.web.reactive.function.client.WebClient
 import java.time.Duration
 
 @Component
-class PrisonApiHealthCheck @Autowired constructor(
-  @Qualifier("prisonHealthWebClient") prisonHealthWebClient: WebClient,
-  @Value("\${api.health-timeout-ms}") timeout: Duration,
-) : HealthCheck(prisonHealthWebClient, timeout)
+class PrisonApiHealthCheck
+  @Autowired
+  constructor(
+    @Qualifier("prisonHealthWebClient") prisonHealthWebClient: WebClient,
+    @Value("\${api.health-timeout-ms}") timeout: Duration,
+  ) : HealthCheck(prisonHealthWebClient, timeout)

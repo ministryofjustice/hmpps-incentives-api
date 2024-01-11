@@ -32,12 +32,13 @@ class JwtAuthHelper {
     roles: List<String> = listOf(),
     scopes: List<String> = listOf(),
   ): (HttpHeaders) -> Unit {
-    val token = createJwt(
-      subject = user,
-      scope = scopes,
-      expiryTime = Duration.ofHours(1L),
-      roles = roles,
-    )
+    val token =
+      createJwt(
+        subject = user,
+        scope = scopes,
+        expiryTime = Duration.ofHours(1L),
+        roles = roles,
+      )
     return { it.set(HttpHeaders.AUTHORIZATION, "Bearer $token") }
   }
 

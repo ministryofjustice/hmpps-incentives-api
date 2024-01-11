@@ -13,7 +13,10 @@ object LocalStackContainer {
   private val log = LoggerFactory.getLogger(this::class.java)
   val instance by lazy { startLocalstackIfNotRunning() }
 
-  fun setLocalStackProperties(localStackContainer: LocalStackContainer, registry: DynamicPropertyRegistry) {
+  fun setLocalStackProperties(
+    localStackContainer: LocalStackContainer,
+    registry: DynamicPropertyRegistry,
+  ) {
     val localstackUrl = localStackContainer.getEndpointOverride(LocalStackContainer.Service.SNS).toString()
     val region = localStackContainer.region
     registry.add("hmpps.sqs.localstackUrl") { localstackUrl }

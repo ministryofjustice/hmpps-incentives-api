@@ -163,7 +163,11 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
     )
   }
 
-  fun stubGetPrisonerInfoByNoms(prisonerNumber: String, bookingId: Long, locationId: Long) {
+  fun stubGetPrisonerInfoByNoms(
+    prisonerNumber: String,
+    bookingId: Long,
+    locationId: Long,
+  ) {
     stubFor(
       get("/api/bookings/offenderNo/$prisonerNumber").willReturn(
         aResponse()
@@ -186,7 +190,11 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
     )
   }
 
-  fun stubGetPrisonerInfoByBooking(bookingId: Long, prisonerNumber: String, locationId: Long) {
+  fun stubGetPrisonerInfoByBooking(
+    bookingId: Long,
+    prisonerNumber: String,
+    locationId: Long,
+  ) {
     stubFor(
       get("/api/bookings/$bookingId?basicInfo=true").willReturn(
         aResponse()
@@ -209,7 +217,10 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
     )
   }
 
-  fun stubGetPrisonerExtraInfo(bookingId: Long, prisonerNumber: String) {
+  fun stubGetPrisonerExtraInfo(
+    bookingId: Long,
+    prisonerNumber: String,
+  ) {
     stubFor(
       get("/api/bookings/$bookingId?extraInfo=true").willReturn(
         aResponse()
@@ -230,7 +241,10 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
     )
   }
 
-  fun stubGetLocationById(locationId: Long, locationDesc: String) {
+  fun stubGetLocationById(
+    locationId: Long,
+    locationDesc: String,
+  ) {
     stubFor(
       get("/api/locations/$locationId?includeInactive=true").willReturn(
         aResponse()

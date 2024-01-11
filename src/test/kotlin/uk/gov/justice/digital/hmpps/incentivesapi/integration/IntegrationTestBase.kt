@@ -17,7 +17,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.integration.wiremock.PrisonApi
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
 abstract class IntegrationTestBase : TestBase() {
-
   @Autowired
   lateinit var webTestClient: WebTestClient
 

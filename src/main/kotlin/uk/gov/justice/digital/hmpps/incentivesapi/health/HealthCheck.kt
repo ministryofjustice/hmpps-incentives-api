@@ -7,16 +7,18 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import java.time.Duration
 
 abstract class HealthCheck(private val webClient: WebClient, private val timeout: Duration) : HealthIndicator {
-  override fun health(): Health = try {
-    val responseEntity = webClient.get()
-      .uri("/health/ping")
-      .retrieve()
-      .toEntity(String::class.java)
-      .block(timeout) ?: throw Exception("/health/ping did not return a response")
-    Health.up().withDetail("HttpStatus", responseEntity.statusCode).build()
-  } catch (e: WebClientResponseException) {
-    Health.down(e).withDetail("body", e.responseBodyAsString).build()
-  } catch (e: Exception) {
-    Health.down(e).build()
-  }
+  override fun health(): Health =
+    try {
+      val responseEntity =
+        webClient.get()
+          .uri("/health/ping")
+          .retrieve()
+          .toEntity(String::class.java)
+          .block(timeout) ?: throw Exception("/health/ping did not return a response")
+      Health.up().withDetail("HttpStatus", responseEntity.statusCode).build()
+    } catch (e: WebClientResponseException) {
+      Health.down(e).withDetail("body", e.responseBodyAsString).build()
+    } catch (e: Exception) {
+      Health.down(e).build()
+    }
 }

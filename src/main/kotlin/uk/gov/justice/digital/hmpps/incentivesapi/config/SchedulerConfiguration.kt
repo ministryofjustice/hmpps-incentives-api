@@ -20,7 +20,6 @@ const val defaultLockAtMostFor = "PT10M"
   defaultLockAtMostFor = defaultLockAtMostFor,
 )
 class SchedulerConfiguration {
-
   @Bean
   fun lockProvider(connectionFactory: ConnectionFactory): LockProvider {
     return R2dbcLockProvider(connectionFactory)

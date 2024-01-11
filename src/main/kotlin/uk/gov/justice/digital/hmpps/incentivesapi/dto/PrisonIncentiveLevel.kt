@@ -44,20 +44,22 @@ data class PrisonIncentiveLevel(
   @JsonProperty(required = true)
   val privilegedVisitOrders: Int,
 ) {
-  fun toUpdate() = PrisonIncentiveLevelUpdate(
-    active = active,
-    defaultOnAdmission = defaultOnAdmission,
-    remandTransferLimitInPence = remandTransferLimitInPence,
-    remandSpendLimitInPence = remandSpendLimitInPence,
-    convictedTransferLimitInPence = convictedTransferLimitInPence,
-    convictedSpendLimitInPence = convictedSpendLimitInPence,
-    visitOrders = visitOrders,
-    privilegedVisitOrders = privilegedVisitOrders,
-  )
+  fun toUpdate() =
+    PrisonIncentiveLevelUpdate(
+      active = active,
+      defaultOnAdmission = defaultOnAdmission,
+      remandTransferLimitInPence = remandTransferLimitInPence,
+      remandSpendLimitInPence = remandSpendLimitInPence,
+      convictedTransferLimitInPence = convictedTransferLimitInPence,
+      convictedSpendLimitInPence = convictedSpendLimitInPence,
+      visitOrders = visitOrders,
+      privilegedVisitOrders = privilegedVisitOrders,
+    )
 }
 
-fun List<PrisonIncentiveLevel>.findDefaultOnAdmission() = find(PrisonIncentiveLevel::defaultOnAdmission)
-  ?: throw DataIntegrityException("No default level for new admissions")
+fun List<PrisonIncentiveLevel>.findDefaultOnAdmission() =
+  find(PrisonIncentiveLevel::defaultOnAdmission)
+    ?: throw DataIntegrityException("No default level for new admissions")
 
 /**
  * Update payload for PrisonIncentiveLevel

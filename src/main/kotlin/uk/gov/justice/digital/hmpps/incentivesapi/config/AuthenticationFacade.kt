@@ -12,7 +12,6 @@ import java.util.stream.Collectors
 
 @Component
 class AuthenticationFacade {
-
   suspend fun getAuthentication(): Authentication =
     ReactiveSecurityContextHolder.getContext().awaitSingle().authentication
 
@@ -34,13 +33,17 @@ class AuthenticationFacade {
   }
 
   suspend fun hasRoles(vararg allowedRoles: String): Boolean {
-    val roles = Arrays.stream(allowedRoles)
-      .map { r: String? -> RegExUtils.replaceFirst(r, "ROLE_", "") }
-      .collect(Collectors.toList())
+    val roles =
+      Arrays.stream(allowedRoles)
+        .map { r: String? -> RegExUtils.replaceFirst(r, "ROLE_", "") }
+        .collect(Collectors.toList())
     return hasMatchingRole(roles, getAuthentication())
   }
 
-  private fun hasMatchingRole(roles: List<String>, authentication: Authentication?): Boolean {
+  private fun hasMatchingRole(
+    roles: List<String>,
+    authentication: Authentication?,
+  ): Boolean {
     return authentication != null &&
       authentication.authorities.stream()
         .anyMatch { a: GrantedAuthority? -> roles.contains(RegExUtils.replaceFirst(a!!.authority, "ROLE_", "")) }

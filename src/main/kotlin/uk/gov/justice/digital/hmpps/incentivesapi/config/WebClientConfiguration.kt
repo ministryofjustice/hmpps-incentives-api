@@ -21,7 +21,6 @@ class WebClientConfiguration(
   @Value("\${api.base.url.prison}") private val prisonRootUri: String,
   @Value("\${api.base.url.offender-search}") private val offenderSearchUri: String,
 ) {
-
   @Bean
   fun authWebClient(): WebClient {
     return WebClient.builder()
@@ -85,14 +84,16 @@ class WebClientConfiguration(
     clientRegistrationRepository: ReactiveClientRegistrationRepository,
     oAuth2AuthorizedClientService: ReactiveOAuth2AuthorizedClientService,
   ): ReactiveOAuth2AuthorizedClientManager {
-    val authorizedClientProvider = ReactiveOAuth2AuthorizedClientProviderBuilder.builder()
-      .clientCredentials()
-      .build()
+    val authorizedClientProvider =
+      ReactiveOAuth2AuthorizedClientProviderBuilder.builder()
+        .clientCredentials()
+        .build()
 
-    val authorizedClientManager = AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager(
-      clientRegistrationRepository,
-      oAuth2AuthorizedClientService,
-    )
+    val authorizedClientManager =
+      AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager(
+        clientRegistrationRepository,
+        oAuth2AuthorizedClientService,
+      )
     authorizedClientManager.setAuthorizedClientProvider(authorizedClientProvider)
     return authorizedClientManager
   }

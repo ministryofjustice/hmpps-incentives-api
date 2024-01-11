@@ -51,7 +51,10 @@ interface PrisonIncentiveLevelRepository : CoroutineCrudRepository<PrisonIncenti
     LIMIT 1
     """,
   )
-  suspend fun findFirstByPrisonIdAndLevelCode(prisonId: String, levelCode: String): PrisonIncentiveLevel?
+  suspend fun findFirstByPrisonIdAndLevelCode(
+    prisonId: String,
+    levelCode: String,
+  ): PrisonIncentiveLevel?
 
   /**
    * Finds the active and default level configuration for a prison
@@ -83,7 +86,10 @@ interface PrisonIncentiveLevelRepository : CoroutineCrudRepository<PrisonIncenti
     RETURNING level_code
     """,
   )
-  fun setOtherLevelsNotDefaultForAdmission(prisonId: String, levelCode: String): Flow<String>
+  fun setOtherLevelsNotDefaultForAdmission(
+    prisonId: String,
+    levelCode: String,
+  ): Flow<String>
 
   /**
    * All prisons that have active level configurations, effectively a way to find all active prisons

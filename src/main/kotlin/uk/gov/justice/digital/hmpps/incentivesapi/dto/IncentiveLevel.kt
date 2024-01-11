@@ -24,11 +24,12 @@ data class IncentiveLevel(
     const val BasicCode = "BAS"
   }
 
-  fun toUpdate() = IncentiveLevelUpdate(
-    name = name,
-    active = active,
-    required = required,
-  )
+  fun toUpdate() =
+    IncentiveLevelUpdate(
+      name = name,
+      active = active,
+      required = required,
+    )
 }
 
 /**

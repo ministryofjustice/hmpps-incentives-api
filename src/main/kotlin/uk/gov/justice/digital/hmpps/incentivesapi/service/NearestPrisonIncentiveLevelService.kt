@@ -14,21 +14,26 @@ class NearestPrisonIncentiveLevelService(
    * person’s level when they are transferred, we need to find the "nearest highest" level
    * according to HMPPS policy. Falls back to prison's default level when there's nothing else to do.
    */
-  suspend fun findNearestHighestLevel(prisonId: String, levelCode: String): String {
+  suspend fun findNearestHighestLevel(
+    prisonId: String,
+    levelCode: String,
+  ): String {
     val prisonLevels = prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)
     val defaultLevelCode = prisonLevels.findDefaultOnAdmission().levelCode
-    val levelCodesAvailableInPrison = prisonLevels.filter(PrisonIncentiveLevel::active)
-      .map(PrisonIncentiveLevel::levelCode)
-      .toSet()
+    val levelCodesAvailableInPrison =
+      prisonLevels.filter(PrisonIncentiveLevel::active)
+        .map(PrisonIncentiveLevel::levelCode)
+        .toSet()
 
     data class KnownLevel(val code: String, val available: Boolean)
-    val allKnownLevels = incentiveLevelService.getAllIncentiveLevels()
-      .map {
-        KnownLevel(
-          code = it.code,
-          available = it.active && levelCodesAvailableInPrison.contains(it.code),
-        )
-      }
+    val allKnownLevels =
+      incentiveLevelService.getAllIncentiveLevels()
+        .map {
+          KnownLevel(
+            code = it.code,
+            available = it.active && levelCodesAvailableInPrison.contains(it.code),
+          )
+        }
 
     val indexOfTargetLevelCode = allKnownLevels.indexOfFirst { it.code == levelCode }
     if (indexOfTargetLevelCode == -1) {

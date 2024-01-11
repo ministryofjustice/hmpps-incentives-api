@@ -27,46 +27,48 @@ class OpenApiConfiguration(
   private val version: String = buildProperties.version
 
   @Bean
-  fun customOpenAPI(): OpenAPI = OpenAPI()
-    .servers(
-      listOf(
-        Server().url("/").description("Current url"),
-      ),
-    )
-    .info(
-      Info().title("HMPPS Incentives API")
-        .version(version)
-        .description("API for viewing and managing incentive levels and reviews for prisoners")
-        .contact(Contact().name("HMPPS Digital Studio").email("feedback@digital.justice.gov.uk")),
-    )
-    .components(
-      Components().addSecuritySchemes(
-        "bearer-jwt",
-        SecurityScheme()
-          .type(SecurityScheme.Type.HTTP)
-          .scheme("bearer")
-          .bearerFormat("JWT")
-          .`in`(SecurityScheme.In.HEADER)
-          .name("Authorization"),
-      )
-        .addSecuritySchemes(
-          "hmpps-auth",
-          SecurityScheme()
-            .flows(getFlows())
-            .type(SecurityScheme.Type.OAUTH2)
-            .openIdConnectUrl("$oauthUrl/.well-known/openid-configuration"),
+  fun customOpenAPI(): OpenAPI =
+    OpenAPI()
+      .servers(
+        listOf(
+          Server().url("/").description("Current url"),
         ),
-    )
-    .addSecurityItem(SecurityRequirement().addList("bearer-jwt", listOf("read", "write")))
-    .addSecurityItem(SecurityRequirement().addList("hmpps-auth"))
+      )
+      .info(
+        Info().title("HMPPS Incentives API")
+          .version(version)
+          .description("API for viewing and managing incentive levels and reviews for prisoners")
+          .contact(Contact().name("HMPPS Digital Studio").email("feedback@digital.justice.gov.uk")),
+      )
+      .components(
+        Components().addSecuritySchemes(
+          "bearer-jwt",
+          SecurityScheme()
+            .type(SecurityScheme.Type.HTTP)
+            .scheme("bearer")
+            .bearerFormat("JWT")
+            .`in`(SecurityScheme.In.HEADER)
+            .name("Authorization"),
+        )
+          .addSecuritySchemes(
+            "hmpps-auth",
+            SecurityScheme()
+              .flows(getFlows())
+              .type(SecurityScheme.Type.OAUTH2)
+              .openIdConnectUrl("$oauthUrl/.well-known/openid-configuration"),
+          ),
+      )
+      .addSecurityItem(SecurityRequirement().addList("bearer-jwt", listOf("read", "write")))
+      .addSecurityItem(SecurityRequirement().addList("hmpps-auth"))
 
   fun getFlows(): OAuthFlows {
     val flows = OAuthFlows()
     val clientCredflow = OAuthFlow()
     clientCredflow.tokenUrl = "$oauthUrl/oauth/token"
-    val scopes = Scopes()
-      .addString("read", "Allows read of data")
-      .addString("write", "Allows write of data")
+    val scopes =
+      Scopes()
+        .addString("read", "Allows read of data")
+        .addString("write", "Allows write of data")
     clientCredflow.scopes = scopes
     val authflow = OAuthFlow()
     authflow.authorizationUrl = "$oauthUrl/oauth/authorize"
@@ -76,22 +78,23 @@ class OpenApiConfiguration(
   }
 
   @Bean
-  fun openAPICustomiser(): OpenApiCustomizer = OpenApiCustomizer {
-    it.components.schemas.forEach { (_, schema: Schema<*>) ->
-      val properties = schema.properties ?: mutableMapOf()
-      for (propertyName in properties.keys) {
-        val propertySchema = properties[propertyName]!!
-        if (propertySchema is DateTimeSchema) {
-          properties.replace(
-            propertyName,
-            StringSchema()
-              .example("2021-07-05T10:35:17")
-              .pattern("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$")
-              .description(propertySchema.description)
-              .required(propertySchema.required),
-          )
+  fun openAPICustomiser(): OpenApiCustomizer =
+    OpenApiCustomizer {
+      it.components.schemas.forEach { (_, schema: Schema<*>) ->
+        val properties = schema.properties ?: mutableMapOf()
+        for (propertyName in properties.keys) {
+          val propertySchema = properties[propertyName]!!
+          if (propertySchema is DateTimeSchema) {
+            properties.replace(
+              propertyName,
+              StringSchema()
+                .example("2021-07-05T10:35:17")
+                .pattern("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$")
+                .description(propertySchema.description)
+                .required(propertySchema.required),
+            )
+          }
         }
       }
     }
-  }
 }

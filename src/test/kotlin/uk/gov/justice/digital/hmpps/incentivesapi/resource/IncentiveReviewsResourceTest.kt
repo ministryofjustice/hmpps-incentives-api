@@ -30,21 +30,22 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
   private val timeNow: LocalDateTime = LocalDateTime.now()
 
   @BeforeEach
-  fun setUp(): Unit = runBlocking {
-    offenderSearchMockServer.resetAll()
-    prisonApiMockServer.resetAll()
+  fun setUp(): Unit =
+    runBlocking {
+      offenderSearchMockServer.resetAll()
+      prisonApiMockServer.resetAll()
 
-    incentiveReviewRepository.deleteAll()
-    nextReviewDateRepository.deleteAll()
-    // Prisoners on Standard and not overdue
-    persistPrisonerIepLevel(bookingId = 1234134, prisonerNumber = "A1234AA", iepCode = "STD", iepTime = timeNow.minusDays(2))
-    persistPrisonerIepLevel(bookingId = 1234135, prisonerNumber = "A1234AB", iepCode = "STD", iepTime = timeNow.minusDays(1))
-    persistPrisonerIepLevel(bookingId = 1234136, prisonerNumber = "A1234AC", iepCode = "STD", iepTime = timeNow)
-    // A prisoner on Basic, also not overdue
-    persistPrisonerIepLevel(bookingId = 1234137, prisonerNumber = "A1234AD", iepCode = "BAS", iepTime = timeNow.minusDays(3))
-    // A prisoner on Enhanced and overdue
-    persistPrisonerIepLevel(bookingId = 1234138, prisonerNumber = "A1234AE", iepCode = "ENH", iepTime = timeNow.minusYears(2))
-  }
+      incentiveReviewRepository.deleteAll()
+      nextReviewDateRepository.deleteAll()
+      // Prisoners on Standard and not overdue
+      persistPrisonerIepLevel(bookingId = 1234134, prisonerNumber = "A1234AA", iepCode = "STD", iepTime = timeNow.minusDays(2))
+      persistPrisonerIepLevel(bookingId = 1234135, prisonerNumber = "A1234AB", iepCode = "STD", iepTime = timeNow.minusDays(1))
+      persistPrisonerIepLevel(bookingId = 1234136, prisonerNumber = "A1234AC", iepCode = "STD", iepTime = timeNow)
+      // A prisoner on Basic, also not overdue
+      persistPrisonerIepLevel(bookingId = 1234137, prisonerNumber = "A1234AD", iepCode = "BAS", iepTime = timeNow.minusDays(3))
+      // A prisoner on Enhanced and overdue
+      persistPrisonerIepLevel(bookingId = 1234138, prisonerNumber = "A1234AE", iepCode = "ENH", iepTime = timeNow.minusYears(2))
+    }
 
   private suspend fun persistPrisonerIepLevel(
     bookingId: Long,
@@ -67,12 +68,13 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
   )
 
   @AfterEach
-  override fun tearDown(): Unit = runBlocking {
-    prisonApiMockServer.resetRequests()
-    incentiveReviewRepository.deleteAll()
-    nextReviewDateRepository.deleteAll()
-    super.tearDown()
-  }
+  override fun tearDown(): Unit =
+    runBlocking {
+      prisonApiMockServer.resetRequests()
+      incentiveReviewRepository.deleteAll()
+      nextReviewDateRepository.deleteAll()
+      super.tearDown()
+    }
 
   @Test
   fun `requires a valid token to retrieve data`() {
@@ -342,36 +344,42 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
 
   @ParameterizedTest
   @EnumSource(IncentiveReviewSort::class)
-  fun `sorts by provided parameters`(sort: IncentiveReviewSort): Unit = runBlocking {
-    offenderSearchMockServer.stubFindOffenders("MDI")
-    prisonApiMockServer.stubLocation("MDI-1")
-    prisonApiMockServer.stubCaseNoteSummary()
+  fun `sorts by provided parameters`(sort: IncentiveReviewSort): Unit =
+    runBlocking {
+      offenderSearchMockServer.stubFindOffenders("MDI")
+      prisonApiMockServer.stubLocation("MDI-1")
+      prisonApiMockServer.stubCaseNoteSummary()
 
-    if (sort == IncentiveReviewSort.IS_NEW_TO_PRISON) {
-      // convert one prisoner to be "new to prison" so that sorting is possible
-      var prisonerIepLevel =
-        incentiveReviewRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(listOf(1234136)).first()
-      prisonerIepLevel = prisonerIepLevel.copy(reviewType = ReviewType.INITIAL)
-      incentiveReviewRepository.save(prisonerIepLevel)
+      if (sort == IncentiveReviewSort.IS_NEW_TO_PRISON) {
+        // convert one prisoner to be "new to prison" so that sorting is possible
+        var prisonerIepLevel =
+          incentiveReviewRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(listOf(1234136)).first()
+        prisonerIepLevel = prisonerIepLevel.copy(reviewType = ReviewType.INITIAL)
+        incentiveReviewRepository.save(prisonerIepLevel)
+      }
+
+      fun loadReviewsField(
+        sortParam: String,
+        orderParam: String,
+        responseField: String,
+      ) =
+        webTestClient.get()
+          .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?sort=$sortParam&order=$orderParam")
+          .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
+          .exchange()
+          .expectStatus().isOk
+          .expectBody().jsonPath("reviews[*].$responseField")
+
+      loadReviewsField(sort.name, "ASC", sort.field).value<List<Comparable<*>>> {
+        assertThat(it.toSet()).hasSizeGreaterThan(1) // otherwise sorting cannot be tested
+        assertThat(it).isSorted
+      }
+
+      loadReviewsField(sort.name, "DESC", sort.field).value<List<Comparable<*>>> {
+        assertThat(it.toSet()).hasSizeGreaterThan(1) // otherwise sorting cannot be tested
+        assertThat(it.reversed()).isSorted
+      }
     }
-
-    fun loadReviewsField(sortParam: String, orderParam: String, responseField: String) = webTestClient.get()
-      .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?sort=$sortParam&order=$orderParam")
-      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
-      .exchange()
-      .expectStatus().isOk
-      .expectBody().jsonPath("reviews[*].$responseField")
-
-    loadReviewsField(sort.name, "ASC", sort.field).value<List<Comparable<*>>> {
-      assertThat(it.toSet()).hasSizeGreaterThan(1) // otherwise sorting cannot be tested
-      assertThat(it).isSorted
-    }
-
-    loadReviewsField(sort.name, "DESC", sort.field).value<List<Comparable<*>>> {
-      assertThat(it.toSet()).hasSizeGreaterThan(1) // otherwise sorting cannot be tested
-      assertThat(it.reversed()).isSorted
-    }
-  }
 
   @Nested
   inner class `can paginate` {
@@ -382,60 +390,66 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
       prisonApiMockServer.stubCaseNoteSummary()
     }
 
-    private fun loadPage(page: Int) = webTestClient.get()
-      .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?sort=PRISONER_NUMBER&order=DESC&page=$page&pageSize=1")
-      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
-      .exchange()
-      .expectStatus().isOk
-      .expectBody().jsonPath("reviews[*].prisonerNumber")
-
-    @Test
-    fun `first page`(): Unit = runBlocking {
-      loadPage(0).value<List<String>> {
-        assertThat(it).isEqualTo(listOf("A1234AC"))
-      }
-    }
-
-    @Test
-    fun `second page`(): Unit = runBlocking {
-      loadPage(1).value<List<String>> {
-        assertThat(it).isEqualTo(listOf("A1234AB"))
-      }
-    }
-
-    @Test
-    fun `last page`(): Unit = runBlocking {
-      loadPage(2).value<List<String>> {
-        assertThat(it).isEqualTo(listOf("A1234AA"))
-      }
-    }
-
-    @Test
-    fun `out-of-bounds page`(): Unit = runBlocking {
-      val page = 3
+    private fun loadPage(page: Int) =
       webTestClient.get()
-        .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?sort=PRISONER_NUMBER&order=DESC&page=$page&pageSize=2")
+        .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?sort=PRISONER_NUMBER&order=DESC&page=$page&pageSize=1")
         .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
         .exchange()
-        .expectErrorResponse(HttpStatus.BAD_REQUEST, "Page number is out of range")
-    }
+        .expectStatus().isOk
+        .expectBody().jsonPath("reviews[*].prisonerNumber")
+
+    @Test
+    fun `first page`(): Unit =
+      runBlocking {
+        loadPage(0).value<List<String>> {
+          assertThat(it).isEqualTo(listOf("A1234AC"))
+        }
+      }
+
+    @Test
+    fun `second page`(): Unit =
+      runBlocking {
+        loadPage(1).value<List<String>> {
+          assertThat(it).isEqualTo(listOf("A1234AB"))
+        }
+      }
+
+    @Test
+    fun `last page`(): Unit =
+      runBlocking {
+        loadPage(2).value<List<String>> {
+          assertThat(it).isEqualTo(listOf("A1234AA"))
+        }
+      }
+
+    @Test
+    fun `out-of-bounds page`(): Unit =
+      runBlocking {
+        val page = 3
+        webTestClient.get()
+          .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?sort=PRISONER_NUMBER&order=DESC&page=$page&pageSize=2")
+          .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
+          .exchange()
+          .expectErrorResponse(HttpStatus.BAD_REQUEST, "Page number is out of range")
+      }
   }
 
   @Test
-  fun `describes error when incentive levels not available in DB`(): Unit = runBlocking {
-    offenderSearchMockServer.stubFindOffenders("MDI")
-    prisonApiMockServer.stubLocation("MDI-1")
-    prisonApiMockServer.stubCaseNoteSummary()
+  fun `describes error when incentive levels not available in DB`(): Unit =
+    runBlocking {
+      offenderSearchMockServer.stubFindOffenders("MDI")
+      prisonApiMockServer.stubLocation("MDI-1")
+      prisonApiMockServer.stubCaseNoteSummary()
 
-    incentiveReviewRepository.deleteAll()
+      incentiveReviewRepository.deleteAll()
 
-    webTestClient.get()
-      .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD")
-      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
-      .exchange()
-      .expectErrorResponse(
-        HttpStatus.NOT_FOUND,
-        "No incentive levels found for ID(s) [1234134, 1234135, 1234136, 1234137, 1234138]",
-      )
-  }
+      webTestClient.get()
+        .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD")
+        .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
+        .exchange()
+        .expectErrorResponse(
+          HttpStatus.NOT_FOUND,
+          "No incentive levels found for ID(s) [1234134, 1234135, 1234136, 1234137, 1234138]",
+        )
+    }
 }

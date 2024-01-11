@@ -15,7 +15,10 @@ suspend fun <K, V> Flow<V>.toMap(keySelector: (V) -> K): Map<K, V> =
  * applied to each element. If any two elements would have the same key returned by [keySelector]
  * the last one gets added to the map.
  */
-suspend fun <K, V, M : MutableMap<in K, in V>> Flow<V>.associateByTo(destination: M, keySelector: (V) -> K): M {
+suspend fun <K, V, M : MutableMap<in K, in V>> Flow<V>.associateByTo(
+  destination: M,
+  keySelector: (V) -> K,
+): M {
   collect { element ->
     destination[keySelector(element)] = element
   }

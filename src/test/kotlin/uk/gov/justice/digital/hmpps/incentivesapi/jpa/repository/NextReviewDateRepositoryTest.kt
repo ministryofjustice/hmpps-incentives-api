@@ -27,95 +27,102 @@ class NextReviewDateRepositoryTest : TestBase() {
   lateinit var repository: NextReviewDateRepository
 
   @BeforeEach
-  fun setUp(): Unit = runBlocking {
-    repository.deleteAll()
-  }
+  fun setUp(): Unit =
+    runBlocking {
+      repository.deleteAll()
+    }
 
   @AfterEach
-  fun tearDown(): Unit = runBlocking {
-    repository.deleteAll()
-  }
-
-  @Test
-  fun saveAndFindTest(): Unit = runBlocking {
-    val bookingId = 1234567L
-    val nextReviewDate = LocalDate.parse("2022-12-25")
-
-    repository.save(
-      NextReviewDate(bookingId, nextReviewDate),
-    )
-
-    val result: NextReviewDate? = repository.findById(bookingId)
-
-    assertThat(result).isNotNull
-
-    with(result) {
-      assertThat(this!!.nextReviewDate).isEqualTo(nextReviewDate)
-      assertThat(this.whenCreated).isCloseTo(LocalDateTime.now(), within(5, ChronoUnit.MINUTES))
-      assertThat(this.whenUpdated).isCloseTo(LocalDateTime.now(), within(5, ChronoUnit.MINUTES))
-      assertThat(this.id).isEqualTo(bookingId)
-      assertThat(this.new).isFalse()
+  fun tearDown(): Unit =
+    runBlocking {
+      repository.deleteAll()
     }
-  }
 
   @Test
-  fun bookingIdPrimaryKeyConstraintTest(): Unit = runBlocking {
-    val bookingId = 1234567L
+  fun saveAndFindTest(): Unit =
+    runBlocking {
+      val bookingId = 1234567L
+      val nextReviewDate = LocalDate.parse("2022-12-25")
 
-    repository.save(
-      NextReviewDate(bookingId, LocalDate.parse("2022-12-25")),
-    )
+      repository.save(
+        NextReviewDate(bookingId, nextReviewDate),
+      )
 
-    assertThatThrownBy {
-      runBlocking {
-        // Save another record with same bookingId fails because it's primary key
-        repository.save(
-          NextReviewDate(bookingId, LocalDate.parse("2030-01-31")),
+      val result: NextReviewDate? = repository.findById(bookingId)
+
+      assertThat(result).isNotNull
+
+      with(result) {
+        assertThat(this!!.nextReviewDate).isEqualTo(nextReviewDate)
+        assertThat(this.whenCreated).isCloseTo(LocalDateTime.now(), within(5, ChronoUnit.MINUTES))
+        assertThat(this.whenUpdated).isCloseTo(LocalDateTime.now(), within(5, ChronoUnit.MINUTES))
+        assertThat(this.id).isEqualTo(bookingId)
+        assertThat(this.new).isFalse()
+      }
+    }
+
+  @Test
+  fun bookingIdPrimaryKeyConstraintTest(): Unit =
+    runBlocking {
+      val bookingId = 1234567L
+
+      repository.save(
+        NextReviewDate(bookingId, LocalDate.parse("2022-12-25")),
+      )
+
+      assertThatThrownBy {
+        runBlocking {
+          // Save another record with same bookingId fails because it's primary key
+          repository.save(
+            NextReviewDate(bookingId, LocalDate.parse("2030-01-31")),
+          )
+        }
+      }.isInstanceOf(DataIntegrityViolationException::class.java)
+    }
+
+  @Test
+  fun updateExistingRecordTest(): Unit =
+    runBlocking {
+      val bookingId = 1234567L
+      val updatedDate = LocalDate.parse("2030-01-31")
+
+      repository.save(
+        NextReviewDate(bookingId, LocalDate.parse("2022-12-25")),
+      )
+
+      // NOTE: Use value returned by `save()` yields unexpected results in conjunction with `copy()`
+      val existingRecord = repository.findById(bookingId)
+      repository.save(
+        existingRecord!!.copy(nextReviewDate = updatedDate),
+      )
+
+      val updatedRecord = repository.findById(bookingId)
+      assertThat(updatedRecord!!.nextReviewDate).isEqualTo(updatedDate)
+    }
+
+  @Test
+  fun findAllByIdTest(): Unit =
+    runBlocking {
+      val reviewDates =
+        mapOf(
+          123L to LocalDate.parse("2023-01-31"),
+          456L to LocalDate.parse("2023-02-28"),
         )
+
+      for ((bookingId, reviewDate) in reviewDates.entries) {
+        repository.save(NextReviewDate(bookingId, reviewDate))
       }
-    }.isInstanceOf(DataIntegrityViolationException::class.java)
-  }
 
-  @Test
-  fun updateExistingRecordTest(): Unit = runBlocking {
-    val bookingId = 1234567L
-    val updatedDate = LocalDate.parse("2030-01-31")
+      val bookingIds = reviewDates.keys.toList()
+      val result = repository.findAllById(bookingIds).toList()
 
-    repository.save(
-      NextReviewDate(bookingId, LocalDate.parse("2022-12-25")),
-    )
+      assertThat(result.size).isEqualTo(reviewDates.size)
 
-    // NOTE: Use value returned by `save()` yields unexpected results in conjunction with `copy()`
-    val existingRecord = repository.findById(bookingId)
-    repository.save(
-      existingRecord!!.copy(nextReviewDate = updatedDate),
-    )
-
-    val updatedRecord = repository.findById(bookingId)
-    assertThat(updatedRecord!!.nextReviewDate).isEqualTo(updatedDate)
-  }
-
-  @Test
-  fun findAllByIdTest(): Unit = runBlocking {
-    val reviewDates = mapOf(
-      123L to LocalDate.parse("2023-01-31"),
-      456L to LocalDate.parse("2023-02-28"),
-    )
-
-    for ((bookingId, reviewDate) in reviewDates.entries) {
-      repository.save(NextReviewDate(bookingId, reviewDate))
-    }
-
-    val bookingIds = reviewDates.keys.toList()
-    val result = repository.findAllById(bookingIds).toList()
-
-    assertThat(result.size).isEqualTo(reviewDates.size)
-
-    for ((index, bookingId) in bookingIds.withIndex()) {
-      with(result[index]) {
-        assertThat(this.bookingId).isEqualTo(bookingId)
-        assertThat(this.nextReviewDate).isEqualTo(reviewDates[bookingId])
+      for ((index, bookingId) in bookingIds.withIndex()) {
+        with(result[index]) {
+          assertThat(this.bookingId).isEqualTo(bookingId)
+          assertThat(this.nextReviewDate).isEqualTo(reviewDates[bookingId])
+        }
       }
     }
-  }
 }

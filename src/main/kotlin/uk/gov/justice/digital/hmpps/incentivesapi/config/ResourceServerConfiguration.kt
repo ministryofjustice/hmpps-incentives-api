@@ -13,7 +13,6 @@ import org.springframework.security.web.server.SecurityWebFilterChain
 @EnableReactiveMethodSecurity(useAuthorizationManager = false)
 @EnableR2dbcRepositories
 class ResourceServerConfiguration {
-
   @Bean
   fun springSecurityFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
     return http

@@ -89,7 +89,10 @@ class IncentiveLevelService(
    * Updates an existing incentive level; will fail if code does not exist
    */
   @Transactional
-  suspend fun updateIncentiveLevel(code: String, update: IncentiveLevelUpdateDTO): IncentiveLevelDTO? {
+  suspend fun updateIncentiveLevel(
+    code: String,
+    update: IncentiveLevelUpdateDTO,
+  ): IncentiveLevelDTO? {
     return incentiveLevelRepository.findById(code)
       ?.let { originalIncentiveLevel ->
         val incentiveLevel = originalIncentiveLevel.withUpdate(update)
@@ -129,10 +132,11 @@ class IncentiveLevelService(
     val allIncentiveLevels = mutableMapOf<String, IncentiveLevel>()
     incentiveLevelRepository.findAll().associateByTo(allIncentiveLevels, IncentiveLevel::code)
 
-    val allIncentiveLevelsInDesiredOrder = incentiveLevelCodes.map { code ->
-      allIncentiveLevels.remove(code)
-        ?: throw NoDataWithCodeFoundException("incentive level", code)
-    }
+    val allIncentiveLevelsInDesiredOrder =
+      incentiveLevelCodes.map { code ->
+        allIncentiveLevels.remove(code)
+          ?: throw NoDataWithCodeFoundException("incentive level", code)
+      }
     if (allIncentiveLevels.isNotEmpty()) {
       val missing = allIncentiveLevels.keys.joinToString("`, `", prefix = "`", postfix = "`")
       throw ValidationExceptionWithErrorCode(
@@ -141,46 +145,47 @@ class IncentiveLevelService(
       )
     }
 
-    val incentiveLevelsWithNewSequences = allIncentiveLevelsInDesiredOrder.mapIndexed { index, incentiveLevel ->
-      incentiveLevel.copy(
-        sequence = index + 1,
-
-        new = false,
-        whenUpdated = LocalDateTime.now(clock),
-      )
-    }
+    val incentiveLevelsWithNewSequences =
+      allIncentiveLevelsInDesiredOrder.mapIndexed { index, incentiveLevel ->
+        incentiveLevel.copy(
+          sequence = index + 1,
+          new = false,
+          whenUpdated = LocalDateTime.now(clock),
+        )
+      }
 
     return incentiveLevelRepository.saveAll(incentiveLevelsWithNewSequences)
       .toListOfDTO()
   }
 
-  private fun IncentiveLevel.withUpdate(update: IncentiveLevelUpdateDTO): IncentiveLevel = copy(
-    code = code,
-    name = update.name ?: name,
-    active = update.active ?: active,
-    required = update.required ?: required,
+  private fun IncentiveLevel.withUpdate(update: IncentiveLevelUpdateDTO): IncentiveLevel =
+    copy(
+      code = code,
+      name = update.name ?: name,
+      active = update.active ?: active,
+      required = update.required ?: required,
+      new = false,
+      whenUpdated = LocalDateTime.now(clock),
+    )
 
-    new = false,
-    whenUpdated = LocalDateTime.now(clock),
-  )
+  private fun IncentiveLevel.toDTO(): IncentiveLevelDTO =
+    IncentiveLevelDTO(
+      code = code,
+      name = name,
+      active = active,
+      required = required,
+    )
 
-  private fun IncentiveLevel.toDTO(): IncentiveLevelDTO = IncentiveLevelDTO(
-    code = code,
-    name = name,
-    active = active,
-    required = required,
-  )
-
-  private fun IncentiveLevelDTO.toNewEntity(sequence: Int): IncentiveLevel = IncentiveLevel(
-    code = code,
-    name = name,
-    sequence = sequence,
-    active = active,
-    required = required,
-
-    new = true,
-    whenUpdated = LocalDateTime.now(clock),
-  )
+  private fun IncentiveLevelDTO.toNewEntity(sequence: Int): IncentiveLevel =
+    IncentiveLevel(
+      code = code,
+      name = name,
+      sequence = sequence,
+      active = active,
+      required = required,
+      new = true,
+      whenUpdated = LocalDateTime.now(clock),
+    )
 
   private suspend fun Flow<IncentiveLevel>.toListOfDTO(): List<IncentiveLevelDTO> = map { it.toDTO() }.toList()
 }

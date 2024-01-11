@@ -6,12 +6,13 @@ package uk.gov.justice.digital.hmpps.incentivesapi.util
 
 import jakarta.validation.ValidationException
 
-fun ensure(block: Ensure.() -> Unit) = Ensure().apply {
-  block()
-  if (errors.isNotEmpty()) {
-    throw ParameterValidationException(errors)
+fun ensure(block: Ensure.() -> Unit) =
+  Ensure().apply {
+    block()
+    if (errors.isNotEmpty()) {
+      throw ParameterValidationException(errors)
+    }
   }
-}
 
 class Ensure {
   val errors: MutableList<String> = mutableListOf()

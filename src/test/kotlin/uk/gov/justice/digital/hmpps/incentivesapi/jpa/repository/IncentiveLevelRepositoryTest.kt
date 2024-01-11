@@ -24,19 +24,20 @@ class IncentiveLevelRepositoryTest : TestBase() {
   lateinit var repository: IncentiveLevelRepository
 
   @Test
-  fun `incentive levels properly set up`(): Unit = runBlocking {
-    repository.findAllByOrderBySequence().map { it.sequence }.reduce { previous, sequence ->
-      assertThat(sequence).isGreaterThan(previous)
-      sequence
+  fun `incentive levels properly set up`(): Unit =
+    runBlocking {
+      repository.findAllByOrderBySequence().map { it.sequence }.reduce { previous, sequence ->
+        assertThat(sequence).isGreaterThan(previous)
+        sequence
+      }
+      repository.findAllByActiveIsTrueOrderBySequence().reduce { previous, level ->
+        assertThat(level.active).isTrue
+        assertThat(level.sequence).isGreaterThan(previous.sequence)
+        level
+      }
+      val requiredLevels = repository.findAllByOrderBySequence().filter { it.required }.map { it.code }.toList()
+      assertThat(requiredLevels).isEqualTo(listOf("BAS", "STD", "ENH"))
     }
-    repository.findAllByActiveIsTrueOrderBySequence().reduce { previous, level ->
-      assertThat(level.active).isTrue
-      assertThat(level.sequence).isGreaterThan(previous.sequence)
-      level
-    }
-    val requiredLevels = repository.findAllByOrderBySequence().filter { it.required }.map { it.code }.toList()
-    assertThat(requiredLevels).isEqualTo(listOf("BAS", "STD", "ENH"))
-  }
 
   private fun assertThatEntityCannotBeSaved(entity: IncentiveLevel) {
     assertThatThrownBy {
@@ -45,44 +46,48 @@ class IncentiveLevelRepositoryTest : TestBase() {
   }
 
   @Test
-  fun `level code cannot be blank`(): Unit = assertThatEntityCannotBeSaved(
-    IncentiveLevel(
-      code = "",
-      name = "Standard",
-      sequence = 10,
-      new = true,
-    ),
-  )
+  fun `level code cannot be blank`(): Unit =
+    assertThatEntityCannotBeSaved(
+      IncentiveLevel(
+        code = "",
+        name = "Standard",
+        sequence = 10,
+        new = true,
+      ),
+    )
 
   @Test
-  fun `level code cannot be too long`(): Unit = assertThatEntityCannotBeSaved(
-    IncentiveLevel(
-      code = "Standard",
-      name = "Standard",
-      sequence = 10,
-      new = true,
-    ),
-  )
+  fun `level code cannot be too long`(): Unit =
+    assertThatEntityCannotBeSaved(
+      IncentiveLevel(
+        code = "Standard",
+        name = "Standard",
+        sequence = 10,
+        new = true,
+      ),
+    )
 
   @Test
-  fun `level description cannot be blank`(): Unit = assertThatEntityCannotBeSaved(
-    IncentiveLevel(
-      code = "ABC",
-      name = "",
-      sequence = 10,
-      new = true,
-    ),
-  )
+  fun `level description cannot be blank`(): Unit =
+    assertThatEntityCannotBeSaved(
+      IncentiveLevel(
+        code = "ABC",
+        name = "",
+        sequence = 10,
+        new = true,
+      ),
+    )
 
   @Test
-  fun `level cannot be required if inactive`(): Unit = assertThatEntityCannotBeSaved(
-    IncentiveLevel(
-      code = "STD",
-      name = "Standard",
-      sequence = 10,
-      active = false,
-      required = true,
-      new = true,
-    ),
-  )
+  fun `level cannot be required if inactive`(): Unit =
+    assertThatEntityCannotBeSaved(
+      IncentiveLevel(
+        code = "STD",
+        name = "Standard",
+        sequence = 10,
+        active = false,
+        required = true,
+        new = true,
+      ),
+    )
 }

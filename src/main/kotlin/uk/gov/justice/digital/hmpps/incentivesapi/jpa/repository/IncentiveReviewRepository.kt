@@ -10,14 +10,21 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 @Repository
 interface IncentiveReviewRepository : CoroutineCrudRepository<IncentiveReview, Long> {
   fun findAllByPrisonerNumberOrderByReviewTimeDesc(prisonerNumber: String): Flow<IncentiveReview>
+
   fun findAllByBookingIdOrderByReviewTimeDesc(bookingId: Long): Flow<IncentiveReview>
+
   fun findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(bookingIds: List<Long>): Flow<IncentiveReview>
+
   fun findAllByBookingIdInOrderByReviewTimeDesc(bookingIds: List<Long>): Flow<IncentiveReview>
+
   suspend fun findFirstByBookingIdOrderByReviewTimeDesc(bookingId: Long): IncentiveReview?
 
   @Modifying
   @Query("UPDATE prisoner_iep_level SET current = false WHERE booking_id = :bookingId AND current = true and id != :incentiveId")
-  suspend fun updateIncentivesToNotCurrentForBookingAndIncentive(bookingId: Long, incentiveId: Long): Int
+  suspend fun updateIncentivesToNotCurrentForBookingAndIncentive(
+    bookingId: Long,
+    incentiveId: Long,
+  ): Int
 
   @Modifying
   @Query("UPDATE prisoner_iep_level SET current = false WHERE booking_id = :bookingId AND current = true")
@@ -33,5 +40,8 @@ interface IncentiveReviewRepository : CoroutineCrudRepository<IncentiveReview, L
     )
     """,
   )
-  suspend fun somePrisonerCurrentlyOnLevel(bookingIds: Iterable<Long>, levelCode: String): Boolean
+  suspend fun somePrisonerCurrentlyOnLevel(
+    bookingIds: Iterable<Long>,
+    levelCode: String,
+  ): Boolean
 }

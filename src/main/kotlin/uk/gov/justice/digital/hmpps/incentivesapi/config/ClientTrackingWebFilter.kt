@@ -16,7 +16,10 @@ import java.text.ParseException
 class ClientTrackingWebFilter : WebFilter {
   private val bearer = "Bearer "
 
-  override fun filter(exchange: ServerWebExchange, chain: WebFilterChain): Mono<Void> {
+  override fun filter(
+    exchange: ServerWebExchange,
+    chain: WebFilterChain,
+  ): Mono<Void> {
     val token = exchange.request.headers.getFirst(HttpHeaders.AUTHORIZATION)
     if (token?.startsWith(bearer, ignoreCase = true) == true) {
       try {

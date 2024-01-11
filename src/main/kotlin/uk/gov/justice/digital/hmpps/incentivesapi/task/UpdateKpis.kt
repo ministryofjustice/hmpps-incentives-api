@@ -28,35 +28,36 @@ class UpdateKpis(
     lockAtLeastFor = defaultLockAtLeastFor,
     lockAtMostFor = defaultLockAtMostFor,
   )
-  fun updateKpis(): Unit = runBlocking {
-    val day = LocalDate.now()
+  fun updateKpis(): Unit =
+    runBlocking {
+      val day = LocalDate.now()
 
-    val kpiExists = kpiRepository.existsById(day)
-    if (kpiExists) {
-      LOG.debug("KPI for $day already exists, skipping...")
-      return@runBlocking
+      val kpiExists = kpiRepository.existsById(day)
+      if (kpiExists) {
+        LOG.debug("KPI for $day already exists, skipping...")
+        return@runBlocking
+      }
+
+      LOG.debug("Updating KPIs for $day...")
+
+      val reviewsConductedPrisonersReviewed = kpiService.getNumberOfReviewsConductedAndPrisonersReviewed(day)
+      val numberOfPrisonersOverdue = kpiService.getNumberOfPrisonersOverdue()
+
+      // Logs result, it's a different way for us to get the numbers, possibly easier
+      LOG.info("KPIs for $day. Reviews conducted = ${reviewsConductedPrisonersReviewed.reviewsConducted}")
+      LOG.info("KPIs for $day. Prisoners reviewed = ${reviewsConductedPrisonersReviewed.prisonersReviewed}")
+      LOG.info("KPIs for $day. Prisoners overdue = $numberOfPrisonersOverdue")
+
+      // Store the result in the DB table
+      kpiRepository.save(
+        Kpi(
+          day = day,
+          overdueReviews = numberOfPrisonersOverdue,
+          previousMonthReviewsConducted = reviewsConductedPrisonersReviewed.reviewsConducted,
+          previousMonthPrisonersReviewed = reviewsConductedPrisonersReviewed.prisonersReviewed,
+        ),
+      )
+
+      LOG.debug("KPIs updated for $day")
     }
-
-    LOG.debug("Updating KPIs for $day...")
-
-    val reviewsConductedPrisonersReviewed = kpiService.getNumberOfReviewsConductedAndPrisonersReviewed(day)
-    val numberOfPrisonersOverdue = kpiService.getNumberOfPrisonersOverdue()
-
-    // Logs result, it's a different way for us to get the numbers, possibly easier
-    LOG.info("KPIs for $day. Reviews conducted = ${reviewsConductedPrisonersReviewed.reviewsConducted}")
-    LOG.info("KPIs for $day. Prisoners reviewed = ${reviewsConductedPrisonersReviewed.prisonersReviewed}")
-    LOG.info("KPIs for $day. Prisoners overdue = $numberOfPrisonersOverdue")
-
-    // Store the result in the DB table
-    kpiRepository.save(
-      Kpi(
-        day = day,
-        overdueReviews = numberOfPrisonersOverdue,
-        previousMonthReviewsConducted = reviewsConductedPrisonersReviewed.reviewsConducted,
-        previousMonthPrisonersReviewed = reviewsConductedPrisonersReviewed.prisonersReviewed,
-      ),
-    )
-
-    LOG.debug("KPIs updated for $day")
-  }
 }

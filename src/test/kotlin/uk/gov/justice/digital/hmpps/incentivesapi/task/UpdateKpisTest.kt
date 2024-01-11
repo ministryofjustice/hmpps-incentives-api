@@ -16,7 +16,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.service.KpiService
 import java.time.LocalDate
 
 class UpdateKpisTest {
-
   private val kpiRepository: KpiRepository = mock()
   private val kpiService: KpiService = mock()
 
@@ -25,39 +24,43 @@ class UpdateKpisTest {
   private val today = LocalDate.now()
 
   private val numberOfPrisonersOverdue = 5000
-  private val reviewsConductedPrisonersReviewed = ReviewsConductedPrisonersReviewed(
-    reviewsConducted = 30000,
-    prisonersReviewed = 15000,
-  )
+  private val reviewsConductedPrisonersReviewed =
+    ReviewsConductedPrisonersReviewed(
+      reviewsConducted = 30000,
+      prisonersReviewed = 15000,
+    )
 
   @BeforeEach
-  fun setUp(): Unit = runBlocking {
-    whenever(kpiService.getNumberOfPrisonersOverdue()).thenReturn(numberOfPrisonersOverdue)
-    whenever(kpiService.getNumberOfReviewsConductedAndPrisonersReviewed(today)).thenReturn(reviewsConductedPrisonersReviewed)
-  }
+  fun setUp(): Unit =
+    runBlocking {
+      whenever(kpiService.getNumberOfPrisonersOverdue()).thenReturn(numberOfPrisonersOverdue)
+      whenever(kpiService.getNumberOfReviewsConductedAndPrisonersReviewed(today)).thenReturn(reviewsConductedPrisonersReviewed)
+    }
 
   @Test
-  fun `updateKpis() update the kpi table with the KPIs numbers for the month`(): Unit = runBlocking {
-    whenever(kpiRepository.existsById(today)).thenReturn(false)
+  fun `updateKpis() update the kpi table with the KPIs numbers for the month`(): Unit =
+    runBlocking {
+      whenever(kpiRepository.existsById(today)).thenReturn(false)
 
-    task.updateKpis()
+      task.updateKpis()
 
-    verify(kpiRepository, times(1)).save(
-      Kpi(
-        day = today,
-        overdueReviews = numberOfPrisonersOverdue,
-        previousMonthReviewsConducted = reviewsConductedPrisonersReviewed.reviewsConducted,
-        previousMonthPrisonersReviewed = reviewsConductedPrisonersReviewed.prisonersReviewed,
-      ),
-    )
-  }
+      verify(kpiRepository, times(1)).save(
+        Kpi(
+          day = today,
+          overdueReviews = numberOfPrisonersOverdue,
+          previousMonthReviewsConducted = reviewsConductedPrisonersReviewed.reviewsConducted,
+          previousMonthPrisonersReviewed = reviewsConductedPrisonersReviewed.prisonersReviewed,
+        ),
+      )
+    }
 
   @Test
-  fun `updateKpis() skips month if already in DB`(): Unit = runBlocking {
-    whenever(kpiRepository.existsById(today)).thenReturn(true)
+  fun `updateKpis() skips month if already in DB`(): Unit =
+    runBlocking {
+      whenever(kpiRepository.existsById(today)).thenReturn(true)
 
-    task.updateKpis()
+      task.updateKpis()
 
-    verify(kpiRepository, never()).save(any())
-  }
+      verify(kpiRepository, never()).save(any())
+    }
 }

@@ -1,7 +1,11 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.dto
 
 enum class ReviewType {
-  INITIAL, REVIEW, TRANSFER, MIGRATED, READMISSION
+  INITIAL,
+  REVIEW,
+  TRANSFER,
+  MIGRATED,
+  READMISSION,
 }
 
 interface IsRealReview {

@@ -24,7 +24,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.helper.JwtAuthHelper
 @ActiveProfiles("test")
 @ExtendWith(SpringExtension::class)
 class ClientTrackingWebFilterTest {
-
   @Suppress("SpringJavaInjectionPointsAutowiringInspection")
   @Autowired
   private lateinit var clientTrackingWebFilter: ClientTrackingWebFilter
@@ -40,10 +39,11 @@ class ClientTrackingWebFilterTest {
   fun shouldAddClientIdAndUserNameToInsightTelemetry() {
     // Given
     val token = jwtAuthHelper.createJwt("bob")
-    val exchange = MockServerWebExchange.builder(
-      MockServerHttpRequest.get("http://incentives")
-        .header(HttpHeaders.AUTHORIZATION, "Bearer $token").build(),
-    ).build()
+    val exchange =
+      MockServerWebExchange.builder(
+        MockServerHttpRequest.get("http://incentives")
+          .header(HttpHeaders.AUTHORIZATION, "Bearer $token").build(),
+      ).build()
 
     // When
     tracer.spanBuilder("span").startSpan().run {
@@ -69,10 +69,11 @@ class ClientTrackingWebFilterTest {
   fun shouldAddOnlyClientIdIfUsernameNullToInsightTelemetry() {
     // Given
     val token = jwtAuthHelper.createJwt(null)
-    val exchange = MockServerWebExchange.builder(
-      MockServerHttpRequest.get("http://incentives")
-        .header(HttpHeaders.AUTHORIZATION, "Bearer $token").build(),
-    ).build()
+    val exchange =
+      MockServerWebExchange.builder(
+        MockServerHttpRequest.get("http://incentives")
+          .header(HttpHeaders.AUTHORIZATION, "Bearer $token").build(),
+      ).build()
 
     // When
     tracer.spanBuilder("span").startSpan().run {

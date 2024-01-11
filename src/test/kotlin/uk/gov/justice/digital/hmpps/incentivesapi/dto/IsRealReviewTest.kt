@@ -4,7 +4,6 @@ import org.assertj.core.api.AssertionsForClassTypes.assertThat
 import org.junit.jupiter.api.Test
 
 class IsRealReviewTest {
-
   inner class SomeReviewClass(override val reviewType: ReviewType) : IsRealReview
 
   @Test

@@ -112,10 +112,11 @@ class PrisonIncentiveLevelResource(
   @PreAuthorize("hasRole('MAINTAIN_PRISON_IEP_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
     summary = "Updates prison incentive level information",
-    description = "Payload must include all required fields. " +
-      "Deactivating a level is only possible if there are no prisoners currently on it." +
-      "\n\nRequires role: MAINTAIN_PRISON_IEP_LEVELS with write scope" +
-      "\n\nRaises HMPPS domain event: \"incentives.prison-level.changed\"",
+    description =
+      "Payload must include all required fields. " +
+        "Deactivating a level is only possible if there are no prisoners currently on it." +
+        "\n\nRequires role: MAINTAIN_PRISON_IEP_LEVELS with write scope" +
+        "\n\nRaises HMPPS domain event: \"incentives.prison-level.changed\"",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -168,10 +169,11 @@ class PrisonIncentiveLevelResource(
   @PreAuthorize("hasRole('MAINTAIN_PRISON_IEP_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
     summary = "Updates prison incentive level information",
-    description = "Partial updates are allowed. " +
-      "Deactivating a level is only possible if there are no prisoners currently on it." +
-      "\n\nRequires role: MAINTAIN_PRISON_IEP_LEVELS with write scope" +
-      "\n\nRaises HMPPS domain event: \"incentives.prison-level.changed\"",
+    description =
+      "Partial updates are allowed. " +
+        "Deactivating a level is only possible if there are no prisoners currently on it." +
+        "\n\nRequires role: MAINTAIN_PRISON_IEP_LEVELS with write scope" +
+        "\n\nRaises HMPPS domain event: \"incentives.prison-level.changed\"",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -247,12 +249,13 @@ class PrisonIncentiveLevelResource(
   @PreAuthorize("hasRole('MAINTAIN_PRISON_IEP_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
     summary = "Reset all incentive levels for a prison",
-    description = "Activates the required set of levels, ensuring that Standard is the default level for admission. " +
-      "This can be used when a new prison is opened. " +
-      "Any levels that are already active will remain active and associated information remains unchanged. " +
-      "Returns all incentive levels in this prison including those that were already active. " +
-      "\n\nRequires role: MAINTAIN_PRISON_IEP_LEVELS with write scope" +
-      "\n\nRaises HMPPS domain events: \"incentives.prison-level.changed\"",
+    description =
+      "Activates the required set of levels, ensuring that Standard is the default level for admission. " +
+        "This can be used when a new prison is opened. " +
+        "Any levels that are already active will remain active and associated information remains unchanged. " +
+        "Returns all incentive levels in this prison including those that were already active. " +
+        "\n\nRequires role: MAINTAIN_PRISON_IEP_LEVELS with write scope" +
+        "\n\nRaises HMPPS domain events: \"incentives.prison-level.changed\"",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -285,11 +288,12 @@ class PrisonIncentiveLevelResource(
   @PreAuthorize("hasRole('MAINTAIN_PRISON_IEP_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
     summary = "Deactivate all incentive levels for a prison",
-    description = "This can be used when a prison closes. " +
-      "Returns all incentive levels in this prison including those that were already inactive. " +
-      "Deactivating a level is only possible if there are no prisoners currently on it." +
-      "\n\nRequires role: MAINTAIN_PRISON_IEP_LEVELS with write scope" +
-      "\n\nRaises HMPPS domain events: \"incentives.prison-level.changed\"",
+    description =
+      "This can be used when a prison closes. " +
+        "Returns all incentive levels in this prison including those that were already inactive. " +
+        "Deactivating a level is only possible if there are no prisoners currently on it." +
+        "\n\nRequires role: MAINTAIN_PRISON_IEP_LEVELS with write scope" +
+        "\n\nRaises HMPPS domain events: \"incentives.prison-level.changed\"",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -325,9 +329,10 @@ class PrisonIncentiveLevelResource(
   @PreAuthorize("hasRole('MAINTAIN_PRISON_IEP_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
     summary = "Deactivate an incentive level for a prison",
-    description = "Deactivating a level is only possible if there are no prisoners currently on it." +
-      "\n\nRequires role: MAINTAIN_PRISON_IEP_LEVELS with write scope" +
-      "\n\nRaises HMPPS domain event: \"incentives.prison-level.changed\"",
+    description =
+      "Deactivating a level is only possible if there are no prisoners currently on it." +
+        "\n\nRequires role: MAINTAIN_PRISON_IEP_LEVELS with write scope" +
+        "\n\nRaises HMPPS domain event: \"incentives.prison-level.changed\"",
     responses = [
       ApiResponse(
         responseCode = "200",

@@ -14,7 +14,6 @@ data class NextReviewDateInput(
 )
 
 class NextReviewDateService(private val input: NextReviewDateInput) {
-
   fun calculate(): LocalDate {
     if (isReadmission()) {
       val readmissionDate = reviews(includeReadmissions = true).first().reviewDate
