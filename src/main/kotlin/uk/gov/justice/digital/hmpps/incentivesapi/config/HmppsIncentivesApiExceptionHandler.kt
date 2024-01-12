@@ -69,20 +69,18 @@ class HmppsIncentivesApiExceptionHandler {
       .body(
         ErrorResponse(
           status = BAD_REQUEST,
-          errorCode =
-            if (e is ValidationExceptionWithErrorCode) {
-              e.errorCode
-            } else {
-              null
-            },
+          errorCode = if (e is ValidationExceptionWithErrorCode) {
+            e.errorCode
+          } else {
+            null
+          },
           userMessage = "Validation failure: ${e.message}",
           developerMessage = e.message,
-          moreInfo =
-            if (e is ValidationExceptionWithErrorCode) {
-              e.moreInfo
-            } else {
-              null
-            },
+          moreInfo = if (e is ValidationExceptionWithErrorCode) {
+            e.moreInfo
+          } else {
+            null
+          },
         ),
       )
   }

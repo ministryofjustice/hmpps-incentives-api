@@ -53,42 +53,38 @@ class NextReviewDateUpdaterService(
 
     // NOTE: This is to account for bookingIds potentially without any review record
     val bookingIdsNoReviews = bookingIds.associateWith { emptyList<IncentiveReview>() }
-    val reviewsMap =
-      bookingIdsNoReviews +
-        incentiveReviewRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds)
-          .toList()
-          .groupBy(IncentiveReview::bookingId)
+    val reviewsMap = bookingIdsNoReviews +
+      incentiveReviewRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds)
+        .toList()
+        .groupBy(IncentiveReview::bookingId)
 
-    val nextReviewDateRecords =
-      reviewsMap.map { (bookingId, incentiveRecords) ->
-        val offender = offendersMap[bookingId]!!
+    val nextReviewDateRecords = reviewsMap.map { (bookingId, incentiveRecords) ->
+      val offender = offendersMap[bookingId]!!
 
-        val nextReviewDate =
-          NextReviewDateService(
-            NextReviewDateInput(
-              dateOfBirth = offender.dateOfBirth,
-              receptionDate = offender.receptionDate,
-              hasAcctOpen = offender.hasAcctOpen,
-              incentiveRecords = incentiveRecords,
-            ),
-          ).calculate()
+      val nextReviewDate = NextReviewDateService(
+        NextReviewDateInput(
+          dateOfBirth = offender.dateOfBirth,
+          receptionDate = offender.receptionDate,
+          hasAcctOpen = offender.hasAcctOpen,
+          incentiveRecords = incentiveRecords,
+        ),
+      ).calculate()
 
-        NextReviewDate(
-          bookingId = bookingId,
-          nextReviewDate = nextReviewDate,
-          new = !nextReviewDateRepository.existsById(bookingId),
-          whenUpdated = LocalDateTime.now(clock),
-        )
-      }
+      NextReviewDate(
+        bookingId = bookingId,
+        nextReviewDate = nextReviewDate,
+        new = !nextReviewDateRepository.existsById(bookingId),
+        whenUpdated = LocalDateTime.now(clock),
+      )
+    }
 
     val nextReviewDatesAfterUpdate: Map<Long, LocalDate> = nextReviewDateRepository.saveAll(nextReviewDateRecords).toList().toMapByBookingId()
 
     // Determine which next review dates records actually changed
-    val bookingIdsChanged =
-      bookingIds.filter { bookingId ->
-        nextReviewDatesBeforeUpdate[bookingId] != null && // only publish domain events when next review date changed
-          nextReviewDatesAfterUpdate[bookingId] != nextReviewDatesBeforeUpdate[bookingId]
-      }
+    val bookingIdsChanged = bookingIds.filter { bookingId ->
+      nextReviewDatesBeforeUpdate[bookingId] != null && // only publish domain events when next review date changed
+        nextReviewDatesAfterUpdate[bookingId] != nextReviewDatesBeforeUpdate[bookingId]
+    }
 
     publishDomainEvents(bookingIdsChanged, offendersMap, nextReviewDatesAfterUpdate)
 
@@ -105,12 +101,11 @@ class NextReviewDateUpdaterService(
         eventType = IncentivesDomainEventType.PRISONER_NEXT_REVIEW_DATE_CHANGED,
         description = "A prisoner's next incentive review date has changed",
         occurredAt = LocalDateTime.now(clock),
-        additionalInformation =
-          AdditionalInformation(
-            id = bookingId,
-            nomsNumber = offendersMap[bookingId]!!.prisonerNumber,
-            nextReviewDate = nextReviewDatesMap[bookingId],
-          ),
+        additionalInformation = AdditionalInformation(
+          id = bookingId,
+          nomsNumber = offendersMap[bookingId]!!.prisonerNumber,
+          nextReviewDate = nextReviewDatesMap[bookingId],
+        ),
       )
     }
   }

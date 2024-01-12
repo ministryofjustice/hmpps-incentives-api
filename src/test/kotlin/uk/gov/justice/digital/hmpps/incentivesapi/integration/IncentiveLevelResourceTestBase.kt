@@ -29,11 +29,10 @@ import java.time.ZoneId
 
 class IncentiveLevelResourceTestBase : SqsIntegrationTestBase() {
   companion object {
-    val clock: Clock =
-      Clock.fixed(
-        Instant.parse("2022-03-15T12:34:56+00:00"),
-        ZoneId.of("Europe/London"),
-      )
+    val clock: Clock = Clock.fixed(
+      Instant.parse("2022-03-15T12:34:56+00:00"),
+      ZoneId.of("Europe/London"),
+    )
     val now: LocalDateTime = LocalDateTime.now(clock)
 
     var testDomainEventQueueUrl: String? = null
@@ -58,21 +57,20 @@ class IncentiveLevelResourceTestBase : SqsIntegrationTestBase() {
   }
 
   @AfterEach
-  fun tearDown(): Unit =
-    runBlocking {
-      prisonIncentiveLevelRepository.deleteAll()
-      incentiveLevelRepository.deleteAll()
-      incentiveLevelRepository.saveAll(
-        listOf(
-          IncentiveLevel(code = "BAS", name = "Basic", sequence = 1, required = true, new = true),
-          IncentiveLevel(code = "STD", name = "Standard", sequence = 2, required = true, new = true),
-          IncentiveLevel(code = "ENH", name = "Enhanced", sequence = 3, required = true, new = true),
-          IncentiveLevel(code = "EN2", name = "Enhanced 2", sequence = 4, new = true),
-          IncentiveLevel(code = "EN3", name = "Enhanced 3", sequence = 5, new = true),
-          IncentiveLevel(code = "ENT", name = "Entry", active = false, sequence = 99, new = true),
-        ),
-      ).collect()
-    }
+  fun tearDown(): Unit = runBlocking {
+    prisonIncentiveLevelRepository.deleteAll()
+    incentiveLevelRepository.deleteAll()
+    incentiveLevelRepository.saveAll(
+      listOf(
+        IncentiveLevel(code = "BAS", name = "Basic", sequence = 1, required = true, new = true),
+        IncentiveLevel(code = "STD", name = "Standard", sequence = 2, required = true, new = true),
+        IncentiveLevel(code = "ENH", name = "Enhanced", sequence = 3, required = true, new = true),
+        IncentiveLevel(code = "EN2", name = "Enhanced 2", sequence = 4, new = true),
+        IncentiveLevel(code = "EN3", name = "Enhanced 3", sequence = 5, new = true),
+        IncentiveLevel(code = "ENT", name = "Entry", active = false, sequence = 99, new = true),
+      ),
+    ).collect()
+  }
 
   protected fun assertNoDomainEventSent() {
     val sqsClient = incentivesQueue.sqsClient
@@ -142,43 +140,38 @@ class IncentiveLevelResourceTestBase : SqsIntegrationTestBase() {
   protected fun makePrisonIncentiveLevel(
     prisonId: String,
     levelCode: String,
-  ) =
-    runBlocking {
-      prisonIncentiveLevelRepository.save(
-        PrisonIncentiveLevel(
-          levelCode = levelCode,
-          prisonId = prisonId,
-          active = levelCode != "ENT",
-          defaultOnAdmission = levelCode == "STD",
-          remandTransferLimitInPence =
-            when (levelCode) {
-              "BAS" -> 27_50
-              "STD" -> 60_50
-              else -> 66_00
-            },
-          remandSpendLimitInPence =
-            when (levelCode) {
-              "BAS" -> 275_00
-              "STD" -> 605_00
-              else -> 660_00
-            },
-          convictedTransferLimitInPence =
-            when (levelCode) {
-              "BAS" -> 5_50
-              "STD" -> 19_80
-              else -> 33_00
-            },
-          convictedSpendLimitInPence =
-            when (levelCode) {
-              "BAS" -> 55_00
-              "STD" -> 198_00
-              else -> 330_00
-            },
-          visitOrders = 2,
-          privilegedVisitOrders = 1,
-          new = true,
-          whenUpdated = now.minusDays(3),
-        ),
-      )
-    }
+  ) = runBlocking {
+    prisonIncentiveLevelRepository.save(
+      PrisonIncentiveLevel(
+        levelCode = levelCode,
+        prisonId = prisonId,
+        active = levelCode != "ENT",
+        defaultOnAdmission = levelCode == "STD",
+        remandTransferLimitInPence = when (levelCode) {
+          "BAS" -> 27_50
+          "STD" -> 60_50
+          else -> 66_00
+        },
+        remandSpendLimitInPence = when (levelCode) {
+          "BAS" -> 275_00
+          "STD" -> 605_00
+          else -> 660_00
+        },
+        convictedTransferLimitInPence = when (levelCode) {
+          "BAS" -> 5_50
+          "STD" -> 19_80
+          else -> 33_00
+        },
+        convictedSpendLimitInPence = when (levelCode) {
+          "BAS" -> 55_00
+          "STD" -> 198_00
+          else -> 330_00
+        },
+        visitOrders = 2,
+        privilegedVisitOrders = 1,
+        new = true,
+        whenUpdated = now.minusDays(3),
+      ),
+    )
+  }
 }

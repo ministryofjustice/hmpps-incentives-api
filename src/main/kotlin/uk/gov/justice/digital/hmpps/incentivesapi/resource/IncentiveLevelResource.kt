@@ -70,10 +70,9 @@ class IncentiveLevelResource(
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Creates a new incentive level",
-    description =
-      "New incentive levels are added to the end of the list." +
-        "\n\nRequires role: MAINTAIN_INCENTIVE_LEVELS with write scope" +
-        "\n\nRaises HMPPS domain event: \"incentives.level.changed\"",
+    description = "New incentive levels are added to the end of the list." +
+      "\n\nRequires role: MAINTAIN_INCENTIVE_LEVELS with write scope" +
+      "\n\nRaises HMPPS domain event: \"incentives.level.changed\"",
     responses = [
       ApiResponse(
         responseCode = "201",
@@ -114,10 +113,9 @@ class IncentiveLevelResource(
   @PreAuthorize("hasRole('MAINTAIN_INCENTIVE_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
     summary = "Sets the order of incentive levels",
-    description =
-      "All existing incentive level codes must be provided." +
-        "\n\nRequires role: MAINTAIN_INCENTIVE_LEVELS with write scope" +
-        "\n\nRaises HMPPS domain event: \"incentives.levels.reordered\"",
+    description = "All existing incentive level codes must be provided." +
+      "\n\nRequires role: MAINTAIN_INCENTIVE_LEVELS with write scope" +
+      "\n\nRaises HMPPS domain event: \"incentives.levels.reordered\"",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -194,12 +192,11 @@ class IncentiveLevelResource(
   @PreAuthorize("hasRole('MAINTAIN_INCENTIVE_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
     summary = "Updates an incentive level",
-    description =
-      "Payload must include all required fields. A level marked as required must also be active. " +
-        "Deactivating a level is only possible if it is not active in any prison (moreInfo field will contain comma-separated prison ids). " +
-        "Deactivated incentive levels remain in the same position with respect to the others." +
-        "\n\nRequires role: MAINTAIN_INCENTIVE_LEVELS with write scope" +
-        "\n\nRaises HMPPS domain event: \"incentives.level.changed\"",
+    description = "Payload must include all required fields. A level marked as required must also be active. " +
+      "Deactivating a level is only possible if it is not active in any prison (moreInfo field will contain comma-separated prison ids). " +
+      "Deactivated incentive levels remain in the same position with respect to the others." +
+      "\n\nRequires role: MAINTAIN_INCENTIVE_LEVELS with write scope" +
+      "\n\nRaises HMPPS domain event: \"incentives.level.changed\"",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -246,12 +243,11 @@ class IncentiveLevelResource(
   @PreAuthorize("hasRole('MAINTAIN_INCENTIVE_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
     summary = "Updates an incentive level",
-    description =
-      "Partial updates are allowed. A level marked as required must also be active. " +
-        "Deactivating a level is only possible if it is not active in any prison (moreInfo field will contain comma-separated prison ids). " +
-        "Deactivated incentive levels remain in the same position with respect to the others." +
-        "\n\nRequires role: MAINTAIN_INCENTIVE_LEVELS with write scope" +
-        "\n\nRaises HMPPS domain event: \"incentives.level.changed\"",
+    description = "Partial updates are allowed. A level marked as required must also be active. " +
+      "Deactivating a level is only possible if it is not active in any prison (moreInfo field will contain comma-separated prison ids). " +
+      "Deactivated incentive levels remain in the same position with respect to the others." +
+      "\n\nRequires role: MAINTAIN_INCENTIVE_LEVELS with write scope" +
+      "\n\nRaises HMPPS domain event: \"incentives.level.changed\"",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -307,12 +303,11 @@ class IncentiveLevelResource(
   @PreAuthorize("hasRole('MAINTAIN_INCENTIVE_LEVELS') and hasAuthority('SCOPE_write')")
   @Operation(
     summary = "Deactivates an incentive level",
-    description =
-      "A required level cannot be deactivated, needs to be updated first to be not required. " +
-        "Deactivating a level is only possible if it is not active in any prison (moreInfo field will contain comma-separated prison ids). " +
-        "Deactivated incentive levels remain in the same position with respect to the others." +
-        "\n\nRequires role: MAINTAIN_INCENTIVE_LEVELS with write scope" +
-        "\n\nRaises HMPPS domain event: \"incentives.level.changed\"",
+    description = "A required level cannot be deactivated, needs to be updated first to be not required. " +
+      "Deactivating a level is only possible if it is not active in any prison (moreInfo field will contain comma-separated prison ids). " +
+      "Deactivated incentive levels remain in the same position with respect to the others." +
+      "\n\nRequires role: MAINTAIN_INCENTIVE_LEVELS with write scope" +
+      "\n\nRaises HMPPS domain event: \"incentives.level.changed\"",
     responses = [
       ApiResponse(
         responseCode = "200",

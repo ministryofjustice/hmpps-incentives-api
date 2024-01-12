@@ -20,10 +20,10 @@ class IncentiveLevelAuditedService(
   incentiveLevelRepository: IncentiveLevelRepository,
   prisonIncentiveLevelAuditedService: PrisonIncentiveLevelAuditedService,
 ) : IncentiveLevelService(
-    clock = clock,
-    incentiveLevelRepository = incentiveLevelRepository,
-    prisonIncentiveLevelService = prisonIncentiveLevelAuditedService,
-  ) {
+  clock = clock,
+  incentiveLevelRepository = incentiveLevelRepository,
+  prisonIncentiveLevelService = prisonIncentiveLevelAuditedService,
+) {
   override suspend fun createIncentiveLevel(dto: IncentiveLevelDTO): IncentiveLevelDTO {
     return super.createIncentiveLevel(dto)
       .also {

@@ -32,63 +32,61 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
     includeInvalid: Boolean = false,
   ) {
     // <editor-fold desc="mocked offenders">
-    val offenders =
-      mutableListOf(
-        OffenderSearchPrisoner(
-          prisonerNumber = "A1234AA",
-          bookingId = 1234134,
-          firstName = "JOHN",
-          lastName = "SMITH",
-          dateOfBirth = LocalDate.parse("1971-07-01"),
-          receptionDate = LocalDate.parse("2020-07-01"),
-          prisonId = prisonId,
-          alerts =
-            listOf(
-              PrisonerAlert(
-                alertType = "H",
-                alertCode = "HA",
-                active = true,
-                expired = false,
-              ),
-            ),
+    val offenders = mutableListOf(
+      OffenderSearchPrisoner(
+        prisonerNumber = "A1234AA",
+        bookingId = 1234134,
+        firstName = "JOHN",
+        lastName = "SMITH",
+        dateOfBirth = LocalDate.parse("1971-07-01"),
+        receptionDate = LocalDate.parse("2020-07-01"),
+        prisonId = prisonId,
+        alerts = listOf(
+          PrisonerAlert(
+            alertType = "H",
+            alertCode = "HA",
+            active = true,
+            expired = false,
+          ),
         ),
-        OffenderSearchPrisoner(
-          prisonerNumber = "A1234AB",
-          bookingId = 1234135,
-          firstName = "DAVID",
-          lastName = "WHITE",
-          dateOfBirth = LocalDate.parse("1970-03-01"),
-          receptionDate = LocalDate.parse("2020-07-01"),
-          prisonId = prisonId,
-        ),
-        OffenderSearchPrisoner(
-          prisonerNumber = "A1234AC",
-          bookingId = 1234136,
-          firstName = "TREVOR",
-          lastName = "LEE",
-          dateOfBirth = LocalDate.parse("1970-03-02"),
-          receptionDate = LocalDate.parse("2020-07-01"),
-          prisonId = prisonId,
-        ),
-        OffenderSearchPrisoner(
-          prisonerNumber = "A1234AD",
-          bookingId = 1234137,
-          firstName = "ANTHONY",
-          lastName = "DAVIES",
-          dateOfBirth = LocalDate.parse("1970-03-03"),
-          receptionDate = LocalDate.parse("2020-07-01"),
-          prisonId = prisonId,
-        ),
-        OffenderSearchPrisoner(
-          prisonerNumber = "A1234AE",
-          bookingId = 1234138,
-          firstName = "PAUL",
-          lastName = "RUDD",
-          dateOfBirth = LocalDate.parse("1970-03-04"),
-          receptionDate = LocalDate.parse("2020-07-01"),
-          prisonId = prisonId,
-        ),
-      )
+      ),
+      OffenderSearchPrisoner(
+        prisonerNumber = "A1234AB",
+        bookingId = 1234135,
+        firstName = "DAVID",
+        lastName = "WHITE",
+        dateOfBirth = LocalDate.parse("1970-03-01"),
+        receptionDate = LocalDate.parse("2020-07-01"),
+        prisonId = prisonId,
+      ),
+      OffenderSearchPrisoner(
+        prisonerNumber = "A1234AC",
+        bookingId = 1234136,
+        firstName = "TREVOR",
+        lastName = "LEE",
+        dateOfBirth = LocalDate.parse("1970-03-02"),
+        receptionDate = LocalDate.parse("2020-07-01"),
+        prisonId = prisonId,
+      ),
+      OffenderSearchPrisoner(
+        prisonerNumber = "A1234AD",
+        bookingId = 1234137,
+        firstName = "ANTHONY",
+        lastName = "DAVIES",
+        dateOfBirth = LocalDate.parse("1970-03-03"),
+        receptionDate = LocalDate.parse("2020-07-01"),
+        prisonId = prisonId,
+      ),
+      OffenderSearchPrisoner(
+        prisonerNumber = "A1234AE",
+        bookingId = 1234138,
+        firstName = "PAUL",
+        lastName = "RUDD",
+        dateOfBirth = LocalDate.parse("1970-03-04"),
+        receptionDate = LocalDate.parse("2020-07-01"),
+        prisonId = prisonId,
+      ),
+    )
     if (includeInvalid) {
       offenders.addAll(
         listOf(

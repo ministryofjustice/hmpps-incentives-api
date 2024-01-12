@@ -36,243 +36,231 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
   private lateinit var nextReviewDateRepository: NextReviewDateRepository
 
   @BeforeEach
-  fun setUp(): Unit =
-    runBlocking {
-      prisonApiMockServer.resetRequests()
-      incentiveReviewRepository.deleteAll()
-      nextReviewDateRepository.deleteAll()
-    }
+  fun setUp(): Unit = runBlocking {
+    prisonApiMockServer.resetRequests()
+    incentiveReviewRepository.deleteAll()
+    nextReviewDateRepository.deleteAll()
+  }
 
   @AfterEach
-  fun tearDown(): Unit =
-    runBlocking {
-      prisonApiMockServer.resetRequests()
-      incentiveReviewRepository.deleteAll()
-      nextReviewDateRepository.deleteAll()
-    }
+  fun tearDown(): Unit = runBlocking {
+    prisonApiMockServer.resetRequests()
+    incentiveReviewRepository.deleteAll()
+    nextReviewDateRepository.deleteAll()
+  }
 
   @ParameterizedTest
   @ValueSource(strings = ["NEW_ADMISSION", "READMISSION"])
-  fun `process admissions`(reason: String): Unit =
-    runBlocking {
-      // Given
-      val bookingId = 1294134L
-      val prisonerNumber = "A1244AB"
-      val locationId = 77777L
-      prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = locationId)
-      prisonApiMockServer.stubGetLocationById(locationId = locationId, locationDesc = "1-2-003")
-      prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
+  fun `process admissions`(reason: String): Unit = runBlocking {
+    // Given
+    val bookingId = 1294134L
+    val prisonerNumber = "A1244AB"
+    val locationId = 77777L
+    prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = locationId)
+    prisonApiMockServer.stubGetLocationById(locationId = locationId, locationDesc = "1-2-003")
+    prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
 
-      val reviewsCount = incentiveReviewRepository.count()
+    val reviewsCount = incentiveReviewRepository.count()
 
-      // When
-      publishPrisonerReceivedMessage(reason)
+    // When
+    publishPrisonerReceivedMessage(reason)
 
-      awaitAtMost30Secs untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
-      awaitAtMost30Secs untilCallTo {
-        runBlocking {
-          incentiveReviewRepository.count() > reviewsCount
-        }
-      } matches { it == true }
-      awaitAtMost30Secs untilCallTo { prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber") } matches { it == 1 }
-      awaitAtMost30Secs untilCallTo { prisonApiMockServer.getCountFor("/api/locations/$locationId?includeInactive=true") } matches { it == 1 }
+    awaitAtMost30Secs untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
+    awaitAtMost30Secs untilCallTo {
+      runBlocking {
+        incentiveReviewRepository.count() > reviewsCount
+      }
+    } matches { it == true }
+    awaitAtMost30Secs untilCallTo { prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber") } matches { it == 1 }
+    awaitAtMost30Secs untilCallTo { prisonApiMockServer.getCountFor("/api/locations/$locationId?includeInactive=true") } matches { it == 1 }
 
-      // Then
-      awaitAtMost30Secs untilCallTo {
-        runBlocking {
-          val booking = incentiveReviewRepository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId)
-          assertThat(booking?.reviewType).isEqualTo(ReviewType.INITIAL)
-        }
+    // Then
+    awaitAtMost30Secs untilCallTo {
+      runBlocking {
+        val booking = incentiveReviewRepository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId)
+        assertThat(booking?.reviewType).isEqualTo(ReviewType.INITIAL)
       }
     }
+  }
 
   @Test
-  fun `prisoner with TRANSFERRED reason is processed`(): Unit =
-    runBlocking {
-      // Given
-      val bookingId = 1294134L
-      val prisonerNumber = "A1244AB"
-      val locationId = 77777L
-      prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = locationId)
-      prisonApiMockServer.stubGetLocationById(locationId = locationId, locationDesc = "1-2-003")
-      prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
+  fun `prisoner with TRANSFERRED reason is processed`(): Unit = runBlocking {
+    // Given
+    val bookingId = 1294134L
+    val prisonerNumber = "A1244AB"
+    val locationId = 77777L
+    prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = locationId)
+    prisonApiMockServer.stubGetLocationById(locationId = locationId, locationDesc = "1-2-003")
+    prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
 
-      // When
-      publishPrisonerReceivedMessage("TRANSFERRED")
-      awaitAtMost30Secs untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
-      awaitAtMost30Secs untilCallTo { prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber") } matches { it == 1 }
-      awaitAtMost30Secs untilCallTo { prisonApiMockServer.getCountFor("/api/locations/$locationId?includeInactive=true") } matches { it == 1 }
+    // When
+    publishPrisonerReceivedMessage("TRANSFERRED")
+    awaitAtMost30Secs untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
+    awaitAtMost30Secs untilCallTo { prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber") } matches { it == 1 }
+    awaitAtMost30Secs untilCallTo { prisonApiMockServer.getCountFor("/api/locations/$locationId?includeInactive=true") } matches { it == 1 }
 
-      // Then
-      awaitAtMost30Secs untilCallTo {
-        runBlocking {
-          val booking = incentiveReviewRepository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId)
-          assertThat(booking?.reviewType).isEqualTo(ReviewType.TRANSFER)
-        }
+    // Then
+    awaitAtMost30Secs untilCallTo {
+      runBlocking {
+        val booking = incentiveReviewRepository.findFirstByBookingIdOrderByReviewTimeDesc(bookingId)
+        assertThat(booking?.reviewType).isEqualTo(ReviewType.TRANSFER)
       }
     }
+  }
 
   @Test
-  fun `prisoner with MERGE numbers is processed`(): Unit =
-    runBlocking {
-      // Given
-      val bookingId = 1294133L
-      val oldBookingId = 2343L
-      val prisonerNumber = "A1244AB"
-      val removedNomsNumber = "A4432FD"
-      val locationId = 77777L
+  fun `prisoner with MERGE numbers is processed`(): Unit = runBlocking {
+    // Given
+    val bookingId = 1294133L
+    val oldBookingId = 2343L
+    val prisonerNumber = "A1244AB"
+    val removedNomsNumber = "A4432FD"
+    val locationId = 77777L
 
-      prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
+    prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
 
-      incentiveReviewRepository.save(
-        IncentiveReview(
-          bookingId = bookingId,
-          prisonerNumber = removedNomsNumber,
-          prisonId = "LEI",
-          locationId = "LEI-1-1-001",
-          reviewedBy = "TEST_STAFF1",
-          levelCode = "BAS",
-          current = true,
-          reviewTime = LocalDateTime.now().minusDays(2),
-        ),
-      )
-      incentiveReviewRepository.save(
-        IncentiveReview(
-          bookingId = oldBookingId,
-          prisonerNumber = prisonerNumber,
-          prisonId = "LEI",
-          locationId = "LEI-1-1-001",
-          reviewedBy = "TEST_STAFF1",
-          levelCode = "STD",
-          current = true,
-          reviewTime = LocalDateTime.now().minusDays(50),
-        ),
-      )
-      incentiveReviewRepository.save(
-        IncentiveReview(
-          bookingId = oldBookingId,
-          prisonerNumber = prisonerNumber,
-          prisonId = "LEI",
-          locationId = "LEI-1-1-001",
-          reviewedBy = "TEST_STAFF1",
-          levelCode = "BAS",
-          current = false,
-          reviewTime = LocalDateTime.now().minusDays(200),
-        ),
-      )
-      prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = locationId)
-
-      // When
-      publishPrisonerMergedMessage(prisonerNumber, removedNomsNumber)
-
-      awaitAtMost30Secs untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
-      awaitAtMost30Secs untilCallTo { prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber") } matches { it == 1 }
-    }
-
-  @Test
-  fun `process PRISONER ALERTS UPDATED domain events`(): Unit =
-    runBlocking {
-      // Given
-      val bookingId = 1294134L
-      val prisonerNumber = "A1244AB"
-      val prisonId = "MDI"
-      prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
-      nextReviewDateRepository.deleteAll()
-
-      // Prisoner was not suitable to return to Standard level
-      val lastReviewTime = LocalDateTime.now()
-      // Second review after 7 days, still on Basic
-      incentiveReviewRepository.save(
-        IncentiveReview(
-          bookingId = bookingId,
-          prisonerNumber = prisonerNumber,
-          prisonId = prisonId,
-          locationId = "$prisonId-1-1-001",
-          reviewedBy = "TEST_STAFF1",
-          levelCode = "BAS",
-          current = true,
-          reviewTime = lastReviewTime,
-          reviewType = ReviewType.REVIEW,
-        ),
-      )
-      // First review
-      incentiveReviewRepository.save(
-        IncentiveReview(
-          bookingId = bookingId,
-          prisonerNumber = prisonerNumber,
-          prisonId = prisonId,
-          locationId = "$prisonId-1-1-001",
-          reviewedBy = "TEST_STAFF1",
-          levelCode = "BAS",
-          current = false,
-          reviewTime = lastReviewTime.minusDays(7),
-          reviewType = ReviewType.REVIEW,
-        ),
-      )
-
-      // When
-      publishPrisonerAlertsUpdatedMessage(
-        prisonerNumber,
-        bookingId,
-        alertsAdded = emptyList(),
-        alertsRemoved = listOf(PrisonerAlert.ACCT_ALERT_CODE),
-      )
-
-      awaitAtMost30Secs untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
-
-      // Then
-      awaitAtMost30Secs untilCallTo {
-        runBlocking { nextReviewDateRepository.existsById(bookingId) }
-      } matches { it == true }
-
-      assertThat(nextReviewDateRepository.findById(bookingId)?.nextReviewDate)
-        .isEqualTo(lastReviewTime.plusDays(28).toLocalDate())
-    }
-
-  private fun publishPrisonerReceivedMessage(reason: String) =
-    publishDomainEventMessage(
-      eventType = "prisoner-offender-search.prisoner.received",
-      additionalInformation =
-        AdditionalInformation(
-          id = 123,
-          nomsNumber = "A1244AB",
-          reason = reason,
-        ),
-      description = "A prisoner has been received into a prison with reason: admission on new charges",
+    incentiveReviewRepository.save(
+      IncentiveReview(
+        bookingId = bookingId,
+        prisonerNumber = removedNomsNumber,
+        prisonId = "LEI",
+        locationId = "LEI-1-1-001",
+        reviewedBy = "TEST_STAFF1",
+        levelCode = "BAS",
+        current = true,
+        reviewTime = LocalDateTime.now().minusDays(2),
+      ),
     )
+    incentiveReviewRepository.save(
+      IncentiveReview(
+        bookingId = oldBookingId,
+        prisonerNumber = prisonerNumber,
+        prisonId = "LEI",
+        locationId = "LEI-1-1-001",
+        reviewedBy = "TEST_STAFF1",
+        levelCode = "STD",
+        current = true,
+        reviewTime = LocalDateTime.now().minusDays(50),
+      ),
+    )
+    incentiveReviewRepository.save(
+      IncentiveReview(
+        bookingId = oldBookingId,
+        prisonerNumber = prisonerNumber,
+        prisonId = "LEI",
+        locationId = "LEI-1-1-001",
+        reviewedBy = "TEST_STAFF1",
+        levelCode = "BAS",
+        current = false,
+        reviewTime = LocalDateTime.now().minusDays(200),
+      ),
+    )
+    prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = locationId)
+
+    // When
+    publishPrisonerMergedMessage(prisonerNumber, removedNomsNumber)
+
+    awaitAtMost30Secs untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
+    awaitAtMost30Secs untilCallTo { prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber") } matches { it == 1 }
+  }
+
+  @Test
+  fun `process PRISONER ALERTS UPDATED domain events`(): Unit = runBlocking {
+    // Given
+    val bookingId = 1294134L
+    val prisonerNumber = "A1244AB"
+    val prisonId = "MDI"
+    prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
+    nextReviewDateRepository.deleteAll()
+
+    // Prisoner was not suitable to return to Standard level
+    val lastReviewTime = LocalDateTime.now()
+    // Second review after 7 days, still on Basic
+    incentiveReviewRepository.save(
+      IncentiveReview(
+        bookingId = bookingId,
+        prisonerNumber = prisonerNumber,
+        prisonId = prisonId,
+        locationId = "$prisonId-1-1-001",
+        reviewedBy = "TEST_STAFF1",
+        levelCode = "BAS",
+        current = true,
+        reviewTime = lastReviewTime,
+        reviewType = ReviewType.REVIEW,
+      ),
+    )
+    // First review
+    incentiveReviewRepository.save(
+      IncentiveReview(
+        bookingId = bookingId,
+        prisonerNumber = prisonerNumber,
+        prisonId = prisonId,
+        locationId = "$prisonId-1-1-001",
+        reviewedBy = "TEST_STAFF1",
+        levelCode = "BAS",
+        current = false,
+        reviewTime = lastReviewTime.minusDays(7),
+        reviewType = ReviewType.REVIEW,
+      ),
+    )
+
+    // When
+    publishPrisonerAlertsUpdatedMessage(
+      prisonerNumber,
+      bookingId,
+      alertsAdded = emptyList(),
+      alertsRemoved = listOf(PrisonerAlert.ACCT_ALERT_CODE),
+    )
+
+    awaitAtMost30Secs untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
+
+    // Then
+    awaitAtMost30Secs untilCallTo {
+      runBlocking { nextReviewDateRepository.existsById(bookingId) }
+    } matches { it == true }
+
+    assertThat(nextReviewDateRepository.findById(bookingId)?.nextReviewDate)
+      .isEqualTo(lastReviewTime.plusDays(28).toLocalDate())
+  }
+
+  private fun publishPrisonerReceivedMessage(reason: String) = publishDomainEventMessage(
+    eventType = "prisoner-offender-search.prisoner.received",
+    additionalInformation = AdditionalInformation(
+      id = 123,
+      nomsNumber = "A1244AB",
+      reason = reason,
+    ),
+    description = "A prisoner has been received into a prison with reason: admission on new charges",
+  )
 
   private fun publishPrisonerMergedMessage(
     nomsNumber: String,
     removedNomsNumber: String,
-  ) =
-    publishDomainEventMessage(
-      eventType = "prison-offender-events.prisoner.merged",
-      additionalInformation =
-        AdditionalInformation(
-          nomsNumber = nomsNumber,
-          removedNomsNumber = removedNomsNumber,
-          reason = "MERGE",
-        ),
-      description = "A prisoner has been merged from $removedNomsNumber to $nomsNumber",
-    )
+  ) = publishDomainEventMessage(
+    eventType = "prison-offender-events.prisoner.merged",
+    additionalInformation = AdditionalInformation(
+      nomsNumber = nomsNumber,
+      removedNomsNumber = removedNomsNumber,
+      reason = "MERGE",
+    ),
+    description = "A prisoner has been merged from $removedNomsNumber to $nomsNumber",
+  )
 
   private fun publishPrisonerAlertsUpdatedMessage(
     nomsNumber: String,
     bookingId: Long,
     alertsAdded: List<String> = listOf(PrisonerAlert.ACCT_ALERT_CODE),
     alertsRemoved: List<String> = emptyList(),
-  ) =
-    publishDomainEventMessage(
-      eventType = "prisoner-offender-search.prisoner.alerts-updated",
-      additionalInformation =
-        AdditionalInformation(
-          nomsNumber = nomsNumber,
-          bookingId = bookingId,
-          alertsAdded = alertsAdded,
-          alertsRemoved = alertsRemoved,
-        ),
-      description = "A prisoner record has been updated",
-    )
+  ) = publishDomainEventMessage(
+    eventType = "prisoner-offender-search.prisoner.alerts-updated",
+    additionalInformation = AdditionalInformation(
+      nomsNumber = nomsNumber,
+      bookingId = bookingId,
+      alertsAdded = alertsAdded,
+      alertsRemoved = alertsRemoved,
+    ),
+    description = "A prisoner record has been updated",
+  )
 
   private fun publishDomainEventMessage(
     eventType: String,
