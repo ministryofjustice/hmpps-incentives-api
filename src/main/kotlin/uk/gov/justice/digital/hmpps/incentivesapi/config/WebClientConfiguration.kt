@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.client.reactive.ReactorClientHttpConnector
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientManager
-import org.springframework.security.oauth2.client.web.reactive.function.client.ServerOAuth2AuthorizedClientExchangeFilterFunction
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.netty.http.client.HttpClient
 import uk.gov.justice.digital.hmpps.incentivesapi.SYSTEM_USERNAME
@@ -47,5 +46,4 @@ class WebClientConfiguration(
   @Bean
   fun offenderSearchWebClient(reactiveAuthorizedClientManager: ReactiveOAuth2AuthorizedClientManager, builder: WebClient.Builder): WebClient =
     builder.reactiveAuthorisedWebClient(reactiveAuthorizedClientManager, registrationId = SYSTEM_USERNAME, url = offenderSearchUri, healthTimeout)
-
 }
