@@ -55,15 +55,12 @@ class IncentiveReviewsResource(private val incentiveReviewsService: IncentiveRev
     @Schema(description = "Prison ID", required = true, example = "MDI", minLength = 3, maxLength = 5)
     @PathVariable
     prisonId: String,
-
     @Schema(description = "Cell location ID prefix", required = true, example = "MDI-1", minLength = 5)
     @PathVariable
     cellLocationPrefix: String,
-
     @Schema(description = "Incentive level code", required = true, example = "STD", minLength = 2)
     @PathVariable
     levelCode: String,
-
     @Schema(
       description = "Sort reviews by",
       required = false,
@@ -78,15 +75,12 @@ class IncentiveReviewsResource(private val incentiveReviewsService: IncentiveRev
     )
     @RequestParam(required = false)
     sort: IncentiveReviewSort? = null,
-
     @Schema(description = "Sort direction", required = false, defaultValue = "ASC", example = "ASC", allowableValues = ["ASC", "DESC"])
     @RequestParam(required = false)
     order: Sort.Direction? = null,
-
     @Schema(description = "Page (starts at 0)", defaultValue = "0", minimum = "0", example = "2", type = "integer", required = false, format = "int32")
     @RequestParam(required = false, defaultValue = "0")
     page: Int = 0,
-
     @Schema(description = "Page size", defaultValue = "$DEFAULT_PAGE_SIZE", minimum = "1", maximum = "100", example = "20", type = "integer", required = false, format = "int32")
     @RequestParam(required = false, defaultValue = "$DEFAULT_PAGE_SIZE")
     pageSize: Int = DEFAULT_PAGE_SIZE,

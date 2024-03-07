@@ -138,7 +138,8 @@ class PrisonIncentiveLevelResource(
       ),
       ApiResponse(
         responseCode = "404",
-        description = "Incentive level not found globally", // TODO: ensure prison exists?
+        // TODO: ensure prison exists?
+        description = "Incentive level not found globally",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
     ],
@@ -194,7 +195,8 @@ class PrisonIncentiveLevelResource(
       ),
       ApiResponse(
         responseCode = "404",
-        description = "Incentive level not found globally", // TODO: ensure prison exists?
+        // TODO: ensure prison exists?
+        description = "Incentive level not found globally",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
     ],
@@ -274,8 +276,9 @@ class PrisonIncentiveLevelResource(
     @Schema(description = "Prison id", example = "MDI", required = true, minLength = 3, maxLength = 6)
     @PathVariable
     prisonId: String,
+    // no payload is needed
     @RequestBody
-    body: Unit, // no payload is needed
+    body: Unit,
   ): List<PrisonIncentiveLevel> {
     prisonIncentiveLevelService.resetPrisonIncentiveLevels(prisonId)
     return prisonIncentiveLevelService.getAllPrisonIncentiveLevels(prisonId)
@@ -350,7 +353,8 @@ class PrisonIncentiveLevelResource(
       ),
       ApiResponse(
         responseCode = "404",
-        description = "Incentive level not found globally", // TODO: ensure prison exists?
+        // TODO: ensure prison exists?
+        description = "Incentive level not found globally",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
     ],

@@ -99,7 +99,8 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
   @Test
   fun `fails to save per-prison incentive level information for unknown levels`(): Unit = runBlocking {
     val entity = PrisonIncentiveLevel(
-      levelCode = "std", // ← does not exist
+      // does not exist
+      levelCode = "std",
       prisonId = "MDI",
 
       remandTransferLimitInPence = 60_50,
@@ -125,7 +126,8 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
       remandTransferLimitInPence = 60_50,
       remandSpendLimitInPence = 605_00,
       convictedTransferLimitInPence = 19_80,
-      convictedSpendLimitInPence = -198_00, // ← cannot be negative
+      // cannot be negative
+      convictedSpendLimitInPence = -198_00,
 
       visitOrders = 2,
       privilegedVisitOrders = 0,

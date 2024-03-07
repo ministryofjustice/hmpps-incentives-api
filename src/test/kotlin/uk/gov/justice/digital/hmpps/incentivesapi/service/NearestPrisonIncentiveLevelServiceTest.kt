@@ -40,7 +40,8 @@ class NearestPrisonIncentiveLevelServiceTest {
       whenever(prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)).thenReturn(
         listOf(
           prisonIncentiveLevel(prisonId, "BAS"),
-          prisonIncentiveLevel(prisonId, "STD"), // default & active
+          // default & active
+          prisonIncentiveLevel(prisonId, "STD"),
           prisonIncentiveLevel(prisonId, "ENH"),
         ),
       )
@@ -56,7 +57,8 @@ class NearestPrisonIncentiveLevelServiceTest {
       whenever(prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)).thenReturn(
         listOf(
           prisonIncentiveLevel(prisonId, "BAS"),
-          prisonIncentiveLevel(prisonId, "STD"), // default & active
+          // default & active
+          prisonIncentiveLevel(prisonId, "STD"),
           prisonIncentiveLevel(prisonId, "ENH"),
         ),
       )
@@ -87,7 +89,8 @@ class NearestPrisonIncentiveLevelServiceTest {
       whenever(prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)).thenReturn(
         listOf(
           prisonIncentiveLevel(prisonId, "BAS"),
-          prisonIncentiveLevel(prisonId, "STD"), // default & active
+          // default & active
+          prisonIncentiveLevel(prisonId, "STD"),
           prisonIncentiveLevel(prisonId, "ENH"),
           prisonIncentiveLevel(prisonId, "EN3"),
         ),
@@ -119,7 +122,8 @@ class NearestPrisonIncentiveLevelServiceTest {
       whenever(prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)).thenReturn(
         listOf(
           prisonIncentiveLevel(prisonId, "BAS"),
-          prisonIncentiveLevel(prisonId, "STD"), // default & active
+          // default & active
+          prisonIncentiveLevel(prisonId, "STD"),
           prisonIncentiveLevel(prisonId, "ENH"),
           prisonIncentiveLevel(prisonId, "EN2", active = false),
         ),
@@ -134,7 +138,8 @@ class NearestPrisonIncentiveLevelServiceTest {
       whenever(prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)).thenReturn(
         listOf(
           prisonIncentiveLevel(prisonId, "BAS"),
-          prisonIncentiveLevel(prisonId, "STD"), // default & active
+          // default & active
+          prisonIncentiveLevel(prisonId, "STD"),
           prisonIncentiveLevel(prisonId, "ENH"),
         ),
       )
@@ -148,7 +153,8 @@ class NearestPrisonIncentiveLevelServiceTest {
       whenever(prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)).thenReturn(
         listOf(
           prisonIncentiveLevel(prisonId, "BAS"),
-          prisonIncentiveLevel(prisonId, "STD"), // default & active
+          // default & active
+          prisonIncentiveLevel(prisonId, "STD"),
           prisonIncentiveLevel(prisonId, "ENH"),
         ),
       )

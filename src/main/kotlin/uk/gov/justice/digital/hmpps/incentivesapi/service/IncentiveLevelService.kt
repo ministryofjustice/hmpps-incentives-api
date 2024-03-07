@@ -26,7 +26,8 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevelUpdate as In
 class IncentiveLevelService(
   private val clock: Clock,
   private val incentiveLevelRepository: IncentiveLevelRepository,
-  private val prisonIncentiveLevelService: PrisonIncentiveLevelService, // OK to inject unaudited version as audited subclass passes in audited form instead
+  // OK to inject unaudited version as audited subclass passes in audited form instead
+  private val prisonIncentiveLevelService: PrisonIncentiveLevelService,
 ) {
   /**
    * Returns all incentive levels, including inactive ones, in globally-defined order

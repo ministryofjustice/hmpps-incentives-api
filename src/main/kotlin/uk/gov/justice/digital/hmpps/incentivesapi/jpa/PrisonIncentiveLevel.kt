@@ -14,8 +14,9 @@ data class PrisonIncentiveLevel(
   @Id
   val id: Int = 0,
   val levelCode: String,
+  // normally retrieved from join to IncentiveLevel
   @ReadOnlyProperty
-  val levelName: String? = null, // normally retrieved from join to IncentiveLevel
+  val levelName: String? = null,
   val prisonId: String,
   val active: Boolean = true,
   val defaultOnAdmission: Boolean = false,
