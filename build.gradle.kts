@@ -5,8 +5,8 @@ import uk.gov.justice.digital.hmpps.gradle.RevealSecretsTask
 
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "5.15.3"
-  kotlin("plugin.spring") version "1.9.22"
-  kotlin("plugin.jpa") version "1.9.22"
+  kotlin("plugin.spring") version "1.9.23"
+  kotlin("plugin.jpa") version "1.9.23"
   id("org.springdoc.openapi-gradle-plugin") version "1.8.0"
   id("jacoco")
   id("org.sonarqube") version "4.4.1.3373"
@@ -44,15 +44,15 @@ dependencies {
   runtimeOnly("org.postgresql:postgresql")
 
   // Shedlock dependencies
-  implementation("net.javacrumbs.shedlock:shedlock-spring:5.10.2")
-  implementation("net.javacrumbs.shedlock:shedlock-provider-r2dbc:5.10.2")
+  implementation("net.javacrumbs.shedlock:shedlock-spring:5.12.0")
+  implementation("net.javacrumbs.shedlock:shedlock-provider-r2dbc:5.12.0")
 
   implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.3.0")
 
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
-  implementation("io.opentelemetry:opentelemetry-api:1.34.0")
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:1.32.0")
+  implementation("io.opentelemetry:opentelemetry-api:1.36.0")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:1.33.0")
 
   implementation("org.apache.commons:commons-lang3")
   implementation("org.apache.commons:commons-text:1.11.0")
@@ -67,18 +67,18 @@ dependencies {
   testImplementation("io.jsonwebtoken:jjwt-impl:0.12.5")
   testImplementation("io.jsonwebtoken:jjwt-jackson:0.12.5")
   testImplementation("org.mockito:mockito-inline:5.2.0")
-  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.19")
+  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.21")
   testImplementation("org.springframework.security:spring-security-test")
-  testImplementation("org.wiremock:wiremock-standalone:3.3.1")
-  testImplementation("org.testcontainers:localstack:1.19.6")
-  testImplementation("org.testcontainers:postgresql:1.19.6")
+  testImplementation("org.wiremock:wiremock-standalone:3.4.2")
+  testImplementation("org.testcontainers:localstack:1.19.7")
+  testImplementation("org.testcontainers:postgresql:1.19.7")
   testImplementation("io.projectreactor:reactor-test")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
   testImplementation("javax.xml.bind:jaxb-api:2.3.1")
-  testImplementation("io.opentelemetry:opentelemetry-sdk:1.34.0")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-common:1.34.0")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-metrics:1.34.0")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.34.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk:1.36.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-common:1.36.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-metrics:1.36.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.36.0")
 
   if (project.hasProperty("docs")) {
     implementation("com.h2database:h2")
