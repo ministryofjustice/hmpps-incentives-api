@@ -4,7 +4,7 @@ import net.javacrumbs.shedlock.spring.annotation.EnableSchedulerLock
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.scheduling.annotation.EnableScheduling
-import uk.gov.justice.digital.hmpps.incentivesapi.config.defaultLockAtLeastFor
+import uk.gov.justice.digital.hmpps.incentivesapi.config.DEFAULT_LOCKED_AT_LEAST_FOR
 
 /**
  * Used as the system oauth username when calling HMPPS apis
@@ -14,7 +14,7 @@ const val SYSTEM_USERNAME = "INCENTIVES_API"
 
 @SpringBootApplication
 @EnableScheduling
-@EnableSchedulerLock(defaultLockAtMostFor = defaultLockAtLeastFor)
+@EnableSchedulerLock(defaultLockAtMostFor = DEFAULT_LOCKED_AT_LEAST_FOR)
 class HmppsIncentivesApi
 
 fun main(args: Array<String>) {

@@ -27,7 +27,11 @@ class HmppsIncentivesApiExceptionHandler {
   @ExceptionHandler(MethodArgumentNotValidException::class)
   fun handleMethodArgumentNotValidException(e: MethodArgumentNotValidException): ResponseEntity<ErrorResponse> {
     log.debug("Validation error (400) returned: {}", e.message)
-    val message = if (e.hasFieldErrors()) { e.fieldError?.defaultMessage } else { e.message }
+    val message = if (e.hasFieldErrors()) {
+      e.fieldError?.defaultMessage
+    } else {
+      e.message
+    }
     return ResponseEntity
       .status(BAD_REQUEST)
       .body(
@@ -84,7 +88,11 @@ class HmppsIncentivesApiExceptionHandler {
   @ExceptionHandler(WebExchangeBindException::class)
   fun handleWebExchangeBindException(e: WebExchangeBindException): ResponseEntity<ErrorResponse> {
     log.info("Validation exception: {}", e.message)
-    val message = if (e.hasFieldErrors()) { e.fieldError?.defaultMessage } else { e.message }
+    val message = if (e.hasFieldErrors()) {
+      e.fieldError?.defaultMessage
+    } else {
+      e.message
+    }
     return ResponseEntity
       .status(BAD_REQUEST)
       .body(

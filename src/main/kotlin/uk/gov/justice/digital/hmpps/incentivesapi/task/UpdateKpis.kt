@@ -6,8 +6,8 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
-import uk.gov.justice.digital.hmpps.incentivesapi.config.defaultLockAtLeastFor
-import uk.gov.justice.digital.hmpps.incentivesapi.config.defaultLockAtMostFor
+import uk.gov.justice.digital.hmpps.incentivesapi.config.DEFAULT_LOCKED_AT_LEAST_FOR
+import uk.gov.justice.digital.hmpps.incentivesapi.config.DEFAULT_LOCKED_AT_MOST_FOR
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.Kpi
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.KpiRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.service.KpiService
@@ -25,8 +25,8 @@ class UpdateKpis(
   @Scheduled(cron = "\${task.update-kpis.cron}")
   @SchedulerLock(
     name = "INC - Update KPIs",
-    lockAtLeastFor = defaultLockAtLeastFor,
-    lockAtMostFor = defaultLockAtMostFor,
+    lockAtLeastFor = DEFAULT_LOCKED_AT_LEAST_FOR,
+    lockAtMostFor = DEFAULT_LOCKED_AT_MOST_FOR,
   )
   fun updateKpis(): Unit = runBlocking {
     val day = LocalDate.now()

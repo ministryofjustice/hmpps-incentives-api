@@ -48,10 +48,12 @@ class KpiServiceTest {
           "D1111DD",
           "A4444AA",
           "A2222AA",
-          "A1111AA", // still in prison
+          // still in prison
+          "A1111AA",
           "B9999BB",
           "B7777BB",
-          "B1111BB", // still in prison
+          // still in prison
+          "B1111BB",
           "Z1111ZZ",
         ),
       )

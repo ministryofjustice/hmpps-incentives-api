@@ -12,7 +12,9 @@ import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import software.amazon.awssdk.services.sns.model.SubscribeRequest
 import software.amazon.awssdk.services.sqs.model.CreateQueueRequest
+import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonIncentiveLevel
@@ -49,8 +51,15 @@ class IncentiveLevelResourceTestBase : SqsIntegrationTestBase() {
     val sqsClient = incentivesQueue.sqsClient
     if (testDomainEventQueueUrl == null) {
       testDomainEventQueueUrl = sqsClient.createQueue(CreateQueueRequest.builder().queueName("test-domain-events").build()).get().queueUrl()
+
+      val queueArn = sqsClient.getQueueAttributes(
+        GetQueueAttributesRequest.builder()
+          .queueUrl(testDomainEventQueueUrl)
+          .attributeNames(QueueAttributeName.QUEUE_ARN).build(),
+      ).get().attributes()[QueueAttributeName.QUEUE_ARN]
+
       val snsClient = domainEventsTopic.snsClient
-      snsClient.subscribe(SubscribeRequest.builder().topicArn(domainEventsTopicArn).protocol("sqs").endpoint(testDomainEventQueueUrl).build())
+      snsClient.subscribe(SubscribeRequest.builder().topicArn(domainEventsTopicArn).protocol("sqs").endpoint(queueArn).build())
     }
     sqsClient.purgeQueue(PurgeQueueRequest.builder().queueUrl(testDomainEventQueueUrl).build())
     await untilCallTo { sqsClient.countMessagesOnQueue(testDomainEventQueueUrl!!).get() } matches { it == 0 }

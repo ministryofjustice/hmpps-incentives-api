@@ -25,19 +25,23 @@ class BehaviourServiceTest {
   fun `case note totals correct map against review dates`() {
     val reviews = listOf(
       prisonerIepLevel(bookingId = 110001, iepCode = "STD", current = true, reviewType = ReviewType.TRANSFER, reviewTime = timeNow.minusMonths(1)),
-      prisonerIepLevel(bookingId = 110001, iepCode = "STD", current = false, reviewType = ReviewType.REVIEW, reviewTime = timeNow.minusMonths(2)), // real review
+      // real review
+      prisonerIepLevel(bookingId = 110001, iepCode = "STD", current = false, reviewType = ReviewType.REVIEW, reviewTime = timeNow.minusMonths(2)),
       prisonerIepLevel(bookingId = 110001, iepCode = "STD", current = false, reviewType = ReviewType.INITIAL, reviewTime = timeNow.minusMonths(3)),
 
-      prisonerIepLevel(bookingId = 110002, iepCode = "ENH", current = true, reviewType = ReviewType.REVIEW, reviewTime = timeNow.minusMonths(1)), // real review
+      // real review
+      prisonerIepLevel(bookingId = 110002, iepCode = "ENH", current = true, reviewType = ReviewType.REVIEW, reviewTime = timeNow.minusMonths(1)),
       prisonerIepLevel(bookingId = 110002, iepCode = "STD", current = false, reviewType = ReviewType.TRANSFER, reviewTime = timeNow.minusMonths(2)),
       prisonerIepLevel(bookingId = 110002, iepCode = "STD", current = false, reviewType = ReviewType.REVIEW, reviewTime = timeNow.minusMonths(3)),
       prisonerIepLevel(bookingId = 110002, iepCode = "STD", current = false, reviewType = ReviewType.INITIAL, reviewTime = timeNow.minusMonths(4)),
 
-      prisonerIepLevel(bookingId = 110003, iepCode = "STD", current = true, reviewType = ReviewType.MIGRATED, reviewTime = timeNow.minusMonths(14)), // presumed to be real review
+      // presumed to be real review
+      prisonerIepLevel(bookingId = 110003, iepCode = "STD", current = true, reviewType = ReviewType.MIGRATED, reviewTime = timeNow.minusMonths(14)),
 
       prisonerIepLevel(bookingId = 110004, iepCode = "STD", current = true, reviewType = ReviewType.INITIAL, reviewTime = timeNow.minusMonths(1)),
 
-      prisonerIepLevel(bookingId = 110005, iepCode = "BAS", current = true, reviewType = ReviewType.REVIEW, reviewTime = timeNow.minusMonths(5)), // real review
+      // real review
+      prisonerIepLevel(bookingId = 110005, iepCode = "BAS", current = true, reviewType = ReviewType.REVIEW, reviewTime = timeNow.minusMonths(5)),
       prisonerIepLevel(bookingId = 110005, iepCode = "STD", current = false, reviewType = ReviewType.MIGRATED, reviewTime = timeNow.minusMonths(8)),
     )
     // dates from above of last real review

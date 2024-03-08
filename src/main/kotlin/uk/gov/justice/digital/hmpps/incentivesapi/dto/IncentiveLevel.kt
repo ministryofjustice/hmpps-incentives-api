@@ -21,7 +21,7 @@ data class IncentiveLevel(
   val required: Boolean = false,
 ) {
   companion object {
-    const val BasicCode = "BAS"
+    const val BASIC_CODE = "BAS"
   }
 
   fun toUpdate() = IncentiveLevelUpdate(
