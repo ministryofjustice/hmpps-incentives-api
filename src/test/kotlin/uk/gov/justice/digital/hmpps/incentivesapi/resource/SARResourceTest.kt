@@ -35,7 +35,7 @@ class SARResourceTest : IncentiveLevelResourceTestBase() {
   private val nextReviewDate = timeNow.toLocalDate().plusYears(1)
 
   @BeforeEach
-  fun setUp(): Unit {
+  fun setUp() {
     runBlocking {
       persistPrisonerIepLevel(
         bookingId = 100,

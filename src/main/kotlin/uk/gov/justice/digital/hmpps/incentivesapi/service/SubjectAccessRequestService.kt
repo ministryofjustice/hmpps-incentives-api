@@ -25,7 +25,7 @@ class SubjectAccessRequestService(
   ): HmppsSubjectAccessRequestContent? {
     val reviews = incentiveReviewRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(prn)
       .filter {
-        val createdDate = (it.whenCreated?: it.reviewTime).toLocalDate()
+        val createdDate = (it.whenCreated ?: it.reviewTime).toLocalDate()
         (
           fromDate == null || createdDate.isEqual(fromDate) || createdDate.isAfter(fromDate)
           ) && (toDate == null || createdDate.isEqual(toDate) || createdDate.isBefore(toDate))
