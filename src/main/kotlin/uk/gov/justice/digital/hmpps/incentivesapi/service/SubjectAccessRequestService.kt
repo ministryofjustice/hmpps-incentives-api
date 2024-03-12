@@ -1,12 +1,7 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Service
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
-import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.NextReviewDateRepository
 import uk.gov.justice.hmpps.kotlin.sar.HmppsPrisonSubjectAccessRequestReactiveService
 import uk.gov.justice.hmpps.kotlin.sar.HmppsSubjectAccessRequestContent
 import java.time.LocalDate
@@ -14,8 +9,7 @@ import java.time.LocalDateTime
 
 @Service
 class SubjectAccessRequestService(
-  private val incentiveReviewRepository: IncentiveReviewRepository,
-  private val nextReviewRepository: NextReviewDateRepository,
+  private val prisonerIncentiveReviewService: PrisonerIncentiveReviewService,
 ) : HmppsPrisonSubjectAccessRequestReactiveService {
 
   override suspend fun getPrisonContentFor(
@@ -23,30 +17,30 @@ class SubjectAccessRequestService(
     fromDate: LocalDate?,
     toDate: LocalDate?,
   ): HmppsSubjectAccessRequestContent? {
-    val reviews = incentiveReviewRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(prn)
-      .filter {
-        val createdDate = (it.whenCreated ?: it.reviewTime).toLocalDate()
-        (
-          fromDate == null || createdDate.isEqual(fromDate) || createdDate.isAfter(fromDate)
-          ) && (toDate == null || createdDate.isEqual(toDate) || createdDate.isBefore(toDate))
-      }
-      .map { review ->
+    val history = prisonerIncentiveReviewService.getPrisonerIncentiveHistory(prn)
+    val reviews = history.incentiveReviewDetails
+      .mapIndexed { index, review ->
         ReviewForSar(
           id = review.id,
           bookingId = review.bookingId,
           prisonerNumber = review.prisonerNumber,
-          nextReviewDate = nextReviewRepository.findById(review.bookingId)?.nextReviewDate,
-          levelCode = review.levelCode,
-          prisonId = review.prisonId,
+          nextReviewDate = history.nextReviewDate,
+          levelCode = review.iepCode,
+          prisonId = review.agencyId,
           locationId = review.locationId,
-          reviewTime = review.reviewTime,
-          reviewedBy = review.reviewedBy,
-          commentText = review.commentText,
-          current = review.current,
+          reviewTime = review.iepTime,
+          reviewedBy = review.userId,
+          commentText = review.comments,
+          current = index == 0,
           reviewType = review.reviewType,
-          whenCreated = review.whenCreated,
         )
-      }.toList()
+      }
+      .filter {
+        val reviewDate = it.reviewTime.toLocalDate()
+        (
+          fromDate == null || reviewDate.isEqual(fromDate) || reviewDate.isAfter(fromDate)
+          ) && (toDate == null || reviewDate.isEqual(toDate) || reviewDate.isBefore(toDate))
+      }
 
     return HmppsSubjectAccessRequestContent(
       content = reviews,
@@ -67,5 +61,4 @@ data class ReviewForSar(
   val commentText: String? = null,
   val current: Boolean = true,
   val reviewType: ReviewType = ReviewType.REVIEW,
-  val whenCreated: LocalDateTime? = null,
 )

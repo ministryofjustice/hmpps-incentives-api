@@ -37,6 +37,7 @@ class SARResourceTest : IncentiveLevelResourceTestBase() {
   @BeforeEach
   fun setUp() {
     runBlocking {
+      // set up 1 prisoner with 2 bookings
       persistPrisonerIepLevel(
         bookingId = 100,
         prisonerNumber = "A1234AA",
@@ -45,7 +46,6 @@ class SARResourceTest : IncentiveLevelResourceTestBase() {
         current = true,
       )
       nextReviewDateRepository.save(NextReviewDate(bookingId = 100, nextReviewDate = nextReviewDate))
-
       persistPrisonerIepLevel(
         bookingId = 100,
         prisonerNumber = "A1234AA",
@@ -69,6 +69,7 @@ class SARResourceTest : IncentiveLevelResourceTestBase() {
         prisonerNumber = "A1234AA",
         iepCode = "BAS",
         iepTime = timeNow.minusYears(1),
+        current = true,
       )
       nextReviewDateRepository.save(NextReviewDate(bookingId = 76, nextReviewDate = timeNow.minusYears(1).toLocalDate().plusDays(7)))
     }
