@@ -22,7 +22,7 @@ class SARResourceTest : IncentiveLevelResourceTestBase() {
   class FixedClockConfig {
     @Primary
     @Bean
-    fun fixedClock(): Clock = clock
+    fun fixedClock(): Clock = clock // "2022-03-15T12:34:56+00:00"
   }
 
   @Autowired
@@ -31,13 +31,14 @@ class SARResourceTest : IncentiveLevelResourceTestBase() {
   @Autowired
   private lateinit var nextReviewDateRepository: NextReviewDateRepository
 
-  private val timeNow: LocalDateTime = LocalDateTime.now(clock)
-  private val nextReviewDate = timeNow.toLocalDate().plusYears(1)
-
   @BeforeEach
   fun setUp() {
     runBlocking {
       // set up 1 prisoner with 2 bookings
+
+      val timeNow: LocalDateTime = LocalDateTime.now(clock)
+      val nextReviewDate = timeNow.toLocalDate().plusYears(1)
+
       persistPrisonerIepLevel(
         bookingId = 100,
         prisonerNumber = "A1234AA",
@@ -106,8 +107,8 @@ class SARResourceTest : IncentiveLevelResourceTestBase() {
 
   @Test
   fun `get SAR content for a prisoner`() {
-    val oldestReviewTime = timeNow.minusDays(6)
-    webTestClient.get().uri("/subject-access-request?prn=A1234AA&fromDate=${oldestReviewTime.toLocalDate()}&toDate=${timeNow.minusDays(1).toLocalDate()}")
+    webTestClient.get()
+      .uri("/subject-access-request?prn=A1234AA")
       .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS"), scopes = listOf("read")))
       .exchange()
       .expectStatus().isOk
@@ -118,11 +119,24 @@ class SARResourceTest : IncentiveLevelResourceTestBase() {
                 {
                   "bookingId": 100,
                   "prisonerNumber": "A1234AA",
-                  "nextReviewDate": "$nextReviewDate",
+                  "nextReviewDate": "2023-03-15",
                   "levelCode": "STD",
                   "prisonId": "MDI",
                   "locationId": "1-1-002",
-                  "reviewTime": "${timeNow.minusDays(2)}",
+                  "reviewTime": "2022-03-15T12:34:56",
+                  "reviewedBy": "TEST_USER",
+                  "commentText": "test comment",
+                  "current": true,
+                  "reviewType": "REVIEW"
+                },
+                {
+                  "bookingId": 100,
+                  "prisonerNumber": "A1234AA",
+                  "nextReviewDate": "2023-03-15",
+                  "levelCode": "STD",
+                  "prisonId": "MDI",
+                  "locationId": "1-1-002",
+                  "reviewTime": "2022-03-13T12:34:56",
                   "reviewedBy": "TEST_USER",
                   "commentText": "test comment",
                   "current": false,
@@ -131,11 +145,11 @@ class SARResourceTest : IncentiveLevelResourceTestBase() {
                 {
                   "bookingId": 100,
                   "prisonerNumber": "A1234AA",
-                  "nextReviewDate": "$nextReviewDate",
+                  "nextReviewDate": "2023-03-15",
                   "levelCode": "ENH",
                   "prisonId": "MDI",
                   "locationId": "1-1-002",
-                  "reviewTime": "${timeNow.minusDays(4)}",
+                  "reviewTime": "2022-03-11T12:34:56",
                   "reviewedBy": "TEST_USER",
                   "commentText": "test comment",
                   "current": false,
@@ -144,11 +158,80 @@ class SARResourceTest : IncentiveLevelResourceTestBase() {
                 {
                   "bookingId": 100,
                   "prisonerNumber": "A1234AA",
-                  "nextReviewDate": "$nextReviewDate",
+                  "nextReviewDate": "2023-03-15",
                   "levelCode": "STD",
                   "prisonId": "MDI",
                   "locationId": "1-1-002",
-                  "reviewTime": "$oldestReviewTime",
+                  "reviewTime": "2022-03-09T12:34:56",
+                  "reviewedBy": "TEST_USER",
+                  "commentText": "test comment",
+                  "current": false,
+                  "reviewType": "REVIEW"
+                },
+                {
+                  "bookingId": 76,
+                  "prisonerNumber": "A1234AA",
+                  "nextReviewDate": "2023-03-15",
+                  "levelCode": "BAS",
+                  "prisonId": "MDI",
+                  "locationId": "1-1-002",
+                  "reviewTime": "2021-03-15T12:34:56",
+                  "reviewedBy": "TEST_USER",
+                  "commentText": "test comment",
+                  "current": false,
+                  "reviewType": "REVIEW"
+                }
+              ]
+            }         
+          """,
+      )
+  }
+
+  @Test
+  fun `get filtered SAR content for a prisoner`() {
+    webTestClient.get()
+      .uri("/subject-access-request?prn=A1234AA&fromDate=2022-03-09&toDate=2022-03-14")
+      .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS"), scopes = listOf("read")))
+      .exchange()
+      .expectStatus().isOk
+      .expectBody().json(
+        """
+            {
+              "content": [
+                {
+                  "bookingId": 100,
+                  "prisonerNumber": "A1234AA",
+                  "nextReviewDate": "2023-03-15",
+                  "levelCode": "STD",
+                  "prisonId": "MDI",
+                  "locationId": "1-1-002",
+                  "reviewTime": "2022-03-13T12:34:56",
+                  "reviewedBy": "TEST_USER",
+                  "commentText": "test comment",
+                  "current": false,
+                  "reviewType": "REVIEW"
+                },
+                {
+                  "bookingId": 100,
+                  "prisonerNumber": "A1234AA",
+                  "nextReviewDate": "2023-03-15",
+                  "levelCode": "ENH",
+                  "prisonId": "MDI",
+                  "locationId": "1-1-002",
+                  "reviewTime": "2022-03-11T12:34:56",
+                  "reviewedBy": "TEST_USER",
+                  "commentText": "test comment",
+                  "current": false,
+                  "reviewType": "REVIEW"
+                },
+                {
+                  "bookingId": 100,
+                  "prisonerNumber": "A1234AA",
+                  "nextReviewDate": "2023-03-15",
+                  "levelCode": "STD",
+                  "prisonId": "MDI",
+                  "locationId": "1-1-002",
+                  "reviewTime": "2022-03-09T12:34:56",
                   "reviewedBy": "TEST_USER",
                   "commentText": "test comment",
                   "current": false,
