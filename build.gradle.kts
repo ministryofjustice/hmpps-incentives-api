@@ -47,7 +47,7 @@ dependencies {
   implementation("net.javacrumbs.shedlock:shedlock-spring:5.12.0")
   implementation("net.javacrumbs.shedlock:shedlock-provider-r2dbc:5.12.0")
 
-  implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.3.0")
+  implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.4.0")
 
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")

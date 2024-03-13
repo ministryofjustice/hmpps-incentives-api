@@ -52,7 +52,7 @@ data class ReviewForSar(
   val id: Long,
   val bookingId: Long,
   val prisonerNumber: String,
-  val nextReviewDate: LocalDate?,
+  val nextReviewDate: LocalDate,
   val levelCode: String,
   val prisonId: String,
   val locationId: String?,
