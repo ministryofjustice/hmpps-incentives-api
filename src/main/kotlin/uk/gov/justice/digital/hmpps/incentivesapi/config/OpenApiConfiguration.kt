@@ -40,21 +40,19 @@ class OpenApiConfiguration(
         .contact(Contact().name("HMPPS Digital Studio").email("feedback@digital.justice.gov.uk")),
     )
     .components(
-      Components().addSecuritySchemes(
-        "bearer-jwt",
-        SecurityScheme()
-          .type(SecurityScheme.Type.HTTP)
-          .scheme("bearer")
-          .bearerFormat("JWT")
-          .`in`(SecurityScheme.In.HEADER)
-          .name("Authorization"),
-      )
+      Components()
+        .addSecuritySchemes(
+          "bearer-jwt",
+          SecurityScheme()
+            .type(SecurityScheme.Type.HTTP)
+            .scheme("bearer")
+            .bearerFormat("JWT"),
+        )
         .addSecuritySchemes(
           "hmpps-auth",
           SecurityScheme()
-            .flows(getFlows())
             .type(SecurityScheme.Type.OAUTH2)
-            .openIdConnectUrl("$oauthUrl/.well-known/openid-configuration"),
+            .flows(getFlows()),
         ),
     )
     .addSecurityItem(SecurityRequirement().addList("bearer-jwt", listOf("read", "write")))
