@@ -55,13 +55,13 @@ class IncentiveLevelResourceTestBase : SqsIntegrationTestBase() {
   }
 
   protected fun assertNoDomainEventSent() {
-    val sqsClient = incentivesQueue.sqsClient
+    val sqsClient = testDomainEventQueue.sqsClient
     val queueSize = sqsClient.countMessagesOnQueue(testDomainEventQueue.queueUrl).get()
     assertThat(queueSize).isEqualTo(0)
   }
 
   protected fun assertDomainEventSent(eventType: String): HMPPSDomainEvent {
-    val sqsClient = incentivesQueue.sqsClient
+    val sqsClient = testDomainEventQueue.sqsClient
     await untilCallTo { sqsClient.countMessagesOnQueue(testDomainEventQueue.queueUrl).get() } matches { it == 1 }
 
     val body = sqsClient.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testDomainEventQueue.queueUrl).build()).get().messages()[0].body()
@@ -74,7 +74,7 @@ class IncentiveLevelResourceTestBase : SqsIntegrationTestBase() {
   }
 
   protected fun getPublishedDomainEvents(): List<HMPPSDomainEvent> {
-    val sqsClient = incentivesQueue.sqsClient
+    val sqsClient = testDomainEventQueue.sqsClient
     await untilCallTo { sqsClient.countMessagesOnQueue(testDomainEventQueue.queueUrl).get() } matches { it != 0 }
     val request = ReceiveMessageRequest.builder().queueUrl(testDomainEventQueue.queueUrl).maxNumberOfMessages(10).build()
     return sqsClient.receiveMessage(request).get().messages()
