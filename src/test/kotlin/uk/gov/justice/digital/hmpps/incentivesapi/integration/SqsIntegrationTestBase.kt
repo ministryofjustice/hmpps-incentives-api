@@ -42,6 +42,7 @@ class SqsIntegrationTestBase : IntegrationTestBase() {
 
   protected val auditQueue by lazy { hmppsQueueService.findByQueueId("audit") as HmppsQueue }
   protected val incentivesQueue by lazy { hmppsQueueService.findByQueueId("incentives") as HmppsQueue }
+  protected val testDomainEventQueue by lazy { hmppsQueueService.findByQueueId("test") as HmppsQueue }
 
   fun HmppsSqsProperties.domaineventsTopicConfig() =
     topics["domainevents"]
@@ -51,8 +52,10 @@ class SqsIntegrationTestBase : IntegrationTestBase() {
   fun cleanQueue() {
     auditQueue.sqsClient.purgeQueue(PurgeQueueRequest.builder().queueUrl(auditQueue.queueUrl).build())
     incentivesQueue.sqsClient.purgeQueue(PurgeQueueRequest.builder().queueUrl(incentivesQueue.queueUrl).build())
+    testDomainEventQueue.sqsClient.purgeQueue(PurgeQueueRequest.builder().queueUrl(testDomainEventQueue.queueUrl).build())
     await untilCallTo { auditQueue.sqsClient.countMessagesOnQueue(auditQueue.queueUrl).get() } matches { it == 0 }
     await untilCallTo { incentivesQueue.sqsClient.countMessagesOnQueue(incentivesQueue.queueUrl).get() } matches { it == 0 }
+    await untilCallTo { testDomainEventQueue.sqsClient.countMessagesOnQueue(testDomainEventQueue.queueUrl).get() } matches { it == 0 }
   }
 
   companion object {
