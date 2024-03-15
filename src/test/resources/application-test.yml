@@ -44,14 +44,21 @@ hmpps.sqs:
       queueName: ${random.uuid}
       dlqName: ${random.uuid}
       subscribeTopicId: domainevents
-      subscribeFilter: '{"eventType":[ "prison-offender-events.prisoner.merged", "prisoner-offender-search.prisoner.received", "prisoner-offender-search.prisoner.alerts-updated" ] }'
+      subscribeFilter: >-
+        {"eventType": [
+          "prison-offender-events.prisoner.merged", 
+          "prisoner-offender-search.prisoner.received", 
+          "prisoner-offender-search.prisoner.alerts-updated"
+        ]}
     test:
       queueName: ${random.uuid}
       dlqName: ${random.uuid}
       subscribeTopicId: domainevents
-      subscribeFilter: '{"eventType":[ {"prefix": "incentives."} ] }'
+      subscribeFilter: >-
+        {"eventType": [ 
+          {"prefix": "incentives."}
+        ]}
 
   topics:
     domainevents:
       arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
-
