@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import org.springframework.stereotype.Service
+import uk.gov.justice.digital.hmpps.incentivesapi.config.SubjectAccessRequestNoContentException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.hmpps.kotlin.sar.HmppsPrisonSubjectAccessRequestReactiveService
 import uk.gov.justice.hmpps.kotlin.sar.HmppsSubjectAccessRequestContent
@@ -17,7 +18,12 @@ class SubjectAccessRequestService(
     fromDate: LocalDate?,
     toDate: LocalDate?,
   ): HmppsSubjectAccessRequestContent? {
-    val history = prisonerIncentiveReviewService.getPrisonerIncentiveHistory(prn)
+    val history = try {
+      prisonerIncentiveReviewService.getPrisonerIncentiveHistory(prn)
+    } catch (e: IncentiveReviewNotFoundException) {
+      throw SubjectAccessRequestNoContentException(prn)
+    }
+
     val reviews = history.incentiveReviewDetails
       .mapIndexed { index, review ->
         ReviewForSar(
@@ -41,6 +47,10 @@ class SubjectAccessRequestService(
           fromDate == null || reviewDate.isEqual(fromDate) || reviewDate.isAfter(fromDate)
           ) && (toDate == null || reviewDate.isEqual(toDate) || reviewDate.isBefore(toDate))
       }
+
+    if (reviews.isEmpty()) {
+      throw SubjectAccessRequestNoContentException(prn)
+    }
 
     return HmppsSubjectAccessRequestContent(
       content = reviews,

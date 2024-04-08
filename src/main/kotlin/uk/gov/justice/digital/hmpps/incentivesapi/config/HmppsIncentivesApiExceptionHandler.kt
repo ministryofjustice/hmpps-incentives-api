@@ -138,6 +138,20 @@ class HmppsIncentivesApiExceptionHandler {
       )
   }
 
+  @ExceptionHandler(SubjectAccessRequestNoContentException::class)
+  fun handleSubjectAccessRequestNoContentException(e: SubjectAccessRequestNoContentException): ResponseEntity<ErrorResponse?>? {
+    log.debug("SAR No Content exception caught: {}", e.message)
+    return ResponseEntity
+      .status(HttpStatus.NO_CONTENT)
+      .body(
+        ErrorResponse(
+          status = HttpStatus.NO_CONTENT,
+          userMessage = "No Content: ${e.message}",
+          developerMessage = e.message,
+        ),
+      )
+  }
+
   @ExceptionHandler(NoResourceFoundException::class)
   fun handleNoResourceFoundException(e: NoResourceFoundException): ResponseEntity<ErrorResponse?>? {
     log.debug("No resource found exception caught: {}", e.message)
@@ -278,6 +292,8 @@ class DataIntegrityException(message: String) :
 
 class ValidationExceptionWithErrorCode(message: String, val errorCode: ErrorCode, val moreInfo: String? = null) :
   ValidationException(message)
+
+class SubjectAccessRequestNoContentException(prisoner: String) : Exception("No information on prisoner $prisoner")
 
 /**
  * Codes that can be used by api clients to uniquely discriminate between error types,
