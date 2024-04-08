@@ -242,4 +242,28 @@ class SARResourceTest : IncentiveLevelResourceTestBase() {
           """,
       )
   }
+
+  @Test
+  fun `get SAR for a prisoner with no Incentive reviews`() {
+    val prisonerNumber = "A1111BB"
+
+    webTestClient.get()
+      .uri("/subject-access-request?prn=$prisonerNumber")
+      .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS"), scopes = listOf("read")))
+      .exchange()
+      .expectStatus().isNoContent
+  }
+
+  @Test
+  fun `get filtered SAR content for a prisoner, no reviews matching`() {
+    val prisonerNumber = "A1234AA"
+    // No reviews that old
+    val toDate = LocalDateTime.now(clock).minusYears(5).toLocalDate()
+
+    webTestClient.get()
+      .uri("/subject-access-request?prn=$prisonerNumber&toDate=$toDate")
+      .headers(setAuthorisation(roles = listOf("ROLE_SAR_DATA_ACCESS"), scopes = listOf("read")))
+      .exchange()
+      .expectStatus().isNoContent
+  }
 }
