@@ -34,7 +34,6 @@ jobs:
       postgres_tag: << pipeline.parameters.postgres-version >>
       postgres_username: "incentives"
       postgres_password: "incentives"
-      postgres_db: "incentives"
     environment:
       _JAVA_OPTIONS: -Xmx512m -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2 -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process -Dorg.gradle.workers.max=1
     steps:
@@ -69,7 +68,6 @@ jobs:
       postgres_tag: << pipeline.parameters.postgres-version >>
       postgres_username: "incentives"
       postgres_password: "incentives"
-      postgres_db: "incentives"
     steps:
       - checkout
       - restore_cache:
