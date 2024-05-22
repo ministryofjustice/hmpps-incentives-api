@@ -106,8 +106,8 @@ class KpiRepositoryTest : TestBase() {
 
     val updatedRecord = repository.findById(day)
     assertThat(updatedRecord!!.overdueReviews).isEqualTo(42)
-    assertThat(updatedRecord!!.previousMonthReviewsConducted).isEqualTo(30000)
-    assertThat(updatedRecord!!.previousMonthPrisonersReviewed).isEqualTo(20000)
+    assertThat(updatedRecord.previousMonthReviewsConducted).isEqualTo(30000)
+    assertThat(updatedRecord.previousMonthPrisonersReviewed).isEqualTo(20000)
   }
 
   @Test
@@ -166,7 +166,7 @@ class KpiRepositoryTest : TestBase() {
   }
 
   @Test
-  fun `get "prisonerNumbers" overdue a review`(): Unit = runBlocking {
+  fun `get prisoner numbers overdue a review`(): Unit = runBlocking {
     nextReviewDateRepository.saveAll(
       listOf(
         // Prisoner A1111AA
