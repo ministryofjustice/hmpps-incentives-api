@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.helper
 
 import io.jsonwebtoken.Jwts
-import io.jsonwebtoken.SignatureAlgorithm
 import org.springframework.context.annotation.Bean
 import org.springframework.http.HttpHeaders
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder
@@ -16,7 +15,7 @@ import java.util.UUID
 
 @Component
 class JwtAuthHelper {
-  private val keyPair: KeyPair
+  private lateinit var keyPair: KeyPair
 
   init {
     val gen = KeyPairGenerator.getInstance("RSA")
@@ -41,7 +40,7 @@ class JwtAuthHelper {
     return { it.set(HttpHeaders.AUTHORIZATION, "Bearer $token") }
   }
 
-  fun createJwt(
+  internal fun createJwt(
     subject: String?,
     scope: List<String>? = listOf(),
     roles: List<String>? = listOf(),
@@ -55,11 +54,11 @@ class JwtAuthHelper {
       .also { scope?.let { scope -> it["scope"] = scope } }
       .let {
         Jwts.builder()
-          .setId(jwtId)
-          .setSubject(subject)
-          .addClaims(it.toMap())
-          .setExpiration(Date(System.currentTimeMillis() + expiryTime.toMillis()))
-          .signWith(keyPair.private, SignatureAlgorithm.RS256)
+          .id(jwtId)
+          .subject(subject)
+          .claims(it.toMap())
+          .expiration(Date(System.currentTimeMillis() + expiryTime.toMillis()))
+          .signWith(keyPair.private, Jwts.SIG.RS256)
           .compact()
       }
 }
