@@ -12,6 +12,9 @@ generic-service:
     tag: app_version    # override at deployment time
     port: 8080
 
+  retryDlqCronjob:
+    enabled: true
+
   ingress:
     enabled: true
     host: app-hostname.local    # override per environment
