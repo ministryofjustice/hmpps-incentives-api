@@ -1,0 +1,72 @@
+asyncapi: 3.0.0
+info:
+  title: Incentives service
+  description: Publishes events relating to Incentives
+  version: 1.0.0
+
+servers:
+  development:
+    host: hmpps-domain-events-dev.live-1.cloud-platform.service.justice.gov.uk
+    protocol: sqs
+    description: Development environment
+  preproduction:
+    host: hmpps-domain-events-preprod.live-1.cloud-platform.service.justice.gov.uk
+    protocol: sqs
+    description: Pre-production environment
+  production:
+    host: hmpps-domain-events-prod.live-1.cloud-platform.service.justice.gov.uk
+    protocol: sqs
+    description: Production environment
+
+components:
+  messages:
+    incentives.iep-review.inserted:
+      $ref: https://raw.githubusercontent.com/ministryofjustice/hmpps-domain-events/main/spec/schemas/incentives/iep-review-inserted.yml
+    incentives.iep-review.updated:
+      $ref: https://raw.githubusercontent.com/ministryofjustice/hmpps-domain-events/main/spec/schemas/incentives/iep-review-updated.yml
+    incentives.iep-review.deleted:
+      $ref: https://raw.githubusercontent.com/ministryofjustice/hmpps-domain-events/main/spec/schemas/incentives/iep-review-deleted.yml
+    incentives.prisoner.next-review-date-changed:
+      $ref: https://raw.githubusercontent.com/ministryofjustice/hmpps-domain-events/main/spec/schemas/incentives/prisoner-next-review-date-changed.yml
+    incentives.level.changed:
+      $ref: https://raw.githubusercontent.com/ministryofjustice/hmpps-domain-events/main/spec/schemas/incentives/level-changed.yml
+    incentives.levels.reordered:
+      $ref: https://raw.githubusercontent.com/ministryofjustice/hmpps-domain-events/main/spec/schemas/incentives/levels-reordered.yml
+    incentives.prison-level.changed:
+      $ref: https://raw.githubusercontent.com/ministryofjustice/hmpps-domain-events/main/spec/schemas/incentives/prison-level-changed.yml
+
+channels:
+  hmpps-domain-events:
+    description: HMPPS domain events SNS topic
+    bindings:
+      sns:
+        name: domainevents
+    messages:
+      incentives.iep-review.inserted:
+        $ref: '#/components/messages/incentives.iep-review.inserted'
+      incentives.iep-review.updated:
+        $ref: '#/components/messages/incentives.iep-review.updated'
+      incentives.iep-review.deleted:
+        $ref: '#/components/messages/incentives.iep-review.deleted'
+      incentives.prisoner.next-review-date-changed:
+        $ref: '#/components/messages/incentives.prisoner.next-review-date-changed'
+      incentives.level.changed:
+        $ref: '#/components/messages/incentives.level.changed'
+      incentives.levels.reordered:
+        $ref: '#/components/messages/incentives.levels.reordered'
+      incentives.prison-level.changed:
+        $ref: '#/components/messages/incentives.prison-level.changed'
+
+operations:
+  publish-event:
+    action: send
+    channel:
+      $ref: '#/channels/hmpps-domain-events'
+    messages:
+      - $ref: '#/channels/hmpps-domain-events/messages/incentives.iep-review.inserted'
+      - $ref: '#/channels/hmpps-domain-events/messages/incentives.iep-review.updated'
+      - $ref: '#/channels/hmpps-domain-events/messages/incentives.iep-review.deleted'
+      - $ref: '#/channels/hmpps-domain-events/messages/incentives.prisoner.next-review-date-changed'
+      - $ref: '#/channels/hmpps-domain-events/messages/incentives.level.changed'
+      - $ref: '#/channels/hmpps-domain-events/messages/incentives.levels.reordered'
+      - $ref: '#/channels/hmpps-domain-events/messages/incentives.prison-level.changed'
