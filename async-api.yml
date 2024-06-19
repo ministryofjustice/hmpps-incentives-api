@@ -42,19 +42,19 @@ channels:
       sns:
         name: domainevents
     messages:
-      incentives.iep-review.inserted:
+      "incentives.iep-review.inserted":
         $ref: '#/components/messages/incentives.iep-review.inserted'
-      incentives.iep-review.updated:
+      "incentives.iep-review.updated":
         $ref: '#/components/messages/incentives.iep-review.updated'
-      incentives.iep-review.deleted:
+      "incentives.iep-review.deleted":
         $ref: '#/components/messages/incentives.iep-review.deleted'
-      incentives.prisoner.next-review-date-changed:
+      "incentives.prisoner.next-review-date-changed":
         $ref: '#/components/messages/incentives.prisoner.next-review-date-changed'
-      incentives.level.changed:
+      "incentives.level.changed":
         $ref: '#/components/messages/incentives.level.changed'
-      incentives.levels.reordered:
+      "incentives.levels.reordered":
         $ref: '#/components/messages/incentives.levels.reordered'
-      incentives.prison-level.changed:
+      "incentives.prison-level.changed":
         $ref: '#/components/messages/incentives.prison-level.changed'
 
 operations:
