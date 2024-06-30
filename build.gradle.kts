@@ -48,7 +48,7 @@ dependencies {
   implementation("net.javacrumbs.shedlock:shedlock-spring:5.13.0")
   implementation("net.javacrumbs.shedlock:shedlock-provider-r2dbc:5.13.0")
 
-  implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.5.0")
+  implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.6.0")
 
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
@@ -70,7 +70,7 @@ dependencies {
   testImplementation("org.mockito:mockito-inline:5.2.0")
   testImplementation("io.swagger.parser.v3:swagger-parser:2.1.22")
   testImplementation("org.springframework.security:spring-security-test")
-  testImplementation("org.wiremock:wiremock-standalone:3.7.0")
+  testImplementation("org.wiremock:wiremock-standalone:3.8.0")
   testImplementation("org.testcontainers:localstack:1.19.8")
   testImplementation("org.testcontainers:postgresql:1.19.8")
   testImplementation("io.projectreactor:reactor-test")
