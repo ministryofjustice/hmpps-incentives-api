@@ -17,9 +17,9 @@ import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.web.server.WebFilterChain
 import reactor.core.publisher.Mono
-import uk.gov.justice.digital.hmpps.incentivesapi.helper.JwtAuthHelper
+import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 
-@Import(JwtAuthHelper::class, ClientTrackingWebFilter::class)
+@Import(JwtAuthorisationHelper::class, ClientTrackingWebFilter::class)
 @ContextConfiguration(initializers = [ConfigDataApplicationContextInitializer::class])
 @ActiveProfiles("test")
 @ExtendWith(SpringExtension::class)
@@ -31,7 +31,7 @@ class ClientTrackingWebFilterTest {
 
   @Suppress("SpringJavaInjectionPointsAutowiringInspection")
   @Autowired
-  private lateinit var jwtAuthHelper: JwtAuthHelper
+  private lateinit var jwtAuthorisationHelper: JwtAuthorisationHelper
 
   private val tracer: Tracer = otelTesting.openTelemetry.getTracer("test")
   private val filterChain = WebFilterChain { Mono.empty() }
@@ -39,7 +39,7 @@ class ClientTrackingWebFilterTest {
   @Test
   fun shouldAddClientIdAndUserNameToInsightTelemetry() {
     // Given
-    val token = jwtAuthHelper.createJwt("bob")
+    val token = jwtAuthorisationHelper.createJwtAccessToken(clientId = "hmpps-incentives-api", username = "bob")
     val exchange = MockServerWebExchange.builder(
       MockServerHttpRequest.get("http://incentives")
         .header(HttpHeaders.AUTHORIZATION, "Bearer $token").build(),
@@ -68,7 +68,7 @@ class ClientTrackingWebFilterTest {
   @Test
   fun shouldAddOnlyClientIdIfUsernameNullToInsightTelemetry() {
     // Given
-    val token = jwtAuthHelper.createJwt(null)
+    val token = jwtAuthorisationHelper.createJwtAccessToken(clientId = "hmpps-incentives-api", username = null)
     val exchange = MockServerWebExchange.builder(
       MockServerHttpRequest.get("http://incentives")
         .header(HttpHeaders.AUTHORIZATION, "Bearer $token").build(),
