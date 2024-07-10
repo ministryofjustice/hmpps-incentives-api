@@ -16,7 +16,6 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.incentivesapi.config.AuthenticationFacade
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.CreateIncentiveReviewRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveRecordUpdate
@@ -27,6 +26,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Location
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
+import uk.gov.justice.hmpps.kotlin.auth.HmppsReactiveAuthenticationHolder
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDateTime
@@ -37,7 +37,7 @@ class IncentiveReviewReviewServiceTest {
 
   private val prisonApiService: PrisonApiService = mock()
   private val incentiveReviewRepository: IncentiveReviewRepository = mock()
-  private val authenticationFacade: AuthenticationFacade = mock()
+  private val authenticationHolder: HmppsReactiveAuthenticationHolder = mock()
   private val clock: Clock = Clock.fixed(Instant.parse("2022-08-01T12:45:00.00Z"), ZoneId.of("Europe/London"))
   private val snsService: SnsService = mock()
   private val auditService: AuditService = mock()
@@ -57,7 +57,7 @@ class IncentiveReviewReviewServiceTest {
     nearestPrisonIncentiveLevelService,
     snsService,
     auditService,
-    authenticationFacade,
+    authenticationHolder,
     clock,
     nextReviewDateGetterService,
     nextReviewDateUpdaterService,
@@ -106,7 +106,7 @@ class IncentiveReviewReviewServiceTest {
     @BeforeEach
     fun setUp(): Unit = runBlocking {
       whenever(prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId)).thenReturn(location)
-      whenever(authenticationFacade.getUsername()).thenReturn(reviewerUserName)
+      whenever(authenticationHolder.getUsername()).thenReturn(reviewerUserName)
       whenever(incentiveStoreService.saveIncentiveReview(any())).thenReturn(incentiveReview.copy(id = 42))
       whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
     }
@@ -226,7 +226,6 @@ class IncentiveReviewReviewServiceTest {
       whenever(prisonApiService.getLocationById(prisonerAtLocation.assignedLivingUnitId, true)).thenReturn(location)
       // Enhanced is the default for this prison so use that
       whenever(prisonIncentiveLevelService.getActivePrisonIncentiveLevels("MDI")).thenReturn(
-        /* value = */
         listOf(
           PrisonIncentiveLevel(
             levelCode = "STD",
