@@ -1,5 +1,5 @@
 info.app:
-  name: Hmpps Incentives API
+  name: HMPPS Incentives API
   version: 1.0
 
 task:
@@ -10,6 +10,8 @@ task:
 spring:
   application:
     name: hmpps-incentives-api
+  main:
+    web-application-type: reactive
   codec:
     max-in-memory-size: 10MB
   mvc:
