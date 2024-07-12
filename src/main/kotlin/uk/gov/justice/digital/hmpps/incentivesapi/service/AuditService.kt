@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest
-import uk.gov.justice.digital.hmpps.incentivesapi.SYSTEM_USERNAME
 import uk.gov.justice.hmpps.kotlin.auth.HmppsReactiveAuthenticationHolder
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
@@ -33,7 +32,7 @@ class AuditService(
   suspend fun sendMessage(auditType: AuditType, id: String, details: Any, username: String? = null) {
     val auditEvent = AuditEvent(
       what = auditType.name,
-      who = username ?: authenticationHolder.getUsername() ?: SYSTEM_USERNAME,
+      who = username ?: authenticationHolder.getPrincipal(),
       service = serviceName,
       details = objectMapper.writeValueAsString(details),
     )

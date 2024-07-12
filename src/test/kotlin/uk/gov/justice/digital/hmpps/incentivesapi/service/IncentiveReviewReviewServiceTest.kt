@@ -106,7 +106,7 @@ class IncentiveReviewReviewServiceTest {
     @BeforeEach
     fun setUp(): Unit = runBlocking {
       whenever(prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId)).thenReturn(location)
-      whenever(authenticationHolder.getUsername()).thenReturn(reviewerUserName)
+      whenever(authenticationHolder.getPrincipal()).thenReturn(reviewerUserName)
       whenever(incentiveStoreService.saveIncentiveReview(any())).thenReturn(incentiveReview.copy(id = 42))
       whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
     }

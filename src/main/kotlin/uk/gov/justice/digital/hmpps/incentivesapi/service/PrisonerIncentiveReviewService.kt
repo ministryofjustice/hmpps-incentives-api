@@ -290,7 +290,7 @@ class PrisonerIncentiveReviewService(
     val locationInfo = prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId)
 
     val reviewTime = createIncentiveReviewRequest.reviewTime ?: LocalDateTime.now(clock)
-    val reviewerUserName = createIncentiveReviewRequest.reviewedBy ?: authenticationHolder.getUsername()
+    val reviewerUserName = createIncentiveReviewRequest.reviewedBy ?: authenticationHolder.getPrincipal()
 
     val newIepReview = incentiveStoreService.saveIncentiveReview(
       IncentiveReview(
