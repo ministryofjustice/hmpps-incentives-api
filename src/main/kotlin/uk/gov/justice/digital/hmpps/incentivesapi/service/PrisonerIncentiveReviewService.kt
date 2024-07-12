@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.incentivesapi.SYSTEM_USERNAME
-import uk.gov.justice.digital.hmpps.incentivesapi.config.AuthenticationFacade
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.CreateIncentiveReviewRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.CurrentIncentiveLevel
@@ -25,6 +24,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocation
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
+import uk.gov.justice.hmpps.kotlin.auth.HmppsReactiveAuthenticationHolder
 import java.time.Clock
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -39,7 +39,7 @@ class PrisonerIncentiveReviewService(
   private val nearestPrisonIncentiveLevelService: NearestPrisonIncentiveLevelService,
   private val snsService: SnsService,
   private val auditService: AuditService,
-  private val authenticationFacade: AuthenticationFacade,
+  private val authenticationHolder: HmppsReactiveAuthenticationHolder,
   private val clock: Clock,
   private val nextReviewDateGetterService: NextReviewDateGetterService,
   private val nextReviewDateUpdaterService: NextReviewDateUpdaterService,
@@ -290,7 +290,7 @@ class PrisonerIncentiveReviewService(
     val locationInfo = prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId)
 
     val reviewTime = createIncentiveReviewRequest.reviewTime ?: LocalDateTime.now(clock)
-    val reviewerUserName = createIncentiveReviewRequest.reviewedBy ?: authenticationFacade.getUsername()
+    val reviewerUserName = createIncentiveReviewRequest.reviewedBy ?: authenticationHolder.getPrincipal()
 
     val newIepReview = incentiveStoreService.saveIncentiveReview(
       IncentiveReview(

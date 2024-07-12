@@ -8,11 +8,11 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDO
 import org.springframework.http.HttpHeaders
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
-import uk.gov.justice.digital.hmpps.incentivesapi.helper.JwtAuthHelper
 import uk.gov.justice.digital.hmpps.incentivesapi.helper.TestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.wiremock.HmppsAuthMockServer
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.wiremock.OffenderSearchMockServer
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.wiremock.PrisonApiMockServer
+import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
 @ActiveProfiles("test")
@@ -22,7 +22,7 @@ abstract class IntegrationTestBase : TestBase() {
   lateinit var webTestClient: WebTestClient
 
   @Autowired
-  protected lateinit var jwtAuthHelper: JwtAuthHelper
+  protected lateinit var jwtAuthorisationHelper: JwtAuthorisationHelper
 
   companion object {
     @JvmField
@@ -60,9 +60,14 @@ abstract class IntegrationTestBase : TestBase() {
 
   protected fun setAuthorisation(
     user: String = "INCENTIVES_ADM",
-    roles: List<String> = listOf(),
-    scopes: List<String> = listOf(),
-  ): (HttpHeaders) -> Unit = jwtAuthHelper.setAuthorisation(user, roles, scopes)
+    roles: List<String> = emptyList(),
+    scopes: List<String> = emptyList(),
+  ): (HttpHeaders) -> Unit = jwtAuthorisationHelper.setAuthorisationHeader(
+    clientId = "hmpps-incentives-api",
+    username = user,
+    scope = scopes,
+    roles = roles,
+  )
 
   @Suppress("RECEIVER_NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
   fun readFile(file: String): String = this.javaClass.getResource(file).readText()

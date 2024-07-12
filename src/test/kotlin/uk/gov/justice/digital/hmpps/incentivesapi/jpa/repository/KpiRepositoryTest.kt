@@ -11,19 +11,19 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest
 import org.springframework.dao.DataIntegrityViolationException
-import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.test.context.ActiveProfiles
 import uk.gov.justice.digital.hmpps.incentivesapi.helper.TestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.Kpi
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.NextReviewDate
+import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
 @DataR2dbcTest
 @ActiveProfiles("test")
-@WithMockUser
+@WithMockAuthUser
 class KpiRepositoryTest : TestBase() {
   @Autowired
   lateinit var repository: KpiRepository
