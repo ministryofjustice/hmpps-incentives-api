@@ -176,26 +176,20 @@ class PrisonerIncentiveReviewService(
       val iepLevel = getIncentiveLevelForReviewType(prisonerInfo, reviewType)
       val comment = getReviewCommentForEvent(prisonOffenderEvent)
 
-      val createIncentiveReviewRequest = CreateIncentiveReviewRequest(
-        iepLevel = iepLevel,
-        comment = comment,
-        reviewType = reviewType,
-      )
-
       val locationInfo = prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId, true)
 
       val incentiveReview = incentiveStoreService.saveIncentiveReview(
 
         IncentiveReview(
-          levelCode = createIncentiveReviewRequest.iepLevel,
-          commentText = createIncentiveReviewRequest.comment,
+          levelCode = iepLevel,
+          commentText = comment,
           bookingId = prisonerInfo.bookingId,
-          prisonId = locationInfo.agencyId,
+          prisonId = prisonerInfo.agencyId,
           locationId = locationInfo.description,
           current = true,
           reviewedBy = SYSTEM_USERNAME,
           reviewTime = LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
-          reviewType = createIncentiveReviewRequest.reviewType ?: ReviewType.REVIEW,
+          reviewType = reviewType,
           prisonerNumber = prisonerInfo.offenderNo,
         ),
       )
@@ -297,7 +291,7 @@ class PrisonerIncentiveReviewService(
         levelCode = createIncentiveReviewRequest.iepLevel,
         commentText = createIncentiveReviewRequest.comment,
         bookingId = prisonerInfo.bookingId,
-        prisonId = locationInfo.agencyId,
+        prisonId = prisonerInfo.agencyId,
         locationId = locationInfo.description,
         current = true,
         reviewedBy = reviewerUserName,
