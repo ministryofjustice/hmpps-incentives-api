@@ -55,8 +55,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     // Given
     val bookingId = 1294134L
     val prisonerNumber = "A1244AB"
-    val locationId = 77777L
-    prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = locationId)
+    prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber)
     prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
 
     val reviewsCount = incentiveReviewRepository.count()
@@ -71,7 +70,6 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
       }
     } matches { it == true }
     awaitAtMost30Secs untilCallTo { prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber") } matches { it == 1 }
-    awaitAtMost30Secs untilCallTo { prisonApiMockServer.getCountFor("/api/locations/$locationId?includeInactive=true") } matches { it == 1 }
 
     // Then
     awaitAtMost30Secs untilCallTo {
@@ -87,15 +85,13 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     // Given
     val bookingId = 1294134L
     val prisonerNumber = "A1244AB"
-    val locationId = 77777L
-    prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = locationId)
+    prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber)
     prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
 
     // When
     publishPrisonerReceivedMessage("TRANSFERRED")
     awaitAtMost30Secs untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
     awaitAtMost30Secs untilCallTo { prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber") } matches { it == 1 }
-    awaitAtMost30Secs untilCallTo { prisonApiMockServer.getCountFor("/api/locations/$locationId?includeInactive=true") } matches { it == 1 }
 
     // Then
     awaitAtMost30Secs untilCallTo {
@@ -113,7 +109,6 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     val oldBookingId = 2343L
     val prisonerNumber = "A1244AB"
     val removedNomsNumber = "A4432FD"
-    val locationId = 77777L
 
     prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
 
@@ -122,7 +117,6 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
         bookingId = bookingId,
         prisonerNumber = removedNomsNumber,
         prisonId = "LEI",
-        locationId = "LEI-1-1-001",
         reviewedBy = "TEST_STAFF1",
         levelCode = "BAS",
         current = true,
@@ -134,7 +128,6 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
         bookingId = oldBookingId,
         prisonerNumber = prisonerNumber,
         prisonId = "LEI",
-        locationId = "LEI-1-1-001",
         reviewedBy = "TEST_STAFF1",
         levelCode = "STD",
         current = true,
@@ -146,14 +139,13 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
         bookingId = oldBookingId,
         prisonerNumber = prisonerNumber,
         prisonId = "LEI",
-        locationId = "LEI-1-1-001",
         reviewedBy = "TEST_STAFF1",
         levelCode = "BAS",
         current = false,
         reviewTime = LocalDateTime.now().minusDays(200),
       ),
     )
-    prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = locationId)
+    prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber)
 
     // When
     publishPrisonerMergedMessage(prisonerNumber, removedNomsNumber)
@@ -179,7 +171,6 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
         bookingId = bookingId,
         prisonerNumber = prisonerNumber,
         prisonId = prisonId,
-        locationId = "$prisonId-1-1-001",
         reviewedBy = "TEST_STAFF1",
         levelCode = "BAS",
         current = true,
@@ -193,7 +184,6 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
         bookingId = bookingId,
         prisonerNumber = prisonerNumber,
         prisonId = prisonId,
-        locationId = "$prisonId-1-1-001",
         reviewedBy = "TEST_STAFF1",
         levelCode = "BAS",
         current = false,

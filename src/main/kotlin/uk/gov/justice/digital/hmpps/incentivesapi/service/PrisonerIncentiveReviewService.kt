@@ -21,7 +21,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.findDefaultOnAdmission
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocation
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerInfo
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
 import uk.gov.justice.hmpps.kotlin.auth.HmppsReactiveAuthenticationHolder
@@ -204,7 +204,7 @@ class PrisonerIncentiveReviewService(
     }
   }
 
-  private suspend fun getIncentiveLevelForReviewType(prisonerInfo: PrisonerAtLocation, reviewType: ReviewType): String {
+  private suspend fun getIncentiveLevelForReviewType(prisonerInfo: PrisonerInfo, reviewType: ReviewType): String {
     val prisonIncentiveLevels = prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonerInfo.agencyId)
     val defaultLevelCode = prisonIncentiveLevels.findDefaultOnAdmission().levelCode
 
@@ -271,7 +271,7 @@ class PrisonerIncentiveReviewService(
   }
 
   suspend fun addIncentiveReviewForPrisonerAtLocation(
-    prisonerInfo: PrisonerAtLocation,
+    prisonerInfo: PrisonerInfo,
     createIncentiveReviewRequest: CreateIncentiveReviewRequest,
   ): IncentiveReviewDetail {
     if (createIncentiveReviewRequest.reviewTime != null && createIncentiveReviewRequest.reviewTime.isAfter(LocalDateTime.now(clock))) {

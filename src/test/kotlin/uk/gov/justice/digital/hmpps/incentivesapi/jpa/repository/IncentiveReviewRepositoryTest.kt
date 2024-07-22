@@ -31,7 +31,6 @@ class IncentiveReviewRepositoryTest : TestBase() {
     IncentiveReview(
       levelCode = "BAS",
       prisonId = "LEI",
-      locationId = "LEI-1-1-001",
       bookingId = bookingId,
       current = current,
       reviewedBy = "TEST_STAFF1",
@@ -57,7 +56,6 @@ class IncentiveReviewRepositoryTest : TestBase() {
       IncentiveReview(
         levelCode = "BAS",
         prisonId = "LEI",
-        locationId = "LEI-1-1-001",
         bookingId = bookingId,
         current = false,
         reviewedBy = "TEST_STAFF1",
@@ -70,7 +68,6 @@ class IncentiveReviewRepositoryTest : TestBase() {
       IncentiveReview(
         levelCode = "STD",
         prisonId = "MDI",
-        locationId = "MDI-1-1-004",
         bookingId = bookingId,
         current = true,
         reviewedBy = "TEST_STAFF1",
@@ -174,7 +171,6 @@ class IncentiveReviewRepositoryTest : TestBase() {
       IncentiveReview(
         levelCode = "BAS",
         prisonId = "LEI",
-        locationId = "LEI-1-1-001",
         bookingId = 123456,
         current = true,
         reviewedBy = "TEST_STAFF1",
@@ -186,7 +182,6 @@ class IncentiveReviewRepositoryTest : TestBase() {
       IncentiveReview(
         levelCode = "STD",
         prisonId = "LEI",
-        locationId = "LEI-1-1-002",
         bookingId = 123456,
         current = false,
         reviewedBy = "TEST_STAFF1",
@@ -210,7 +205,6 @@ class IncentiveReviewRepositoryTest : TestBase() {
       IncentiveReview(
         levelCode = "BAS",
         prisonId = "LEI",
-        locationId = "LEI-1-1-001",
         bookingId = 123400,
         current = true,
         reviewedBy = "TEST_STAFF1",

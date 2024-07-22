@@ -118,7 +118,6 @@ class KpiRepositoryTest : TestBase() {
         IncentiveReview(
           levelCode = "BAS",
           prisonId = "LEI",
-          locationId = "LEI-1-1-001",
           bookingId = 111111,
           current = true,
           reviewedBy = "TEST_STAFF1",
@@ -129,7 +128,6 @@ class KpiRepositoryTest : TestBase() {
         IncentiveReview(
           levelCode = "STD",
           prisonId = "LEI",
-          locationId = "LEI-1-1-001",
           bookingId = 111111,
           current = false,
           reviewedBy = "TEST_STAFF1",
@@ -140,7 +138,6 @@ class KpiRepositoryTest : TestBase() {
         IncentiveReview(
           levelCode = "STD",
           prisonId = "LEI",
-          locationId = "LEI-1-1-002",
           bookingId = 222222,
           current = true,
           reviewedBy = "TEST_STAFF1",
@@ -151,7 +148,6 @@ class KpiRepositoryTest : TestBase() {
         IncentiveReview(
           levelCode = "STD",
           prisonId = "LEI",
-          locationId = "LEI-1-1-999",
           bookingId = 999999,
           current = true,
           reviewedBy = "TEST_STAFF1",
@@ -202,7 +198,6 @@ class KpiRepositoryTest : TestBase() {
         IncentiveReview(
           levelCode = "BAS",
           prisonId = "LEI",
-          locationId = "LEI-1-1-001",
           bookingId = 111111,
           current = true,
           reviewedBy = "TEST_STAFF1",
@@ -213,7 +208,6 @@ class KpiRepositoryTest : TestBase() {
         IncentiveReview(
           levelCode = "STD",
           prisonId = "MDI",
-          locationId = "LEI-1-1-001",
           bookingId = 222222,
           current = false,
           reviewedBy = "TEST_STAFF1",
@@ -224,7 +218,6 @@ class KpiRepositoryTest : TestBase() {
         IncentiveReview(
           levelCode = "STD",
           prisonId = "MDI",
-          locationId = "LEI-1-1-001",
           bookingId = 444444,
           current = false,
           reviewedBy = "TEST_STAFF1",
@@ -235,7 +228,6 @@ class KpiRepositoryTest : TestBase() {
         IncentiveReview(
           levelCode = "STD",
           prisonId = "LEI",
-          locationId = "LEI-1-1-002",
           bookingId = 333333,
           current = true,
           reviewedBy = "TEST_STAFF1",
@@ -246,7 +238,6 @@ class KpiRepositoryTest : TestBase() {
         IncentiveReview(
           levelCode = "STD",
           prisonId = "MDI",
-          locationId = "MDI-1-1-999",
           bookingId = 999999,
           current = true,
           reviewedBy = "TEST_STAFF1",

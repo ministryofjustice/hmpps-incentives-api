@@ -13,14 +13,13 @@ data class Prison(
   val active: Boolean,
 )
 
-data class PrisonerAtLocation(
+data class PrisonerInfo(
   val bookingId: Long,
   val facialImageId: Long,
   val firstName: String,
   val lastName: String,
   val offenderNo: String,
   val agencyId: String,
-  val assignedLivingUnitId: Long,
 )
 
 data class PrisonerAlert(
