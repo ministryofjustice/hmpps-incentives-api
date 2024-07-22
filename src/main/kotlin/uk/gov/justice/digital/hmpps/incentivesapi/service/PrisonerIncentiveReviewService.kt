@@ -176,16 +176,12 @@ class PrisonerIncentiveReviewService(
       val iepLevel = getIncentiveLevelForReviewType(prisonerInfo, reviewType)
       val comment = getReviewCommentForEvent(prisonOffenderEvent)
 
-      val locationInfo = prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId, true)
-
       val incentiveReview = incentiveStoreService.saveIncentiveReview(
-
         IncentiveReview(
           levelCode = iepLevel,
           commentText = comment,
           bookingId = prisonerInfo.bookingId,
           prisonId = prisonerInfo.agencyId,
-          locationId = locationInfo.description,
           current = true,
           reviewedBy = SYSTEM_USERNAME,
           reviewTime = LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
@@ -281,7 +277,6 @@ class PrisonerIncentiveReviewService(
     if (createIncentiveReviewRequest.reviewTime != null && createIncentiveReviewRequest.reviewTime.isAfter(LocalDateTime.now(clock))) {
       throw ValidationException("Review time cannot be in the future")
     }
-    val locationInfo = prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId)
 
     val reviewTime = createIncentiveReviewRequest.reviewTime ?: LocalDateTime.now(clock)
     val reviewerUserName = createIncentiveReviewRequest.reviewedBy ?: authenticationHolder.getPrincipal()
@@ -292,7 +287,6 @@ class PrisonerIncentiveReviewService(
         commentText = createIncentiveReviewRequest.comment,
         bookingId = prisonerInfo.bookingId,
         prisonId = prisonerInfo.agencyId,
-        locationId = locationInfo.description,
         current = true,
         reviewedBy = reviewerUserName,
         reviewTime = reviewTime,

@@ -57,7 +57,6 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     val prisonerNumber = "A1244AB"
     val locationId = 77777L
     prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = locationId)
-    prisonApiMockServer.stubGetLocationById(locationId = locationId, locationDesc = "1-2-003")
     prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
 
     val reviewsCount = incentiveReviewRepository.count()
@@ -90,7 +89,6 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     val prisonerNumber = "A1244AB"
     val locationId = 77777L
     prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = locationId)
-    prisonApiMockServer.stubGetLocationById(locationId = locationId, locationDesc = "1-2-003")
     prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
 
     // When

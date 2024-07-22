@@ -22,7 +22,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveRecordUpdate
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Location
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
@@ -95,7 +94,6 @@ class IncentiveReviewReviewServiceTest {
       commentText = createIncentiveReviewRequest.comment,
       reviewType = createIncentiveReviewRequest.reviewType!!,
       prisonId = prisonerInfo.agencyId,
-      locationId = location.description,
       current = true,
       reviewedBy = reviewerUserName,
       reviewTime = reviewTime,
@@ -105,7 +103,6 @@ class IncentiveReviewReviewServiceTest {
 
     @BeforeEach
     fun setUp(): Unit = runBlocking {
-      whenever(prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId)).thenReturn(location)
       whenever(authenticationHolder.getPrincipal()).thenReturn(reviewerUserName)
       whenever(incentiveStoreService.saveIncentiveReview(any())).thenReturn(incentiveReview.copy(id = 42))
       whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
@@ -223,7 +220,6 @@ class IncentiveReviewReviewServiceTest {
       val prisonOffenderEvent = prisonOffenderEvent(reason)
       val prisonerAtLocation = prisonerAtLocation()
       whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(prisonerAtLocation)
-      whenever(prisonApiService.getLocationById(prisonerAtLocation.assignedLivingUnitId, true)).thenReturn(location)
       // Enhanced is the default for this prison so use that
       whenever(prisonIncentiveLevelService.getActivePrisonIncentiveLevels("MDI")).thenReturn(
         listOf(
@@ -264,8 +260,7 @@ class IncentiveReviewReviewServiceTest {
         levelCode = "ENH",
         commentText = "Default level assigned on arrival",
         bookingId = prisonerAtLocation().bookingId,
-        prisonId = location.agencyId,
-        locationId = location.description,
+        prisonId = prisonerAtLocation().agencyId,
         current = true,
         reviewedBy = "INCENTIVES_API",
         reviewTime = LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
@@ -786,8 +781,6 @@ class IncentiveReviewReviewServiceTest {
     occurredAt = Instant.now(),
     description = "A prisoner has been merged from A8765SS to A1244AB",
   )
-
-  private val location = Location(agencyId = "MDI", locationId = 77777L, description = "Houseblock 1")
 
   private fun iepDetailFromIepLevel(
     incentiveReview: IncentiveReview,

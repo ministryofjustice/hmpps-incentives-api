@@ -47,12 +47,6 @@ data class PrisonerExtraInfo(
   override val prisonerNumber = offenderNo
 }
 
-data class Location(
-  val agencyId: String,
-  val locationId: Long,
-  val description: String,
-)
-
 data class PrisonerCaseNoteByTypeSubType(
   val bookingId: Long,
   val caseNoteType: String,
