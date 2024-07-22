@@ -29,7 +29,7 @@ data class IncentiveReviewSummary(
   val iepDate: LocalDate,
   @Schema(description = "Date and time when last review took place", required = true, example = "2021-12-31T12:34:56.789012")
   val iepTime: LocalDateTime,
-  @Schema(description = "Location  of prisoner when review took place within prison (i.e. their cell)", example = "1-2-003", required = false)
+  @Schema(description = "Deprecated - Location  of prisoner when review took place within prison (i.e. their cell)", example = "1-2-003", required = false, deprecated = true)
   val locationId: String? = null,
   @Schema(description = "Incentive Review History (descending in time)", required = true)
   @JsonProperty("iepDetails")
@@ -75,7 +75,7 @@ data class IncentiveReviewDetail(
   val iepTime: LocalDateTime,
   @Schema(description = "Prison ID", required = true, example = "MDI")
   val agencyId: String,
-  @Schema(description = "Location  of prisoner when review took place within prison (i.e. their cell)", required = false, example = "1-2-003")
+  @Schema(description = "Deprecated - Location  of prisoner when review took place within prison (i.e. their cell)", required = false, example = "1-2-003", deprecated = true)
   val locationId: String? = null,
   @Schema(description = "Username of the reviewer", required = true, example = "USER_1_GEN")
   val userId: String?,
