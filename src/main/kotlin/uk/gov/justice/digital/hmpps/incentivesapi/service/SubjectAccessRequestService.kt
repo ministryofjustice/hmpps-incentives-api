@@ -65,7 +65,7 @@ data class ReviewForSar(
   val nextReviewDate: LocalDate,
   val levelCode: String,
   val prisonId: String,
-  @Deprecated("Deprecated - locationId not populated anymore (existing data is returned for now)")
+  @Deprecated("DEPRECATED - locationId not populated anymore (existing data is returned for now)")
   val locationId: String? = null,
   val reviewTime: LocalDateTime,
   val reviewedBy: String?,
