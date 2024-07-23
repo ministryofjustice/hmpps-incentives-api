@@ -17,6 +17,7 @@ class WebClientConfiguration(
   @Value("\${api.base.url.oauth}") val authBaseUri: String,
   @Value("\${api.base.url.prison}") private val prisonRootUri: String,
   @Value("\${api.base.url.offender-search}") private val offenderSearchUri: String,
+  @Value("\${api.base.url.locations}") private val locationsUri: String,
   @Value("\${api.timeout:2m}") val healthTimeout: Duration,
 ) {
 
@@ -39,6 +40,13 @@ class WebClientConfiguration(
 
   @Bean
   fun prisonHealthWebClient(builder: WebClient.Builder): WebClient = builder.reactiveHealthWebClient(prisonRootUri, healthTimeout)
+
+  @Bean
+  fun locationsWebClient(reactiveAuthorizedClientManager: ReactiveOAuth2AuthorizedClientManager, builder: WebClient.Builder): WebClient =
+    builder.reactiveAuthorisedWebClient(reactiveAuthorizedClientManager, registrationId = SYSTEM_USERNAME, url = locationsUri, healthTimeout)
+
+  @Bean
+  fun locationsHealthWebClient(builder: WebClient.Builder): WebClient = builder.reactiveHealthWebClient(locationsUri, healthTimeout)
 
   @Bean
   fun offenderSearchHealthWebClient(builder: WebClient.Builder): WebClient = builder.reactiveHealthWebClient(offenderSearchUri, healthTimeout)
