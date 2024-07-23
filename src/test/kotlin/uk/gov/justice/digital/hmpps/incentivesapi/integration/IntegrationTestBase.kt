@@ -10,6 +10,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.incentivesapi.helper.TestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.wiremock.HmppsAuthMockServer
+import uk.gov.justice.digital.hmpps.incentivesapi.integration.wiremock.LocationsMockServer
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.wiremock.OffenderSearchMockServer
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.wiremock.PrisonApiMockServer
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
@@ -34,6 +35,9 @@ abstract class IntegrationTestBase : TestBase() {
     @JvmField
     val offenderSearchMockServer = OffenderSearchMockServer()
 
+    @JvmField
+    val locationsMockServer = LocationsMockServer()
+
     @BeforeAll
     @JvmStatic
     fun startMocks() {
@@ -42,11 +46,13 @@ abstract class IntegrationTestBase : TestBase() {
 
       prisonApiMockServer.start()
       offenderSearchMockServer.start()
+      locationsMockServer.start()
     }
 
     @AfterAll
     @JvmStatic
     fun stopMocks() {
+      locationsMockServer.stop()
       offenderSearchMockServer.stop()
       prisonApiMockServer.stop()
       hmppsAuthMockServer.stop()
