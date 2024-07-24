@@ -33,7 +33,7 @@ class LocationsMockServer : WireMockServer(WIREMOCK_PORT) {
                   "key": "$key",
                   "prisonId": "MDI",
                   "localName": "Houseblock 1",
-                  "pathHierarchy": "$key",
+                  "pathHierarchy": "$key"
                 }
             """,
           ),

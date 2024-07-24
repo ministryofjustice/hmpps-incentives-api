@@ -25,7 +25,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReview as Incenti
 @Service
 class IncentiveReviewsService(
   private val offenderSearchService: OffenderSearchService,
-  private val prisonApiService: PrisonApiService,
+  private val locationsService: LocationsService,
   private val prisonIncentiveLevelService: PrisonIncentiveLevelAuditedService,
   private val incentiveReviewRepository: IncentiveReviewRepository,
   private val nextReviewDateGetterService: NextReviewDateGetterService,
@@ -55,7 +55,10 @@ class IncentiveReviewsService(
     }
     val deferredLocationDescription = async {
       try {
-        prisonApiService.getLocation(cellLocationPrefix.removeSuffix("-")).description
+        val locationKey = cellLocationPrefix.removeSuffix("-")
+        val location = locationsService.getByKey(locationKey)
+
+        location.localName ?: location.pathHierarchy
       } catch (e: NotFound) {
         "Unknown location"
       }
