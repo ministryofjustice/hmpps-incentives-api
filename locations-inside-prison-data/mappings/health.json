@@ -1,0 +1,15 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/health/ping"
+  },
+  "response": {
+    "status": 200,
+    "jsonBody": {
+      "status": "UP"
+    },
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}

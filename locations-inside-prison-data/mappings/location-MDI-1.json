@@ -1,0 +1,19 @@
+{
+  "request": {
+    "method": "GET",
+    "url": "/locations/key/MDI-1"
+  },
+  "response": {
+    "status": 200,
+    "jsonBody": {
+      "id": "2475f250-434a-4257-afe7-b911f1773a4d",
+      "key": "MDI-1",
+      "prisonId": "MDI",
+      "localName": "Houseblock 1",
+      "pathHierarchy": "MDI-1"
+    },
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}
