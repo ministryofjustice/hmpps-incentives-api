@@ -63,11 +63,3 @@ data class BookingFromDatePair(
   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
   val fromDate: LocalDateTime,
 )
-
-data class PrisonLocation(
-  val agencyId: String,
-  val locationPrefix: String,
-  val description: String,
-  val locationType: String,
-  val userDescription: String?,
-)
