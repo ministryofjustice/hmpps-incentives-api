@@ -21,7 +21,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.findDefaultOnAdmission
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAtLocation
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerInfo
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
 import uk.gov.justice.hmpps.kotlin.auth.HmppsReactiveAuthenticationHolder
@@ -176,26 +176,16 @@ class PrisonerIncentiveReviewService(
       val iepLevel = getIncentiveLevelForReviewType(prisonerInfo, reviewType)
       val comment = getReviewCommentForEvent(prisonOffenderEvent)
 
-      val createIncentiveReviewRequest = CreateIncentiveReviewRequest(
-        iepLevel = iepLevel,
-        comment = comment,
-        reviewType = reviewType,
-      )
-
-      val locationInfo = prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId, true)
-
       val incentiveReview = incentiveStoreService.saveIncentiveReview(
-
         IncentiveReview(
-          levelCode = createIncentiveReviewRequest.iepLevel,
-          commentText = createIncentiveReviewRequest.comment,
+          levelCode = iepLevel,
+          commentText = comment,
           bookingId = prisonerInfo.bookingId,
-          prisonId = locationInfo.agencyId,
-          locationId = locationInfo.description,
+          prisonId = prisonerInfo.agencyId,
           current = true,
           reviewedBy = SYSTEM_USERNAME,
           reviewTime = LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
-          reviewType = createIncentiveReviewRequest.reviewType ?: ReviewType.REVIEW,
+          reviewType = reviewType,
           prisonerNumber = prisonerInfo.offenderNo,
         ),
       )
@@ -214,7 +204,7 @@ class PrisonerIncentiveReviewService(
     }
   }
 
-  private suspend fun getIncentiveLevelForReviewType(prisonerInfo: PrisonerAtLocation, reviewType: ReviewType): String {
+  private suspend fun getIncentiveLevelForReviewType(prisonerInfo: PrisonerInfo, reviewType: ReviewType): String {
     val prisonIncentiveLevels = prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonerInfo.agencyId)
     val defaultLevelCode = prisonIncentiveLevels.findDefaultOnAdmission().levelCode
 
@@ -281,13 +271,12 @@ class PrisonerIncentiveReviewService(
   }
 
   suspend fun addIncentiveReviewForPrisonerAtLocation(
-    prisonerInfo: PrisonerAtLocation,
+    prisonerInfo: PrisonerInfo,
     createIncentiveReviewRequest: CreateIncentiveReviewRequest,
   ): IncentiveReviewDetail {
     if (createIncentiveReviewRequest.reviewTime != null && createIncentiveReviewRequest.reviewTime.isAfter(LocalDateTime.now(clock))) {
       throw ValidationException("Review time cannot be in the future")
     }
-    val locationInfo = prisonApiService.getLocationById(prisonerInfo.assignedLivingUnitId)
 
     val reviewTime = createIncentiveReviewRequest.reviewTime ?: LocalDateTime.now(clock)
     val reviewerUserName = createIncentiveReviewRequest.reviewedBy ?: authenticationHolder.getPrincipal()
@@ -297,8 +286,7 @@ class PrisonerIncentiveReviewService(
         levelCode = createIncentiveReviewRequest.iepLevel,
         commentText = createIncentiveReviewRequest.comment,
         bookingId = prisonerInfo.bookingId,
-        prisonId = locationInfo.agencyId,
-        locationId = locationInfo.description,
+        prisonId = prisonerInfo.agencyId,
         current = true,
         reviewedBy = reviewerUserName,
         reviewTime = reviewTime,

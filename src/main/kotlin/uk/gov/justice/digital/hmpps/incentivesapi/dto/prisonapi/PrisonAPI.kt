@@ -13,14 +13,13 @@ data class Prison(
   val active: Boolean,
 )
 
-data class PrisonerAtLocation(
+data class PrisonerInfo(
   val bookingId: Long,
   val facialImageId: Long,
   val firstName: String,
   val lastName: String,
   val offenderNo: String,
   val agencyId: String,
-  val assignedLivingUnitId: Long,
 )
 
 data class PrisonerAlert(
@@ -46,12 +45,6 @@ data class PrisonerExtraInfo(
   override val hasAcctOpen = alerts.any(PrisonerAlert::isOpenAcct)
   override val prisonerNumber = offenderNo
 }
-
-data class Location(
-  val agencyId: String,
-  val locationId: Long,
-  val description: String,
-)
 
 data class PrisonerCaseNoteByTypeSubType(
   val bookingId: Long,

@@ -60,7 +60,6 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
       levelCode = iepCode,
       reviewType = ReviewType.REVIEW,
       current = true,
-      locationId = "1-1-002",
       commentText = "test comment",
       reviewedBy = "TEST_USER",
     ),

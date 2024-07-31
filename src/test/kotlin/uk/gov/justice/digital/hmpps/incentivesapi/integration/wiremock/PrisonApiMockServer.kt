@@ -163,7 +163,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
     )
   }
 
-  fun stubGetPrisonerInfoByNoms(prisonerNumber: String, bookingId: Long, locationId: Long) {
+  fun stubGetPrisonerInfoByNoms(prisonerNumber: String, bookingId: Long) {
     stubFor(
       get("/api/bookings/offenderNo/$prisonerNumber").willReturn(
         aResponse()
@@ -173,7 +173,6 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
             """
               {
                 "agencyId": "MDI",
-                "assignedLivingUnitId": $locationId,
                 "bookingId": $bookingId,
                 "bookingNo": "A12121",
                 "firstName": "JOHN",
@@ -186,7 +185,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
     )
   }
 
-  fun stubGetPrisonerInfoByBooking(bookingId: Long, prisonerNumber: String, locationId: Long) {
+  fun stubGetPrisonerInfoByBooking(bookingId: Long, prisonerNumber: String) {
     stubFor(
       get("/api/bookings/$bookingId?basicInfo=true").willReturn(
         aResponse()
@@ -196,7 +195,6 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
             """
               {
                 "agencyId": "MDI",
-                "assignedLivingUnitId": $locationId,
                 "bookingId": $bookingId,
                 "bookingNo": "A12121",
                 "firstName": "JOHN",
@@ -223,26 +221,6 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
                 "dateOfBirth": "1971-07-01",
                 "receptionDate": "2020-07-01",
                 "alerts":  []
-              }
-            """,
-          ),
-      ),
-    )
-  }
-
-  fun stubGetLocationById(locationId: Long, locationDesc: String) {
-    stubFor(
-      get("/api/locations/$locationId?includeInactive=true").willReturn(
-        aResponse()
-          .withHeader("Content-Type", "application/json")
-          .withBody(
-            // language=json
-            """
-              {
-                "agencyId": "MDI",
-                "locationId": $locationId,
-                "description": "$locationDesc",
-                "locationType": "CELL"
               }
             """,
           ),

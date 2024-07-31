@@ -65,7 +65,7 @@ class ManageIncentiveReviewsResourceTestLevel : IncentiveLevelResourceTestBase()
   @Test
   fun `add incentive review fails when review time in future`() {
     val prisonerNumber = "A1244AB"
-    prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = 1231232, prisonerNumber = prisonerNumber, locationId = 77778L)
+    prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = 1231232, prisonerNumber = prisonerNumber)
 
     val reviewTime = LocalDateTime.now().plusHours(1)
     webTestClient.post().uri("/incentive-reviews/prisoner/$prisonerNumber")
@@ -80,8 +80,7 @@ class ManageIncentiveReviewsResourceTestLevel : IncentiveLevelResourceTestBase()
     val bookingId = 3330000L
     val prisonerNumber = "A1234AC"
 
-    prisonApiMockServer.stubGetPrisonerInfoByBooking(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = 77778L)
-    prisonApiMockServer.stubGetLocationById(locationId = 77778L, locationDesc = "1-2-003")
+    prisonApiMockServer.stubGetPrisonerInfoByBooking(bookingId = bookingId, prisonerNumber = prisonerNumber)
     prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
 
     webTestClient.post().uri("/incentive-reviews/booking/$bookingId")
@@ -127,10 +126,8 @@ class ManageIncentiveReviewsResourceTestLevel : IncentiveLevelResourceTestBase()
     val bookingId = 1294134L
     val prisonerNumber = "A1244AB"
     val prisonId = "MDI"
-    val locationId = 77777L
 
-    prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber, locationId = locationId)
-    prisonApiMockServer.stubGetLocationById(locationId = locationId, locationDesc = "1-2-003")
+    prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber)
     prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
 
     val now = LocalDateTime.now()
@@ -175,7 +172,6 @@ class ManageIncentiveReviewsResourceTestLevel : IncentiveLevelResourceTestBase()
                    "iepCode": "ENH",
                    "comments":"A different comment",
                    "userId":"DIFFERENT_USER",
-                   "locationId": "1-2-003",
                    "reviewType": "REVIEW",
                    "auditModuleName":"INCENTIVES_API"
                 },
@@ -187,7 +183,6 @@ class ManageIncentiveReviewsResourceTestLevel : IncentiveLevelResourceTestBase()
                    "iepLevel":"Basic",
                    "iepCode": "BAS",
                    "comments":"Basic Level",
-                   "locationId": "1-2-003",
                    "userId":"INCENTIVES_ADM",
                    "reviewType": "INITIAL",
                    "auditModuleName":"INCENTIVES_API"
@@ -207,9 +202,7 @@ class ManageIncentiveReviewsResourceTestLevel : IncentiveLevelResourceTestBase()
     prisonApiMockServer.stubGetPrisonerInfoByBooking(
       bookingId = bookingId,
       prisonerNumber = prisonerNumber,
-      locationId = 77778L,
     )
-    prisonApiMockServer.stubGetLocationById(locationId = 77778L, locationDesc = "1-2-003")
     prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
 
     webTestClient.post().uri("/incentive-reviews/booking/$bookingId")
@@ -230,9 +223,7 @@ class ManageIncentiveReviewsResourceTestLevel : IncentiveLevelResourceTestBase()
     prisonApiMockServer.stubGetPrisonerInfoByBooking(
       bookingId = bookingId2,
       prisonerNumber = prisonerNumber2,
-      locationId = 77779L,
     )
-    prisonApiMockServer.stubGetLocationById(locationId = 77779L, locationDesc = "1-2-004")
     prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId2, prisonerNumber2)
 
     webTestClient.post().uri("/incentive-reviews/booking/$bookingId2")
