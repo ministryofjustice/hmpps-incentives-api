@@ -34,7 +34,7 @@ dependencies {
   implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.0.2")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
   implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:4.0.1")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:4.1.0")
 
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
@@ -45,8 +45,8 @@ dependencies {
   runtimeOnly("org.postgresql:postgresql")
 
   // Shedlock dependencies
-  implementation("net.javacrumbs.shedlock:shedlock-spring:5.13.0")
-  implementation("net.javacrumbs.shedlock:shedlock-provider-r2dbc:5.13.0")
+  implementation("net.javacrumbs.shedlock:shedlock-spring:5.14.0")
+  implementation("net.javacrumbs.shedlock:shedlock-provider-r2dbc:5.14.0")
 
   implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.6.0")
 
@@ -69,7 +69,7 @@ dependencies {
   testImplementation("org.mockito:mockito-inline:5.2.0")
   testImplementation("io.swagger.parser.v3:swagger-parser:2.1.22")
   testImplementation("org.springframework.security:spring-security-test")
-  testImplementation("org.wiremock:wiremock-standalone:3.9.0")
+  testImplementation("org.wiremock:wiremock-standalone:3.9.1")
   testImplementation("org.testcontainers:localstack:1.20.0")
   testImplementation("org.testcontainers:postgresql:1.20.0")
   testImplementation("io.projectreactor:reactor-test")
