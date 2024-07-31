@@ -8,7 +8,6 @@ import org.springframework.web.reactive.function.client.bodyToFlow
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.BookingFromDatePair
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsageTypesRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Prison
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonLocation
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerCaseNoteByTypeSubType
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerExtraInfo
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerInfo
@@ -35,12 +34,6 @@ class PrisonApiService(
       )
       .retrieve()
       .bodyToFlow()
-
-  suspend fun getLocation(locationId: String): PrisonLocation =
-    prisonWebClient.get()
-      .uri("/api/locations/code/$locationId")
-      .retrieve()
-      .awaitBody()
 
   suspend fun getPrisonerInfo(prisonerNumber: String, useClientCredentials: Boolean = false): PrisonerInfo {
     return getClient(useClientCredentials)

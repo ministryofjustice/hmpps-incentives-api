@@ -31,6 +31,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
 
   @BeforeEach
   fun setUp(): Unit = runBlocking {
+    locationsMockServer.resetAll()
     offenderSearchMockServer.resetAll()
     prisonApiMockServer.resetAll()
 
@@ -102,7 +103,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
     @Test
     fun `when prisonId is incorrect`() {
       offenderSearchMockServer.stubFindOffenders("Moorland")
-      prisonApiMockServer.stubLocation("MDI-1")
+      locationsMockServer.stubGetByKey("MDI-1")
 
       webTestClient.get()
         .uri("/incentives-reviews/prison/Moorland/location/MDI-1/level/STD")
@@ -114,7 +115,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
     @Test
     fun `when level code is incorrect`() {
       offenderSearchMockServer.stubFindOffenders("Moorland")
-      prisonApiMockServer.stubLocation("MDI-1")
+      locationsMockServer.stubGetByKey("MDI-1")
 
       webTestClient.get()
         .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/s")
@@ -126,7 +127,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
     @Test
     fun `when sorting is incorrect`() {
       offenderSearchMockServer.stubFindOffenders("MDI")
-      prisonApiMockServer.stubLocation("MDI-1")
+      locationsMockServer.stubGetByKey("MDI-1")
 
       webTestClient.get()
         .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?sort=PRISON")
@@ -138,7 +139,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
     @Test
     fun `when page is incorrect`() {
       offenderSearchMockServer.stubFindOffenders("MDI")
-      prisonApiMockServer.stubLocation("MDI-1")
+      locationsMockServer.stubGetByKey("MDI-1")
 
       webTestClient.get()
         .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?page=-1")
@@ -150,7 +151,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
     @Test
     fun `when page & pageSize are incorrect`() {
       offenderSearchMockServer.stubFindOffenders("MDI")
-      prisonApiMockServer.stubLocation("MDI-1")
+      locationsMockServer.stubGetByKey("MDI-1")
 
       webTestClient.get()
         .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?page=-1&pageSize=0")
@@ -166,7 +167,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
   @Test
   fun `loads prisoner details from offender search and prison api`() {
     offenderSearchMockServer.stubFindOffenders("MDI")
-    prisonApiMockServer.stubLocation("MDI-1")
+    locationsMockServer.stubGetByKey("MDI-1")
     prisonApiMockServer.stubCaseNoteSummary()
 
     listOf("BAS", "STD", "ENH", "ENT").forEach { levelCode ->
@@ -343,7 +344,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
   @EnumSource(IncentiveReviewSort::class)
   fun `sorts by provided parameters`(sort: IncentiveReviewSort): Unit = runBlocking {
     offenderSearchMockServer.stubFindOffenders("MDI")
-    prisonApiMockServer.stubLocation("MDI-1")
+    locationsMockServer.stubGetByKey("MDI-1")
     prisonApiMockServer.stubCaseNoteSummary()
 
     if (sort == IncentiveReviewSort.IS_NEW_TO_PRISON) {
@@ -377,7 +378,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
     @BeforeEach
     fun setUp() {
       offenderSearchMockServer.stubFindOffenders("MDI")
-      prisonApiMockServer.stubLocation("MDI-1")
+      locationsMockServer.stubGetByKey("MDI-1")
       prisonApiMockServer.stubCaseNoteSummary()
     }
 
@@ -423,7 +424,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
   @Test
   fun `describes error when incentive levels not available in DB`(): Unit = runBlocking {
     offenderSearchMockServer.stubFindOffenders("MDI")
-    prisonApiMockServer.stubLocation("MDI-1")
+    locationsMockServer.stubGetByKey("MDI-1")
     prisonApiMockServer.stubCaseNoteSummary()
 
     incentiveReviewRepository.deleteAll()

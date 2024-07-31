@@ -7,6 +7,7 @@ api:
       oauth: http://localhost:9090/auth
       prison: http://localhost:8082
       offender-search: http://localhost:8083
+      locations: http://localhost:8085
 
 management.endpoint:
   health.cache.time-to-live: 0

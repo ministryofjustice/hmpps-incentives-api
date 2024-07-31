@@ -1,0 +1,14 @@
+{
+  "priority": 10,
+  "request": {
+    "method": "GET",
+    "urlPattern": "/locations/key/.*"
+  },
+  "response": {
+    "status": 404,
+    "jsonBody": { "status": "NOT_FOUND", "message": "Location not found" },
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}

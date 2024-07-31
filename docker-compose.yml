@@ -69,6 +69,16 @@ services:
     volumes:
       - ./prisoner-search-data:/home/wiremock
 
+  locations-inside-prison:
+    image: wiremock/wiremock:2.35.0
+    networks:
+      - hmpps
+    container_name: locations-inside-prison
+    ports:
+      - "8085:8080"
+    volumes:
+      - ./locations-inside-prison-data:/home/wiremock
+
   prison-api:
     image: quay.io/hmpps/prison-api:latest
     networks:

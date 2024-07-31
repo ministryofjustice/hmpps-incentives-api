@@ -13,3 +13,6 @@ class PrisonHealthPing(@Qualifier("prisonHealthWebClient") webClient: WebClient)
 
 @Component("offenderSearch")
 class OffenderSearchHealthPing(@Qualifier("offenderSearchHealthWebClient") webClient: WebClient) : ReactiveHealthPingCheck(webClient)
+
+@Component("locations")
+class LocationsHealthPing(@Qualifier("locationsHealthWebClient") webClient: WebClient) : ReactiveHealthPingCheck(webClient)
