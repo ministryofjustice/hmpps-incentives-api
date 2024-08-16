@@ -5,7 +5,7 @@ import uk.gov.justice.digital.hmpps.gradle.PortForwardRedisTask
 import uk.gov.justice.digital.hmpps.gradle.RevealSecretsTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.0.2"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.0.3"
   kotlin("plugin.jpa") version "2.0.10"
   kotlin("plugin.spring") version "2.0.10"
   id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
@@ -45,8 +45,8 @@ dependencies {
   runtimeOnly("org.postgresql:postgresql")
 
   // Shedlock dependencies
-  implementation("net.javacrumbs.shedlock:shedlock-spring:5.14.0")
-  implementation("net.javacrumbs.shedlock:shedlock-provider-r2dbc:5.14.0")
+  implementation("net.javacrumbs.shedlock:shedlock-spring:5.15.0")
+  implementation("net.javacrumbs.shedlock:shedlock-provider-r2dbc:5.15.0")
 
   implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.6.0")
 
