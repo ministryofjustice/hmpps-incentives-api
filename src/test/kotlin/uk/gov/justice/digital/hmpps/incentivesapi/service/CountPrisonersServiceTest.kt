@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
@@ -14,6 +15,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
 import java.time.LocalDate
 
+@DisplayName("Count prisoners service")
 class CountPrisonersServiceTest {
   private val incentiveReviewRepository: IncentiveReviewRepository = mock()
   private val offenderSearchService: OffenderSearchService = mock()

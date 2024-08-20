@@ -2,6 +2,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.task
 
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
@@ -15,6 +16,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.ReviewsConducte
 import uk.gov.justice.digital.hmpps.incentivesapi.service.KpiService
 import java.time.LocalDate
 
+@DisplayName("UpdateKpis task")
 class UpdateKpisTest {
 
   private val kpiRepository: KpiRepository = mock()

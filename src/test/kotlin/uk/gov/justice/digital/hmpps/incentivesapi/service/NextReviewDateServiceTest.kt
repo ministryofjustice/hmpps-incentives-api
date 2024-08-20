@@ -1,12 +1,14 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import java.time.LocalDate
 
+@DisplayName("Next review date service")
 class NextReviewDateServiceTest {
 
   @Test
@@ -49,6 +51,7 @@ class NextReviewDateServiceTest {
     assertThat(nextReviewDate).isEqualTo(expectedNextReviewDate)
   }
 
+  @DisplayName("basic rule")
   @Nested
   inner class BasicRuleTest {
 
@@ -142,6 +145,7 @@ class NextReviewDateServiceTest {
     }
   }
 
+  @DisplayName("ACCT rule")
   @Nested
   inner class AcctRuleTest {
 
@@ -237,6 +241,7 @@ class NextReviewDateServiceTest {
     }
   }
 
+  @DisplayName("new prisoner rules")
   @Nested
   inner class NewPrisonerRulesTest {
 
@@ -312,6 +317,7 @@ class NextReviewDateServiceTest {
     }
   }
 
+  @DisplayName("readmission rules")
   @Nested
   inner class ReadmissionsRulesTest {
 

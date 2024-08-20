@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.AssertionsForClassTypes.assertThat
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -21,6 +22,7 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 
+@DisplayName("Next review date updater service")
 class NextReviewDateUpdaterServiceTest {
   private var clock: Clock = Clock.fixed(Instant.parse("2022-08-01T12:45:00.00Z"), ZoneId.of("Europe/London"))
   private val incentiveReviewRepository: IncentiveReviewRepository = mock()
@@ -36,6 +38,7 @@ class NextReviewDateUpdaterServiceTest {
     snsService,
   )
 
+  @DisplayName("update all")
   @Nested
   inner class UpdateAllTest {
     private val offender1 = offenderSearchPrisoner("AB123C", 123L)

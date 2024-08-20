@@ -7,6 +7,7 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.assertj.core.api.Assertions.within
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest
@@ -19,6 +20,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
+@DisplayName("Next review repository")
 @DataR2dbcTest
 @ActiveProfiles("test")
 @WithMockAuthUser

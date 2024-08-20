@@ -8,6 +8,7 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -28,6 +29,7 @@ import java.time.Clock
 import java.time.LocalDateTime
 import kotlin.text.Regex
 
+@DisplayName("Prison incentive level resource")
 class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
   @TestConfiguration
   class FixedClockConfig {
@@ -55,8 +57,9 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
     super.tearDown()
   }
 
+  @DisplayName("read-only endpoints")
   @Nested
-  inner class `read-only endpoints` {
+  inner class ReadOnlyEndpoints {
     @BeforeEach
     fun setUp() = runBlocking {
       listOf("BAS", "STD", "ENH", "ENT").forEach { levelCode ->
@@ -83,8 +86,9 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .isUnauthorized
     }
 
+    @DisplayName("list levels")
     @Nested
-    inner class `list levels` {
+    inner class ListLevels {
       @Test
       fun `lists prison levels without any role`() {
         webTestClient.get()
@@ -155,8 +159,9 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
       }
     }
 
+    @DisplayName("view level")
     @Nested
-    inner class `view level` {
+    inner class ViewLevel {
       @Test
       fun `returns prison level details of active level`() {
         webTestClient.get()
@@ -210,8 +215,9 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
     }
   }
 
+  @DisplayName("modifying endpoints")
   @Nested
-  inner class `modifying endpoints` {
+  inner class ModifyingEndpoints {
     private fun <T : WebTestClient.RequestHeadersSpec<*>> T.withLocalAuthorisation(): T = apply {
       headers(
         setAuthorisation(
@@ -222,8 +228,9 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
       )
     }
 
+    @DisplayName("update level")
     @Nested
-    inner class `update level` {
+    inner class UpdateLevel {
       @Test
       fun `updates a prison incentive level when one exists`() {
         makePrisonIncentiveLevel("MDI", "STD")
@@ -760,8 +767,9 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
       }
     }
 
+    @DisplayName("partially update level")
     @Nested
-    inner class `partially update level` {
+    inner class PartiallyUpdateLevel {
       @Test
       fun `partially updates a prison incentive level when one exists`() {
         makePrisonIncentiveLevel("BAI", "BAS")
@@ -1325,8 +1333,9 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
       }
     }
 
+    @DisplayName("reset levels")
     @Nested
-    inner class `reset levels` {
+    inner class ResetLevels {
       @Test
       fun `activates required set of levels when none exist`() {
         webTestClient.put()
@@ -1686,8 +1695,9 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
       }
     }
 
+    @DisplayName("deactivate all levels")
     @Nested
-    inner class `deactivate all levels` {
+    inner class DeactivateAllLevels {
       @Test
       fun `does nothing when trying to deactivate all prison incentive levels if none exist`() {
         webTestClient.delete()
@@ -1964,8 +1974,9 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
       }
     }
 
+    @DisplayName("deactivate level")
     @Nested
-    inner class `deactivate level` {
+    inner class DeactivateLevel {
       @Test
       fun `deactivates a prison incentive level when one exists`() {
         makePrisonIncentiveLevel("WRI", "EN2")

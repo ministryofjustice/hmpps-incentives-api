@@ -4,6 +4,7 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
@@ -11,13 +12,15 @@ import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.incentivesapi.config.DataIntegrityException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 
+@DisplayName("Nearest prison incentive level service")
 class NearestPrisonIncentiveLevelServiceTest {
   private val incentiveLevelService: IncentiveLevelAuditedService = mock()
   private val prisonIncentiveLevelService: PrisonIncentiveLevelAuditedService = mock()
   private val nearestPrisonIncentiveLevelService = NearestPrisonIncentiveLevelService(incentiveLevelService, prisonIncentiveLevelService)
 
+  @DisplayName("finding nearest levels")
   @Nested
-  inner class `finding nearest levels` {
+  inner class NearestLevel {
     private val prisonId = "MDI"
 
     @BeforeEach

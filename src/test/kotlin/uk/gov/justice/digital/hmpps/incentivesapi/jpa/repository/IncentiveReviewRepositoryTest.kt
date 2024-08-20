@@ -9,6 +9,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -20,6 +21,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
 import java.time.LocalDateTime
 
+@DisplayName("Incentive review repository")
 @DataR2dbcTest
 @ActiveProfiles("test")
 @WithMockAuthUser
@@ -104,6 +106,7 @@ class IncentiveReviewRepositoryTest : TestBase() {
     }
   }
 
+  @DisplayName("current=true constraint")
   @Nested
   inner class CurrentTrueConstraint {
     private val bookingId = 1234567L

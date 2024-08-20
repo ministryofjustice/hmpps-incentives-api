@@ -6,6 +6,7 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.anyList
@@ -30,6 +31,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReview as IncentiveReviewDTO
 
+@DisplayName("Incentive reviews service")
 class IncentiveReviewsServiceTest {
   private val prisonIncentiveLevelService: PrisonIncentiveLevelAuditedService = mock()
   private val offenderSearchService: OffenderSearchService = mock()
@@ -350,6 +352,7 @@ class IncentiveReviewsServiceTest {
     )
   }
 
+  @DisplayName("sorting and filtering")
   @Nested
   inner class SortingAndFiltering {
     private val oldestReview = LocalDateTime.now(clock).minusDays(5)

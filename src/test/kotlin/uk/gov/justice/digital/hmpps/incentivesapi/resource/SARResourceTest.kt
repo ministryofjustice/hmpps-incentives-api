@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.resource
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.TestConfiguration
@@ -17,6 +18,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.NextReviewDateR
 import java.time.Clock
 import java.time.LocalDateTime
 
+@DisplayName("SAR resource")
 class SARResourceTest : IncentiveLevelResourceTestBase() {
   @TestConfiguration
   class FixedClockConfig {

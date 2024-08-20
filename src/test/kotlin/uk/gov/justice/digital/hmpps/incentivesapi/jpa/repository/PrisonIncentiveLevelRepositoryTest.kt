@@ -8,6 +8,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.data.r2dbc.DataR2dbcTest
@@ -17,6 +18,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.helper.TestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonIncentiveLevel
 import uk.gov.justice.hmpps.test.kotlin.auth.WithMockAuthUser
 
+@DisplayName("Prison incentive level repository")
 @DataR2dbcTest
 @ActiveProfiles("test")
 @WithMockAuthUser

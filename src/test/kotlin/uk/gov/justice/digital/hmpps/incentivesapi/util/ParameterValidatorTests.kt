@@ -1,8 +1,10 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.util
 
 import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 
+@DisplayName("Parameter validator `ensure { … }`")
 class ParameterValidatorTests {
   @Test
   fun `does not throw errors when nothing is expected`() {

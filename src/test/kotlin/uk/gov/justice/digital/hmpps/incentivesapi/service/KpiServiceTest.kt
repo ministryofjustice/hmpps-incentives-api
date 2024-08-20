@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
@@ -14,6 +15,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.KpiRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.ReviewsConductedPrisonersReviewed
 import java.time.LocalDate
 
+@DisplayName("KPI service")
 class KpiServiceTest {
 
   private val kpiRepository: KpiRepository = mock()
@@ -22,6 +24,7 @@ class KpiServiceTest {
 
   private val kpiService = KpiService(kpiRepository, prisonApiService, offenderSearchService)
 
+  @DisplayName("number of prisoners and reviews conducted")
   @Nested
   inner class GetNumberOfReviewsConductedAndPrisonersReviewed {
 
@@ -38,6 +41,7 @@ class KpiServiceTest {
     }
   }
 
+  @DisplayName("number of prisoners overdue a review")
   @Nested
   inner class GetNumberOfPrisonersOverdue {
 

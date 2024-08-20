@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
@@ -14,6 +15,7 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 
+@DisplayName("Behaviour service")
 class BehaviourServiceTest {
   private val prisonApiService: PrisonApiService = mock()
   private var clock: Clock = Clock.fixed(Instant.parse("2022-08-01T12:45:00.00Z"), ZoneId.of("Europe/London"))
