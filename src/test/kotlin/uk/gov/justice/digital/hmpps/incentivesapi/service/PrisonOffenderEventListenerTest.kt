@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
@@ -11,6 +12,7 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 
+@DisplayName("Event listener for prisoner-offender-search, unit tests")
 class PrisonOffenderEventListenerTest {
   private lateinit var listener: PrisonOffenderEventListener
   private val prisonerIncentiveReviewService: PrisonerIncentiveReviewService = mock()

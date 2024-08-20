@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.resource
 import io.swagger.v3.parser.OpenAPIV3Parser
 import net.minidev.json.JSONArray
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.server.LocalServerPort
@@ -12,6 +13,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTest
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+@DisplayName("OpenApi docs")
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 class OpenApiDocsTest : SqsIntegrationTestBase() {

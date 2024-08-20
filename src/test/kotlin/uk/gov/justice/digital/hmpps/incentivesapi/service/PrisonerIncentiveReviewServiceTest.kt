@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -32,7 +33,8 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-class IncentiveReviewReviewServiceTest {
+@DisplayName("Prisoner incentive reviews service")
+class PrisonerIncentiveReviewServiceTest {
 
   private val prisonApiService: PrisonApiService = mock()
   private val incentiveReviewRepository: IncentiveReviewRepository = mock()
@@ -73,8 +75,9 @@ class IncentiveReviewReviewServiceTest {
     whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
   }
 
+  @DisplayName("add incentive review")
   @Nested
-  inner class AddCreateIncentiveReviewRequest {
+  inner class AddIncentiveReviewRequest {
 
     private val bookingId = 1234567L
     private val prisonerNumber = "A1234BC"
@@ -171,6 +174,7 @@ class IncentiveReviewReviewServiceTest {
     }
   }
 
+  @DisplayName("get review history")
   @Nested
   inner class GetIncentiveReviewHistory {
 
@@ -198,6 +202,7 @@ class IncentiveReviewReviewServiceTest {
     }
   }
 
+  @DisplayName("process received prisoner")
   @Nested
   inner class ProcessReceivedPrisoner {
     @BeforeEach
@@ -450,6 +455,7 @@ class IncentiveReviewReviewServiceTest {
     }
   }
 
+  @DisplayName("delete incentive record")
   @Nested
   inner class DeleteIncentiveRecordTest {
 
@@ -588,6 +594,7 @@ class IncentiveReviewReviewServiceTest {
       }
   }
 
+  @DisplayName("update incentive record")
   @Nested
   inner class UpdateIncentiveRecordTest {
 

@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.resource
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -15,7 +16,8 @@ import java.time.LocalDate.now
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-class ManageIncentiveReviewsResourceTestLevel : IncentiveLevelResourceTestBase() {
+@DisplayName("Manage incentive reviews resource")
+class ManageIncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
   @Autowired
   private lateinit var repository: IncentiveReviewRepository
 

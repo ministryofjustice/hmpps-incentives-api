@@ -5,6 +5,7 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -20,6 +21,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.NextReviewDateR
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveReviewSort
 import java.time.LocalDateTime
 
+@DisplayName("Incentive reviews resource")
 class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
   @Autowired
   private lateinit var incentiveReviewRepository: IncentiveReviewRepository
@@ -93,8 +95,9 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
       .isForbidden
   }
 
+  @DisplayName("validates request parameters")
   @Nested
-  inner class `validates request parameters` {
+  inner class Validation {
     @BeforeEach
     fun setUp() {
       prisonApiMockServer.stubCaseNoteSummary()
@@ -373,8 +376,9 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
     }
   }
 
+  @DisplayName("can paginate")
   @Nested
-  inner class `can paginate` {
+  inner class Pagination {
     @BeforeEach
     fun setUp() {
       offenderSearchMockServer.stubFindOffenders("MDI")

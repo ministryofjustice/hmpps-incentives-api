@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -19,6 +20,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.helper.expectErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.IncentiveLevelResourceTestBase
 import java.time.Clock
 
+@DisplayName("Incentive level resource")
 class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
   @TestConfiguration
   class FixedClockConfig {
@@ -27,8 +29,9 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
     fun fixedClock(): Clock = clock
   }
 
+  @DisplayName("read-only endpoints")
   @Nested
-  inner class `read-only endpoints` {
+  inner class ReadOnlyEndpoints {
     @ParameterizedTest
     @ValueSource(
       strings = [
@@ -45,8 +48,9 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         .isUnauthorized
     }
 
+    @DisplayName("list levels")
     @Nested
-    inner class `list levels` {
+    inner class ListLevels {
       @Test
       fun `lists levels without any role`() {
         webTestClient.get()
@@ -93,8 +97,9 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
       }
     }
 
+    @DisplayName("view level")
     @Nested
-    inner class `view level` {
+    inner class ViewLevel {
       @Test
       fun `returns level details of active level`() {
         webTestClient.get()
@@ -141,8 +146,9 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
     }
   }
 
+  @DisplayName("modifying endpoints")
   @Nested
-  inner class `modifying endpoints` {
+  inner class ModifyingEndpoints {
     private fun <T : WebTestClient.RequestHeadersSpec<*>> T.withCentralAuthorisation(): T = apply {
       headers(
         setAuthorisation(
@@ -153,8 +159,9 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
       )
     }
 
+    @DisplayName("create level")
     @Nested
-    inner class `create level` {
+    inner class CreateLevel {
       @Test
       fun `creates a level`() {
         val maxSequence = runBlocking {
@@ -430,8 +437,9 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
       }
     }
 
+    @DisplayName("reorder levels")
     @Nested
-    inner class `reorder levels` {
+    inner class ReorderLevels {
       @Test
       fun `reorders complete set of incentive levels`() {
         webTestClient.patch()
@@ -595,8 +603,9 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
       }
     }
 
+    @DisplayName("update level")
     @Nested
-    inner class `update level` {
+    inner class UpdateLevel {
       @Test
       fun `updates a level`() {
         webTestClient.put()
@@ -859,8 +868,9 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
       }
     }
 
+    @DisplayName("partially update level")
     @Nested
-    inner class `partially update level` {
+    inner class PartiallyUpdateLevel {
       @Test
       fun `partially updates a level`() {
         webTestClient.patch()
@@ -1125,8 +1135,9 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
       }
     }
 
+    @DisplayName("deactivate level")
     @Nested
-    inner class `deactivate level` {
+    inner class DeactivateLevel {
       @Test
       fun `deactivates a level`() {
         webTestClient.delete()

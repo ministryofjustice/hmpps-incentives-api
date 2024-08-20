@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewDetail
@@ -12,9 +13,11 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 
+@DisplayName("Incentive review summary date")
 class IncentiveReviewSummaryDateTest {
   private var clock: Clock = Clock.fixed(Instant.parse("2022-08-01T12:45:00.00Z"), ZoneId.of("Europe/London"))
 
+  @DisplayName("get days on level")
   @Nested
   inner class GetDaysOnLevel {
     @Test
