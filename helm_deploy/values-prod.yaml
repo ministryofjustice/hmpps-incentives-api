@@ -24,7 +24,7 @@ generic-service:
         DB_HOST_PREPROD: "rds_instance_address"
 
 generic-prometheus-alerts:
-  alertSeverity: digital-prison-service
+  alertSeverity: hmpps-incentives-prod
   rdsAlertsDatabases:
     cloud-platform-4da80b91054a19d6: "incentives api"
   sqsAlertsQueueNames:

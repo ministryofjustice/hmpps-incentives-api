@@ -17,7 +17,7 @@ generic-service:
     TASK_UPDATE_KPIS_CRON: "0 0 10 1W * *"
 
 generic-prometheus-alerts:
-  alertSeverity: digital-prison-service-dev
+  alertSeverity: hmpps-incentives-preprod
   businessHoursOnly: true
   rdsAlertsDatabases:
     cloud-platform-6b3b723b359a69e2: "incentives api"
