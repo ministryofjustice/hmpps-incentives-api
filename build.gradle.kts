@@ -45,14 +45,14 @@ dependencies {
   runtimeOnly("org.postgresql:postgresql")
 
   // Shedlock dependencies
-  implementation("net.javacrumbs.shedlock:shedlock-spring:5.15.1")
-  implementation("net.javacrumbs.shedlock:shedlock-provider-r2dbc:5.15.1")
+  implementation("net.javacrumbs.shedlock:shedlock-spring:5.16.0")
+  implementation("net.javacrumbs.shedlock:shedlock-provider-r2dbc:5.16.0")
 
   implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.6.0")
 
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
-  implementation("io.opentelemetry:opentelemetry-api:1.41.0")
+  implementation("io.opentelemetry:opentelemetry-api:1.42.0")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.7.0")
 
   implementation("org.apache.commons:commons-lang3")
@@ -75,10 +75,10 @@ dependencies {
   testImplementation("io.projectreactor:reactor-test")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
   testImplementation("javax.xml.bind:jaxb-api:2.3.1")
-  testImplementation("io.opentelemetry:opentelemetry-sdk:1.41.0")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-common:1.41.0")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-metrics:1.41.0")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.41.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk:1.42.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-common:1.42.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-metrics:1.42.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.42.0")
 
   if (project.hasProperty("docs")) {
     implementation("com.h2database:h2")
