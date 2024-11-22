@@ -34,13 +34,14 @@ generic-service:
     JAVA_OPTS: "-Xmx512m"
     SERVER_PORT: "8080"
     SPRING_PROFILES_ACTIVE: "logstash"
-    APPLICATIONINSIGHTS_CONNECTION_STRING: "InstrumentationKey=$(APPINSIGHTS_INSTRUMENTATIONKEY)"
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.json
     HMPPS_SQS_USE_WEB_TOKEN: "true"
 
   envFrom:
     - secretRef:
         name: hmpps-incentives-api
+    - secretRef:
+        name: application-insights
 
   namespace_secrets:
     dps-rds-instance-output:
