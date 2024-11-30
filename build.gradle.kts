@@ -5,12 +5,12 @@ import uk.gov.justice.digital.hmpps.gradle.PortForwardRedisTask
 import uk.gov.justice.digital.hmpps.gradle.RevealSecretsTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.0.9"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "6.1.0"
   kotlin("plugin.jpa") version "2.0.21"
   kotlin("plugin.spring") version "2.0.21"
   id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
   id("jacoco")
-  id("org.sonarqube") version "6.0.0.5145"
+  id("org.sonarqube") version "6.0.1.5171"
 }
 
 dependencyCheck {
@@ -31,10 +31,10 @@ repositories {
 }
 
 dependencies {
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.0.8")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:1.1.0")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
   implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.1.1")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:5.2.0")
 
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
   implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
@@ -48,7 +48,7 @@ dependencies {
   implementation("net.javacrumbs.shedlock:shedlock-spring:5.16.0")
   implementation("net.javacrumbs.shedlock:shedlock-provider-r2dbc:5.16.0")
 
-  implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.6.0")
+  implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.7.0")
 
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
@@ -64,14 +64,14 @@ dependencies {
 
   developmentOnly("org.springframework.boot:spring-boot-devtools")
 
-  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.0.8")
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.1.0")
   testImplementation("org.awaitility:awaitility-kotlin")
   testImplementation("org.mockito:mockito-inline:5.2.0")
   testImplementation("io.swagger.parser.v3:swagger-parser:2.1.24")
   testImplementation("org.springframework.security:spring-security-test")
-  testImplementation("org.wiremock:wiremock-standalone:3.9.2")
-  testImplementation("org.testcontainers:localstack:1.20.3")
-  testImplementation("org.testcontainers:postgresql:1.20.3")
+  testImplementation("org.wiremock:wiremock-standalone:3.10.0")
+  testImplementation("org.testcontainers:localstack:1.20.4")
+  testImplementation("org.testcontainers:postgresql:1.20.4")
   testImplementation("io.projectreactor:reactor-test")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
   testImplementation("javax.xml.bind:jaxb-api:2.3.1")
