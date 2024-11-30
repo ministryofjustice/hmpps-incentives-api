@@ -66,16 +66,10 @@ class IncentiveReviewsResource(private val incentiveReviewsService: IncentiveRev
       required = false,
       defaultValue = "NEXT_REVIEW_DATE",
       example = "PRISONER_NUMBER",
-      allowableValues = [
-        "NEXT_REVIEW_DATE", "DAYS_SINCE_LAST_REVIEW",
-        "FIRST_NAME", "LAST_NAME", "PRISONER_NUMBER",
-        "POSITIVE_BEHAVIOURS", "NEGATIVE_BEHAVIOURS",
-        "HAS_ACCT_OPEN", "IS_NEW_TO_PRISON",
-      ],
     )
     @RequestParam(required = false)
     sort: IncentiveReviewSort? = null,
-    @Schema(description = "Sort direction", required = false, defaultValue = "ASC", example = "ASC", allowableValues = ["ASC", "DESC"])
+    @Schema(description = "Sort direction", required = false, defaultValue = "ASC", example = "ASC")
     @RequestParam(required = false)
     order: Sort.Direction? = null,
     @Schema(description = "Page (starts at 0)", defaultValue = "0", minimum = "0", example = "2", type = "integer", required = false, format = "int32")
