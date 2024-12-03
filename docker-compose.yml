@@ -1,5 +1,5 @@
-version: "3"
 services:
+
   hmpps-incentives-api:
     build: .
     networks:
@@ -60,24 +60,24 @@ services:
       - API_BASE_URL_OAUTH=http://hmpps-auth:8080/auth
 
   prisoner-search:
-    image: wiremock/wiremock:2.35.0
+    image: wiremock/wiremock:3x
     networks:
       - hmpps
     container_name: prisoner-search
     ports:
       - "8083:8080"
     volumes:
-      - ./prisoner-search-data:/home/wiremock
+      - ./wiremock-data/prisoner-search:/home/wiremock
 
   locations-inside-prison:
-    image: wiremock/wiremock:2.35.0
+    image: wiremock/wiremock:3x
     networks:
       - hmpps
     container_name: locations-inside-prison
     ports:
       - "8085:8080"
     volumes:
-      - ./locations-inside-prison-data:/home/wiremock
+      - ./wiremock-data/locations-inside-prison:/home/wiremock
 
   prison-api:
     image: quay.io/hmpps/prison-api:latest
@@ -94,7 +94,7 @@ services:
       - SPRING_PROFILES_ACTIVE=nomis-hsqldb
 
   incentives-db:
-    image: postgres
+    image: postgres:15
     networks:
       - hmpps
     # network_mode: "host"
@@ -108,7 +108,7 @@ services:
       - POSTGRES_DB=incentives
 
   localstack:
-    image: localstack/localstack:3
+    image: localstack/localstack:4
     networks:
       - hmpps
     container_name: "${LOCALSTACK_DOCKER_NAME-localstack}"
