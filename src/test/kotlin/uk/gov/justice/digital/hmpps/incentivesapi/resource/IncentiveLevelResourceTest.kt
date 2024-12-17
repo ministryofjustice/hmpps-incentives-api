@@ -13,6 +13,7 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.http.HttpStatus
+import org.springframework.test.json.JsonCompareMode
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorCode
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
@@ -69,7 +70,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
               {"code": "EN3", "name": "Enhanced 3", "active": true, "required": false}
             ]
             """,
-            true,
+            JsonCompareMode.STRICT,
           )
       }
 
@@ -92,7 +93,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
               {"code": "ENT", "name": "Entry", "active": false, "required": false}
             ]
             """,
-            true,
+            JsonCompareMode.STRICT,
           )
       }
     }
@@ -112,7 +113,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
             """
             {"code": "EN2", "name": "Enhanced 2", "active": true, "required": false}
             """,
-            true,
+            JsonCompareMode.STRICT,
           )
       }
 
@@ -128,7 +129,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
             """
             {"code": "ENT", "name": "Entry", "active": false, "required": false}
             """,
-            true,
+            JsonCompareMode.STRICT,
           )
       }
 
@@ -185,7 +186,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
             """
             {"code": "EN4", "name": "Enhanced 4", "active": false, "required": false}
             """,
-            true,
+            JsonCompareMode.STRICT,
           )
 
         runBlocking {
@@ -466,7 +467,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
               {"code": "BAS", "name": "Basic", "active": true, "required": true}
             ]
             """,
-            true,
+            JsonCompareMode.STRICT,
           )
 
         runBlocking {
@@ -625,7 +626,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
             """
             {"code": "STD", "name": "Silver", "active": true, "required": true}
             """,
-            true,
+            JsonCompareMode.STRICT,
           )
 
         runBlocking {
@@ -890,7 +891,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
             """
             {"code": "STD", "name": "Silver", "active": true, "required": true}
             """,
-            true,
+            JsonCompareMode.STRICT,
           )
 
         runBlocking {
@@ -1044,7 +1045,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
             """
             {"code": "ENH", "name": "Gold", "active": false, "required": false}
             """,
-            true,
+            JsonCompareMode.STRICT,
           )
 
         runBlocking {
@@ -1150,7 +1151,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
             """
             {"code": "EN2", "name": "Enhanced 2", "active": false, "required": false}
             """,
-            true,
+            JsonCompareMode.STRICT,
           )
 
         runBlocking {
@@ -1183,7 +1184,7 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
             """
             {"code": "ENT", "name": "Entry", "active": false, "required": false}
             """,
-            true,
+            JsonCompareMode.STRICT,
           )
 
         runBlocking {

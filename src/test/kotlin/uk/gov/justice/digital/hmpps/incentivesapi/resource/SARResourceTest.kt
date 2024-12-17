@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
+import org.springframework.test.json.JsonCompareMode
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.IncentiveLevelResourceTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
@@ -115,77 +116,79 @@ class SARResourceTest : IncentiveLevelResourceTestBase() {
       .exchange()
       .expectStatus().isOk
       .expectBody().json(
+        // language=json
         """
+        {
+          "content": [
             {
-              "content": [
-                {
-                  "bookingId": 100,
-                  "prisonerNumber": "A1234AA",
-                  "nextReviewDate": "2023-03-15",
-                  "levelCode": "STD",
-                  "prisonId": "MDI",
-                  "locationId": "1-1-002",
-                  "reviewTime": "2022-03-15T12:34:56",
-                  "reviewedBy": "TEST_USER",
-                  "commentText": "test comment",
-                  "current": true,
-                  "reviewType": "REVIEW"
-                },
-                {
-                  "bookingId": 100,
-                  "prisonerNumber": "A1234AA",
-                  "nextReviewDate": "2023-03-15",
-                  "levelCode": "STD",
-                  "prisonId": "MDI",
-                  "locationId": "1-1-002",
-                  "reviewTime": "2022-03-13T12:34:56",
-                  "reviewedBy": "TEST_USER",
-                  "commentText": "test comment",
-                  "current": false,
-                  "reviewType": "REVIEW"
-                },
-                {
-                  "bookingId": 100,
-                  "prisonerNumber": "A1234AA",
-                  "nextReviewDate": "2023-03-15",
-                  "levelCode": "ENH",
-                  "prisonId": "MDI",
-                  "locationId": "1-1-002",
-                  "reviewTime": "2022-03-11T12:34:56",
-                  "reviewedBy": "TEST_USER",
-                  "commentText": "test comment",
-                  "current": false,
-                  "reviewType": "REVIEW"
-                },
-                {
-                  "bookingId": 100,
-                  "prisonerNumber": "A1234AA",
-                  "nextReviewDate": "2023-03-15",
-                  "levelCode": "STD",
-                  "prisonId": "MDI",
-                  "locationId": "1-1-002",
-                  "reviewTime": "2022-03-09T12:34:56",
-                  "reviewedBy": "TEST_USER",
-                  "commentText": "test comment",
-                  "current": false,
-                  "reviewType": "REVIEW"
-                },
-                {
-                  "bookingId": 76,
-                  "prisonerNumber": "A1234AA",
-                  "nextReviewDate": "2023-03-15",
-                  "levelCode": "BAS",
-                  "prisonId": "MDI",
-                  "locationId": "1-1-002",
-                  "reviewTime": "2021-03-15T12:34:56",
-                  "reviewedBy": "TEST_USER",
-                  "commentText": "test comment",
-                  "current": false,
-                  "reviewType": "REVIEW"
-                }
-              ]
-            }         
-          """,
+              "bookingId": 100,
+              "prisonerNumber": "A1234AA",
+              "nextReviewDate": "2023-03-15",
+              "levelCode": "STD",
+              "prisonId": "MDI",
+              "locationId": "1-1-002",
+              "reviewTime": "2022-03-15T12:34:56",
+              "reviewedBy": "TEST_USER",
+              "commentText": "test comment",
+              "current": true,
+              "reviewType": "REVIEW"
+            },
+            {
+              "bookingId": 100,
+              "prisonerNumber": "A1234AA",
+              "nextReviewDate": "2023-03-15",
+              "levelCode": "STD",
+              "prisonId": "MDI",
+              "locationId": "1-1-002",
+              "reviewTime": "2022-03-13T12:34:56",
+              "reviewedBy": "TEST_USER",
+              "commentText": "test comment",
+              "current": false,
+              "reviewType": "REVIEW"
+            },
+            {
+              "bookingId": 100,
+              "prisonerNumber": "A1234AA",
+              "nextReviewDate": "2023-03-15",
+              "levelCode": "ENH",
+              "prisonId": "MDI",
+              "locationId": "1-1-002",
+              "reviewTime": "2022-03-11T12:34:56",
+              "reviewedBy": "TEST_USER",
+              "commentText": "test comment",
+              "current": false,
+              "reviewType": "REVIEW"
+            },
+            {
+              "bookingId": 100,
+              "prisonerNumber": "A1234AA",
+              "nextReviewDate": "2023-03-15",
+              "levelCode": "STD",
+              "prisonId": "MDI",
+              "locationId": "1-1-002",
+              "reviewTime": "2022-03-09T12:34:56",
+              "reviewedBy": "TEST_USER",
+              "commentText": "test comment",
+              "current": false,
+              "reviewType": "REVIEW"
+            },
+            {
+              "bookingId": 76,
+              "prisonerNumber": "A1234AA",
+              "nextReviewDate": "2023-03-15",
+              "levelCode": "BAS",
+              "prisonId": "MDI",
+              "locationId": "1-1-002",
+              "reviewTime": "2021-03-15T12:34:56",
+              "reviewedBy": "TEST_USER",
+              "commentText": "test comment",
+              "current": false,
+              "reviewType": "REVIEW"
+            }
+          ]
+        }
+        """,
+        JsonCompareMode.LENIENT,
       )
   }
 
@@ -197,51 +200,53 @@ class SARResourceTest : IncentiveLevelResourceTestBase() {
       .exchange()
       .expectStatus().isOk
       .expectBody().json(
+        // language=json
         """
+        {
+          "content": [
             {
-              "content": [
-                {
-                  "bookingId": 100,
-                  "prisonerNumber": "A1234AA",
-                  "nextReviewDate": "2023-03-15",
-                  "levelCode": "STD",
-                  "prisonId": "MDI",
-                  "locationId": "1-1-002",
-                  "reviewTime": "2022-03-13T12:34:56",
-                  "reviewedBy": "TEST_USER",
-                  "commentText": "test comment",
-                  "current": false,
-                  "reviewType": "REVIEW"
-                },
-                {
-                  "bookingId": 100,
-                  "prisonerNumber": "A1234AA",
-                  "nextReviewDate": "2023-03-15",
-                  "levelCode": "ENH",
-                  "prisonId": "MDI",
-                  "locationId": "1-1-002",
-                  "reviewTime": "2022-03-11T12:34:56",
-                  "reviewedBy": "TEST_USER",
-                  "commentText": "test comment",
-                  "current": false,
-                  "reviewType": "REVIEW"
-                },
-                {
-                  "bookingId": 100,
-                  "prisonerNumber": "A1234AA",
-                  "nextReviewDate": "2023-03-15",
-                  "levelCode": "STD",
-                  "prisonId": "MDI",
-                  "locationId": "1-1-002",
-                  "reviewTime": "2022-03-09T12:34:56",
-                  "reviewedBy": "TEST_USER",
-                  "commentText": "test comment",
-                  "current": false,
-                  "reviewType": "REVIEW"
-                }
-              ]
-            }         
-          """,
+              "bookingId": 100,
+              "prisonerNumber": "A1234AA",
+              "nextReviewDate": "2023-03-15",
+              "levelCode": "STD",
+              "prisonId": "MDI",
+              "locationId": "1-1-002",
+              "reviewTime": "2022-03-13T12:34:56",
+              "reviewedBy": "TEST_USER",
+              "commentText": "test comment",
+              "current": false,
+              "reviewType": "REVIEW"
+            },
+            {
+              "bookingId": 100,
+              "prisonerNumber": "A1234AA",
+              "nextReviewDate": "2023-03-15",
+              "levelCode": "ENH",
+              "prisonId": "MDI",
+              "locationId": "1-1-002",
+              "reviewTime": "2022-03-11T12:34:56",
+              "reviewedBy": "TEST_USER",
+              "commentText": "test comment",
+              "current": false,
+              "reviewType": "REVIEW"
+            },
+            {
+              "bookingId": 100,
+              "prisonerNumber": "A1234AA",
+              "nextReviewDate": "2023-03-15",
+              "levelCode": "STD",
+              "prisonId": "MDI",
+              "locationId": "1-1-002",
+              "reviewTime": "2022-03-09T12:34:56",
+              "reviewedBy": "TEST_USER",
+              "commentText": "test comment",
+              "current": false,
+              "reviewType": "REVIEW"
+            }
+          ]
+        }
+        """,
+        JsonCompareMode.LENIENT,
       )
   }
 
