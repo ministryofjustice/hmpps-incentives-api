@@ -7,6 +7,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import org.springframework.test.json.JsonCompareMode
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.CreateIncentiveReviewRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.helper.expectErrorResponse
@@ -98,28 +99,30 @@ class ManageIncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
       .exchange()
       .expectStatus().isOk
       .expectBody().json(
+        // language=json
         """
+        {
+          "bookingId": $bookingId,
+          "daysSinceReview": 0,
+          "iepDate": "$today",
+          "iepLevel": "Standard",
+          "iepCode": "STD",
+          "nextReviewDate": "$nextReviewDate",
+          "iepDetails": [
             {
-             "bookingId":$bookingId,
-             "daysSinceReview":0,
-             "iepDate":"$today",
-             "iepLevel":"Standard",
-             "iepCode": "STD",
-             "nextReviewDate": "$nextReviewDate",
-             "iepDetails":[
-                {
-                   "bookingId":$bookingId,
-                   "iepDate":"$today",
-                   "agencyId":"MDI",
-                   "iepLevel":"Standard",
-                   "iepCode": "STD",
-                   "comments":"A comment",
-                   "userId":"INCENTIVES_ADM",
-                   "auditModuleName":"INCENTIVES_API"
-                }
-             ]
-          }
-          """,
+              "bookingId": $bookingId,
+              "iepDate": "$today",
+              "agencyId": "MDI",
+              "iepLevel": "Standard",
+              "iepCode": "STD",
+              "comments": "A comment",
+              "userId": "INCENTIVES_ADM",
+              "auditModuleName": "INCENTIVES_API"
+            }
+          ]
+        }
+        """,
+        JsonCompareMode.LENIENT,
       )
   }
 
@@ -155,44 +158,45 @@ class ManageIncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
       .exchange()
       .expectStatus().isOk
       .expectBody().json(
+        // language=json
         """
+        {
+          "bookingId": $bookingId,
+          "prisonerNumber": $prisonerNumber,
+          "daysSinceReview": 1,
+          "iepDate": "$lastReviewTime",
+          "iepLevel": "Enhanced",
+          "iepCode": "ENH",
+          "nextReviewDate": "$nextReviewDate",
+          "iepDetails": [
             {
-             "bookingId":$bookingId,
-             "prisonerNumber": $prisonerNumber,
-             "daysSinceReview":1,
-             "iepDate":"$lastReviewTime",
-             "iepLevel":"Enhanced",
-             "iepCode": "ENH",
-             "nextReviewDate":"$nextReviewDate",
-             "iepDetails":[
-                {
-                   "prisonerNumber": $prisonerNumber,
-                   "bookingId":$bookingId,
-                   "iepDate":"$lastReviewTime",
-                   "agencyId": $prisonId,
-                   "iepLevel":"Enhanced",
-                   "iepCode": "ENH",
-                   "comments":"A different comment",
-                   "userId":"DIFFERENT_USER",
-                   "reviewType": "REVIEW",
-                   "auditModuleName":"INCENTIVES_API"
-                },
-                {
-                   "prisonerNumber": $prisonerNumber,
-                   "bookingId":$bookingId,
-                   "iepDate":"$previousReviewTime",
-                   "agencyId": $prisonId,
-                   "iepLevel":"Basic",
-                   "iepCode": "BAS",
-                   "comments":"Basic Level",
-                   "userId":"INCENTIVES_ADM",
-                   "reviewType": "INITIAL",
-                   "auditModuleName":"INCENTIVES_API"
-                }
-
-             ]
-          }
-          """,
+              "prisonerNumber": $prisonerNumber,
+              "bookingId": $bookingId,
+              "iepDate": "$lastReviewTime",
+              "agencyId": $prisonId,
+              "iepLevel": "Enhanced",
+              "iepCode": "ENH",
+              "comments": "A different comment",
+              "userId": "DIFFERENT_USER",
+              "reviewType": "REVIEW",
+              "auditModuleName": "INCENTIVES_API"
+            },
+            {
+              "prisonerNumber": $prisonerNumber,
+              "bookingId": $bookingId,
+              "iepDate": "$previousReviewTime",
+              "agencyId": $prisonId,
+              "iepLevel": "Basic",
+              "iepCode": "BAS",
+              "comments": "Basic Level",
+              "userId": "INCENTIVES_ADM",
+              "reviewType": "INITIAL",
+              "auditModuleName": "INCENTIVES_API"
+            }
+          ]
+        }
+        """,
+        JsonCompareMode.LENIENT,
       )
   }
 
@@ -240,18 +244,20 @@ class ManageIncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
       .exchange()
       .expectStatus().isOk
       .expectBody().json(
+        // language=json
         """
-          [
-            {
-             "bookingId": 3330000,
-             "iepLevel": "Standard"
-             },
-               {
-             "bookingId": 3330001,
-             "iepLevel": "Enhanced"
-              }
-          ]
-          """,
+        [
+          {
+            "bookingId": 3330000,
+            "iepLevel": "Standard"
+          },
+          {
+            "bookingId": 3330001,
+            "iepLevel": "Enhanced"
+          }
+        ]
+        """,
+        JsonCompareMode.LENIENT,
       )
   }
 }
