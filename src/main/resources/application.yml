@@ -35,9 +35,12 @@ spring:
             token-uri: ${api.base.url.oauth}/oauth/token
 
   jackson:
-    date-format: "yyyy-MM-dd HH:mm:ss"
+    date-format: "yyyy-MM-dd'T'HH:mm:ssZ"
     serialization:
-      WRITE_DATES_AS_TIMESTAMPS: false
+      write-dates-as-timestamps: false
+      write-dates-with-context-time-zone: true
+      write-dates-with-zone-id: true
+    time-zone: "Europe/London"
 
   devtools:
     add-properties: false

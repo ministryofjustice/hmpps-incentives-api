@@ -12,6 +12,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import org.springframework.test.json.JsonCompareMode
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.helper.expectErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.IncentiveLevelResourceTestBase
@@ -252,7 +253,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
             "locationDescription": "Houseblock 1"
           }
         """,
-        true,
+        JsonCompareMode.STRICT,
       )
   }
 
@@ -339,7 +340,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
             "locationDescription": "Unknown location"
           }
         """,
-        true,
+        JsonCompareMode.STRICT,
       )
   }
 

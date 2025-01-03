@@ -18,6 +18,7 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.http.HttpStatus
+import org.springframework.test.json.JsonCompareMode
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorCode
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
@@ -117,7 +118,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
               }
             ]
             """,
-            true,
+            JsonCompareMode.STRICT,
           )
       }
 
@@ -154,7 +155,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
               }
             ]
             """,
-            true,
+            JsonCompareMode.STRICT,
           )
       }
     }
@@ -178,7 +179,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
               "visitOrders": 2, "privilegedVisitOrders": 1
             }
             """,
-            true,
+            JsonCompareMode.STRICT,
           )
       }
 
@@ -197,7 +198,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
               "visitOrders": 2, "privilegedVisitOrders": 1
             }
             """,
-            true,
+            JsonCompareMode.STRICT,
           )
       }
 
@@ -264,7 +265,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
               "visitOrders": 3, "privilegedVisitOrders": 2
             }
             """,
-            true,
+            JsonCompareMode.STRICT,
           )
 
         runBlocking {
@@ -320,7 +321,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
               "visitOrders": 2, "privilegedVisitOrders": 1
             }
             """,
-            true,
+            JsonCompareMode.STRICT,
           )
 
         runBlocking {
@@ -803,7 +804,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
               "visitOrders": 3, "privilegedVisitOrders": 1
             }
             """,
-            true,
+            JsonCompareMode.STRICT,
           )
 
         runBlocking {
@@ -860,7 +861,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
               "visitOrders": 2, "privilegedVisitOrders": 1
             }
             """,
-            true,
+            JsonCompareMode.STRICT,
           )
 
         runBlocking {
@@ -1371,7 +1372,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
               }
             ]
             """,
-            true,
+            JsonCompareMode.STRICT,
           )
 
         runBlocking {
@@ -1458,7 +1459,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
               }
             ]
             """,
-            true,
+            JsonCompareMode.STRICT,
           )
 
         runBlocking {
@@ -1518,7 +1519,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
               }
             ]
             """,
-            true,
+            JsonCompareMode.STRICT,
           )
 
         runBlocking {
@@ -1613,7 +1614,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
               }
             ]
             """,
-            true,
+            JsonCompareMode.STRICT,
           )
 
         runBlocking {
@@ -1711,7 +1712,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
             """
             []
             """,
-            true,
+            JsonCompareMode.STRICT,
           )
 
         runBlocking {
@@ -1762,7 +1763,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
               }
             ]
             """,
-            true,
+            JsonCompareMode.STRICT,
           )
 
         runBlocking {
@@ -1815,7 +1816,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
               }
             ]
             """,
-            true,
+            JsonCompareMode.STRICT,
           )
 
         runBlocking {
@@ -1879,7 +1880,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
               }
             ]
             """,
-            true,
+            JsonCompareMode.STRICT,
           )
 
         runBlocking {
@@ -2002,7 +2003,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
               "visitOrders": 2, "privilegedVisitOrders": 1
             }
             """,
-            true,
+            JsonCompareMode.STRICT,
           )
 
         runBlocking {
