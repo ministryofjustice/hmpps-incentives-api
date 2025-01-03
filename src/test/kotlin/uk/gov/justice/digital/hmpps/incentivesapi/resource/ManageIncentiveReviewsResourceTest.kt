@@ -44,7 +44,7 @@ class ManageIncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
   }
 
   @Test
-  fun `add incentive Level fails without write scope`() {
+  fun `add incentive review fails without write scope`() {
     val bookingId = 3330000L
 
     webTestClient.post().uri("/incentive-reviews/booking/$bookingId")
@@ -55,7 +55,7 @@ class ManageIncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
   }
 
   @Test
-  fun `add incentive Level fails without correct role`() {
+  fun `add incentive review fails without correct role`() {
     val bookingId = 3330000L
 
     webTestClient.post().uri("/incentive-reviews/booking/$bookingId")
@@ -79,7 +79,7 @@ class ManageIncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
   }
 
   @Test
-  fun `add incentive Level for a prisoner by booking Id`() {
+  fun `add incentive review for a prisoner by booking id`() {
     val bookingId = 3330000L
     val prisonerNumber = "A1234AC"
 
@@ -127,7 +127,7 @@ class ManageIncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
   }
 
   @Test
-  fun `add incentive Level for a prisoner by noms`() {
+  fun `add incentive review for a prisoner by prisoner number`() {
     val bookingId = 1294134L
     val prisonerNumber = "A1244AB"
     val prisonId = "MDI"
@@ -201,7 +201,7 @@ class ManageIncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
   }
 
   @Test
-  fun `Retrieve list of Incentive Reviews from incentives DB`() {
+  fun `retrieve list of incentive reviews from incentives DB`() {
     val bookingId = 3330000L
     val prisonerNumber = "A1234AC"
 
