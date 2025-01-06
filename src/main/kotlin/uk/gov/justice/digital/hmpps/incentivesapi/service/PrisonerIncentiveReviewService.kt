@@ -28,7 +28,6 @@ import uk.gov.justice.hmpps.kotlin.auth.HmppsReactiveAuthenticationHolder
 import java.time.Clock
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.function.Supplier
 
 @Service
 class PrisonerIncentiveReviewService(
@@ -389,10 +388,4 @@ class PrisonerIncentiveReviewService(
   }
 }
 
-class IncentiveReviewNotFoundException(message: String?) :
-  RuntimeException(message),
-  Supplier<IncentiveReviewNotFoundException> {
-  override fun get(): IncentiveReviewNotFoundException {
-    return IncentiveReviewNotFoundException(message)
-  }
-}
+class IncentiveReviewNotFoundException(message: String) : RuntimeException(message)
