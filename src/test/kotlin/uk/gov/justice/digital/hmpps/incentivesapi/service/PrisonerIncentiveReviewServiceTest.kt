@@ -31,6 +31,7 @@ import java.time.Clock
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 @DisplayName("Prisoner incentive reviews service")
@@ -112,7 +113,7 @@ class PrisonerIncentiveReviewServiceTest {
     }
 
     @Test
-    fun `addIepReview() by prisonerNumber`(): Unit = runBlocking {
+    fun `addIncentiveReview() by prisoner number`(): Unit = runBlocking {
       // Given
       whenever(prisonApiService.getPrisonerInfo(prisonerNumber)).thenReturn(prisonerInfo)
 
@@ -123,7 +124,7 @@ class PrisonerIncentiveReviewServiceTest {
     }
 
     @Test
-    fun `addIepReview() by bookingId`(): Unit = runBlocking {
+    fun `addIncentiveReview() by booking id`(): Unit = runBlocking {
       // Given
       whenever(prisonApiService.getPrisonerInfo(bookingId)).thenReturn(prisonerInfo)
 
@@ -163,7 +164,7 @@ class PrisonerIncentiveReviewServiceTest {
     }
 
     @Test
-    fun `update multiple IepLevels with current flag`(): Unit = runBlocking {
+    fun `update multiple reviews with current flag`(): Unit = runBlocking {
       // Given
       whenever(prisonApiService.getPrisonerInfo(bookingId)).thenReturn(prisonerInfo)
 
@@ -355,9 +356,9 @@ class PrisonerIncentiveReviewServiceTest {
     }
 
     @Test
-    fun `process MERGE event`(): Unit = runBlocking {
+    fun `process merge event`(): Unit = runBlocking {
       // Given - default for that prison is Enhanced
-      val prisonMergeEvent = prisonMergeEvent()
+      val prisonerMergedEvent = prisonerMergedEvent()
       val prisonerAtLocation = prisonerAtLocation(
         bookingId = 1234567,
         offenderNo = "A1244AB",
@@ -406,7 +407,6 @@ class PrisonerIncentiveReviewServiceTest {
             newReview,
           ),
         )
-
       whenever(incentiveReviewRepository.findAllByPrisonerNumberOrderByReviewTimeDesc("A1244AB"))
         .thenReturn(
           flowOf(
@@ -414,7 +414,8 @@ class PrisonerIncentiveReviewServiceTest {
             oldReview1,
           ),
         )
-      prisonerIncentiveReviewService.mergedPrisonerDetails(prisonMergeEvent)
+
+      prisonerIncentiveReviewService.mergedPrisonerDetails(prisonerMergedEvent)
 
       verify(incentiveStoreService).updateMergedReviews(
         listOf(
@@ -435,7 +436,45 @@ class PrisonerIncentiveReviewServiceTest {
     }
 
     @Test
-    fun `do not create IEP level if prisonerNumber is null`(): Unit = runBlocking {
+    fun `process booking moved event`(): Unit = runBlocking {
+      val currentReview = IncentiveReview(
+        id = 10L,
+        prisonerNumber = "A8765SS",
+        bookingId = 1234567L,
+        prisonId = "LEI",
+        reviewedBy = "TEST_STAFF1",
+        levelCode = "ENH",
+        current = true,
+        reviewTime = LocalDateTime.now(clock).minusDays(1),
+      )
+      val olderReview = IncentiveReview(
+        id = 9L,
+        prisonerNumber = "A8765SS",
+        bookingId = 1234567L,
+        prisonId = "LEI",
+        reviewedBy = "TEST_STAFF1",
+        levelCode = "STD",
+        current = false,
+        reviewTime = LocalDateTime.now(clock).minusDays(2),
+      )
+      whenever(incentiveReviewRepository.findAllByBookingIdOrderByReviewTimeDesc(1234567))
+        .thenReturn(flowOf(currentReview, olderReview))
+      whenever(incentiveReviewRepository.saveAll(any<List<IncentiveReview>>()))
+        .thenReturn(flowOf())
+
+      val event = bookingMovedEvent()
+      prisonerIncentiveReviewService.processBookingMovedEvent(event)
+
+      verify(incentiveReviewRepository).saveAll(
+        listOf(
+          currentReview.copy(prisonerNumber = "A1244AB"),
+          olderReview.copy(prisonerNumber = "A1244AB"),
+        ),
+      )
+    }
+
+    @Test
+    fun `do not create review if prisoner number is null`(): Unit = runBlocking {
       // Given
       val prisonOffenderEvent = HMPPSDomainEvent(
         eventType = "prisoner-offender-search.prisoner.received",
@@ -550,7 +589,7 @@ class PrisonerIncentiveReviewServiceTest {
     }
 
     @Test
-    fun `If deleted IEP review had current = true, set the latest IEP review current flag to true`(): Unit =
+    fun `if deleted IEP review had current = true, set the latest IEP review current flag to true`(): Unit =
       runBlocking {
         // Prisoner had few IEP reviews
         val currentIepReview = incentiveRecord.copy(current = true)
@@ -572,7 +611,7 @@ class PrisonerIncentiveReviewServiceTest {
       }
 
     @Test
-    fun `If deleted IEP review had current = false, doesn't update latest IEP review`(): Unit =
+    fun `if deleted IEP review had current = false, doesn't update latest IEP review`(): Unit =
       runBlocking {
         // Prisoner had few IEP reviews
         val currentIepReview = incentiveRecord.copy(current = false)
@@ -696,7 +735,7 @@ class PrisonerIncentiveReviewServiceTest {
     }
 
     @Test
-    fun `If request has current true we update the previous IEP Level with current of true`(): Unit = runBlocking {
+    fun `if request has current true we update the previous IEP Level with current of true`(): Unit = runBlocking {
       // Given
       val updatedIncentiveRecord = incentiveRecord.copy(current = true)
       val update = IncentiveRecordUpdate(
@@ -778,7 +817,7 @@ class PrisonerIncentiveReviewServiceTest {
     description = "A prisoner record has been updated",
   )
 
-  private fun prisonMergeEvent() = HMPPSDomainEvent(
+  private fun prisonerMergedEvent() = HMPPSDomainEvent(
     eventType = "prison-offender-events.prisoner.merged",
     additionalInformation = AdditionalInformation(
       nomsNumber = "A1244AB",
@@ -787,6 +826,19 @@ class PrisonerIncentiveReviewServiceTest {
     ),
     occurredAt = Instant.now(),
     description = "A prisoner has been merged from A8765SS to A1244AB",
+  )
+
+  private fun bookingMovedEvent(bookingStartDateTime: LocalDateTime? = null) = HMPPSBookingMovedDomainEvent(
+    eventType = "prison-offender-events.prisoner.booking.moved",
+    additionalInformation = AdditionalInformationBookingMoved(
+      bookingId = 1234567,
+      movedFromNomsNumber = "A8765SS",
+      movedToNomsNumber = "A1244AB",
+      bookingStartDateTime = bookingStartDateTime,
+    ),
+    occurredAt = ZonedDateTime.now(clock),
+    version = "1.0",
+    description = "a NOMIS booking has moved between prisoners",
   )
 
   private fun iepDetailFromIepLevel(

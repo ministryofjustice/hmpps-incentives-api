@@ -25,13 +25,18 @@ class PrisonOffenderEventListener(
     val eventType = messageAttributes.eventType.Value
     log.info("Received message $message, type $eventType")
 
-    val hmppsDomainEvent = mapper.readValue(message, HMPPSDomainEvent::class.java)
     when (eventType) {
       "prisoner-offender-search.prisoner.received", "prison-offender-events.prisoner.merged" -> {
+        val hmppsDomainEvent = mapper.readValue(message, HMPPSDomainEvent::class.java)
         prisonerIncentiveReviewService.processOffenderEvent(hmppsDomainEvent)
       }
       "prisoner-offender-search.prisoner.alerts-updated" -> {
+        val hmppsDomainEvent = mapper.readValue(message, HMPPSDomainEvent::class.java)
         prisonerIncentiveReviewService.processPrisonerAlertsUpdatedEvent(hmppsDomainEvent)
+      }
+      "prison-offender-events.prisoner.booking.moved" -> {
+        val hmppsDomainEvent = mapper.readValue(message, HMPPSBookingMovedDomainEvent::class.java)
+        prisonerIncentiveReviewService.processBookingMovedEvent(hmppsDomainEvent)
       }
       else -> {
         log.debug("Ignoring message with type $eventType")

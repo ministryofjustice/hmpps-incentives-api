@@ -13,6 +13,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 @Service
@@ -94,6 +95,21 @@ data class HMPPSDomainEvent(
     description,
   )
 }
+
+data class HMPPSBookingMovedDomainEvent(
+  val eventType: String? = null,
+  val additionalInformation: AdditionalInformationBookingMoved,
+  val version: String,
+  val occurredAt: ZonedDateTime,
+  val description: String,
+)
+
+data class AdditionalInformationBookingMoved(
+  val bookingId: Long,
+  val movedFromNomsNumber: String,
+  val movedToNomsNumber: String,
+  val bookingStartDateTime: LocalDateTime?,
+)
 
 enum class IncentivesDomainEventType(val value: String) {
   IEP_REVIEW_INSERTED("incentives.iep-review.inserted"),

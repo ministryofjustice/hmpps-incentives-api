@@ -47,8 +47,9 @@ hmpps.sqs:
       subscribeTopicId: domainevents
       subscribeFilter: >-
         {"eventType": [
-          "prison-offender-events.prisoner.merged", 
-          "prisoner-offender-search.prisoner.received", 
+          "prison-offender-events.prisoner.merged",
+          "prison-offender-events.prisoner.booking.moved",
+          "prisoner-offender-search.prisoner.received",
           "prisoner-offender-search.prisoner.alerts-updated"
         ]}
     test:

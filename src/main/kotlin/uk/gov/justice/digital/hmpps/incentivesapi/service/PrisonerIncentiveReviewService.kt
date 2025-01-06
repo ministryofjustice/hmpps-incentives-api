@@ -373,6 +373,20 @@ class PrisonerIncentiveReviewService(
       log.info("No incentive records found for $removedPrisonerNumber, no records updated")
     }
   }
+
+  @Transactional
+  suspend fun processBookingMovedEvent(bookingMovedEvent: HMPPSBookingMovedDomainEvent) {
+    val bookingId = bookingMovedEvent.additionalInformation.bookingId
+    val removedPrisonerNumber = bookingMovedEvent.additionalInformation.movedFromNomsNumber
+    val remainingPrisonerNumber = bookingMovedEvent.additionalInformation.movedToNomsNumber
+    log.info("Moving incentive reviews for booking $bookingId from $removedPrisonerNumber to $remainingPrisonerNumber")
+    incentiveReviewRepository.saveAll(
+      incentiveReviewRepository.findAllByBookingIdOrderByReviewTimeDesc(bookingId)
+        .toList()
+        .filter { it.prisonerNumber == removedPrisonerNumber }
+        .onEach { it.prisonerNumber = remainingPrisonerNumber },
+    ).collect {}
+  }
 }
 
 class IncentiveReviewNotFoundException(message: String?) :
