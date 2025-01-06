@@ -17,7 +17,11 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 @Service
-class SnsService(hmppsQueueService: HmppsQueueService, private val objectMapper: ObjectMapper) {
+class SnsService(
+  hmppsQueueService: HmppsQueueService,
+  private val objectMapper: ObjectMapper,
+  private val zoneId: ZoneId,
+) {
   companion object {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
   }
@@ -39,7 +43,7 @@ class SnsService(hmppsQueueService: HmppsQueueService, private val objectMapper:
       HMPPSDomainEvent(
         eventType.value,
         additionalInformation,
-        occurredAt.atZone(ZoneId.systemDefault()).toInstant(),
+        occurredAt.atZone(zoneId).toInstant(),
         description,
       ),
     )
