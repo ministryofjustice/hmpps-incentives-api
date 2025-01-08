@@ -170,8 +170,10 @@ class PrisonerIncentiveReviewService(
     }
   }
 
-  @Transactional
-  suspend fun createIncentiveReviewForReceivedPrisoner(prisonOffenderEvent: HMPPSDomainEvent, reviewType: ReviewType) {
+  private suspend fun createIncentiveReviewForReceivedPrisoner(
+    prisonOffenderEvent: HMPPSDomainEvent,
+    reviewType: ReviewType,
+  ) {
     prisonOffenderEvent.additionalInformation?.nomsNumber?.let {
       val prisonerInfo = prisonApiService.getPrisonerInfo(it, true)
       val iepLevel = getIncentiveLevelForReviewType(prisonerInfo, reviewType)
@@ -271,7 +273,7 @@ class PrisonerIncentiveReviewService(
     return incentiveReviewSummary
   }
 
-  suspend fun addIncentiveReviewForPrisonerAtLocation(
+  private suspend fun addIncentiveReviewForPrisonerAtLocation(
     prisonerInfo: PrisonerInfo,
     createIncentiveReviewRequest: CreateIncentiveReviewRequest,
   ): IncentiveReviewDetail {
