@@ -28,7 +28,6 @@ import uk.gov.justice.hmpps.kotlin.auth.HmppsReactiveAuthenticationHolder
 import java.time.Clock
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.function.Supplier
 
 @Service
 class PrisonerIncentiveReviewService(
@@ -136,6 +135,7 @@ class PrisonerIncentiveReviewService(
     incentiveReviewRepository.findById(id)?.toIncentiveReviewDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
       ?: throw NoDataFoundException(id)
 
+  @Transactional
   suspend fun processOffenderEvent(prisonOffenderEvent: HMPPSDomainEvent) =
     when (prisonOffenderEvent.additionalInformation?.reason) {
       "NEW_ADMISSION" -> createIncentiveReviewForReceivedPrisoner(prisonOffenderEvent, ReviewType.INITIAL)
@@ -170,7 +170,10 @@ class PrisonerIncentiveReviewService(
     }
   }
 
-  private suspend fun createIncentiveReviewForReceivedPrisoner(prisonOffenderEvent: HMPPSDomainEvent, reviewType: ReviewType) {
+  private suspend fun createIncentiveReviewForReceivedPrisoner(
+    prisonOffenderEvent: HMPPSDomainEvent,
+    reviewType: ReviewType,
+  ) {
     prisonOffenderEvent.additionalInformation?.nomsNumber?.let {
       val prisonerInfo = prisonApiService.getPrisonerInfo(it, true)
       val iepLevel = getIncentiveLevelForReviewType(prisonerInfo, reviewType)
@@ -270,7 +273,7 @@ class PrisonerIncentiveReviewService(
     return incentiveReviewSummary
   }
 
-  suspend fun addIncentiveReviewForPrisonerAtLocation(
+  private suspend fun addIncentiveReviewForPrisonerAtLocation(
     prisonerInfo: PrisonerInfo,
     createIncentiveReviewRequest: CreateIncentiveReviewRequest,
   ): IncentiveReviewDetail {
@@ -371,12 +374,20 @@ class PrisonerIncentiveReviewService(
       log.info("No incentive records found for $removedPrisonerNumber, no records updated")
     }
   }
-}
 
-class IncentiveReviewNotFoundException(message: String?) :
-  RuntimeException(message),
-  Supplier<IncentiveReviewNotFoundException> {
-  override fun get(): IncentiveReviewNotFoundException {
-    return IncentiveReviewNotFoundException(message)
+  @Transactional
+  suspend fun processBookingMovedEvent(bookingMovedEvent: HMPPSBookingMovedDomainEvent) {
+    val bookingId = bookingMovedEvent.additionalInformation.bookingId
+    val removedPrisonerNumber = bookingMovedEvent.additionalInformation.movedFromNomsNumber
+    val remainingPrisonerNumber = bookingMovedEvent.additionalInformation.movedToNomsNumber
+    log.info("Moving incentive reviews for booking $bookingId from $removedPrisonerNumber to $remainingPrisonerNumber")
+    incentiveReviewRepository.saveAll(
+      incentiveReviewRepository.findAllByBookingIdOrderByReviewTimeDesc(bookingId)
+        .toList()
+        .filter { it.prisonerNumber == removedPrisonerNumber }
+        .onEach { it.prisonerNumber = remainingPrisonerNumber },
+    ).collect {}
   }
 }
+
+class IncentiveReviewNotFoundException(message: String) : RuntimeException(message)

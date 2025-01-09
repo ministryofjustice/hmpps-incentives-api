@@ -62,6 +62,15 @@ class PrisonOffenderEventListenerTest {
   }
 
   @Test
+  fun `process booking moved message`(): Unit = runBlocking {
+    // When
+    listener.onPrisonOffenderEvent("/messages/bookingMoved.json".readResourceAsText())
+
+    // Then
+    verify(prisonerIncentiveReviewService, times(1)).processBookingMovedEvent(any())
+  }
+
+  @Test
   fun `process prisoner alerts updated message`(): Unit = runBlocking {
     // When
     listener.onPrisonOffenderEvent("/messages/prisonerAlertsUpdated.json".readResourceAsText())

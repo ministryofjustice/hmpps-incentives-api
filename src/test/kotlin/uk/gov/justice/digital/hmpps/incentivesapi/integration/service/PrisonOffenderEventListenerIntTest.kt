@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.integration.service
 
+import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.await
@@ -21,10 +22,14 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.NextReviewDateRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.service.AdditionalInformation
+import uk.gov.justice.digital.hmpps.incentivesapi.service.AdditionalInformationBookingMoved
+import uk.gov.justice.digital.hmpps.incentivesapi.service.HMPPSBookingMovedDomainEvent
 import uk.gov.justice.digital.hmpps.incentivesapi.service.HMPPSDomainEvent
+import uk.gov.justice.digital.hmpps.incentivesapi.util.flow.toMap
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 @DisplayName("Event listener for prisoner-offender-search, integration tests")
 class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
@@ -157,6 +162,92 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
   }
 
   @Test
+  fun `booking moved event is processed`(): Unit = runBlocking {
+    // Given
+    val bookingId = 1294133L
+    val oldPrisonerNumber = "A1244AB"
+    val newPrisonerNumber = "A4432FD"
+
+    // will have prisoner number changed
+    var review1 = incentiveReviewRepository.save(
+      IncentiveReview(
+        bookingId = bookingId,
+        prisonerNumber = oldPrisonerNumber,
+        prisonId = "LEI",
+        reviewedBy = "TEST_STAFF1",
+        levelCode = "STD",
+        current = true,
+        reviewTime = LocalDateTime.now().minusDays(1),
+      ),
+    )
+    // will have prisoner number changed
+    var review2 = incentiveReviewRepository.save(
+      IncentiveReview(
+        bookingId = bookingId,
+        prisonerNumber = oldPrisonerNumber,
+        prisonId = "LEI",
+        reviewedBy = "TEST_STAFF1",
+        levelCode = "BAS",
+        current = false,
+        reviewTime = LocalDateTime.now().minusDays(2),
+      ),
+    )
+    // will NOT have prisoner number changed as previous booking
+    var review3 = incentiveReviewRepository.save(
+      IncentiveReview(
+        bookingId = 1000245L,
+        prisonerNumber = oldPrisonerNumber,
+        prisonId = "MDI",
+        reviewedBy = "TEST_STAFF2",
+        levelCode = "STD",
+        current = true,
+        reviewTime = LocalDateTime.now().minusDays(200),
+      ),
+    )
+    // will remain as is because previous booking under correct prisoner number
+    var review4 = incentiveReviewRepository.save(
+      IncentiveReview(
+        bookingId = 1294130L,
+        prisonerNumber = newPrisonerNumber,
+        prisonId = "LEI",
+        reviewedBy = "TEST_STAFF2",
+        levelCode = "STD",
+        current = true,
+        reviewTime = LocalDateTime.now().minusDays(1),
+      ),
+    )
+
+    // When
+    publishBookingMovedMessage(
+      AdditionalInformationBookingMoved(
+        bookingId = bookingId,
+        movedFromNomsNumber = oldPrisonerNumber,
+        movedToNomsNumber = newPrisonerNumber,
+        bookingStartDateTime = null,
+      ),
+    )
+
+    awaitAtMost30Secs untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
+    awaitAtMost30Secs untilCallTo {
+      runBlocking {
+        incentiveReviewRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(newPrisonerNumber)
+          .count()
+      }
+    } matches { it == 3 }
+
+    val reviews = incentiveReviewRepository.findAll().toMap { it.id }
+    review1 = reviews[review1.id]!!
+    review2 = reviews[review2.id]!!
+    review3 = reviews[review3.id]!!
+    review4 = reviews[review4.id]!!
+    assertThat(review1.prisonerNumber).isEqualTo(newPrisonerNumber)
+    assertThat(review2.prisonerNumber).isEqualTo(newPrisonerNumber)
+    assertThat(review3.prisonerNumber).isEqualTo(oldPrisonerNumber)
+    assertThat(review4.prisonerNumber).isEqualTo(newPrisonerNumber)
+    assertThat(review4.current).isTrue()
+  }
+
+  @Test
   fun `process PRISONER ALERTS UPDATED domain events`(): Unit = runBlocking {
     // Given
     val bookingId = 1294134L
@@ -278,4 +369,27 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
         .build(),
     )
   }
+
+  private fun publishBookingMovedMessage(additionalInformation: AdditionalInformationBookingMoved) =
+    domainEventsTopicSnsClient.publish(
+      PublishRequest.builder()
+        .topicArn(domainEventsTopicArn)
+        .message(
+          jsonString(
+            HMPPSBookingMovedDomainEvent(
+              eventType = "prison-offender-events.prisoner.booking.moved",
+              additionalInformation = additionalInformation,
+              occurredAt = ZonedDateTime.now(),
+              version = "1.0",
+              description = "a NOMIS booking has moved between prisoners",
+            ),
+          ),
+        )
+        .messageAttributes(
+          mapOf(
+            "eventType" to MessageAttributeValue.builder().dataType("String").stringValue("prison-offender-events.prisoner.booking.moved").build(),
+          ),
+        )
+        .build(),
+    )
 }
