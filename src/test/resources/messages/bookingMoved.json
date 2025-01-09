@@ -1,0 +1,13 @@
+{
+  "Type": "Notification",
+  "MessageId": "5b90ee7d-67bc-5959-a4d8-b7d420180853",
+  "TopicArn": "arn:aws:sns:eu-west-2:754256621582:cloud-platform-Digital-Prison-Services-f221e27fcfcf78f6ab4f4c3cc165eee7",
+  "Message": "{\"version\":\"1.0\",\"eventType\":\"prison-offender-events.prisoner.booking.moved\",\"occurredAt\":\"2023-07-15T12:34:56+00:00\",\"publishedAt\":\"2023-07-15T12:34:57+00:00\",\"description\":\"a NOMIS booking has moved between prisoners\",\"personReference\":{\"identifiers\":[{\"type\":\"NOMS\",\"value\":\"B8888CC\"}]},\"additionalInformation\":{\"bookingId\":\"123000\",\"movedToNomsNumber\":\"B8888CC\",\"movedFromNomsNumber\":\"A7777BB\",\"bookingStartDateTime\":\"2023-07-13T09:10:32\"}}",
+  "Timestamp": "2021-09-01T09:18:28.725Z",
+  "MessageAttributes": {
+    "eventType": {
+      "Type": "String",
+      "Value": "prison-offender-events.prisoner.booking.moved"
+    }
+  }
+}
