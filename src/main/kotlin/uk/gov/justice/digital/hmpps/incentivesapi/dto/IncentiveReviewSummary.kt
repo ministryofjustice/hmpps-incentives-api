@@ -114,7 +114,7 @@ data class CreateIncentiveReviewRequest(
   @Schema(description = "Review Type", example = "REVIEW", required = false, defaultValue = "REVIEW")
   val reviewType: ReviewType? = ReviewType.REVIEW,
 
-  @Schema(description = "Date and time of the review, if not provided will default to today's time", required = false, example = "2023-06-07", defaultValue = "now")
+  @Schema(description = "Date and time of the review, if not provided will default to now", required = false, example = "2023-06-07T13:05:46")
   val reviewTime: LocalDateTime? = null,
 
   @Schema(description = "The username of the member of staff undertaking the review, if not provided will use the user in the JWT access token", required = false, example = "ASMITH", minLength = 1, maxLength = 30)

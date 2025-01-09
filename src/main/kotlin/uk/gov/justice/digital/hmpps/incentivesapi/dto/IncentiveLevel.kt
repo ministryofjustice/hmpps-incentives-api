@@ -13,10 +13,10 @@ data class IncentiveLevel(
   @Schema(description = "Name of the incentive level", example = "Standard", minLength = 1, maxLength = 30)
   @JsonProperty(required = true)
   val name: String,
-  @Schema(description = "Indicates that the incentive level is active; inactive levels are historic levels no longer in use", example = "true", defaultValue = "true")
+  @Schema(description = "Indicates that the incentive level is active (true if not supplied); inactive levels are historic levels no longer in use", example = "true")
   @JsonProperty(required = false, defaultValue = "true")
   val active: Boolean = true,
-  @Schema(description = "Indicates that all prisons must have this level active", example = "true", defaultValue = "false")
+  @Schema(description = "Indicates that all prisons must have this level active (false if not supplied)", example = "false")
   @JsonProperty(required = false, defaultValue = "false")
   val required: Boolean = false,
 ) {
