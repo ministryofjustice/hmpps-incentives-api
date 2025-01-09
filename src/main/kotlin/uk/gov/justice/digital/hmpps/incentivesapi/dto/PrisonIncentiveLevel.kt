@@ -17,10 +17,10 @@ data class PrisonIncentiveLevel(
   @Schema(description = "The prison this refers to", example = "MDI", minLength = 1, maxLength = 6)
   @JsonProperty(required = true)
   val prisonId: String,
-  @Schema(description = "Indicates that this incentive level is enabled in this prison", example = "true", defaultValue = "true")
+  @Schema(description = "Indicates that this incentive level is enabled in this prison (true if not supplied)", example = "true")
   @JsonProperty(required = false, defaultValue = "true")
   val active: Boolean = true,
-  @Schema(description = "Indicates that this incentive level is the default for new admissions", example = "true", defaultValue = "false")
+  @Schema(description = "Indicates that this incentive level is the default for new admissions (false if not supplied)", example = "false")
   @JsonProperty(required = false, defaultValue = "false")
   val defaultOnAdmission: Boolean = false,
 
