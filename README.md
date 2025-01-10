@@ -5,9 +5,9 @@
 [![Runbook](https://img.shields.io/badge/runbook-view-172B4D.svg?logo=confluence)](https://dsdmoj.atlassian.net/wiki/spaces/NOM/pages/1739325587/DPS+Runbook)
 [![API docs](https://img.shields.io/badge/API_docs_-view-85EA2D.svg?logo=swagger)](https://incentives-api-dev.hmpps.service.justice.gov.uk/webjars/swagger-ui/index.html?configUrl=/v3/api-docs)
 [![Event docs](https://img.shields.io/badge/Event_docs-view-85EA2D.svg)](https://studio.asyncapi.com/?url=https://raw.githubusercontent.com/ministryofjustice/hmpps-incentives-api/main/async-api.yml&readOnly)
-[![Repo standards badge](https://img.shields.io/badge/dynamic/json?color=blue&style=flat&logo=github&label=MoJ%20Compliant&query=%24.data%5B%3F%28%40.name%20%3D%3D%20%22hmpps-incentives-api%22%29%5D.status&url=https%3A%2F%2Foperations-engineering-reports.cloud-platform.service.justice.gov.uk%2Fgithub_repositories)](https://operations-engineering-reports.cloud-platform.service.justice.gov.uk/github_repositories#hmpps-incentives-api "Link to report")
 
-**Incentives Domain Microservice to own the incentives data for prisoners**
+This application is the REST api and database that owns incentive level information for prisons
+and prisoner incentive reviews.
 
 ## Running locally
 
@@ -16,30 +16,43 @@ For running locally against docker instances of the following services:
 - [prison-api](https://github.com/ministryofjustice/prison-api)
 - run this application independently e.g. in IntelliJ
 
-`docker-compose up --scale hmpps-incentives-api=0`
-
-## Running all services including this service
-
-`docker-compose up`
-
-## Running locally against T3 test services
-
-This is straight-forward as authentication is delegated down to the calling services.
-Environment variables to be set are as follows:
-
-```
-API_BASE_URL_OAUTH=https://sign-in-dev.hmpps.service.justice.gov.uk/auth
-API_BASE_URL_PRISON=https://prison-api-dev.prison.service.justice.gov.uk
-API_BASE_URL_OFFENDER_SEARCH=https://prisoner-search-dev.prison.service.justice.gov.uk
-INCENTIVES_API_CLIENT_ID=[choose a suitable hmpps-auth client]
-INCENTIVES_API_CLIENT_SECRET=
+```shell
+docker compose up --scale hmpps-incentives-api=0
 ```
 
-## Running integration tests
+### Running all services including this service
 
-Before running integration tests you need to start a localstack instance
+```shell
+docker compose up
+```
 
-`docker-compose up localstack`
+### Running locally against dev/T3 services
+
+This is straight-forward as authentication is delegated down to the calling services in `dev` environment.
+
+Use all environment variables starting with `API_BASE_URL_` from [helm chart values](./helm_deploy/values-dev.yaml).
+Choose a suitable hmpps-auth oauth client, for instance from kubernetes `hmpps-incentives-api` secret and add
+`INCENTIVES_API_CLIENT_ID` and `INCENTIVES_API_CLIENT_SECRET`.
+
+Start the database and other required services in docker with:
+
+```shell
+docker compose -f docker-compose-local.yml up
+```
+
+## Testing and linting
+
+Run unit and integration tests with:
+
+```shell
+./gradlew test
+```
+
+Run automatic lint fixes:
+
+```shell
+./gradlew ktlintformat
+```
 
 ## Publishing a received message to your local instance
 
