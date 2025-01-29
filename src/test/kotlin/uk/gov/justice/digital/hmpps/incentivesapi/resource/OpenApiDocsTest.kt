@@ -14,7 +14,7 @@ class OpenApiDocsTest : SqsIntegrationTestBase() {
   @Test
   fun `open api docs are available`() {
     webTestClient.get()
-      .uri("/webjars/swagger-ui/index.html?configUrl=/v3/api-docs")
+      .uri("/swagger-ui/index.html?configUrl=/v3/api-docs")
       .accept(MediaType.APPLICATION_JSON)
       .exchange()
       .expectStatus().isOk
@@ -28,7 +28,7 @@ class OpenApiDocsTest : SqsIntegrationTestBase() {
       .exchange()
       .expectStatus().is3xxRedirection
       .expectHeader().value("Location") {
-        assertThat(it).contains("/webjars/swagger-ui/index.html")
+        assertThat(it).contains("/swagger-ui/index.html")
       }
   }
 

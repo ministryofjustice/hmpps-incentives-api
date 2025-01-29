@@ -165,7 +165,11 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
     // assert that repository returns prison incentive levels in globally-defined order
     var returnedOrder = repository.findAllByPrisonId("MDI").toList()
     assertThat(returnedOrder.map { it.levelCode }).isEqualTo(listOf("BAS", "STD", "ENH", "EN2", "ENT"))
-    assertThat(returnedOrder.map { it.levelName }).isEqualTo(listOf("Basic", "Standard", "Enhanced", "Enhanced 2", "Entry"))
+    assertThat(
+      returnedOrder.map {
+        it.levelName
+      },
+    ).isEqualTo(listOf("Basic", "Standard", "Enhanced", "Enhanced 2", "Entry"))
     returnedOrder = repository.findAllByPrisonIdAndActiveIsTrue("MDI").toList()
     assertThat(returnedOrder.map { it.levelName }).isEqualTo(listOf("Basic", "Standard", "Enhanced", "Enhanced 2"))
   }
@@ -219,19 +223,20 @@ class PrisonIncentiveLevelRepositoryTest : TestBase() {
   }
 
   @Test
-  fun `does not join on incentive levels when calling standard auto-generated repository methods`(): Unit = runBlocking {
-    generateDefaultData()
+  fun `does not join on incentive levels when calling standard auto-generated repository methods`(): Unit =
+    runBlocking {
+      generateDefaultData()
 
-    repository.findAll().collect {
-      assertThat(it.levelName).isNull()
+      repository.findAll().collect {
+        assertThat(it.levelName).isNull()
+      }
+      val someId = repository.findAll().first().id
+      val someEntity = repository.findById(someId)!!
+      assertThat(someEntity.levelName).isNull()
+      repository.findAllById(listOf(someId)).collect {
+        assertThat(it.levelName).isNull()
+      }
     }
-    val someId = repository.findAll().first().id
-    val someEntity = repository.findById(someId)!!
-    assertThat(someEntity.levelName).isNull()
-    repository.findAllById(listOf(someId)).collect {
-      assertThat(it.levelName).isNull()
-    }
-  }
 
   @Test
   fun `loads default incentive level information in a prison`(): Unit = runBlocking {

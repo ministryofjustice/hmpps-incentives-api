@@ -35,23 +35,47 @@ class WebClientConfiguration(
   }
 
   @Bean
-  fun prisonWebClientClientCredentials(reactiveAuthorizedClientManager: ReactiveOAuth2AuthorizedClientManager, builder: WebClient.Builder): WebClient =
-    builder.reactiveAuthorisedWebClient(reactiveAuthorizedClientManager, registrationId = SYSTEM_USERNAME, url = prisonRootUri, healthTimeout)
+  fun prisonWebClientClientCredentials(
+    reactiveAuthorizedClientManager: ReactiveOAuth2AuthorizedClientManager,
+    builder: WebClient.Builder,
+  ): WebClient = builder.reactiveAuthorisedWebClient(
+    reactiveAuthorizedClientManager,
+    registrationId = SYSTEM_USERNAME,
+    url = prisonRootUri,
+    healthTimeout,
+  )
 
   @Bean
-  fun prisonHealthWebClient(builder: WebClient.Builder): WebClient = builder.reactiveHealthWebClient(prisonRootUri, healthTimeout)
+  fun prisonHealthWebClient(builder: WebClient.Builder): WebClient =
+    builder.reactiveHealthWebClient(prisonRootUri, healthTimeout)
 
   @Bean
-  fun locationsWebClient(reactiveAuthorizedClientManager: ReactiveOAuth2AuthorizedClientManager, builder: WebClient.Builder): WebClient =
-    builder.reactiveAuthorisedWebClient(reactiveAuthorizedClientManager, registrationId = SYSTEM_USERNAME, url = locationsUri, healthTimeout)
+  fun locationsWebClient(
+    reactiveAuthorizedClientManager: ReactiveOAuth2AuthorizedClientManager,
+    builder: WebClient.Builder,
+  ): WebClient = builder.reactiveAuthorisedWebClient(
+    reactiveAuthorizedClientManager,
+    registrationId = SYSTEM_USERNAME,
+    url = locationsUri,
+    healthTimeout,
+  )
 
   @Bean
-  fun locationsHealthWebClient(builder: WebClient.Builder): WebClient = builder.reactiveHealthWebClient(locationsUri, healthTimeout)
+  fun locationsHealthWebClient(builder: WebClient.Builder): WebClient =
+    builder.reactiveHealthWebClient(locationsUri, healthTimeout)
 
   @Bean
-  fun offenderSearchHealthWebClient(builder: WebClient.Builder): WebClient = builder.reactiveHealthWebClient(offenderSearchUri, healthTimeout)
+  fun offenderSearchHealthWebClient(builder: WebClient.Builder): WebClient =
+    builder.reactiveHealthWebClient(offenderSearchUri, healthTimeout)
 
   @Bean
-  fun offenderSearchWebClient(reactiveAuthorizedClientManager: ReactiveOAuth2AuthorizedClientManager, builder: WebClient.Builder): WebClient =
-    builder.reactiveAuthorisedWebClient(reactiveAuthorizedClientManager, registrationId = SYSTEM_USERNAME, url = offenderSearchUri, healthTimeout)
+  fun offenderSearchWebClient(
+    reactiveAuthorizedClientManager: ReactiveOAuth2AuthorizedClientManager,
+    builder: WebClient.Builder,
+  ): WebClient = builder.reactiveAuthorisedWebClient(
+    reactiveAuthorizedClientManager,
+    registrationId = SYSTEM_USERNAME,
+    url = offenderSearchUri,
+    healthTimeout,
+  )
 }

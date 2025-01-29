@@ -28,27 +28,29 @@ class BehaviourService(
     return BehaviourSummary(caseNoteCountsByType, lastRealReviews)
   }
 
-  private fun getCaseNoteUsageByLastReviewDate(caseNotesByType: List<PrisonerCaseNoteByTypeSubType>) =
-    caseNotesByType
-      .groupBy(PrisonerCaseNoteByTypeSubType::toKey)
-      .mapValues { cn ->
-        CaseNoteSummary(
-          key = cn.key,
-          totalCaseNotes = calcTypeCount(cn.value),
-          numSubTypeCount = calcTypeCount(cn.value.filter { cnc -> cnc.caseNoteSubType == behaviourCaseNoteMap[cn.key.caseNoteType] }),
-        )
-      }
+  private fun getCaseNoteUsageByLastReviewDate(caseNotesByType: List<PrisonerCaseNoteByTypeSubType>) = caseNotesByType
+    .groupBy(PrisonerCaseNoteByTypeSubType::toKey)
+    .mapValues { cn ->
+      CaseNoteSummary(
+        key = cn.key,
+        totalCaseNotes = calcTypeCount(cn.value),
+        numSubTypeCount = calcTypeCount(
+          cn.value.filter { cnc ->
+            cnc.caseNoteSubType == behaviourCaseNoteMap[cn.key.caseNoteType]
+          },
+        ),
+      )
+    }
 
   private fun calcTypeCount(caseNoteUsage: List<PrisonerCaseNoteByTypeSubType>): Int =
     caseNoteUsage.sumOf { it.numCaseNotes }
 
-  private fun getLastRealReviewForOffenders(reviews: List<IncentiveReview>) =
-    reviews
-      .groupBy { it.bookingId }
-      .mapValues { review ->
-        val latestRealReview = review.value.firstOrNull(IncentiveReview::isRealReview)
-        latestRealReview?.reviewTime
-      }
+  private fun getLastRealReviewForOffenders(reviews: List<IncentiveReview>) = reviews
+    .groupBy { it.bookingId }
+    .mapValues { review ->
+      val latestRealReview = review.value.firstOrNull(IncentiveReview::isRealReview)
+      latestRealReview?.reviewTime
+    }
 
   private fun truncateReviewDate(lastReviewTime: LocalDateTime?): LocalDateTime {
     val defaultReviewPeriod = LocalDateTime.now(clock).minusMonths(DEFAULT_MONTHS)

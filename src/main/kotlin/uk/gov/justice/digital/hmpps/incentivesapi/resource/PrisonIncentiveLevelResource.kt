@@ -31,8 +31,11 @@ class PrisonIncentiveLevelResource(
 ) {
   @GetMapping("{prisonId}")
   @Operation(
-    summary = "Lists incentive levels in this prison along with associated information, optionally including inactive ones",
-    description = "Inactive incentive levels in the prison were previously active at some point. Not all global inactive incentive levels are necessarily included. For the majority of use cases, inactive levels in a prison should be ignored.",
+    summary = "Lists incentive levels in this prison along with associated information, " +
+      "optionally including inactive ones",
+    description = "Inactive incentive levels in the prison were previously active at some point. " +
+      "Not all global inactive incentive levels are necessarily included. " +
+      "For the majority of use cases, inactive levels in a prison should be ignored.",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -59,7 +62,14 @@ class PrisonIncentiveLevelResource(
     @Schema(description = "Prison id", example = "MDI", required = true, minLength = 3, maxLength = 6)
     @PathVariable
     prisonId: String,
-    @Schema(description = "Include inactive prison incentive levels", example = "true", required = false, defaultValue = "false", type = "boolean", pattern = "^true|false$")
+    @Schema(
+      description = "Include inactive prison incentive levels",
+      example = "true",
+      required = false,
+      defaultValue = "false",
+      type = "boolean",
+      pattern = "^true|false$",
+    )
     @RequestParam(defaultValue = "false", value = "with-inactive", required = false)
     withInactive: Boolean = false,
   ): List<PrisonIncentiveLevel> {
@@ -73,7 +83,8 @@ class PrisonIncentiveLevelResource(
   @GetMapping("{prisonId}/level/{levelCode}")
   @Operation(
     summary = "Returns an incentive level in this prison along with associated information",
-    description = "Note that it may be inactive in the prison. For the majority of use cases, inactive levels in a prison should be ignored.",
+    description = "Note that it may be inactive in the prison. " +
+      "For the majority of use cases, inactive levels in a prison should be ignored.",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -338,7 +349,8 @@ class PrisonIncentiveLevelResource(
       ),
       ApiResponse(
         responseCode = "400",
-        description = "Incentive level is globally required or there are prisoners on this incentive level at this prison",
+        description = "Incentive level is globally required " +
+          "or there are prisoners on this incentive level at this prison",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
       ApiResponse(

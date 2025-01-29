@@ -35,7 +35,9 @@ class UpdateKpisTest {
   @BeforeEach
   fun setUp(): Unit = runBlocking {
     whenever(kpiService.getNumberOfPrisonersOverdue()).thenReturn(numberOfPrisonersOverdue)
-    whenever(kpiService.getNumberOfReviewsConductedAndPrisonersReviewed(today)).thenReturn(reviewsConductedPrisonersReviewed)
+    whenever(
+      kpiService.getNumberOfReviewsConductedAndPrisonersReviewed(today),
+    ).thenReturn(reviewsConductedPrisonersReviewed)
   }
 
   @Test

@@ -64,7 +64,9 @@ class IncentiveLevelResourceTestBase : SqsIntegrationTestBase() {
     val sqsClient = testDomainEventQueue.sqsClient
     await untilCallTo { sqsClient.countMessagesOnQueue(testDomainEventQueue.queueUrl).get() } matches { it == 1 }
 
-    val body = sqsClient.receiveMessage(ReceiveMessageRequest.builder().queueUrl(testDomainEventQueue.queueUrl).build()).get().messages()[0].body()
+    val body = sqsClient.receiveMessage(
+      ReceiveMessageRequest.builder().queueUrl(testDomainEventQueue.queueUrl).build(),
+    ).get().messages()[0].body()
     val (message, attributes) = objectMapper.readValue(body, HMPPSMessage::class.java)
     assertThat(attributes.eventType.Value).isEqualTo(eventType)
     val domainEvent = objectMapper.readValue(message, HMPPSDomainEvent::class.java)
@@ -76,7 +78,9 @@ class IncentiveLevelResourceTestBase : SqsIntegrationTestBase() {
   protected fun getPublishedDomainEvents(): List<HMPPSDomainEvent> {
     val sqsClient = testDomainEventQueue.sqsClient
     await untilCallTo { sqsClient.countMessagesOnQueue(testDomainEventQueue.queueUrl).get() } matches { it != 0 }
-    val request = ReceiveMessageRequest.builder().queueUrl(testDomainEventQueue.queueUrl).maxNumberOfMessages(10).build()
+    val request = ReceiveMessageRequest.builder().queueUrl(
+      testDomainEventQueue.queueUrl,
+    ).maxNumberOfMessages(10).build()
     return sqsClient.receiveMessage(request).get().messages()
       .map {
         val (message) = objectMapper.readValue(it.body(), HMPPSMessage::class.java)
@@ -93,7 +97,9 @@ class IncentiveLevelResourceTestBase : SqsIntegrationTestBase() {
     await untilCallTo { auditQueue.sqsClient.countMessagesOnQueue(auditQueue.queueUrl).get() } matches { it != 0 }
     val queueSize = auditQueue.sqsClient.countMessagesOnQueue(auditQueue.queueUrl).get()
     assertThat(queueSize).isEqualTo(1)
-    val message = auditQueue.sqsClient.receiveMessage(ReceiveMessageRequest.builder().queueUrl(auditQueue.queueUrl).build()).get().messages()[0].body()
+    val message = auditQueue.sqsClient.receiveMessage(
+      ReceiveMessageRequest.builder().queueUrl(auditQueue.queueUrl).build(),
+    ).get().messages()[0].body()
     val event = objectMapper.readValue(message, AuditEvent::class.java)
     assertThat(event.what).isEqualTo(eventType)
     assertThat(event.who).isEqualTo("USER_ADM")

@@ -15,7 +15,9 @@ class TopicHealthCheckTest : SqsIntegrationTestBase() {
       .expectBody()
       .jsonPath("status").isEqualTo("UP")
       .jsonPath("components.domainevents-health.status").isEqualTo("UP")
-      .jsonPath("components.domainevents-health.details.topicArn").isEqualTo(hmppsSqsPropertiesSpy.domaineventsTopicConfig().arn)
+      .jsonPath(
+        "components.domainevents-health.details.topicArn",
+      ).isEqualTo(hmppsSqsPropertiesSpy.domaineventsTopicConfig().arn)
       .jsonPath("components.domainevents-health.details.subscriptionsConfirmed").isEqualTo(0)
       .jsonPath("components.domainevents-health.details.subscriptionsPending").isEqualTo(0)
   }

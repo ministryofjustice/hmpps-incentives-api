@@ -5,7 +5,9 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitBody
 
 @Service
-class LocationsService(private val locationsWebClient: WebClient) {
+class LocationsService(
+  private val locationsWebClient: WebClient,
+) {
   /**
    * Get a location by it's key, e.g. `MDI-1`.
    * Requires role VIEW_LOCATIONS

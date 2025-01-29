@@ -74,29 +74,28 @@ class OffenderSearchServiceTest {
     assertThat(offenderWithoutAlerts.hasAcctOpen).isFalse
   }
 
-  private fun createWebClientMockResponses(vararg responses: List<OffenderSearchPrisoner>) =
-    WebClient.builder()
-      .exchangeFunction {
-        val page = UriComponentsBuilder.fromUri(it.url()).build().queryParams["page"]?.get(0)?.toIntOrNull()
-        val response = if (page != null && page < responses.size) {
-          ClientResponse.create(HttpStatus.OK)
-            .header("Content-Type", "application/json")
-            .body(
-              mapper.writeValueAsString(
-                mapOf(
-                  "content" to responses[page],
-                  "totalElements" to responses.sumOf { it.size },
-                  "last" to (page == responses.size - 1),
-                ),
+  private fun createWebClientMockResponses(vararg responses: List<OffenderSearchPrisoner>) = WebClient.builder()
+    .exchangeFunction {
+      val page = UriComponentsBuilder.fromUri(it.url()).build().queryParams["page"]?.get(0)?.toIntOrNull()
+      val response = if (page != null && page < responses.size) {
+        ClientResponse.create(HttpStatus.OK)
+          .header("Content-Type", "application/json")
+          .body(
+            mapper.writeValueAsString(
+              mapOf(
+                "content" to responses[page],
+                "totalElements" to responses.sumOf { it.size },
+                "last" to (page == responses.size - 1),
               ),
-            )
-            .build()
-        } else {
-          ClientResponse.create(HttpStatus.NOT_FOUND).build()
-        }
-        Mono.just(response)
+            ),
+          )
+          .build()
+      } else {
+        ClientResponse.create(HttpStatus.NOT_FOUND).build()
       }
-      .build()
+      Mono.just(response)
+    }
+    .build()
 
   @Test
   fun `only one page of results is loaded if it is the last`(): Unit = runBlocking {

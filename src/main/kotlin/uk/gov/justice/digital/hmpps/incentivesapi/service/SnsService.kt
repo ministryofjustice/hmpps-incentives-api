@@ -115,7 +115,9 @@ data class AdditionalInformationBookingMoved(
   val bookingStartDateTime: LocalDateTime?,
 )
 
-enum class IncentivesDomainEventType(val value: String) {
+enum class IncentivesDomainEventType(
+  val value: String,
+) {
   IEP_REVIEW_INSERTED("incentives.iep-review.inserted"),
   IEP_REVIEW_UPDATED("incentives.iep-review.updated"),
   IEP_REVIEW_DELETED("incentives.iep-review.deleted"),

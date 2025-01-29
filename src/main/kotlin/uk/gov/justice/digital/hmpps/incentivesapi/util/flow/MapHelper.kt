@@ -7,8 +7,7 @@ import kotlinx.coroutines.flow.Flow
  * applied to each element. If any two elements would have the same key returned by [keySelector]
  * the last one gets added to the map.
  */
-suspend fun <K, V> Flow<V>.toMap(keySelector: (V) -> K): Map<K, V> =
-  associateByTo(LinkedHashMap(), keySelector)
+suspend fun <K, V> Flow<V>.toMap(keySelector: (V) -> K): Map<K, V> = associateByTo(LinkedHashMap(), keySelector)
 
 /**
  * Collects given flow into a mutable [destination] map indexed by the key returned from [keySelector] function

@@ -29,16 +29,15 @@ class IncentiveReviewRepositoryTest : TestBase() {
   @Autowired
   lateinit var repository: IncentiveReviewRepository
 
-  private fun entity(bookingId: Long, current: Boolean): IncentiveReview =
-    IncentiveReview(
-      levelCode = "BAS",
-      prisonId = "LEI",
-      bookingId = bookingId,
-      current = current,
-      reviewedBy = "TEST_STAFF1",
-      reviewTime = LocalDateTime.now(),
-      prisonerNumber = "A1234AB",
-    )
+  private fun entity(bookingId: Long, current: Boolean): IncentiveReview = IncentiveReview(
+    levelCode = "BAS",
+    prisonId = "LEI",
+    bookingId = bookingId,
+    current = current,
+    reviewedBy = "TEST_STAFF1",
+    reviewTime = LocalDateTime.now(),
+    prisonerNumber = "A1234AB",
+  )
 
   @BeforeEach
   fun setUp(): Unit = runBlocking {
@@ -80,7 +79,9 @@ class IncentiveReviewRepositoryTest : TestBase() {
 
     coroutineScope {
       launch {
-        val prisonerLevelCurrent = repository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(listOf(bookingId)).first()
+        val prisonerLevelCurrent = repository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(
+          listOf(bookingId),
+        ).first()
         with(prisonerLevelCurrent) {
           assertThat(levelCode).isEqualTo("STD")
           assertThat(prisonId).isEqualTo("MDI")

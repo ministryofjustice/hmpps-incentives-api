@@ -139,14 +139,28 @@ class ManageIncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
     val previousTime = now.minusDays(2)
     webTestClient.post().uri("/incentive-reviews/prisoner/$prisonerNumber")
       .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read", "write")))
-      .bodyValue(CreateIncentiveReviewRequest(iepLevel = "BAS", comment = "Basic Level", reviewType = ReviewType.INITIAL, reviewTime = previousTime))
+      .bodyValue(
+        CreateIncentiveReviewRequest(
+          iepLevel = "BAS",
+          comment = "Basic Level",
+          reviewType = ReviewType.INITIAL,
+          reviewTime = previousTime,
+        ),
+      )
       .exchange()
       .expectStatus().isCreated
 
     val reviewTime = now.minusDays(1)
     webTestClient.post().uri("/incentive-reviews/prisoner/$prisonerNumber")
       .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read", "write")))
-      .bodyValue(CreateIncentiveReviewRequest("ENH", "A different comment", reviewedBy = "DIFFERENT_USER", reviewTime = reviewTime))
+      .bodyValue(
+        CreateIncentiveReviewRequest(
+          "ENH",
+          "A different comment",
+          reviewedBy = "DIFFERENT_USER",
+          reviewTime = reviewTime,
+        ),
+      )
       .exchange()
       .expectStatus().isCreated
 

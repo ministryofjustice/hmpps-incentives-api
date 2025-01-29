@@ -76,7 +76,10 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
         incentiveReviewRepository.count() > reviewsCount
       }
     } matches { it == true }
-    awaitAtMost30Secs untilCallTo { prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber") } matches { it == 1 }
+    awaitAtMost30Secs untilCallTo {
+      prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber")
+    } matches
+      { it == 1 }
 
     // Then
     awaitAtMost30Secs untilCallTo {
@@ -98,7 +101,10 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     // When
     publishPrisonerReceivedMessage("TRANSFERRED")
     awaitAtMost30Secs untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
-    awaitAtMost30Secs untilCallTo { prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber") } matches { it == 1 }
+    awaitAtMost30Secs untilCallTo {
+      prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber")
+    } matches
+      { it == 1 }
 
     // Then
     awaitAtMost30Secs untilCallTo {
@@ -158,7 +164,10 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     publishPrisonerMergedMessage(prisonerNumber, removedNomsNumber)
 
     awaitAtMost30Secs untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
-    awaitAtMost30Secs untilCallTo { prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber") } matches { it == 1 }
+    awaitAtMost30Secs untilCallTo {
+      prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber")
+    } matches
+      { it == 1 }
   }
 
   @Test
@@ -304,44 +313,41 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
       .isEqualTo(lastReviewTime.plusDays(28).toLocalDate())
   }
 
-  private fun publishPrisonerReceivedMessage(reason: String) =
-    publishDomainEventMessage(
-      eventType = "prisoner-offender-search.prisoner.received",
-      additionalInformation = AdditionalInformation(
-        id = 123,
-        nomsNumber = "A1244AB",
-        reason = reason,
-      ),
-      description = "A prisoner has been received into a prison with reason: admission on new charges",
-    )
+  private fun publishPrisonerReceivedMessage(reason: String) = publishDomainEventMessage(
+    eventType = "prisoner-offender-search.prisoner.received",
+    additionalInformation = AdditionalInformation(
+      id = 123,
+      nomsNumber = "A1244AB",
+      reason = reason,
+    ),
+    description = "A prisoner has been received into a prison with reason: admission on new charges",
+  )
 
-  private fun publishPrisonerMergedMessage(nomsNumber: String, removedNomsNumber: String) =
-    publishDomainEventMessage(
-      eventType = "prison-offender-events.prisoner.merged",
-      additionalInformation = AdditionalInformation(
-        nomsNumber = nomsNumber,
-        removedNomsNumber = removedNomsNumber,
-        reason = "MERGE",
-      ),
-      description = "A prisoner has been merged from $removedNomsNumber to $nomsNumber",
-    )
+  private fun publishPrisonerMergedMessage(nomsNumber: String, removedNomsNumber: String) = publishDomainEventMessage(
+    eventType = "prison-offender-events.prisoner.merged",
+    additionalInformation = AdditionalInformation(
+      nomsNumber = nomsNumber,
+      removedNomsNumber = removedNomsNumber,
+      reason = "MERGE",
+    ),
+    description = "A prisoner has been merged from $removedNomsNumber to $nomsNumber",
+  )
 
   private fun publishPrisonerAlertsUpdatedMessage(
     nomsNumber: String,
     bookingId: Long,
     alertsAdded: List<String> = listOf(PrisonerAlert.ACCT_ALERT_CODE),
     alertsRemoved: List<String> = emptyList(),
-  ) =
-    publishDomainEventMessage(
-      eventType = "prisoner-offender-search.prisoner.alerts-updated",
-      additionalInformation = AdditionalInformation(
-        nomsNumber = nomsNumber,
-        bookingId = bookingId,
-        alertsAdded = alertsAdded,
-        alertsRemoved = alertsRemoved,
-      ),
-      description = "A prisoner record has been updated",
-    )
+  ) = publishDomainEventMessage(
+    eventType = "prisoner-offender-search.prisoner.alerts-updated",
+    additionalInformation = AdditionalInformation(
+      nomsNumber = nomsNumber,
+      bookingId = bookingId,
+      alertsAdded = alertsAdded,
+      alertsRemoved = alertsRemoved,
+    ),
+    description = "A prisoner record has been updated",
+  )
 
   private fun publishDomainEventMessage(
     eventType: String,
@@ -387,7 +393,10 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
         )
         .messageAttributes(
           mapOf(
-            "eventType" to MessageAttributeValue.builder().dataType("String").stringValue("prison-offender-events.prisoner.booking.moved").build(),
+            "eventType" to
+              MessageAttributeValue.builder().dataType(
+                "String",
+              ).stringValue("prison-offender-events.prisoner.booking.moved").build(),
           ),
         )
         .build(),

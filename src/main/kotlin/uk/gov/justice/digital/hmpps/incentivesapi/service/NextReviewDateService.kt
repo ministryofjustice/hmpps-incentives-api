@@ -13,7 +13,9 @@ data class NextReviewDateInput(
   val incentiveRecords: List<IncentiveReview>,
 )
 
-class NextReviewDateService(private val input: NextReviewDateInput) {
+class NextReviewDateService(
+  private val input: NextReviewDateInput,
+) {
 
   fun calculate(): LocalDate {
     if (isReadmission()) {

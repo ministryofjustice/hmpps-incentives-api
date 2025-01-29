@@ -15,7 +15,11 @@ import java.time.LocalDateTime
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Incentive Review Summary for Prisoner")
 data class IncentiveReviewSummary(
-  @Schema(description = "Unique ID for this review (new Incentives data model only)", required = true, example = "12345")
+  @Schema(
+    description = "Unique ID for this review (new Incentives data model only)",
+    required = true,
+    example = "12345",
+  )
   val id: Long,
   @Schema(description = "Incentive Level Code", example = "STD", required = true)
   val iepCode: String,
@@ -27,9 +31,19 @@ data class IncentiveReviewSummary(
   val bookingId: Long,
   @Schema(description = "Date when last review took place", required = true, example = "2021-12-31")
   val iepDate: LocalDate,
-  @Schema(description = "Date and time when last review took place", required = true, example = "2021-12-31T12:34:56.789012")
+  @Schema(
+    description = "Date and time when last review took place",
+    required = true,
+    example = "2021-12-31T12:34:56.789012",
+  )
   val iepTime: LocalDateTime,
-  @Schema(description = "DEPRECATED - Location of prisoner at the time when review was created in Incentives service (i.e. their cell)", example = "1-2-003", required = false, deprecated = true)
+  @Schema(
+    description = "DEPRECATED " +
+      "- Location of prisoner at the time when review was created in Incentives service (i.e. their cell)",
+    example = "1-2-003",
+    required = false,
+    deprecated = true,
+  )
   val locationId: String? = null,
   @Schema(description = "Incentive Review History (descending in time)", required = true)
   @JsonProperty("iepDetails")
@@ -57,7 +71,11 @@ data class IncentiveReviewSummary(
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Detailed incentive review details")
 data class IncentiveReviewDetail(
-  @Schema(description = "Unique ID for this review (new Incentives data model only)", required = true, example = "12345")
+  @Schema(
+    description = "Unique ID for this review (new Incentives data model only)",
+    required = true,
+    example = "12345",
+  )
   val id: Long,
   @Schema(description = "Incentive Level", required = true, example = "Standard")
   val iepLevel: String,
@@ -71,17 +89,31 @@ data class IncentiveReviewDetail(
   val bookingId: Long,
   @Schema(description = "Date when last review took place", required = true, example = "2021-12-31")
   val iepDate: LocalDate,
-  @Schema(description = "Date and time when last review took place", required = true, example = "2021-12-31T12:34:56.789012")
+  @Schema(
+    description = "Date and time when last review took place",
+    required = true,
+    example = "2021-12-31T12:34:56.789012",
+  )
   val iepTime: LocalDateTime,
   @Schema(description = "Prison ID", required = true, example = "MDI")
   val agencyId: String,
-  @Schema(description = "DEPRECATED - Location of prisoner at the time when review was created in Incentives service (i.e. their cell)", required = false, example = "1-2-003", deprecated = true)
+  @Schema(
+    description = "DEPRECATED " +
+      "- Location of prisoner at the time when review was created in Incentives service (i.e. their cell)",
+    required = false,
+    example = "1-2-003",
+    deprecated = true,
+  )
   val locationId: String? = null,
   @Schema(description = "Username of the reviewer", required = true, example = "USER_1_GEN")
   val userId: String?,
   @Schema(description = "Type of Incentive Level change", required = true, example = "REVIEW")
   override val reviewType: ReviewType,
-  @Schema(description = "Internal audit field holding which system/screen recorded the review", required = true, example = SYSTEM_USERNAME)
+  @Schema(
+    description = "Internal audit field holding which system/screen recorded the review",
+    required = true,
+    example = SYSTEM_USERNAME,
+  )
   val auditModuleName: String = SYSTEM_USERNAME,
 ) : IsRealReview
 
@@ -114,10 +146,21 @@ data class CreateIncentiveReviewRequest(
   @Schema(description = "Review Type", example = "REVIEW", required = false, defaultValue = "REVIEW")
   val reviewType: ReviewType? = ReviewType.REVIEW,
 
-  @Schema(description = "Date and time of the review, if not provided will default to now", required = false, example = "2023-06-07T13:05:46")
+  @Schema(
+    description = "Date and time of the review, if not provided will default to now",
+    required = false,
+    example = "2023-06-07T13:05:46",
+  )
   val reviewTime: LocalDateTime? = null,
 
-  @Schema(description = "The username of the member of staff undertaking the review, if not provided will use the user in the JWT access token", required = false, example = "ASMITH", minLength = 1, maxLength = 30)
+  @Schema(
+    description = "The username of the member of staff undertaking the review, " +
+      "if not provided will use the user in the JWT access token",
+    required = false,
+    example = "ASMITH",
+    minLength = 1,
+    maxLength = 30,
+  )
   @field:Size(min = 1, max = 30, message = "Reviewed by must be a maximum of 30 characters")
   val reviewedBy: String? = null,
 ) {

@@ -222,6 +222,7 @@ class NextReviewDateServiceTest {
       assertThat(nextReviewDate).isEqualTo(expectedNextReviewDate)
     }
 
+    @Suppress("ktlint:standard:max-line-length")
     @Test
     fun `when IEP level is Basic, previous review is at different level but has open ACCT, returns +7 days (data from NOMIS)`() {
       val input = NextReviewDateInput(
@@ -385,6 +386,7 @@ class NextReviewDateServiceTest {
       assertThat(nextReviewDate).isEqualTo(expectedNextReviewDate)
     }
 
+    @Suppress("ktlint:standard:max-line-length")
     @Test
     fun `when prisoner is readmitted and 'young person' (under age of 18), then transferred it still returns +1 months`() {
       val input = NextReviewDateInput(

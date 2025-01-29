@@ -94,7 +94,10 @@ class PrisonIncentiveLevelService(
     }
 
     return incentiveLevelRepository.findById(levelCode)?.let { incentiveLevel ->
-      val originalPrisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode(prisonId, levelCode)
+      val originalPrisonIncentiveLevel = prisonIncentiveLevelRepository.findFirstByPrisonIdAndLevelCode(
+        prisonId,
+        levelCode,
+      )
       val prisonIncentiveLevel = originalPrisonIncentiveLevel
         ?.withUpdate(update)
         ?: update.toNewEntity(prisonId, levelCode)
@@ -118,7 +121,10 @@ class PrisonIncentiveLevelService(
         )
       }
       if (originalPrisonIncentiveLevel?.active == true && !prisonIncentiveLevel.active) {
-        val prisonersExistOnLevel = countPrisonersService.prisonersExistOnLevelInPrison(prisonIncentiveLevel.prisonId, prisonIncentiveLevel.levelCode)
+        val prisonersExistOnLevel = countPrisonersService.prisonersExistOnLevelInPrison(
+          prisonIncentiveLevel.prisonId,
+          prisonIncentiveLevel.levelCode,
+        )
         if (prisonersExistOnLevel) {
           throw ValidationExceptionWithErrorCode(
             "A level must remain active if there are prisoners on it currently",
@@ -129,7 +135,8 @@ class PrisonIncentiveLevelService(
 
       var levelCodesNoLongerDefault: List<String> = emptyList()
       if (prisonIncentiveLevel.defaultOnAdmission) {
-        levelCodesNoLongerDefault = prisonIncentiveLevelRepository.setOtherLevelsNotDefaultForAdmission(prisonId, levelCode).toList()
+        levelCodesNoLongerDefault =
+          prisonIncentiveLevelRepository.setOtherLevelsNotDefaultForAdmission(prisonId, levelCode).toList()
       } else {
         val currentDefaultLevelCode =
           prisonIncentiveLevelRepository.findFirstByPrisonIdAndActiveIsTrueAndDefaultIsTrue(prisonId)?.levelCode
@@ -188,7 +195,9 @@ class PrisonIncentiveLevelService(
     val incentiveLevelCodesNeedingUpdate = mutableListOf<String>()
     val missingActiveIncentiveLevelCodes = requiredIncentiveLevelCodes.toMutableSet()
     missingActiveIncentiveLevelCodes.removeAll(currentActiveIncentiveLevelCodes)
-    if (currentDefaultIncentiveLevelCode != defaultIncentiveLevelCode || !currentActiveIncentiveLevelCodes.contains(defaultIncentiveLevelCode)) {
+    if (currentDefaultIncentiveLevelCode != defaultIncentiveLevelCode ||
+      !currentActiveIncentiveLevelCodes.contains(defaultIncentiveLevelCode)
+    ) {
       incentiveLevelCodesNeedingUpdate.add(defaultIncentiveLevelCode)
       missingActiveIncentiveLevelCodes.remove(defaultIncentiveLevelCode)
     }
@@ -264,10 +273,7 @@ class PrisonIncentiveLevelService(
     privilegedVisitOrders = privilegedVisitOrders,
   )
 
-  private fun PrisonIncentiveLevelUpdateDTO.toNewEntity(
-    prisonId: String,
-    levelCode: String,
-  ): PrisonIncentiveLevel {
+  private fun PrisonIncentiveLevelUpdateDTO.toNewEntity(prisonId: String, levelCode: String): PrisonIncentiveLevel {
     val fallback = prisonIncentiveLevelPolicies.getOrDefault(levelCode, prisonIncentiveLevelPolicies["ENH"]!!)
 
     return PrisonIncentiveLevel(

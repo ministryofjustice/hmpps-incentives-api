@@ -139,7 +139,9 @@ class HmppsIncentivesApiExceptionHandler {
   }
 
   @ExceptionHandler(SubjectAccessRequestNoContentException::class)
-  fun handleSubjectAccessRequestNoContentException(e: SubjectAccessRequestNoContentException): ResponseEntity<ErrorResponse?>? {
+  fun handleSubjectAccessRequestNoContentException(
+    e: SubjectAccessRequestNoContentException,
+  ): ResponseEntity<ErrorResponse?>? {
     log.debug("SAR No Content exception caught: {}", e.message)
     return ResponseEntity
       .status(HttpStatus.NO_CONTENT)
@@ -267,7 +269,8 @@ class HmppsIncentivesApiExceptionHandler {
       .body(
         ErrorResponse(
           status = BAD_REQUEST,
-          userMessage = "Invalid request format, e.g. request is missing a required field or one of the fields has an invalid value",
+          userMessage = "Invalid request format, " +
+            "e.g. request is missing a required field or one of the fields has an invalid value",
           developerMessage = developerMessage,
         ),
       )
@@ -278,22 +281,33 @@ class HmppsIncentivesApiExceptionHandler {
   }
 }
 
-class NoDataFoundException(id: Long) :
-  Exception("No Data found for ID $id")
+class NoDataFoundException(
+  id: Long,
+) : Exception("No Data found for ID $id")
 
-class NoDataWithCodeFoundException(dataType: String, code: String) :
-  Exception("No $dataType found for code `$code`")
+class NoDataWithCodeFoundException(
+  dataType: String,
+  code: String,
+) : Exception("No $dataType found for code `$code`")
 
-class ListOfDataNotFoundException(dataType: String, ids: Collection<Long>) :
-  Exception("No $dataType found for ID(s) $ids")
+class ListOfDataNotFoundException(
+  dataType: String,
+  ids: Collection<Long>,
+) : Exception("No $dataType found for ID(s) $ids")
 
-class DataIntegrityException(message: String) :
-  Exception(message)
+class DataIntegrityException(
+  message: String,
+) : Exception(message)
 
-class ValidationExceptionWithErrorCode(message: String, val errorCode: ErrorCode, val moreInfo: String? = null) :
-  ValidationException(message)
+class ValidationExceptionWithErrorCode(
+  message: String,
+  val errorCode: ErrorCode,
+  val moreInfo: String? = null,
+) : ValidationException(message)
 
-class SubjectAccessRequestNoContentException(prisoner: String) : Exception("No information on prisoner $prisoner")
+class SubjectAccessRequestNoContentException(
+  prisoner: String,
+) : Exception("No information on prisoner $prisoner")
 
 /**
  * Codes that can be used by api clients to uniquely discriminate between error types,
@@ -301,7 +315,9 @@ class SubjectAccessRequestNoContentException(prisoner: String) : Exception("No i
  *
  * NB: Once defined, the values must not be changed
  */
-enum class ErrorCode(val errorCode: Int) {
+enum class ErrorCode(
+  val errorCode: Int,
+) {
   IncentiveLevelActiveIfRequired(100),
   IncentiveLevelActiveIfActiveInPrison(101),
   IncentiveLevelCodeNotUnique(102),
@@ -318,9 +334,20 @@ enum class ErrorCode(val errorCode: Int) {
 data class ErrorResponse(
   @Schema(description = "HTTP status code", example = "500", required = true)
   val status: Int,
-  @Schema(description = "When present, uniquely identifies the type of error making it easier for clients to discriminate without relying on error description; see `uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorResponse` enumeration in hmpps-incentives-api", example = "123", required = false)
+  @Schema(
+    description = "When present, uniquely identifies the type of error " +
+      "making it easier for clients to discriminate without relying on error description; " +
+      "see `uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorResponse` enumeration " +
+      "in hmpps-incentives-api",
+    example = "123",
+    required = false,
+  )
   val errorCode: Int? = null,
-  @Schema(description = "User message for the error", example = "No incentive level found for code `ABC`", required = false)
+  @Schema(
+    description = "User message for the error",
+    example = "No incentive level found for code `ABC`",
+    required = false,
+  )
   val userMessage: String? = null,
   @Schema(description = "More detailed error message", example = "[Details, sometimes a stack trace]", required = false)
   val developerMessage: String? = null,

@@ -19,9 +19,7 @@ class IncentiveStoreService(
     val log: Logger = LoggerFactory.getLogger(this::class.java)
   }
 
-  suspend fun saveIncentiveReview(
-    incentiveLevel: IncentiveReview,
-  ): IncentiveReview {
+  suspend fun saveIncentiveReview(incentiveLevel: IncentiveReview): IncentiveReview {
     if (incentiveLevel.current) {
       incentiveReviewRepository.updateIncentivesToNotCurrentForBooking(incentiveLevel.bookingId)
     }
@@ -31,10 +29,7 @@ class IncentiveStoreService(
     return review
   }
 
-  suspend fun updateMergedReviews(
-    reviewsToUpdate: List<IncentiveReview>,
-    remainingBookingId: Long,
-  ) {
+  suspend fun updateMergedReviews(reviewsToUpdate: List<IncentiveReview>, remainingBookingId: Long) {
     val savedReviews = incentiveReviewRepository.saveAll(reviewsToUpdate)
     log.debug("${savedReviews.count()} records saved")
     nextReviewDateUpdaterService.update(remainingBookingId)
@@ -53,12 +48,12 @@ class IncentiveStoreService(
     }
   }
 
-  suspend fun updateIncentiveRecord(
-    update: IncentiveRecordUpdate,
-    incentiveRecord: IncentiveReview,
-  ): IncentiveReview {
+  suspend fun updateIncentiveRecord(update: IncentiveRecordUpdate, incentiveRecord: IncentiveReview): IncentiveReview {
     if (update.current == true) {
-      incentiveReviewRepository.updateIncentivesToNotCurrentForBookingAndIncentive(incentiveRecord.bookingId, incentiveRecord.id)
+      incentiveReviewRepository.updateIncentivesToNotCurrentForBookingAndIncentive(
+        incentiveRecord.bookingId,
+        incentiveRecord.id,
+      )
     }
 
     val updatedIncentiveRecord = incentiveReviewRepository.save(

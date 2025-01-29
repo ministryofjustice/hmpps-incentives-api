@@ -23,17 +23,19 @@ class PrisonApiService(
     return if (useClientCredentials) prisonWebClientClientCredentials else prisonWebClient
   }
 
-  fun retrieveCaseNoteCountsByFromDate(types: List<String>, prisonerByLastReviewDate: Map<Long, LocalDateTime>): Flow<PrisonerCaseNoteByTypeSubType> =
-    prisonWebClientClientCredentials.post()
-      .uri("/api/case-notes/usage-by-types")
-      .bodyValue(
-        CaseNoteUsageTypesRequest(
-          types = types,
-          bookingFromDateSelection = prisonerByLastReviewDate.map { BookingFromDatePair(it.key, it.value) },
-        ),
-      )
-      .retrieve()
-      .bodyToFlow()
+  fun retrieveCaseNoteCountsByFromDate(
+    types: List<String>,
+    prisonerByLastReviewDate: Map<Long, LocalDateTime>,
+  ): Flow<PrisonerCaseNoteByTypeSubType> = prisonWebClientClientCredentials.post()
+    .uri("/api/case-notes/usage-by-types")
+    .bodyValue(
+      CaseNoteUsageTypesRequest(
+        types = types,
+        bookingFromDateSelection = prisonerByLastReviewDate.map { BookingFromDatePair(it.key, it.value) },
+      ),
+    )
+    .retrieve()
+    .bodyToFlow()
 
   suspend fun getPrisonerInfo(prisonerNumber: String, useClientCredentials: Boolean = false): PrisonerInfo {
     return getClient(useClientCredentials)

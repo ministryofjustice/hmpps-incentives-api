@@ -48,10 +48,7 @@ class PrisonerIncentiveReviewService(
     val log: Logger = LoggerFactory.getLogger(this::class.java)
   }
 
-  suspend fun getPrisonerIncentiveHistory(
-    bookingId: Long,
-    withDetails: Boolean = true,
-  ): IncentiveReviewSummary {
+  suspend fun getPrisonerIncentiveHistory(bookingId: Long, withDetails: Boolean = true): IncentiveReviewSummary {
     val reviews = incentiveReviewRepository.findAllByBookingIdOrderByReviewTimeDesc(bookingId)
     if (reviews.count() == 0) throw IncentiveReviewNotFoundException("No Incentive Reviews for booking ID $bookingId")
     return buildIepSummary(reviews, incentiveLevelService.getAllIncentiveLevelsMapByCode(), withDetails)
@@ -65,12 +62,18 @@ class PrisonerIncentiveReviewService(
     return buildIepSummary(reviews, incentiveLevelService.getAllIncentiveLevelsMapByCode())
   }
 
-  suspend fun addIncentiveReview(prisonerNumber: String, createIncentiveReviewRequest: CreateIncentiveReviewRequest): IncentiveReviewDetail {
+  suspend fun addIncentiveReview(
+    prisonerNumber: String,
+    createIncentiveReviewRequest: CreateIncentiveReviewRequest,
+  ): IncentiveReviewDetail {
     val prisonerInfo = prisonApiService.getPrisonerInfo(prisonerNumber)
     return addIncentiveReviewForPrisonerAtLocation(prisonerInfo, createIncentiveReviewRequest)
   }
 
-  suspend fun addIncentiveReview(bookingId: Long, createIncentiveReviewRequest: CreateIncentiveReviewRequest): IncentiveReviewDetail {
+  suspend fun addIncentiveReview(
+    bookingId: Long,
+    createIncentiveReviewRequest: CreateIncentiveReviewRequest,
+  ): IncentiveReviewDetail {
     val prisonerInfo = prisonApiService.getPrisonerInfo(bookingId)
     return addIncentiveReviewForPrisonerAtLocation(prisonerInfo, createIncentiveReviewRequest)
   }
@@ -88,7 +91,9 @@ class PrisonerIncentiveReviewService(
 
     // Check bookingId on found record matches the bookingId provided
     if (prisonerIepLevel.bookingId != bookingId) {
-      log.warn("Patch of IncentiveReview with ID $id failed because provided bookingID ($bookingId) didn't match bookingId on DB record (${prisonerIepLevel.bookingId})")
+      log.warn(
+        "Patch of IncentiveReview with ID $id failed because provided bookingID ($bookingId) didn't match bookingId on DB record (${prisonerIepLevel.bookingId})",
+      )
       throw NoDataFoundException(bookingId)
     }
 
@@ -109,7 +114,9 @@ class PrisonerIncentiveReviewService(
     }
     // Check bookingId on found record matches the bookingId provided
     if (incentiveReview.bookingId != bookingId) {
-      log.warn("Delete of IncentiveReview with ID $id failed because provided bookingID ($bookingId) didn't match bookingId on DB record (${incentiveReview.bookingId})")
+      log.warn(
+        "Delete of IncentiveReview with ID $id failed because provided bookingID ($bookingId) didn't match bookingId on DB record (${incentiveReview.bookingId})",
+      )
       throw NoDataFoundException(bookingId)
     }
 
@@ -131,9 +138,10 @@ class PrisonerIncentiveReviewService(
       }.toList()
   }
 
-  suspend fun getReviewById(id: Long): IncentiveReviewDetail =
-    incentiveReviewRepository.findById(id)?.toIncentiveReviewDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
-      ?: throw NoDataFoundException(id)
+  suspend fun getReviewById(id: Long): IncentiveReviewDetail = incentiveReviewRepository.findById(
+    id,
+  )?.toIncentiveReviewDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
+    ?: throw NoDataFoundException(id)
 
   @Transactional
   suspend fun processOffenderEvent(prisonOffenderEvent: HMPPSDomainEvent) =
@@ -158,7 +166,9 @@ class PrisonerIncentiveReviewService(
     if (acctAdded || acctRemoved) {
       updateNextReviewDate(prisonOffenderEvent)
     } else {
-      log.debug("Ignoring 'prisoner-offender-search.prisoner.alerts-updated' event, No ACCT alerts added/removed: prisonerNumber = ${prisonOffenderEvent.additionalInformation?.nomsNumber}, alertsAdded = ${prisonOffenderEvent.additionalInformation?.alertsAdded}, alertsRemoved = ${prisonOffenderEvent.additionalInformation?.alertsRemoved}")
+      log.debug(
+        "Ignoring 'prisoner-offender-search.prisoner.alerts-updated' event, No ACCT alerts added/removed: prisonerNumber = ${prisonOffenderEvent.additionalInformation?.nomsNumber}, alertsAdded = ${prisonOffenderEvent.additionalInformation?.alertsAdded}, alertsRemoved = ${prisonOffenderEvent.additionalInformation?.alertsRemoved}",
+      )
     }
   }
 
@@ -223,7 +233,9 @@ class PrisonerIncentiveReviewService(
               withDetails = true,
             ).incentiveReviewDetails
           val levelCodeBeforeTransfer =
-            iepHistory.sortedBy(IncentiveReviewDetail::iepTime).lastOrNull { it.agencyId != prisonerInfo.agencyId }?.iepCode
+            iepHistory.sortedBy(IncentiveReviewDetail::iepTime).lastOrNull {
+              it.agencyId != prisonerInfo.agencyId
+            }?.iepCode
               ?: defaultLevelCode // if no previous prison
           nearestPrisonIncentiveLevelService.findNearestHighestLevel(
             prisonerInfo.agencyId,
@@ -238,11 +250,12 @@ class PrisonerIncentiveReviewService(
     }
   }
 
-  private fun getReviewCommentForEvent(prisonOffenderEvent: HMPPSDomainEvent) = when (prisonOffenderEvent.additionalInformation?.reason) {
-    "NEW_ADMISSION", "READMISSION" -> "Default level assigned on arrival"
-    "TRANSFERRED" -> "Level transferred from previous establishment"
-    else -> prisonOffenderEvent.description
-  }
+  private fun getReviewCommentForEvent(prisonOffenderEvent: HMPPSDomainEvent) =
+    when (prisonOffenderEvent.additionalInformation?.reason) {
+      "NEW_ADMISSION", "READMISSION" -> "Default level assigned on arrival"
+      "TRANSFERRED" -> "Level transferred from previous establishment"
+      else -> prisonOffenderEvent.description
+    }
 
   private suspend fun buildIepSummary(
     levels: Flow<IncentiveReview>,
@@ -277,7 +290,9 @@ class PrisonerIncentiveReviewService(
     prisonerInfo: PrisonerInfo,
     createIncentiveReviewRequest: CreateIncentiveReviewRequest,
   ): IncentiveReviewDetail {
-    if (createIncentiveReviewRequest.reviewTime != null && createIncentiveReviewRequest.reviewTime.isAfter(LocalDateTime.now(clock))) {
+    if (createIncentiveReviewRequest.reviewTime != null &&
+      createIncentiveReviewRequest.reviewTime.isAfter(LocalDateTime.now(clock))
+    ) {
       throw ValidationException("Review time cannot be in the future")
     }
 
@@ -330,10 +345,7 @@ class PrisonerIncentiveReviewService(
     )
   }
 
-  private suspend fun publishAuditEvent(
-    incentiveReviewDetail: IncentiveReviewDetail,
-    auditType: AuditType,
-  ) {
+  private suspend fun publishAuditEvent(incentiveReviewDetail: IncentiveReviewDetail, auditType: AuditType) {
     auditService.sendMessage(
       auditType,
       incentiveReviewDetail.id.toString(),
@@ -390,4 +402,6 @@ class PrisonerIncentiveReviewService(
   }
 }
 
-class IncentiveReviewNotFoundException(message: String) : RuntimeException(message)
+class IncentiveReviewNotFoundException(
+  message: String,
+) : RuntimeException(message)
