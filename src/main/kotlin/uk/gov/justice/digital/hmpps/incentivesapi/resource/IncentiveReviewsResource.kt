@@ -27,7 +27,9 @@ import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
   name = "Incentive review summary",
   description = "List of incentive review information for a given location within a prison and on a given level",
 )
-class IncentiveReviewsResource(private val incentiveReviewsService: IncentiveReviewsService) {
+class IncentiveReviewsResource(
+  private val incentiveReviewsService: IncentiveReviewsService,
+) {
   @GetMapping("/prison/{prisonId}/location/{cellLocationPrefix}/level/{levelCode}")
   @Operation(
     summary = "List of incentive review information for a given location within a prison and on a given level",
@@ -72,10 +74,27 @@ class IncentiveReviewsResource(private val incentiveReviewsService: IncentiveRev
     @Schema(description = "Sort direction", required = false, defaultValue = "ASC", example = "ASC")
     @RequestParam(required = false)
     order: Sort.Direction? = null,
-    @Schema(description = "Page (starts at 0)", defaultValue = "0", minimum = "0", example = "2", type = "integer", required = false, format = "int32")
+    @Schema(
+      description = "Page (starts at 0)",
+      defaultValue = "0",
+      minimum = "0",
+      example = "2",
+      type = "integer",
+      required = false,
+      format = "int32",
+    )
     @RequestParam(required = false, defaultValue = "0")
     page: Int = 0,
-    @Schema(description = "Page size", defaultValue = "$DEFAULT_PAGE_SIZE", minimum = "1", maximum = "100", example = "20", type = "integer", required = false, format = "int32")
+    @Schema(
+      description = "Page size",
+      defaultValue = "$DEFAULT_PAGE_SIZE",
+      minimum = "1",
+      maximum = "100",
+      example = "20",
+      type = "integer",
+      required = false,
+      format = "int32",
+    )
     @RequestParam(required = false, defaultValue = "$DEFAULT_PAGE_SIZE")
     pageSize: Int = DEFAULT_PAGE_SIZE,
   ): IncentiveReviewResponse {

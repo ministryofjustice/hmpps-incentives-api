@@ -21,7 +21,10 @@ class NearestPrisonIncentiveLevelService(
       .map(PrisonIncentiveLevel::levelCode)
       .toSet()
 
-    data class KnownLevel(val code: String, val available: Boolean)
+    data class KnownLevel(
+      val code: String,
+      val available: Boolean,
+    )
     val allKnownLevels = incentiveLevelService.getAllIncentiveLevels()
       .map {
         KnownLevel(

@@ -28,7 +28,10 @@ import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 @RestController
 @RequestMapping("/incentive-reviews", produces = [MediaType.APPLICATION_JSON_VALUE])
 @PreAuthorize("hasRole('ROLE_INCENTIVE_REVIEWS') and hasAuthority('SCOPE_read')")
-@Tag(name = "Maintain incentive reviews", description = "Retrieve and add incentive review records. Requires INCENTIVE_REVIEWS role and read scope")
+@Tag(
+  name = "Maintain incentive reviews",
+  description = "Retrieve and add incentive review records. Requires INCENTIVE_REVIEWS role and read scope",
+)
 class ManageIncentiveReviewsResource(
   private val prisonerIncentiveReviewService: PrisonerIncentiveReviewService,
 ) {
@@ -59,14 +62,27 @@ class ManageIncentiveReviewsResource(
     ],
   )
   suspend fun getPrisonerIncentiveLevelHistory(
-    @Schema(description = "Booking Id", example = "3000002", required = true, type = "integer", format = "int64", pattern = "^[0-9]{1,20}$")
+    @Schema(
+      description = "Booking Id",
+      example = "3000002",
+      required = true,
+      type = "integer",
+      format = "int64",
+      pattern = "^[0-9]{1,20}$",
+    )
     @PathVariable
     bookingId: Long,
-    @Schema(description = "Toggle to return incentive reviews detail entries in response (or not)", example = "true", required = false, defaultValue = "true", type = "boolean", pattern = "^true|false$")
+    @Schema(
+      description = "Toggle to return incentive reviews detail entries in response (or not)",
+      example = "true",
+      required = false,
+      defaultValue = "true",
+      type = "boolean",
+      pattern = "^true|false$",
+    )
     @RequestParam(defaultValue = "true", value = "with-details", required = false)
     withDetails: Boolean = true,
-  ): IncentiveReviewSummary =
-    prisonerIncentiveReviewService.getPrisonerIncentiveHistory(bookingId, withDetails)
+  ): IncentiveReviewSummary = prisonerIncentiveReviewService.getPrisonerIncentiveHistory(bookingId, withDetails)
 
   @GetMapping("/id/{id}")
   @Operation(
@@ -94,15 +110,22 @@ class ManageIncentiveReviewsResource(
     ],
   )
   suspend fun getIncentiveReviewById(
-    @Schema(description = "Review ID (internal)", example = "1000", required = true, type = "integer", format = "int64", pattern = "^[0-9]{1,20}$")
+    @Schema(
+      description = "Review ID (internal)",
+      example = "1000",
+      required = true,
+      type = "integer",
+      format = "int64",
+      pattern = "^[0-9]{1,20}$",
+    )
     @PathVariable(value = "id", required = true)
     id: Long,
-  ): IncentiveReviewDetail =
-    prisonerIncentiveReviewService.getReviewById(id)
+  ): IncentiveReviewDetail = prisonerIncentiveReviewService.getReviewById(id)
 
   @PostMapping("/bookings")
   @Operation(
-    summary = "Returns a history of incentive reviews for a list of prisoners, Requires INCENTIVE_REVIEWS role and read scope",
+    summary = "Returns a history of incentive reviews for a list of prisoners, " +
+      "Requires INCENTIVE_REVIEWS role and read scope",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -126,7 +149,15 @@ class ManageIncentiveReviewsResource(
     ],
   )
   suspend fun getCurrentIncentiveLevelForPrisoner(
-    @ArraySchema(schema = Schema(description = "List of booking Ids", required = true, type = "array"), arraySchema = Schema(type = "integer", format = "int64", pattern = "^[0-9]{1,20}$", additionalProperties = Schema.AdditionalPropertiesValue.FALSE))
+    @ArraySchema(
+      schema = Schema(description = "List of booking Ids", required = true, type = "array"),
+      arraySchema = Schema(
+        type = "integer",
+        format = "int64",
+        pattern = "^[0-9]{1,20}$",
+        additionalProperties = Schema.AdditionalPropertiesValue.FALSE,
+      ),
+    )
     @RequestBody
     bookingIds: List<Long>,
   ): List<CurrentIncentiveLevel> {
@@ -166,15 +197,15 @@ class ManageIncentiveReviewsResource(
     @Schema(description = "Prisoner Number", example = "A1234AB", required = true, pattern = "^[A-Z0-9]{7}$")
     @PathVariable
     prisonerNumber: String,
-  ): IncentiveReviewSummary =
-    prisonerIncentiveReviewService.getPrisonerIncentiveHistory(prisonerNumber)
+  ): IncentiveReviewSummary = prisonerIncentiveReviewService.getPrisonerIncentiveHistory(prisonerNumber)
 
   @PostMapping("/booking/{bookingId}")
   @PreAuthorize("hasRole('ROLE_INCENTIVE_REVIEWS') and hasAuthority('SCOPE_write')")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Adds a new incentive review for this specific prisoner by booking Id",
-    description = "Booking ID is an internal ID for a prisoner in NOMIS, requires INCENTIVE_REVIEWS role and write scope",
+    description = "Booking ID is an internal ID for a prisoner in NOMIS, " +
+      "requires INCENTIVE_REVIEWS role and write scope",
     responses = [
       ApiResponse(
         responseCode = "201",
@@ -198,7 +229,14 @@ class ManageIncentiveReviewsResource(
     ],
   )
   suspend fun addIncentiveReview(
-    @Schema(description = "Booking Id", example = "3000002", required = true, type = "integer", format = "int64", pattern = "^[0-9]{1,20}$")
+    @Schema(
+      description = "Booking Id",
+      example = "3000002",
+      required = true,
+      type = "integer",
+      format = "int64",
+      pattern = "^[0-9]{1,20}$",
+    )
     @PathVariable
     bookingId: Long,
     @Schema(
@@ -215,7 +253,8 @@ class ManageIncentiveReviewsResource(
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(
     summary = "Adds a new Incentive Review for this specific prisoner by prisoner number",
-    description = "Prisoner Number is an unique reference for a prisoner in NOMIS, requires INCENTIVE_REVIEWS role and write scope",
+    description = "Prisoner Number is an unique reference for a prisoner in NOMIS, " +
+      "requires INCENTIVE_REVIEWS role and write scope",
     responses = [
       ApiResponse(
         responseCode = "201",
@@ -249,5 +288,6 @@ class ManageIncentiveReviewsResource(
     )
     @RequestBody
     createIncentiveReviewRequest: CreateIncentiveReviewRequest,
-  ): IncentiveReviewDetail = prisonerIncentiveReviewService.addIncentiveReview(prisonerNumber, createIncentiveReviewRequest)
+  ): IncentiveReviewDetail =
+    prisonerIncentiveReviewService.addIncentiveReview(prisonerNumber, createIncentiveReviewRequest)
 }

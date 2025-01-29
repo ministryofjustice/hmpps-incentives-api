@@ -254,8 +254,16 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(auditMessages).hasSize(expectedEventCount)
 
         val expectedIncentiveLevelCreateCount = 1
-        assertThat(domainEvents.count { it.eventType == "incentives.level.changed" }).isEqualTo(expectedIncentiveLevelCreateCount)
-        assertThat(auditMessages.count { it.what == "INCENTIVE_LEVEL_ADDED" }).isEqualTo(expectedIncentiveLevelCreateCount)
+        assertThat(
+          domainEvents.count {
+            it.eventType == "incentives.level.changed"
+          },
+        ).isEqualTo(expectedIncentiveLevelCreateCount)
+        assertThat(
+          auditMessages.count {
+            it.what == "INCENTIVE_LEVEL_ADDED"
+          },
+        ).isEqualTo(expectedIncentiveLevelCreateCount)
 
         val expectedPrisonIncentiveLevelIdsAffected = setOf("MDI", "WRI")
         assertThat(
@@ -688,8 +696,16 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(auditMessages).hasSize(expectedEventCount)
 
         val expectedIncentiveLevelCreateCount = 1
-        assertThat(domainEvents.count { it.eventType == "incentives.level.changed" }).isEqualTo(expectedIncentiveLevelCreateCount)
-        assertThat(auditMessages.count { it.what == "INCENTIVE_LEVEL_UPDATED" }).isEqualTo(expectedIncentiveLevelCreateCount)
+        assertThat(
+          domainEvents.count {
+            it.eventType == "incentives.level.changed"
+          },
+        ).isEqualTo(expectedIncentiveLevelCreateCount)
+        assertThat(
+          auditMessages.count {
+            it.what == "INCENTIVE_LEVEL_UPDATED"
+          },
+        ).isEqualTo(expectedIncentiveLevelCreateCount)
 
         val expectedPrisonIncentiveLevelIdsAffected = setOf("MDI", "WRI")
         assertThat(
@@ -953,8 +969,16 @@ class IncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertThat(auditMessages).hasSize(expectedEventCount)
 
         val expectedIncentiveLevelCreateCount = 1
-        assertThat(domainEvents.count { it.eventType == "incentives.level.changed" }).isEqualTo(expectedIncentiveLevelCreateCount)
-        assertThat(auditMessages.count { it.what == "INCENTIVE_LEVEL_UPDATED" }).isEqualTo(expectedIncentiveLevelCreateCount)
+        assertThat(
+          domainEvents.count {
+            it.eventType == "incentives.level.changed"
+          },
+        ).isEqualTo(expectedIncentiveLevelCreateCount)
+        assertThat(
+          auditMessages.count {
+            it.what == "INCENTIVE_LEVEL_UPDATED"
+          },
+        ).isEqualTo(expectedIncentiveLevelCreateCount)
 
         val expectedPrisonIncentiveLevelIdsAffected = setOf("MDI", "WRI")
         assertThat(

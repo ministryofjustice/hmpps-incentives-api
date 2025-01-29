@@ -41,13 +41,33 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
     incentiveReviewRepository.deleteAll()
     nextReviewDateRepository.deleteAll()
     // Prisoners on Standard and not overdue
-    persistPrisonerIepLevel(bookingId = 1234134, prisonerNumber = "A1234AA", iepCode = "STD", iepTime = timeNow.minusDays(2))
-    persistPrisonerIepLevel(bookingId = 1234135, prisonerNumber = "A1234AB", iepCode = "STD", iepTime = timeNow.minusDays(1))
+    persistPrisonerIepLevel(
+      bookingId = 1234134,
+      prisonerNumber = "A1234AA",
+      iepCode = "STD",
+      iepTime = timeNow.minusDays(2),
+    )
+    persistPrisonerIepLevel(
+      bookingId = 1234135,
+      prisonerNumber = "A1234AB",
+      iepCode = "STD",
+      iepTime = timeNow.minusDays(1),
+    )
     persistPrisonerIepLevel(bookingId = 1234136, prisonerNumber = "A1234AC", iepCode = "STD", iepTime = timeNow)
     // A prisoner on Basic, also not overdue
-    persistPrisonerIepLevel(bookingId = 1234137, prisonerNumber = "A1234AD", iepCode = "BAS", iepTime = timeNow.minusDays(3))
+    persistPrisonerIepLevel(
+      bookingId = 1234137,
+      prisonerNumber = "A1234AD",
+      iepCode = "BAS",
+      iepTime = timeNow.minusDays(3),
+    )
     // A prisoner on Enhanced and overdue
-    persistPrisonerIepLevel(bookingId = 1234138, prisonerNumber = "A1234AE", iepCode = "ENH", iepTime = timeNow.minusYears(2))
+    persistPrisonerIepLevel(
+      bookingId = 1234138,
+      prisonerNumber = "A1234AE",
+      iepCode = "ENH",
+      iepTime = timeNow.minusYears(2),
+    )
   }
 
   private suspend fun persistPrisonerIepLevel(
@@ -359,7 +379,11 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
       incentiveReviewRepository.save(prisonerIepLevel)
     }
 
-    fun loadReviewsField(sortParam: String, orderParam: String, responseField: String) = webTestClient.get()
+    fun loadReviewsField(
+      sortParam: String,
+      orderParam: String,
+      responseField: String,
+    ) = webTestClient.get()
       .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?sort=$sortParam&order=$orderParam")
       .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
       .exchange()
@@ -388,7 +412,9 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
     }
 
     private fun loadPage(page: Int) = webTestClient.get()
-      .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?sort=PRISONER_NUMBER&order=DESC&page=$page&pageSize=1")
+      .uri(
+        "/incentives-reviews/prison/MDI/location/MDI-1/level/STD?sort=PRISONER_NUMBER&order=DESC&page=$page&pageSize=1",
+      )
       .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
       .exchange()
       .expectStatus().isOk
@@ -419,7 +445,9 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
     fun `out-of-bounds page`(): Unit = runBlocking {
       val page = 3
       webTestClient.get()
-        .uri("/incentives-reviews/prison/MDI/location/MDI-1/level/STD?sort=PRISONER_NUMBER&order=DESC&page=$page&pageSize=2")
+        .uri(
+          "/incentives-reviews/prison/MDI/location/MDI-1/level/STD?sort=PRISONER_NUMBER&order=DESC&page=$page&pageSize=2",
+        )
         .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
         .exchange()
         .expectErrorResponse(HttpStatus.BAD_REQUEST, "Page number is out of range")

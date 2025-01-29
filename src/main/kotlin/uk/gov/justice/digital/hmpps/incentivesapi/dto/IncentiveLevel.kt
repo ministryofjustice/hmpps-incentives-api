@@ -13,10 +13,17 @@ data class IncentiveLevel(
   @Schema(description = "Name of the incentive level", example = "Standard", minLength = 1, maxLength = 30)
   @JsonProperty(required = true)
   val name: String,
-  @Schema(description = "Indicates that the incentive level is active (true if not supplied); inactive levels are historic levels no longer in use", example = "true")
+  @Schema(
+    description = "Indicates that the incentive level is active (true if not supplied); " +
+      "inactive levels are historic levels no longer in use",
+    example = "true",
+  )
   @JsonProperty(required = false, defaultValue = "true")
   val active: Boolean = true,
-  @Schema(description = "Indicates that all prisons must have this level active (false if not supplied)", example = "false")
+  @Schema(
+    description = "Indicates that all prisons must have this level active (false if not supplied)",
+    example = "false",
+  )
   @JsonProperty(required = false, defaultValue = "false")
   val required: Boolean = false,
 ) {
@@ -35,9 +42,19 @@ data class IncentiveLevel(
  * Update payload for IncentiveLevel
  */
 data class IncentiveLevelUpdate(
-  @Schema(description = "Name of the incentive level", example = "Standard", minLength = 1, maxLength = 30, required = false)
+  @Schema(
+    description = "Name of the incentive level",
+    example = "Standard",
+    minLength = 1,
+    maxLength = 30,
+    required = false,
+  )
   val name: String? = null,
-  @Schema(description = "Indicates that the incentive level is active; inactive levels are historic levels no longer in use", example = "true", required = false)
+  @Schema(
+    description = "Indicates that the incentive level is active; inactive levels are historic levels no longer in use",
+    example = "true",
+    required = false,
+  )
   val active: Boolean? = null,
   @Schema(description = "Indicates that all prisons must have this level active", example = "true", required = false)
   val required: Boolean? = null,

@@ -97,8 +97,10 @@ class IncentiveReviewsService(
           firstName = WordUtils.capitalizeFully(it.firstName),
           lastName = WordUtils.capitalizeFully(it.lastName),
           levelCode = incentiveLevels[it.bookingId]!!.levelCode,
-          positiveBehaviours = behaviourCaseNotesSinceLastReview[BookingTypeKey(it.bookingId, "POS")]?.totalCaseNotes ?: 0,
-          negativeBehaviours = behaviourCaseNotesSinceLastReview[BookingTypeKey(it.bookingId, "NEG")]?.totalCaseNotes ?: 0,
+          positiveBehaviours =
+          behaviourCaseNotesSinceLastReview[BookingTypeKey(it.bookingId, "POS")]?.totalCaseNotes ?: 0,
+          negativeBehaviours =
+          behaviourCaseNotesSinceLastReview[BookingTypeKey(it.bookingId, "NEG")]?.totalCaseNotes ?: 0,
           hasAcctOpen = it.hasAcctOpen,
           isNewToPrison = daysSinceLastRealReview[it.bookingId] == null,
           nextReviewDate = nextReviewDates[it.bookingId]!!,

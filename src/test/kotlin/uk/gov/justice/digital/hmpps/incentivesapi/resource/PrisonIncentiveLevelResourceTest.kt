@@ -294,7 +294,8 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
       @Test
       fun `updates the default prison incentive level for admission`() {
-        makePrisonIncentiveLevel("WRI", "STD") // Standard is the default for admission
+        // Standard is the default for admission
+        makePrisonIncentiveLevel("WRI", "STD")
 
         webTestClient.put()
           .uri("/incentive/prison-levels/WRI/level/ENH")
@@ -349,8 +350,16 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         val expectedPrisonIncentiveLevelChanges = 2
         assertThat(domainEvents).hasSize(expectedPrisonIncentiveLevelChanges)
         assertThat(auditMessages).hasSize(expectedPrisonIncentiveLevelChanges)
-        assertThat(domainEvents.count { it.eventType == "incentives.prison-level.changed" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
-        assertThat(auditMessages.count { it.what == "PRISON_INCENTIVE_LEVEL_UPDATED" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
+        assertThat(
+          domainEvents.count {
+            it.eventType == "incentives.prison-level.changed"
+          },
+        ).isEqualTo(expectedPrisonIncentiveLevelChanges)
+        assertThat(
+          auditMessages.count {
+            it.what == "PRISON_INCENTIVE_LEVEL_UPDATED"
+          },
+        ).isEqualTo(expectedPrisonIncentiveLevelChanges)
 
         assertThat(domainEvents).allMatch {
           it.additionalInformation?.prisonId == "WRI" &&
@@ -360,7 +369,9 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           domainEvents.map { it.additionalInformation?.incentiveLevel }.toSet(),
         ).isEqualTo(setOf("STD", "ENH"))
 
-        val auditMessageDetails = auditMessages.map { objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java) }
+        val auditMessageDetails = auditMessages.map {
+          objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java)
+        }
         assertThat(auditMessageDetails).allMatch { it.prisonId == "WRI" }
         assertThat(auditMessageDetails).allMatch { it.active }
         val auditMessageDefaultLevels = auditMessageDetails.associate {
@@ -667,7 +678,8 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
       @Test
       fun `fails to update a prison incentive level if it would become active despite being globally inactive`() {
-        makePrisonIncentiveLevel("WRI", "STD") // Standard is the default for admission, needed to manipulate other levels
+        // Standard is the default for admission, needed to manipulate other levels
+        makePrisonIncentiveLevel("WRI", "STD")
 
         webTestClient.put()
           .uri("/incentive/prison-levels/WRI/level/ENT")
@@ -732,9 +744,11 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
       @Test
       fun `fails to update a prison incentive level if it would become inactive despite having prisoners on it`() {
-        makePrisonIncentiveLevel("WRI", "STD") // Standard is the default for admission, needed to manipulate other levels
+        // Standard is the default for admission, needed to manipulate other levels
+        makePrisonIncentiveLevel("WRI", "STD")
         makePrisonIncentiveLevel("WRI", "EN2")
-        makeIncentiveReviews("WRI") // EN2 has A1234AB/1234135 & A1234AD/1234137 on it
+        // EN2 has A1234AB/1234135 & A1234AD/1234137 on it
+        makeIncentiveReviews("WRI")
 
         webTestClient.put()
           .uri("/incentive/prison-levels/WRI/level/EN2")
@@ -836,7 +850,8 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
       @Test
       fun `partially updates the default prison incentive level for admission`() {
-        makePrisonIncentiveLevel("WRI", "STD") // Standard is the default for admission
+        // Standard is the default for admission
+        makePrisonIncentiveLevel("WRI", "STD")
 
         webTestClient.patch()
           .uri("/incentive/prison-levels/WRI/level/ENH")
@@ -889,8 +904,16 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         val expectedPrisonIncentiveLevelChanges = 2
         assertThat(domainEvents).hasSize(expectedPrisonIncentiveLevelChanges)
         assertThat(auditMessages).hasSize(expectedPrisonIncentiveLevelChanges)
-        assertThat(domainEvents.count { it.eventType == "incentives.prison-level.changed" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
-        assertThat(auditMessages.count { it.what == "PRISON_INCENTIVE_LEVEL_UPDATED" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
+        assertThat(
+          domainEvents.count {
+            it.eventType == "incentives.prison-level.changed"
+          },
+        ).isEqualTo(expectedPrisonIncentiveLevelChanges)
+        assertThat(
+          auditMessages.count {
+            it.what == "PRISON_INCENTIVE_LEVEL_UPDATED"
+          },
+        ).isEqualTo(expectedPrisonIncentiveLevelChanges)
 
         assertThat(domainEvents).allMatch {
           it.additionalInformation?.prisonId == "WRI" &&
@@ -900,7 +923,9 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           domainEvents.map { it.additionalInformation?.incentiveLevel }.toSet(),
         ).isEqualTo(setOf("STD", "ENH"))
 
-        val auditMessageDetails = auditMessages.map { objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java) }
+        val auditMessageDetails = auditMessages.map {
+          objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java)
+        }
         assertThat(auditMessageDetails).allMatch { it.prisonId == "WRI" }
         assertThat(auditMessageDetails).allMatch { it.active }
         val auditMessageDefaultLevels = auditMessageDetails.associate {
@@ -916,8 +941,9 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
       @Test
       fun `partially updates prison incentive levels if all being activated one-by-one`() {
+        // Standard was the default for admission before deactivation
         makePrisonIncentiveLevel("MDI", "BAS")
-        makePrisonIncentiveLevel("MDI", "STD") // Standard was the default for admission before deactivation
+        makePrisonIncentiveLevel("MDI", "STD")
         makePrisonIncentiveLevel("MDI", "ENH")
         runBlocking {
           prisonIncentiveLevelRepository.saveAll(
@@ -953,11 +979,13 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         }
       }
 
+      @Suppress("ktlint:standard:max-line-length")
       @Test
       fun `partially updates prison incentive levels if all being activated one-by-one when the previous default was not Standard`() {
+        // Enhanced was the default for admission before deactivation
         makePrisonIncentiveLevel("MDI", "BAS")
         makePrisonIncentiveLevel("MDI", "STD")
-        makePrisonIncentiveLevel("MDI", "ENH") // Enhanced was the default for admission before deactivation
+        makePrisonIncentiveLevel("MDI", "ENH")
         runBlocking {
           prisonIncentiveLevelRepository.saveAll(
             prisonIncentiveLevelRepository.findAllByPrisonId("MDI").map {
@@ -1087,7 +1115,8 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
       @Test
       fun `fails to partially update a prison incentive level when making inactive level the default`() {
-        makePrisonIncentiveLevel("MDI", "ENT") // Entry is inactive
+        // Entry is inactive
+        makePrisonIncentiveLevel("MDI", "ENT")
 
         webTestClient.patch()
           .uri("/incentive/prison-levels/MDI/level/ENT")
@@ -1126,7 +1155,8 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           val standard = incentiveLevelRepository.findById("STD")!!.copy(required = false)
           incentiveLevelRepository.save(standard)
         }
-        makePrisonIncentiveLevel("MDI", "STD") // Standard is the default for admission
+        // Standard is the default for admission
+        makePrisonIncentiveLevel("MDI", "STD")
 
         webTestClient.patch()
           .uri("/incentive/prison-levels/MDI/level/STD")
@@ -1160,7 +1190,8 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
       @Test
       fun `fails to partially update a prison incentive level when no default for admission would remain`() {
-        makePrisonIncentiveLevel("BAI", "STD") // Standard is the default for admission
+        // Standard is the default for admission
+        makePrisonIncentiveLevel("BAI", "STD")
 
         webTestClient.patch()
           .uri("/incentive/prison-levels/MDI/level/STD")
@@ -1194,6 +1225,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertNoAuditMessageSent()
       }
 
+      @Suppress("ktlint:standard:max-line-length")
       @Test
       fun `fails to partially update a non-default prison incentive level when there is no other default level for admission`() {
         // data integrity problem: there is no default level for admission
@@ -1231,10 +1263,13 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertNoAuditMessageSent()
       }
 
+      @Suppress("ktlint:standard:max-line-length")
       @Test
       fun `fails to partially update a prison incentive level if it would become active despite being globally inactive`() {
-        makePrisonIncentiveLevel("BAI", "STD") // Standard is the default for admission, needed to manipulate other levels
-        makePrisonIncentiveLevel("BAI", "ENT") // Entry is inactive globally and in BAI
+        // Standard is the default for admission, needed to manipulate other levels
+        makePrisonIncentiveLevel("BAI", "STD")
+        // Entry is inactive globally and in BAI
+        makePrisonIncentiveLevel("BAI", "ENT")
 
         webTestClient.patch()
           .uri("/incentive/prison-levels/BAI/level/ENT")
@@ -1265,9 +1300,11 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertNoAuditMessageSent()
       }
 
+      @Suppress("ktlint:standard:max-line-length")
       @Test
       fun `fails to partially update a prison incentive level if it would become inactive despite being globally required`() {
-        makePrisonIncentiveLevel("BAI", "BAS") // Basic is required in all prisons
+        // Basic is required in all prisons
+        makePrisonIncentiveLevel("BAI", "BAS")
 
         webTestClient.patch()
           .uri("/incentive/prison-levels/BAI/level/BAS")
@@ -1298,11 +1335,14 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         assertNoAuditMessageSent()
       }
 
+      @Suppress("ktlint:standard:max-line-length")
       @Test
       fun `fails to partially update a prison incentive level if it would become inactive despite having prisoners on it`() {
-        makePrisonIncentiveLevel("WRI", "STD") // Standard is the default for admission, needed to manipulate other levels
+        // Standard is the default for admission, needed to manipulate other levels
+        makePrisonIncentiveLevel("WRI", "STD")
         makePrisonIncentiveLevel("WRI", "EN2")
-        makeIncentiveReviews("WRI") // EN2 has A1234AB/1234135 & A1234AD/1234137 on it
+        // EN2 has A1234AB/1234135 & A1234AD/1234137 on it
+        makeIncentiveReviews("WRI")
 
         webTestClient.patch()
           .uri("/incentive/prison-levels/WRI/level/EN2")
@@ -1379,7 +1419,11 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           val prisonIncentiveLevels = prisonIncentiveLevelRepository.findAllByPrisonId("FEI").toList()
           assertThat(prisonIncentiveLevels).hasSize(3)
           assertThat(prisonIncentiveLevels).allMatch { it.active }
-          assertThat(prisonIncentiveLevels.filter { it.defaultOnAdmission }.map { it.levelCode }).isEqualTo(listOf("STD"))
+          assertThat(
+            prisonIncentiveLevels.filter {
+              it.defaultOnAdmission
+            }.map { it.levelCode },
+          ).isEqualTo(listOf("STD"))
         }
 
         val domainEvents = getPublishedDomainEvents()
@@ -1388,8 +1432,16 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         val expectedPrisonIncentiveLevelChanges = 3
         assertThat(domainEvents).hasSize(expectedPrisonIncentiveLevelChanges)
         assertThat(auditMessages).hasSize(expectedPrisonIncentiveLevelChanges)
-        assertThat(domainEvents.count { it.eventType == "incentives.prison-level.changed" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
-        assertThat(auditMessages.count { it.what == "PRISON_INCENTIVE_LEVEL_UPDATED" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
+        assertThat(
+          domainEvents.count {
+            it.eventType == "incentives.prison-level.changed"
+          },
+        ).isEqualTo(expectedPrisonIncentiveLevelChanges)
+        assertThat(
+          auditMessages.count {
+            it.what == "PRISON_INCENTIVE_LEVEL_UPDATED"
+          },
+        ).isEqualTo(expectedPrisonIncentiveLevelChanges)
 
         assertThat(domainEvents).allMatch {
           it.additionalInformation?.prisonId == "FEI" &&
@@ -1399,7 +1451,9 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           domainEvents.map { it.additionalInformation?.incentiveLevel }.toSet(),
         ).isEqualTo(setOf("BAS", "STD", "ENH"))
 
-        val auditMessageDetails = auditMessages.map { objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java) }
+        val auditMessageDetails = auditMessages.map {
+          objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java)
+        }
         assertThat(auditMessageDetails).allMatch { it.prisonId == "FEI" }
         assertThat(auditMessageDetails).allMatch { it.active }
         val auditMessageDefaultLevels = auditMessageDetails.associate {
@@ -1416,8 +1470,9 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
       @Test
       fun `reports no changes when required set of levels are already active`() {
+        // Standard is the default for admission
         makePrisonIncentiveLevel("FEI", "BAS")
-        makePrisonIncentiveLevel("FEI", "STD") // Standard is the default for admission
+        makePrisonIncentiveLevel("FEI", "STD")
         makePrisonIncentiveLevel("FEI", "ENH")
         makePrisonIncentiveLevel("FEI", "EN2")
 
@@ -1466,7 +1521,11 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           val prisonIncentiveLevels = prisonIncentiveLevelRepository.findAllByPrisonId("FEI").toList()
           assertThat(prisonIncentiveLevels).hasSize(4)
           assertThat(prisonIncentiveLevels).allMatch { it.active }
-          assertThat(prisonIncentiveLevels.filter { it.defaultOnAdmission }.map { it.levelCode }).isEqualTo(listOf("STD"))
+          assertThat(
+            prisonIncentiveLevels.filter {
+              it.defaultOnAdmission
+            }.map { it.levelCode },
+          ).isEqualTo(listOf("STD"))
         }
 
         assertNoDomainEventSent()
@@ -1475,9 +1534,10 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
       @Test
       fun `sets Standard as the default level for admission even when all required levels are active`() {
+        // Enhanced is the default for admission
         makePrisonIncentiveLevel("FEI", "BAS")
         makePrisonIncentiveLevel("FEI", "STD")
-        makePrisonIncentiveLevel("FEI", "ENH") // Enhanced is the default for admission
+        makePrisonIncentiveLevel("FEI", "ENH")
         runBlocking {
           prisonIncentiveLevelRepository.saveAll(
             prisonIncentiveLevelRepository.findAllByPrisonId("FEI").map {
@@ -1526,7 +1586,11 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           val prisonIncentiveLevels = prisonIncentiveLevelRepository.findAllByPrisonId("FEI").toList()
           assertThat(prisonIncentiveLevels).hasSize(3)
           assertThat(prisonIncentiveLevels).allMatch { it.active }
-          assertThat(prisonIncentiveLevels.filter { it.defaultOnAdmission }.map { it.levelCode }).isEqualTo(listOf("STD"))
+          assertThat(
+            prisonIncentiveLevels.filter {
+              it.defaultOnAdmission
+            }.map { it.levelCode },
+          ).isEqualTo(listOf("STD"))
         }
 
         val domainEvents = getPublishedDomainEvents()
@@ -1535,8 +1599,16 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         val expectedPrisonIncentiveLevelChanges = 2
         assertThat(domainEvents).hasSize(expectedPrisonIncentiveLevelChanges)
         assertThat(auditMessages).hasSize(expectedPrisonIncentiveLevelChanges)
-        assertThat(domainEvents.count { it.eventType == "incentives.prison-level.changed" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
-        assertThat(auditMessages.count { it.what == "PRISON_INCENTIVE_LEVEL_UPDATED" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
+        assertThat(
+          domainEvents.count {
+            it.eventType == "incentives.prison-level.changed"
+          },
+        ).isEqualTo(expectedPrisonIncentiveLevelChanges)
+        assertThat(
+          auditMessages.count {
+            it.what == "PRISON_INCENTIVE_LEVEL_UPDATED"
+          },
+        ).isEqualTo(expectedPrisonIncentiveLevelChanges)
 
         assertThat(domainEvents).allMatch {
           it.additionalInformation?.prisonId == "FEI" &&
@@ -1546,7 +1618,9 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           domainEvents.map { it.additionalInformation?.incentiveLevel }.toSet(),
         ).isEqualTo(setOf("STD", "ENH"))
 
-        val auditMessageDetails = auditMessages.map { objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java) }
+        val auditMessageDetails = auditMessages.map {
+          objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java)
+        }
         assertThat(auditMessageDetails).allMatch { it.prisonId == "FEI" }
         assertThat(auditMessageDetails).allMatch { it.active }
         val auditMessageDefaultLevels = auditMessageDetails.associate {
@@ -1562,8 +1636,9 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
       @Test
       fun `preserves associated information for levels that were previously active`() {
+        // Standard is the default for admission
         makePrisonIncentiveLevel("FEI", "BAS")
-        makePrisonIncentiveLevel("FEI", "STD") // Standard is the default for admission
+        makePrisonIncentiveLevel("FEI", "STD")
         makePrisonIncentiveLevel("FEI", "ENH")
         runBlocking {
           prisonIncentiveLevelRepository.saveAll(
@@ -1621,7 +1696,11 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           val prisonIncentiveLevels = prisonIncentiveLevelRepository.findAllByPrisonId("FEI").toList()
           assertThat(prisonIncentiveLevels).hasSize(3)
           assertThat(prisonIncentiveLevels).allMatch { it.active }
-          assertThat(prisonIncentiveLevels.filter { it.defaultOnAdmission }.map { it.levelCode }).isEqualTo(listOf("STD"))
+          assertThat(
+            prisonIncentiveLevels.filter {
+              it.defaultOnAdmission
+            }.map { it.levelCode },
+          ).isEqualTo(listOf("STD"))
         }
 
         val domainEvents = getPublishedDomainEvents()
@@ -1630,8 +1709,16 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         val expectedPrisonIncentiveLevelChanges = 3
         assertThat(domainEvents).hasSize(expectedPrisonIncentiveLevelChanges)
         assertThat(auditMessages).hasSize(expectedPrisonIncentiveLevelChanges)
-        assertThat(domainEvents.count { it.eventType == "incentives.prison-level.changed" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
-        assertThat(auditMessages.count { it.what == "PRISON_INCENTIVE_LEVEL_UPDATED" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
+        assertThat(
+          domainEvents.count {
+            it.eventType == "incentives.prison-level.changed"
+          },
+        ).isEqualTo(expectedPrisonIncentiveLevelChanges)
+        assertThat(
+          auditMessages.count {
+            it.what == "PRISON_INCENTIVE_LEVEL_UPDATED"
+          },
+        ).isEqualTo(expectedPrisonIncentiveLevelChanges)
 
         assertThat(domainEvents).allMatch {
           it.additionalInformation?.prisonId == "FEI" &&
@@ -1641,7 +1728,9 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           domainEvents.map { it.additionalInformation?.incentiveLevel }.toSet(),
         ).isEqualTo(setOf("BAS", "STD", "ENH"))
 
-        val auditMessageDetails = auditMessages.map { objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java) }
+        val auditMessageDetails = auditMessages.map {
+          objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java)
+        }
         assertThat(auditMessageDetails).allMatch { it.prisonId == "FEI" }
         assertThat(auditMessageDetails).allMatch { it.active }
         val auditMessageDefaultLevels = auditMessageDetails.associate {
@@ -1658,8 +1747,9 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
       @Test
       fun `requires correct role to reset prison incentive levels`() {
+        // Standard is the default for admission
         makePrisonIncentiveLevel("FEI", "BAS")
-        makePrisonIncentiveLevel("FEI", "STD") // Standard is the default for admission
+        makePrisonIncentiveLevel("FEI", "STD")
         makePrisonIncentiveLevel("FEI", "ENH")
         runBlocking {
           prisonIncentiveLevelRepository.saveAll(
@@ -1725,8 +1815,9 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
       @Test
       fun `deactivates all prison incentive levels when all are already inactive`() {
+        // Standard is the default for admission
         makePrisonIncentiveLevel("BAI", "BAS")
-        makePrisonIncentiveLevel("BAI", "STD") // Standard is the default for admission
+        makePrisonIncentiveLevel("BAI", "STD")
         makePrisonIncentiveLevel("BAI", "ENH")
         runBlocking {
           prisonIncentiveLevelRepository.saveAll(
@@ -1778,8 +1869,9 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
       @Test
       fun `deactivates all prison incentive levels when only non-default for admission are active`() {
+        // Standard is the default for admission
         makePrisonIncentiveLevel("BAI", "BAS")
-        makePrisonIncentiveLevel("BAI", "STD") // Standard is the default for admission
+        makePrisonIncentiveLevel("BAI", "STD")
         makePrisonIncentiveLevel("BAI", "ENH")
         runBlocking {
           prisonIncentiveLevelRepository.saveAll(
@@ -1831,8 +1923,16 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         val expectedPrisonIncentiveLevelChanges = 2
         assertThat(domainEvents).hasSize(expectedPrisonIncentiveLevelChanges)
         assertThat(auditMessages).hasSize(expectedPrisonIncentiveLevelChanges)
-        assertThat(domainEvents.count { it.eventType == "incentives.prison-level.changed" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
-        assertThat(auditMessages.count { it.what == "PRISON_INCENTIVE_LEVEL_UPDATED" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
+        assertThat(
+          domainEvents.count {
+            it.eventType == "incentives.prison-level.changed"
+          },
+        ).isEqualTo(expectedPrisonIncentiveLevelChanges)
+        assertThat(
+          auditMessages.count {
+            it.what == "PRISON_INCENTIVE_LEVEL_UPDATED"
+          },
+        ).isEqualTo(expectedPrisonIncentiveLevelChanges)
 
         assertThat(domainEvents).allMatch {
           it.additionalInformation?.prisonId == "BAI" &&
@@ -1842,15 +1942,18 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           domainEvents.map { it.additionalInformation?.incentiveLevel }.toSet(),
         ).isEqualTo(setOf("BAS", "ENH"))
 
-        val auditMessageDetails = auditMessages.map { objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java) }
+        val auditMessageDetails = auditMessages.map {
+          objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java)
+        }
         assertThat(auditMessageDetails).allMatch { it.prisonId == "BAI" }
         assertThat(auditMessageDetails).allMatch { !it.active }
       }
 
       @Test
       fun `deactivates all prison incentive levels even when default for admission is active`() {
+        // Standard is the default for admission
         makePrisonIncentiveLevel("BAI", "BAS")
-        makePrisonIncentiveLevel("BAI", "STD") // Standard is the default for admission
+        makePrisonIncentiveLevel("BAI", "STD")
         makePrisonIncentiveLevel("BAI", "ENH")
 
         webTestClient.delete()
@@ -1895,8 +1998,16 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
         val expectedPrisonIncentiveLevelChanges = 3
         assertThat(domainEvents).hasSize(expectedPrisonIncentiveLevelChanges)
         assertThat(auditMessages).hasSize(expectedPrisonIncentiveLevelChanges)
-        assertThat(domainEvents.count { it.eventType == "incentives.prison-level.changed" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
-        assertThat(auditMessages.count { it.what == "PRISON_INCENTIVE_LEVEL_UPDATED" }).isEqualTo(expectedPrisonIncentiveLevelChanges)
+        assertThat(
+          domainEvents.count {
+            it.eventType == "incentives.prison-level.changed"
+          },
+        ).isEqualTo(expectedPrisonIncentiveLevelChanges)
+        assertThat(
+          auditMessages.count {
+            it.what == "PRISON_INCENTIVE_LEVEL_UPDATED"
+          },
+        ).isEqualTo(expectedPrisonIncentiveLevelChanges)
 
         assertThat(domainEvents).allMatch {
           it.additionalInformation?.prisonId == "BAI" &&
@@ -1906,15 +2017,18 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           domainEvents.map { it.additionalInformation?.incentiveLevel }.toSet(),
         ).isEqualTo(setOf("BAS", "STD", "ENH"))
 
-        val auditMessageDetails = auditMessages.map { objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java) }
+        val auditMessageDetails = auditMessages.map {
+          objectMapper.readValue(it.details, PrisonIncentiveLevel::class.java)
+        }
         assertThat(auditMessageDetails).allMatch { it.prisonId == "BAI" }
         assertThat(auditMessageDetails).allMatch { !it.active }
       }
 
       @Test
       fun `requires correct role to deactivate all prison incentive levels`() {
+        // Standard is the default for admission
         makePrisonIncentiveLevel("MDI", "BAS")
-        makePrisonIncentiveLevel("MDI", "STD") // Standard is the default for admission
+        makePrisonIncentiveLevel("MDI", "STD")
         makePrisonIncentiveLevel("MDI", "ENH")
 
         webTestClient.delete()
@@ -1939,8 +2053,9 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
       @Test
       fun `fails to deactivate all prison incentive levels when some levels have prisoners on them`() {
+        // Standard is the default for admission
         makePrisonIncentiveLevel("MDI", "BAS")
-        makePrisonIncentiveLevel("MDI", "STD") // Standard is the default for admission
+        makePrisonIncentiveLevel("MDI", "STD")
         makePrisonIncentiveLevel("MDI", "ENH")
         makeIncentiveReviews("MDI")
         // make only BAS & ENH have prisoners on them
@@ -1986,7 +2101,8 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
       @Test
       fun `deactivates a prison incentive level when per-prison information does not exist`() {
-        makePrisonIncentiveLevel("WRI", "STD") // Standard is the default for admission, needed to allow deactivation of EN2
+        // Standard is the default for admission, needed to allow deactivation of EN2
+        makePrisonIncentiveLevel("WRI", "STD")
 
         webTestClient.delete()
           .uri("/incentive/prison-levels/WRI/level/EN2")
@@ -2083,7 +2199,8 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
           val standard = incentiveLevelRepository.findById("STD")!!.copy(required = false)
           incentiveLevelRepository.save(standard)
         }
-        makePrisonIncentiveLevel("MDI", "STD") // Standard is the default for admission
+        // Standard is the default for admission
+        makePrisonIncentiveLevel("MDI", "STD")
 
         webTestClient.delete()
           .uri("/incentive/prison-levels/MDI/level/STD")
@@ -2109,7 +2226,8 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
       @Test
       fun `fails to deactivate a prison incentive level which is required globally`() {
-        makePrisonIncentiveLevel("MDI", "BAS") // Basic is globally required
+        // Basic is globally required
+        makePrisonIncentiveLevel("MDI", "BAS")
 
         webTestClient.delete()
           .uri("/incentive/prison-levels/MDI/level/BAS")
@@ -2134,9 +2252,11 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
 
       @Test
       fun `fails to deactivate a prison incentive level which has prisoners on it`() {
-        makePrisonIncentiveLevel("MDI", "STD") // Standard is the default for admission, needed to manipulate other levels
+        // Standard is the default for admission, needed to manipulate other levels
+        makePrisonIncentiveLevel("MDI", "STD")
         makePrisonIncentiveLevel("MDI", "EN2")
-        makeIncentiveReviews("MDI") // EN2 has A1234AB/1234135 & A1234AD/1234137 on it
+        // EN2 has A1234AB/1234135 & A1234AD/1234137 on it
+        makeIncentiveReviews("MDI")
 
         webTestClient.delete()
           .uri("/incentive/prison-levels/MDI/level/EN2")

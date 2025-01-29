@@ -40,7 +40,16 @@ class IncentiveReviewsServiceTest {
   private val incentiveReviewRepository: IncentiveReviewRepository = mock()
   private val nextReviewDateGetterService: NextReviewDateGetterService = mock()
   private var clock: Clock = Clock.fixed(Instant.parse("2022-08-01T12:45:00.00Z"), ZoneId.of("Europe/London"))
-  private val incentiveReviewsService = IncentiveReviewsService(offenderSearchService, locationsService, prisonIncentiveLevelService, incentiveReviewRepository, nextReviewDateGetterService, behaviourService, clock)
+  private val incentiveReviewsService =
+    IncentiveReviewsService(
+      offenderSearchService,
+      locationsService,
+      prisonIncentiveLevelService,
+      incentiveReviewRepository,
+      nextReviewDateGetterService,
+      behaviourService,
+      clock,
+    )
 
   @BeforeEach
   fun setUp(): Unit = runBlocking {
@@ -50,9 +59,27 @@ class IncentiveReviewsServiceTest {
     whenever(incentiveReviewRepository.findAllByBookingIdInOrderByReviewTimeDesc(any()))
       .thenReturn(
         flowOf(
-          prisonerIepLevel(bookingId = 110001, iepCode = "STD", current = true, reviewType = ReviewType.INITIAL, reviewTime = LocalDateTime.now(clock)),
-          prisonerIepLevel(bookingId = 110002, iepCode = "BAS", current = true, reviewType = ReviewType.REVIEW, reviewTime = LocalDateTime.now(clock).minusMonths(1)),
-          prisonerIepLevel(bookingId = 110002, iepCode = "STD", current = false, reviewType = ReviewType.INITIAL, reviewTime = LocalDateTime.now(clock).minusMonths(2)),
+          prisonerIepLevel(
+            bookingId = 110001,
+            iepCode = "STD",
+            current = true,
+            reviewType = ReviewType.INITIAL,
+            reviewTime = LocalDateTime.now(clock),
+          ),
+          prisonerIepLevel(
+            bookingId = 110002,
+            iepCode = "BAS",
+            current = true,
+            reviewType = ReviewType.REVIEW,
+            reviewTime = LocalDateTime.now(clock).minusMonths(1),
+          ),
+          prisonerIepLevel(
+            bookingId = 110002,
+            iepCode = "STD",
+            current = false,
+            reviewType = ReviewType.INITIAL,
+            reviewTime = LocalDateTime.now(clock).minusMonths(2),
+          ),
         ),
       )
     whenever(incentiveReviewRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(any()))
@@ -251,7 +278,9 @@ class IncentiveReviewsServiceTest {
     val expectedNextReviewDate = LocalDate.now(clock).plusYears(1)
 
     whenever(locationsService.getByKey(any())).thenReturnLocation("MDI-2-1")
-    whenever(offenderSearchService.getOffendersAtLocation(any(), any())).thenReturn(listOf(offenderSearchPrisoner(prisonerNumber)))
+    whenever(
+      offenderSearchService.getOffendersAtLocation(any(), any()),
+    ).thenReturn(listOf(offenderSearchPrisoner(prisonerNumber)))
 
     whenever(nextReviewDateGetterService.getMany(any())).thenReturn(mapOf(110002L to expectedNextReviewDate))
 
@@ -292,10 +321,34 @@ class IncentiveReviewsServiceTest {
     whenever(incentiveReviewRepository.findAllByBookingIdInOrderByReviewTimeDesc(any()))
       .thenReturn(
         flowOf(
-          prisonerIepLevel(bookingId = 110001, iepCode = "STD", current = true, reviewType = ReviewType.INITIAL, reviewTime = LocalDateTime.now(clock)),
-          prisonerIepLevel(bookingId = 110002, iepCode = "ENH", current = true, reviewType = ReviewType.REVIEW, reviewTime = LocalDateTime.now(clock).minusMonths(1)),
-          prisonerIepLevel(bookingId = 110002, iepCode = "STD", current = false, reviewType = ReviewType.INITIAL, reviewTime = LocalDateTime.now(clock)),
-          prisonerIepLevel(bookingId = 110003, iepCode = "STD", current = true, reviewType = ReviewType.INITIAL, reviewTime = LocalDateTime.now(clock)),
+          prisonerIepLevel(
+            bookingId = 110001,
+            iepCode = "STD",
+            current = true,
+            reviewType = ReviewType.INITIAL,
+            reviewTime = LocalDateTime.now(clock),
+          ),
+          prisonerIepLevel(
+            bookingId = 110002,
+            iepCode = "ENH",
+            current = true,
+            reviewType = ReviewType.REVIEW,
+            reviewTime = LocalDateTime.now(clock).minusMonths(1),
+          ),
+          prisonerIepLevel(
+            bookingId = 110002,
+            iepCode = "STD",
+            current = false,
+            reviewType = ReviewType.INITIAL,
+            reviewTime = LocalDateTime.now(clock),
+          ),
+          prisonerIepLevel(
+            bookingId = 110003,
+            iepCode = "STD",
+            current = true,
+            reviewType = ReviewType.INITIAL,
+            reviewTime = LocalDateTime.now(clock),
+          ),
         ),
       )
 
@@ -464,10 +517,18 @@ class IncentiveReviewsServiceTest {
     whenever(incentiveReviewRepository.findAllByBookingIdInOrderByReviewTimeDesc(any()))
       .thenReturn(
         flowOf(
-          prisonerIepLevel(bookingId = 110001, iepCode = "STD", current = true, reviewType = ReviewType.INITIAL, reviewTime = LocalDateTime.now(clock)),
+          prisonerIepLevel(
+            bookingId = 110001,
+            iepCode = "STD",
+            current = true,
+            reviewType = ReviewType.INITIAL,
+            reviewTime = LocalDateTime.now(clock),
+          ),
         ),
       )
-    whenever(incentiveReviewRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(eq(listOf(110001, 110002))))
+    whenever(
+      incentiveReviewRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(eq(listOf(110001, 110002))),
+    )
       .thenReturn(flowOf(prisonerIepLevel(110001, reviewTime = LocalDateTime.now(clock))))
 
     // When
@@ -491,7 +552,9 @@ class IncentiveReviewsServiceTest {
     whenever(incentiveReviewRepository.findAllByBookingIdInOrderByReviewTimeDesc(any()))
       .thenReturn(emptyFlow())
 
-    whenever(incentiveReviewRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(eq(listOf(110001, 110002))))
+    whenever(
+      incentiveReviewRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(eq(listOf(110001, 110002))),
+    )
       .thenReturn(emptyFlow())
 
     // When
@@ -514,9 +577,27 @@ class IncentiveReviewsServiceTest {
     whenever(incentiveReviewRepository.findAllByBookingIdInOrderByReviewTimeDesc(any()))
       .thenReturn(
         flowOf(
-          prisonerIepLevel(bookingId = 110001, iepCode = "STD", current = true, reviewType = ReviewType.INITIAL, reviewTime = LocalDateTime.now(clock)),
-          prisonerIepLevel(bookingId = 110002, iepCode = "STD", current = true, reviewType = ReviewType.INITIAL, reviewTime = LocalDateTime.now(clock)),
-          prisonerIepLevel(bookingId = 110003, iepCode = "STD", current = true, reviewType = ReviewType.INITIAL, reviewTime = LocalDateTime.now(clock)),
+          prisonerIepLevel(
+            bookingId = 110001,
+            iepCode = "STD",
+            current = true,
+            reviewType = ReviewType.INITIAL,
+            reviewTime = LocalDateTime.now(clock),
+          ),
+          prisonerIepLevel(
+            bookingId = 110002,
+            iepCode = "STD",
+            current = true,
+            reviewType = ReviewType.INITIAL,
+            reviewTime = LocalDateTime.now(clock),
+          ),
+          prisonerIepLevel(
+            bookingId = 110003,
+            iepCode = "STD",
+            current = true,
+            reviewType = ReviewType.INITIAL,
+            reviewTime = LocalDateTime.now(clock),
+          ),
         ),
       )
     whenever(incentiveReviewRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(any()))
@@ -598,13 +679,55 @@ class IncentiveReviewsServiceTest {
     whenever(incentiveReviewRepository.findAllByBookingIdInOrderByReviewTimeDesc(any()))
       .thenReturn(
         flowOf(
-          prisonerIepLevel(bookingId = 110001, iepCode = "STD", current = true, reviewType = ReviewType.REVIEW, reviewTime = LocalDateTime.now(clock).minusMonths(1)),
-          prisonerIepLevel(bookingId = 110001, iepCode = "BAS", current = false, reviewType = ReviewType.INITIAL, reviewTime = LocalDateTime.now(clock)),
-          prisonerIepLevel(bookingId = 110002, iepCode = "BAS", current = true, reviewType = ReviewType.TRANSFER, reviewTime = LocalDateTime.now(clock)),
-          prisonerIepLevel(bookingId = 110002, iepCode = "BAS", current = false, reviewType = ReviewType.INITIAL, reviewTime = LocalDateTime.now(clock)),
-          prisonerIepLevel(bookingId = 110003, iepCode = "ENH", current = true, reviewType = ReviewType.REVIEW, reviewTime = LocalDateTime.now(clock).minusMonths(1)),
-          prisonerIepLevel(bookingId = 110003, iepCode = "STD", current = false, reviewType = ReviewType.REVIEW, reviewTime = LocalDateTime.now(clock).minusMonths(2)),
-          prisonerIepLevel(bookingId = 110003, iepCode = "BAS", current = false, reviewType = ReviewType.INITIAL, reviewTime = LocalDateTime.now(clock)),
+          prisonerIepLevel(
+            bookingId = 110001,
+            iepCode = "STD",
+            current = true,
+            reviewType = ReviewType.REVIEW,
+            reviewTime = LocalDateTime.now(clock).minusMonths(1),
+          ),
+          prisonerIepLevel(
+            bookingId = 110001,
+            iepCode = "BAS",
+            current = false,
+            reviewType = ReviewType.INITIAL,
+            reviewTime = LocalDateTime.now(clock),
+          ),
+          prisonerIepLevel(
+            bookingId = 110002,
+            iepCode = "BAS",
+            current = true,
+            reviewType = ReviewType.TRANSFER,
+            reviewTime = LocalDateTime.now(clock),
+          ),
+          prisonerIepLevel(
+            bookingId = 110002,
+            iepCode = "BAS",
+            current = false,
+            reviewType = ReviewType.INITIAL,
+            reviewTime = LocalDateTime.now(clock),
+          ),
+          prisonerIepLevel(
+            bookingId = 110003,
+            iepCode = "ENH",
+            current = true,
+            reviewType = ReviewType.REVIEW,
+            reviewTime = LocalDateTime.now(clock).minusMonths(1),
+          ),
+          prisonerIepLevel(
+            bookingId = 110003,
+            iepCode = "STD",
+            current = false,
+            reviewType = ReviewType.REVIEW,
+            reviewTime = LocalDateTime.now(clock).minusMonths(2),
+          ),
+          prisonerIepLevel(
+            bookingId = 110003,
+            iepCode = "BAS",
+            current = false,
+            reviewType = ReviewType.INITIAL,
+            reviewTime = LocalDateTime.now(clock),
+          ),
         ),
       )
 

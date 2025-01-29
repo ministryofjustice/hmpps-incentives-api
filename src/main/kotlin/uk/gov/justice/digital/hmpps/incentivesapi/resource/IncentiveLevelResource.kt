@@ -54,7 +54,14 @@ class IncentiveLevelResource(
     ],
   )
   suspend fun getIncentiveLevels(
-    @Schema(description = "Include inactive incentive levels", example = "true", required = false, defaultValue = "false", type = "boolean", pattern = "^true|false$")
+    @Schema(
+      description = "Include inactive incentive levels",
+      example = "true",
+      required = false,
+      defaultValue = "false",
+      type = "boolean",
+      pattern = "^true|false$",
+    )
     @RequestParam(defaultValue = "false", value = "with-inactive", required = false)
     withInactive: Boolean = false,
   ): List<IncentiveLevel> {
@@ -95,9 +102,7 @@ class IncentiveLevelResource(
       ),
     ],
   )
-  suspend fun createIncentiveLevel(
-    @RequestBody incentiveLevel: IncentiveLevel,
-  ): IncentiveLevel {
+  suspend fun createIncentiveLevel(@RequestBody incentiveLevel: IncentiveLevel): IncentiveLevel {
     ensure {
       ("code" to incentiveLevel.code).hasLengthAtLeast(1).hasLengthAtMost(6)
       ("name" to incentiveLevel.name).hasLengthAtLeast(1).hasLengthAtMost(30)
@@ -143,9 +148,7 @@ class IncentiveLevelResource(
       ),
     ],
   )
-  suspend fun setOrderOfIncentiveLevels(
-    @RequestBody incentiveLevelCodes: List<String>,
-  ): List<IncentiveLevel> {
+  suspend fun setOrderOfIncentiveLevels(@RequestBody incentiveLevelCodes: List<String>): List<IncentiveLevel> {
     ensure {
       ("incentiveLevelCodes" to incentiveLevelCodes).hasSizeAtLeast(2)
     }
@@ -156,7 +159,8 @@ class IncentiveLevelResource(
   @GetMapping("levels/{code}")
   @Operation(
     summary = "Returns an incentive level by code",
-    description = "Note that it may be inactive. For the majority of use cases, inactive levels in a prison should be ignored.",
+    description = "Note that it may be inactive. " +
+      "For the majority of use cases, inactive levels in a prison should be ignored.",
     responses = [
       ApiResponse(
         responseCode = "200",
@@ -193,7 +197,8 @@ class IncentiveLevelResource(
   @Operation(
     summary = "Updates an incentive level",
     description = "Payload must include all required fields. A level marked as required must also be active. " +
-      "Deactivating a level is only possible if it is not active in any prison (moreInfo field will contain comma-separated prison ids). " +
+      "Deactivating a level is only possible if it is not active in any prison " +
+      "(moreInfo field will contain comma-separated prison ids). " +
       "Deactivated incentive levels remain in the same position with respect to the others." +
       "\n\nRequires role: MAINTAIN_INCENTIVE_LEVELS with write scope" +
       "\n\nRaises HMPPS domain event: \"incentives.level.changed\"",
@@ -244,7 +249,8 @@ class IncentiveLevelResource(
   @Operation(
     summary = "Updates an incentive level",
     description = "Partial updates are allowed. A level marked as required must also be active. " +
-      "Deactivating a level is only possible if it is not active in any prison (moreInfo field will contain comma-separated prison ids). " +
+      "Deactivating a level is only possible if it is not active in any prison " +
+      "(moreInfo field will contain comma-separated prison ids). " +
       "Deactivated incentive levels remain in the same position with respect to the others." +
       "\n\nRequires role: MAINTAIN_INCENTIVE_LEVELS with write scope" +
       "\n\nRaises HMPPS domain event: \"incentives.level.changed\"",
@@ -304,7 +310,8 @@ class IncentiveLevelResource(
   @Operation(
     summary = "Deactivates an incentive level",
     description = "A required level cannot be deactivated, needs to be updated first to be not required. " +
-      "Deactivating a level is only possible if it is not active in any prison (moreInfo field will contain comma-separated prison ids). " +
+      "Deactivating a level is only possible if it is not active in any prison " +
+      "(moreInfo field will contain comma-separated prison ids). " +
       "Deactivated incentive levels remain in the same position with respect to the others." +
       "\n\nRequires role: MAINTAIN_INCENTIVE_LEVELS with write scope" +
       "\n\nRaises HMPPS domain event: \"incentives.level.changed\"",

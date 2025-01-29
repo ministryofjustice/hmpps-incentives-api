@@ -46,10 +46,7 @@ fun prisonIncentiveLevel(
   privilegedVisitOrders = 1,
 )
 
-fun offenderSearchPrisoner(
-  prisonerNumber: String = "A1244AB",
-  bookingId: Long = 1234567L,
-) = OffenderSearchPrisoner(
+fun offenderSearchPrisoner(prisonerNumber: String = "A1244AB", bookingId: Long = 1234567L) = OffenderSearchPrisoner(
   prisonerNumber = prisonerNumber,
   bookingId = bookingId,
   firstName = "JAMES",
@@ -61,10 +58,7 @@ fun offenderSearchPrisoner(
   alerts = emptyList(),
 )
 
-fun prisonerExtraInfo(
-  prisonerNumber: String = "A1244AB",
-  bookingId: Long = 1234567L,
-) = PrisonerExtraInfo(
+fun prisonerExtraInfo(prisonerNumber: String = "A1244AB", bookingId: Long = 1234567L) = PrisonerExtraInfo(
   bookingId = bookingId,
   offenderNo = prisonerNumber,
   dateOfBirth = LocalDate.parse("1971-07-01"),
@@ -72,8 +66,11 @@ fun prisonerExtraInfo(
   alerts = emptyList(),
 )
 
-fun prisonerAtLocation(bookingId: Long = 1234567, offenderNo: String = "A1234AA", agencyId: String = "MDI") =
-  PrisonerInfo(bookingId, 1, "John", "Smith", offenderNo, agencyId)
+fun prisonerAtLocation(
+  bookingId: Long = 1234567,
+  offenderNo: String = "A1234AA",
+  agencyId: String = "MDI",
+) = PrisonerInfo(bookingId, 1, "John", "Smith", offenderNo, agencyId)
 
 fun prisonerIepLevel(
   bookingId: Long,
@@ -81,14 +78,13 @@ fun prisonerIepLevel(
   reviewTime: LocalDateTime,
   current: Boolean = true,
   reviewType: ReviewType = ReviewType.REVIEW,
-) =
-  IncentiveReview(
-    levelCode = iepCode,
-    prisonId = "MDI",
-    bookingId = bookingId,
-    current = current,
-    reviewedBy = "TEST_STAFF1",
-    reviewTime = reviewTime,
-    prisonerNumber = "A1234AB",
-    reviewType = reviewType,
-  )
+) = IncentiveReview(
+  levelCode = iepCode,
+  prisonId = "MDI",
+  bookingId = bookingId,
+  current = current,
+  reviewedBy = "TEST_STAFF1",
+  reviewTime = reviewTime,
+  prisonerNumber = "A1234AB",
+  reviewType = reviewType,
+)

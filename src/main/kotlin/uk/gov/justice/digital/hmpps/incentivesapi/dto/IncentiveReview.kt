@@ -18,14 +18,23 @@ data class IncentiveReview(
   @Schema(description = "Prisoner’s incentive level code", example = "STD")
   val levelCode: String,
 
-  @Schema(description = "Count of all the positive case note behaviour entries recorded in the last 3 months", example = "7")
+  @Schema(
+    description = "Count of all the positive case note behaviour entries recorded in the last 3 months",
+    example = "7",
+  )
   val positiveBehaviours: Int,
-  @Schema(description = "Count of all the negative case note behaviour entries recorded in the last 3 months", example = "7")
+  @Schema(
+    description = "Count of all the negative case note behaviour entries recorded in the last 3 months",
+    example = "7",
+  )
   val negativeBehaviours: Int,
 
   @Schema(description = "Whether the prisoner has an ACCT open alert", example = "true")
   val hasAcctOpen: Boolean,
-  @Schema(description = "Whether the prisoner is new to prison, i.e. has never had an incentive review in person", example = "false")
+  @Schema(
+    description = "Whether the prisoner is new to prison, i.e. has never had an incentive review in person",
+    example = "false",
+  )
   val isNewToPrison: Boolean,
 
   @Schema(description = "Days since last review, null when no real review has taken place", example = "45")
@@ -34,7 +43,10 @@ data class IncentiveReview(
   var nextReviewDate: LocalDate,
 )
 
-@Schema(description = "An Incentive level available at the given location, with the total and overdue number of prisoners at this level")
+@Schema(
+  description = "An Incentive level available at the given location, " +
+    "with the total and overdue number of prisoners at this level",
+)
 data class IncentiveReviewLevel(
   @Schema(description = "Level code", example = "STD")
   val levelCode: String,
@@ -51,7 +63,10 @@ data class IncentiveReviewLevel(
 
 @Schema(description = "Incentive reviews list for prisoners at a given location")
 data class IncentiveReviewResponse(
-  @Schema(description = "List of levels available at the given location, with the total and overdue number of prisoners at each level")
+  @Schema(
+    description = "List of levels available at the given location, " +
+      "with the total and overdue number of prisoners at each level",
+  )
   val levels: List<IncentiveReviewLevel>,
 
   @Schema(description = "Prisoner incentive reviews")

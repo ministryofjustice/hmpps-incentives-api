@@ -16,7 +16,8 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 class NearestPrisonIncentiveLevelServiceTest {
   private val incentiveLevelService: IncentiveLevelAuditedService = mock()
   private val prisonIncentiveLevelService: PrisonIncentiveLevelAuditedService = mock()
-  private val nearestPrisonIncentiveLevelService = NearestPrisonIncentiveLevelService(incentiveLevelService, prisonIncentiveLevelService)
+  private val nearestPrisonIncentiveLevelService =
+    NearestPrisonIncentiveLevelService(incentiveLevelService, prisonIncentiveLevelService)
 
   @DisplayName("finding nearest levels")
   @Nested
@@ -214,19 +215,20 @@ class NearestPrisonIncentiveLevelServiceTest {
     }
 
     @Test
-    fun `fails when there are no available levels in a prison because a default cannot be chosen`(): Unit = runBlocking {
-      // extreme edge case when a level is globally removed AND the prison does not have any levels
-      whenever(prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)).thenReturn(
-        listOf(
-          prisonIncentiveLevel(prisonId, "BAS", active = false),
-          prisonIncentiveLevel(prisonId, "STD", defaultOnAdmission = false, active = false),
-          prisonIncentiveLevel(prisonId, "ENH", active = false),
-        ),
-      )
+    fun `fails when there are no available levels in a prison because a default cannot be chosen`(): Unit =
+      runBlocking {
+        // extreme edge case when a level is globally removed AND the prison does not have any levels
+        whenever(prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)).thenReturn(
+          listOf(
+            prisonIncentiveLevel(prisonId, "BAS", active = false),
+            prisonIncentiveLevel(prisonId, "STD", defaultOnAdmission = false, active = false),
+            prisonIncentiveLevel(prisonId, "ENH", active = false),
+          ),
+        )
 
-      assertThatThrownBy {
-        runBlocking { nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, "ABC") }
-      }.isInstanceOf(DataIntegrityException::class.java)
-    }
+        assertThatThrownBy {
+          runBlocking { nearestPrisonIncentiveLevelService.findNearestHighestLevel(prisonId, "ABC") }
+        }.isInstanceOf(DataIntegrityException::class.java)
+      }
   }
 }

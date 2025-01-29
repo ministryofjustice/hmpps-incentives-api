@@ -26,25 +26,91 @@ class BehaviourServiceTest {
   @Test
   fun `case note totals correct map against review dates`() {
     val reviews = listOf(
-      prisonerIepLevel(bookingId = 110001, iepCode = "STD", current = true, reviewType = ReviewType.TRANSFER, reviewTime = timeNow.minusMonths(1)),
+      prisonerIepLevel(
+        bookingId = 110001,
+        iepCode = "STD",
+        current = true,
+        reviewType = ReviewType.TRANSFER,
+        reviewTime = timeNow.minusMonths(1),
+      ),
       // real review
-      prisonerIepLevel(bookingId = 110001, iepCode = "STD", current = false, reviewType = ReviewType.REVIEW, reviewTime = timeNow.minusMonths(2)),
-      prisonerIepLevel(bookingId = 110001, iepCode = "STD", current = false, reviewType = ReviewType.INITIAL, reviewTime = timeNow.minusMonths(3)),
+      prisonerIepLevel(
+        bookingId = 110001,
+        iepCode = "STD",
+        current = false,
+        reviewType = ReviewType.REVIEW,
+        reviewTime = timeNow.minusMonths(2),
+      ),
+      prisonerIepLevel(
+        bookingId = 110001,
+        iepCode = "STD",
+        current = false,
+        reviewType = ReviewType.INITIAL,
+        reviewTime = timeNow.minusMonths(3),
+      ),
 
       // real review
-      prisonerIepLevel(bookingId = 110002, iepCode = "ENH", current = true, reviewType = ReviewType.REVIEW, reviewTime = timeNow.minusMonths(1)),
-      prisonerIepLevel(bookingId = 110002, iepCode = "STD", current = false, reviewType = ReviewType.TRANSFER, reviewTime = timeNow.minusMonths(2)),
-      prisonerIepLevel(bookingId = 110002, iepCode = "STD", current = false, reviewType = ReviewType.REVIEW, reviewTime = timeNow.minusMonths(3)),
-      prisonerIepLevel(bookingId = 110002, iepCode = "STD", current = false, reviewType = ReviewType.INITIAL, reviewTime = timeNow.minusMonths(4)),
+      prisonerIepLevel(
+        bookingId = 110002,
+        iepCode = "ENH",
+        current = true,
+        reviewType = ReviewType.REVIEW,
+        reviewTime = timeNow.minusMonths(1),
+      ),
+      prisonerIepLevel(
+        bookingId = 110002,
+        iepCode = "STD",
+        current = false,
+        reviewType = ReviewType.TRANSFER,
+        reviewTime = timeNow.minusMonths(2),
+      ),
+      prisonerIepLevel(
+        bookingId = 110002,
+        iepCode = "STD",
+        current = false,
+        reviewType = ReviewType.REVIEW,
+        reviewTime = timeNow.minusMonths(3),
+      ),
+      prisonerIepLevel(
+        bookingId = 110002,
+        iepCode = "STD",
+        current = false,
+        reviewType = ReviewType.INITIAL,
+        reviewTime = timeNow.minusMonths(4),
+      ),
 
       // presumed to be real review
-      prisonerIepLevel(bookingId = 110003, iepCode = "STD", current = true, reviewType = ReviewType.MIGRATED, reviewTime = timeNow.minusMonths(14)),
+      prisonerIepLevel(
+        bookingId = 110003,
+        iepCode = "STD",
+        current = true,
+        reviewType = ReviewType.MIGRATED,
+        reviewTime = timeNow.minusMonths(14),
+      ),
 
-      prisonerIepLevel(bookingId = 110004, iepCode = "STD", current = true, reviewType = ReviewType.INITIAL, reviewTime = timeNow.minusMonths(1)),
+      prisonerIepLevel(
+        bookingId = 110004,
+        iepCode = "STD",
+        current = true,
+        reviewType = ReviewType.INITIAL,
+        reviewTime = timeNow.minusMonths(1),
+      ),
 
       // real review
-      prisonerIepLevel(bookingId = 110005, iepCode = "BAS", current = true, reviewType = ReviewType.REVIEW, reviewTime = timeNow.minusMonths(5)),
-      prisonerIepLevel(bookingId = 110005, iepCode = "STD", current = false, reviewType = ReviewType.MIGRATED, reviewTime = timeNow.minusMonths(8)),
+      prisonerIepLevel(
+        bookingId = 110005,
+        iepCode = "BAS",
+        current = true,
+        reviewType = ReviewType.REVIEW,
+        reviewTime = timeNow.minusMonths(5),
+      ),
+      prisonerIepLevel(
+        bookingId = 110005,
+        iepCode = "STD",
+        current = false,
+        reviewType = ReviewType.MIGRATED,
+        reviewTime = timeNow.minusMonths(8),
+      ),
     )
     // dates from above of last real review
     val prisonerByLastRealReviewDate = mapOf(
@@ -64,20 +130,70 @@ class BehaviourServiceTest {
     )
 
     runBlocking {
-      whenever(prisonApiService.retrieveCaseNoteCountsByFromDate(listOf("POS", "NEG"), prisonerByLastReviewDateOrDefaultPeriod)).thenReturn(
+      whenever(
+        prisonApiService.retrieveCaseNoteCountsByFromDate(
+          listOf("POS", "NEG"),
+          prisonerByLastReviewDateOrDefaultPeriod,
+        ),
+      ).thenReturn(
         flowOf(
-          PrisonerCaseNoteByTypeSubType(bookingId = 110001, caseNoteType = "POS", caseNoteSubType = "IEP_ENC", numCaseNotes = 2),
-          PrisonerCaseNoteByTypeSubType(bookingId = 110001, caseNoteType = "POS", caseNoteSubType = "QUAL_ATT", numCaseNotes = 1),
-          PrisonerCaseNoteByTypeSubType(bookingId = 110001, caseNoteType = "POS", caseNoteSubType = "POS_GEN", numCaseNotes = 1),
-          PrisonerCaseNoteByTypeSubType(bookingId = 110001, caseNoteType = "NEG", caseNoteSubType = "IEP_WARN", numCaseNotes = 1),
-          PrisonerCaseNoteByTypeSubType(bookingId = 110001, caseNoteType = "NEG", caseNoteSubType = "BEHAVEWARN", numCaseNotes = 1),
+          PrisonerCaseNoteByTypeSubType(
+            bookingId = 110001,
+            caseNoteType = "POS",
+            caseNoteSubType = "IEP_ENC",
+            numCaseNotes = 2,
+          ),
+          PrisonerCaseNoteByTypeSubType(
+            bookingId = 110001,
+            caseNoteType = "POS",
+            caseNoteSubType = "QUAL_ATT",
+            numCaseNotes = 1,
+          ),
+          PrisonerCaseNoteByTypeSubType(
+            bookingId = 110001,
+            caseNoteType = "POS",
+            caseNoteSubType = "POS_GEN",
+            numCaseNotes = 1,
+          ),
+          PrisonerCaseNoteByTypeSubType(
+            bookingId = 110001,
+            caseNoteType = "NEG",
+            caseNoteSubType = "IEP_WARN",
+            numCaseNotes = 1,
+          ),
+          PrisonerCaseNoteByTypeSubType(
+            bookingId = 110001,
+            caseNoteType = "NEG",
+            caseNoteSubType = "BEHAVEWARN",
+            numCaseNotes = 1,
+          ),
 
-          PrisonerCaseNoteByTypeSubType(bookingId = 110002, caseNoteType = "POS", caseNoteSubType = "IEP_ENC", numCaseNotes = 1),
-          PrisonerCaseNoteByTypeSubType(bookingId = 110002, caseNoteType = "POS", caseNoteSubType = "QUAL_ATT", numCaseNotes = 10),
+          PrisonerCaseNoteByTypeSubType(
+            bookingId = 110002,
+            caseNoteType = "POS",
+            caseNoteSubType = "IEP_ENC",
+            numCaseNotes = 1,
+          ),
+          PrisonerCaseNoteByTypeSubType(
+            bookingId = 110002,
+            caseNoteType = "POS",
+            caseNoteSubType = "QUAL_ATT",
+            numCaseNotes = 10,
+          ),
 
-          PrisonerCaseNoteByTypeSubType(bookingId = 110003, caseNoteType = "NEG", caseNoteSubType = "BEHAVEWARN", numCaseNotes = 3),
+          PrisonerCaseNoteByTypeSubType(
+            bookingId = 110003,
+            caseNoteType = "NEG",
+            caseNoteSubType = "BEHAVEWARN",
+            numCaseNotes = 3,
+          ),
 
-          PrisonerCaseNoteByTypeSubType(bookingId = 110004, caseNoteType = "POS", caseNoteSubType = "IEP_ENC", numCaseNotes = 1),
+          PrisonerCaseNoteByTypeSubType(
+            bookingId = 110004,
+            caseNoteType = "POS",
+            caseNoteSubType = "IEP_ENC",
+            numCaseNotes = 1,
+          ),
 
         ),
       )
@@ -86,19 +202,26 @@ class BehaviourServiceTest {
 
       assertThat(behaviours.caseNoteCountsByType).isEqualTo(
         mapOf(
-          BookingTypeKey(bookingId = 110001, caseNoteType = "POS") to CaseNoteSummary(BookingTypeKey(bookingId = 110001, caseNoteType = "POS"), 4, 2),
-          BookingTypeKey(bookingId = 110001, caseNoteType = "NEG") to CaseNoteSummary(BookingTypeKey(bookingId = 110001, caseNoteType = "NEG"), 2, 1),
+          BookingTypeKey(bookingId = 110001, caseNoteType = "POS") to
+            CaseNoteSummary(BookingTypeKey(bookingId = 110001, caseNoteType = "POS"), 4, 2),
+          BookingTypeKey(bookingId = 110001, caseNoteType = "NEG") to
+            CaseNoteSummary(BookingTypeKey(bookingId = 110001, caseNoteType = "NEG"), 2, 1),
 
-          BookingTypeKey(bookingId = 110002, caseNoteType = "POS") to CaseNoteSummary(BookingTypeKey(bookingId = 110002, caseNoteType = "POS"), 11, 1),
+          BookingTypeKey(bookingId = 110002, caseNoteType = "POS") to
+            CaseNoteSummary(BookingTypeKey(bookingId = 110002, caseNoteType = "POS"), 11, 1),
 
-          BookingTypeKey(bookingId = 110003, caseNoteType = "NEG") to CaseNoteSummary(BookingTypeKey(bookingId = 110003, caseNoteType = "NEG"), 3, 0),
+          BookingTypeKey(bookingId = 110003, caseNoteType = "NEG") to
+            CaseNoteSummary(BookingTypeKey(bookingId = 110003, caseNoteType = "NEG"), 3, 0),
 
-          BookingTypeKey(bookingId = 110004, caseNoteType = "POS") to CaseNoteSummary(BookingTypeKey(bookingId = 110004, caseNoteType = "POS"), 1, 1),
+          BookingTypeKey(bookingId = 110004, caseNoteType = "POS") to
+            CaseNoteSummary(BookingTypeKey(bookingId = 110004, caseNoteType = "POS"), 1, 1),
         ),
       )
       assertThat(behaviours.lastRealReviews).isEqualTo(prisonerByLastRealReviewDate)
 
-      verify(prisonApiService).retrieveCaseNoteCountsByFromDate(listOf("POS", "NEG"), prisonerByLastReviewDateOrDefaultPeriod)
+      verify(
+        prisonApiService,
+      ).retrieveCaseNoteCountsByFromDate(listOf("POS", "NEG"), prisonerByLastReviewDateOrDefaultPeriod)
     }
   }
 }

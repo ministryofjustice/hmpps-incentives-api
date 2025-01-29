@@ -75,7 +75,9 @@ class SARResourceTest : IncentiveLevelResourceTestBase() {
         iepTime = timeNow.minusYears(1),
         current = true,
       )
-      nextReviewDateRepository.save(NextReviewDate(bookingId = 76, nextReviewDate = timeNow.minusYears(1).toLocalDate().plusDays(7)))
+      nextReviewDateRepository.save(
+        NextReviewDate(bookingId = 76, nextReviewDate = timeNow.minusYears(1).toLocalDate().plusDays(7)),
+      )
     }
   }
 

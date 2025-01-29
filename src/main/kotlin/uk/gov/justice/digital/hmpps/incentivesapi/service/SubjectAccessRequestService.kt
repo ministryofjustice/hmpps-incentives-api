@@ -45,7 +45,8 @@ class SubjectAccessRequestService(
         val reviewDate = it.reviewTime.toLocalDate()
         (
           fromDate == null || reviewDate.isEqual(fromDate) || reviewDate.isAfter(fromDate)
-          ) && (toDate == null || reviewDate.isEqual(toDate) || reviewDate.isBefore(toDate))
+          ) &&
+          (toDate == null || reviewDate.isEqual(toDate) || reviewDate.isBefore(toDate))
       }
 
     if (reviews.isEmpty()) {

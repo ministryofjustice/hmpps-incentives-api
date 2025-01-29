@@ -16,7 +16,9 @@ interface IncentiveReviewRepository : CoroutineCrudRepository<IncentiveReview, L
   suspend fun findFirstByBookingIdOrderByReviewTimeDesc(bookingId: Long): IncentiveReview?
 
   @Modifying
-  @Query("UPDATE prisoner_iep_level SET current = false WHERE booking_id = :bookingId AND current = true and id != :incentiveId")
+  @Query(
+    "UPDATE prisoner_iep_level SET current = false WHERE booking_id = :bookingId AND current = true and id != :incentiveId",
+  )
   suspend fun updateIncentivesToNotCurrentForBookingAndIncentive(bookingId: Long, incentiveId: Long): Int
 
   @Modifying
