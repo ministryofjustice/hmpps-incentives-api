@@ -243,7 +243,7 @@ class PrisonerIncentiveReviewService(
             prisonerInfo.agencyId,
             levelCodeBeforeTransfer,
           )
-        } catch (e: IncentiveReviewNotFoundException) {
+        } catch (_: IncentiveReviewNotFoundException) {
           defaultLevelCode // this is to handle no reviews - only an issue before migration
         }
       }
@@ -356,7 +356,7 @@ class PrisonerIncentiveReviewService(
     )
   }
 
-  suspend fun mergedPrisonerDetails(prisonerMergeEvent: HMPPSDomainEvent) {
+  private suspend fun mergedPrisonerDetails(prisonerMergeEvent: HMPPSDomainEvent) {
     val removedPrisonerNumber = prisonerMergeEvent.additionalInformation?.removedNomsNumber!!
     val remainingPrisonerNumber = prisonerMergeEvent.additionalInformation.nomsNumber!!
     log.info("Processing merge event: Prisoner Number Merge $removedPrisonerNumber -> $remainingPrisonerNumber")
