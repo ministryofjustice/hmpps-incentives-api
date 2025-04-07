@@ -67,11 +67,13 @@ class ManageIncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
 
   @Test
   fun `add incentive review fails when review time in future`() {
-    val prisonerNumber = "A1244AB"
-    prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = 1231232, prisonerNumber = prisonerNumber)
+    val bookingId = 3330000L
+    val prisonerNumber = "A1234AC"
+
+    prisonApiMockServer.stubGetPrisonerInfoByBooking(bookingId = bookingId, prisonerNumber = prisonerNumber)
 
     val reviewTime = LocalDateTime.now().plusHours(1)
-    webTestClient.post().uri("/incentive-reviews/prisoner/$prisonerNumber")
+    webTestClient.post().uri("/incentive-reviews/booking/$bookingId")
       .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read", "write")))
       .bodyValue(CreateIncentiveReviewRequest("ENH", "Future Review", reviewTime = reviewTime))
       .exchange()
