@@ -70,7 +70,7 @@ class ManageIncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
     val prisonerNumber = "A1244AB"
     prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = 1231232, prisonerNumber = prisonerNumber)
 
-    val reviewTime = LocalDateTime.now().plusHours(1)
+    val reviewTime = LocalDateTime.now().plusDays(1)
     webTestClient.post().uri("/incentive-reviews/prisoner/$prisonerNumber")
       .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read", "write")))
       .bodyValue(CreateIncentiveReviewRequest("ENH", "Future Review", reviewTime = reviewTime))
