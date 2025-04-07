@@ -167,7 +167,10 @@ class PrisonerIncentiveReviewService(
       updateNextReviewDate(prisonOffenderEvent)
     } else {
       log.debug(
-        "Ignoring 'prisoner-offender-search.prisoner.alerts-updated' event, No ACCT alerts added/removed: prisonerNumber = ${prisonOffenderEvent.additionalInformation?.nomsNumber}, alertsAdded = ${prisonOffenderEvent.additionalInformation?.alertsAdded}, alertsRemoved = ${prisonOffenderEvent.additionalInformation?.alertsRemoved}",
+        "Ignoring 'prisoner-offender-search.prisoner.alerts-updated' event, No ACCT alerts added/removed: prisonerNumber = {}, alertsAdded = {}, alertsRemoved = {}",
+        prisonOffenderEvent.additionalInformation?.nomsNumber,
+        prisonOffenderEvent.additionalInformation?.alertsAdded,
+        prisonOffenderEvent.additionalInformation?.alertsRemoved,
       )
     }
   }
@@ -241,7 +244,7 @@ class PrisonerIncentiveReviewService(
             prisonerInfo.agencyId,
             levelCodeBeforeTransfer,
           )
-        } catch (e: IncentiveReviewNotFoundException) {
+        } catch (_: IncentiveReviewNotFoundException) {
           defaultLevelCode // this is to handle no reviews - only an issue before migration
         }
       }
