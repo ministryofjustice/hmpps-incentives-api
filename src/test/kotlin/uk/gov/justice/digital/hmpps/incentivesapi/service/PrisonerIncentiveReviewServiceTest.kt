@@ -416,7 +416,7 @@ class PrisonerIncentiveReviewServiceTest {
           ),
         )
 
-      prisonerIncentiveReviewService.mergedPrisonerDetails(prisonerMergedEvent)
+      prisonerIncentiveReviewService.processOffenderEvent(prisonerMergedEvent)
 
       verify(incentiveStoreService).updateMergedReviews(
         listOf(
@@ -606,7 +606,7 @@ class PrisonerIncentiveReviewServiceTest {
         // When
         prisonerIncentiveReviewService.deleteIncentiveRecord(bookingId, currentIepReview.id)
 
-        // Then desired IEP review is deletes as usual
+        // Then desired IEP review is deleted as usual
         verify(incentiveStoreService, times(1))
           .deleteIncentiveRecord(currentIepReview)
       }
@@ -627,7 +627,7 @@ class PrisonerIncentiveReviewServiceTest {
       // When
       prisonerIncentiveReviewService.deleteIncentiveRecord(bookingId, currentIepReview.id)
 
-      // Then desired IEP review is deletes as usual
+      // Then desired IEP review is deleted as usual
       verify(incentiveStoreService, times(1))
         .deleteIncentiveRecord(currentIepReview)
     }
@@ -821,7 +821,7 @@ class PrisonerIncentiveReviewServiceTest {
     eventType = "prison-offender-events.prisoner.merged",
     additionalInformation = AdditionalInformation(
       nomsNumber = "A1244AB",
-      reason = "MERGED",
+      reason = "MERGE",
       removedNomsNumber = "A8765SS",
     ),
     occurredAt = Instant.now(),
