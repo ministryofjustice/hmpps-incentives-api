@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  hmpps: ministryofjustice/hmpps@10
+  hmpps: ministryofjustice/hmpps@11
 
 parameters:
   alerts-slack-channel:
@@ -22,7 +22,7 @@ parameters:
     default: "4"
   node-version:
     type: string
-    default: "22.11-browsers"
+    default: "22.15-browsers"
 
 jobs:
   validate:
