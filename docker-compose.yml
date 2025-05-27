@@ -80,7 +80,7 @@ services:
       - ./wiremock-data/locations-inside-prison:/home/wiremock
 
   prison-api:
-    image: quay.io/hmpps/prison-api:latest
+    image: ghcr.io/ministryofjustice/prison-api:latest
     networks:
       - hmpps
     container_name: prison-api-incentives-api
