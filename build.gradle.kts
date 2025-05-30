@@ -70,8 +70,8 @@ dependencies {
   testImplementation("io.swagger.parser.v3:swagger-parser:2.1.29")
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("org.wiremock:wiremock-standalone:3.13.0")
-  testImplementation("org.testcontainers:localstack:1.21.0")
-  testImplementation("org.testcontainers:postgresql:1.21.0")
+  testImplementation("org.testcontainers:localstack:1.21.1")
+  testImplementation("org.testcontainers:postgresql:1.21.1")
   testImplementation("io.projectreactor:reactor-test")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
   testImplementation("javax.xml.bind:jaxb-api:2.3.1")
@@ -80,7 +80,7 @@ dependencies {
   testImplementation("io.opentelemetry:opentelemetry-sdk-metrics:1.50.0")
   testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.50.0")
 
-  testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.12.2")
+  testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.0")
 
   if (project.hasProperty("docs")) {
     implementation("com.h2database:h2")
