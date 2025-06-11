@@ -48,7 +48,7 @@ dependencies {
   implementation("net.javacrumbs.shedlock:shedlock-spring:6.9.0")
   implementation("net.javacrumbs.shedlock:shedlock-provider-r2dbc:6.9.0")
 
-  implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.8")
+  implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.9")
 
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
@@ -69,7 +69,7 @@ dependencies {
   testImplementation("org.mockito:mockito-inline:5.2.0")
   testImplementation("io.swagger.parser.v3:swagger-parser:2.1.29")
   testImplementation("org.springframework.security:spring-security-test")
-  testImplementation("org.wiremock:wiremock-standalone:3.13.0")
+  testImplementation("org.wiremock:wiremock-standalone:3.13.1")
   testImplementation("org.testcontainers:localstack:1.21.1")
   testImplementation("org.testcontainers:postgresql:1.21.1")
   testImplementation("io.projectreactor:reactor-test")
@@ -80,7 +80,7 @@ dependencies {
   testImplementation("io.opentelemetry:opentelemetry-sdk-metrics:1.51.0")
   testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.51.0")
 
-  testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.12.2")
+  testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.1")
 
   if (project.hasProperty("docs")) {
     implementation("com.h2database:h2")
