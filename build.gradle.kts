@@ -80,8 +80,6 @@ dependencies {
   testImplementation("io.opentelemetry:opentelemetry-sdk-metrics:1.51.0")
   testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.51.0")
 
-  testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.1")
-
   if (project.hasProperty("docs")) {
     implementation("com.h2database:h2")
   }
