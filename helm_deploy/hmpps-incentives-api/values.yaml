@@ -8,7 +8,7 @@ generic-service:
   replicaCount: 4
 
   image:
-    repository: quay.io/hmpps/hmpps-incentives-api
+    repository: ghcr.io/ministryofjustice/hmpps-incentives-api
     tag: app_version    # override at deployment time
     port: 8080
 
