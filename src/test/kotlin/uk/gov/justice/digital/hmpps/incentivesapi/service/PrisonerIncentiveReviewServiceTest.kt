@@ -198,6 +198,7 @@ class PrisonerIncentiveReviewServiceTest {
         prisonerIncentiveReviewService.getPrisonerIncentiveHistory(bookingId, withDetails = false)
 
       // Then
+      @Suppress("UnusedFlow")
       verify(incentiveReviewRepository, times(1)).findAllByBookingIdOrderByReviewTimeDesc(bookingId)
       assertThat(result.incentiveReviewDetails.size).isZero
       assertThat(result.nextReviewDate).isEqualTo(expectedNextReviewDate)
@@ -466,6 +467,7 @@ class PrisonerIncentiveReviewServiceTest {
       val event = bookingMovedEvent()
       prisonerIncentiveReviewService.processBookingMovedEvent(event)
 
+      @Suppress("UnusedFlow")
       verify(incentiveReviewRepository).saveAll(
         listOf(
           currentReview.copy(prisonerNumber = "A1244AB"),

@@ -108,7 +108,7 @@ class IncentiveLevelResourceTestBase : SqsIntegrationTestBase() {
     return event
   }
 
-  protected fun <T : Any> assertAuditMessageSentWithList(eventType: String): List<T> {
+  protected fun <T : Any> assertAuditMessageSentWithList(@Suppress("SameParameterValue") eventType: String): List<T> {
     val event = assertAuditMessageSent(eventType)
     return objectMapper.readValue(event.details, object : TypeReference<List<T>>() {})
   }

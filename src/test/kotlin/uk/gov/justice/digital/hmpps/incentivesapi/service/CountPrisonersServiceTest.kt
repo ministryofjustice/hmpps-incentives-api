@@ -31,6 +31,7 @@ class CountPrisonersServiceTest {
       countPrisonersService.prisonersExistOnLevelInPrison("MDI", "STD"),
     ).isFalse()
 
+    @Suppress("UnusedFlow")
     verify(offenderSearchService, times(1)).findOffendersAtLocation("MDI", "")
     verify(incentiveReviewRepository, times(0)).somePrisonerCurrentlyOnLevel(any(), eq("STD"))
   }
@@ -83,6 +84,7 @@ class CountPrisonersServiceTest {
       countPrisonersService.prisonersExistOnLevelInPrison("MDI", "STD"),
     ).isTrue
 
+    @Suppress("UnusedFlow")
     verify(offenderSearchService, times(1)).findOffendersAtLocation("MDI", "")
     verify(incentiveReviewRepository, times(1)).somePrisonerCurrentlyOnLevel(any(), eq("STD"))
   }

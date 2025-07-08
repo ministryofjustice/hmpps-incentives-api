@@ -49,7 +49,7 @@ class HealthCheckTest : SqsIntegrationTestBase() {
       .jsonPath("status").isEqualTo("UP")
   }
 
-  private fun stubPingWithResponse(status: Int) {
+  private fun stubPingWithResponse(@Suppress("SameParameterValue") status: Int) {
     hmppsAuthMockServer.stubHealthPing(status)
     prisonApiMockServer.stubHealthPing(status)
     offenderSearchMockServer.stubHealthPing(status)

@@ -63,6 +63,7 @@ class HmppsIncentivesApiExceptionHandler {
    */
   @ExceptionHandler(ValidationException::class)
   fun handleValidationException(e: ValidationException): ResponseEntity<ErrorResponse> {
+    @Suppress("LoggingSimilarMessage")
     log.info("Validation exception: {}", e.message)
     return ResponseEntity
       .status(BAD_REQUEST)
@@ -184,6 +185,7 @@ class HmppsIncentivesApiExceptionHandler {
 
   @ExceptionHandler(NoDataFoundException::class)
   fun handleNoDataFoundException(e: NoDataFoundException): ResponseEntity<ErrorResponse?>? {
+    @Suppress("LoggingSimilarMessage")
     log.debug("No data found exception caught: {}", e.message)
     return ResponseEntity
       .status(NOT_FOUND)
