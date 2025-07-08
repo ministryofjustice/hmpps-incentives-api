@@ -332,9 +332,9 @@ enum class ErrorCode(
 
 @Schema(description = "Error response")
 data class ErrorResponse(
-  @Schema(description = "HTTP status code", example = "500", required = true)
+  @param:Schema(description = "HTTP status code", example = "500", required = true)
   val status: Int,
-  @Schema(
+  @param:Schema(
     description = "When present, uniquely identifies the type of error " +
       "making it easier for clients to discriminate without relying on error description; " +
       "see `uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorResponse` enumeration " +
@@ -343,15 +343,23 @@ data class ErrorResponse(
     required = false,
   )
   val errorCode: Int? = null,
-  @Schema(
+  @param:Schema(
     description = "User message for the error",
     example = "No incentive level found for code `ABC`",
     required = false,
   )
   val userMessage: String? = null,
-  @Schema(description = "More detailed error message", example = "[Details, sometimes a stack trace]", required = false)
+  @param:Schema(
+    description = "More detailed error message",
+    example = "[Details, sometimes a stack trace]",
+    required = false,
+  )
   val developerMessage: String? = null,
-  @Schema(description = "More information about the error", example = "[Rarely used, error-specific]", required = false)
+  @param:Schema(
+    description = "More information about the error",
+    example = "[Rarely used, error-specific]",
+    required = false,
+  )
   val moreInfo: String? = null,
 ) {
   constructor(

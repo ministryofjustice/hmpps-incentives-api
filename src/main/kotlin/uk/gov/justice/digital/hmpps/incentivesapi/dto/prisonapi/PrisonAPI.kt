@@ -60,6 +60,6 @@ data class CaseNoteUsageTypesRequest(
 
 data class BookingFromDatePair(
   val bookingId: Long,
-  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+  @param:DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
   val fromDate: LocalDateTime,
 )

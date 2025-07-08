@@ -17,7 +17,7 @@ abstract class Testcontainer<InstanceType>(
   open fun isRunning(): Boolean = try {
     val serverSocket = ServerSocket(exposedPort)
     serverSocket.localPort == 0
-  } catch (e: IOException) {
+  } catch (@Suppress("unused") e: IOException) {
     true
   }
 

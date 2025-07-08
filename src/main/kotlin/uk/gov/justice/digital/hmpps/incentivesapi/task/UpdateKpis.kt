@@ -22,7 +22,7 @@ class UpdateKpis(
     val LOG: Logger = LoggerFactory.getLogger(this::class.java)
   }
 
-  @Scheduled(cron = "\${task.update-kpis.cron}")
+  @Scheduled(cron = $$"${task.update-kpis.cron}")
   @SchedulerLock(
     name = "INC - Update KPIs",
     lockAtLeastFor = DEFAULT_LOCKED_AT_LEAST_FOR,

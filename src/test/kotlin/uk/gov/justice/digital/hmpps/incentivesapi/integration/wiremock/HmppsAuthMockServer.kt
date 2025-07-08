@@ -20,11 +20,13 @@ class HmppsAuthMockServer : WireMockServer(WIREMOCK_PORT) {
           aResponse()
             .withHeaders(HttpHeaders(HttpHeader("Content-Type", "application/json")))
             .withBody(
-              """{
-                    "token_type": "bearer",
-                    "access_token": "ABCDE"
+              // language=json
+              """
+                {
+                  "token_type": "bearer",
+                  "access_token": "ABCDE"
                 }
-              """.trimIndent(),
+              """,
             ),
         ),
     )

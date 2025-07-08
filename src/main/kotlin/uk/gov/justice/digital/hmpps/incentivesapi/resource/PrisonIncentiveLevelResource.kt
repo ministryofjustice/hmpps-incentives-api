@@ -287,7 +287,7 @@ class PrisonIncentiveLevelResource(
     @Schema(description = "Prison id", example = "MDI", required = true, minLength = 3, maxLength = 6)
     @PathVariable
     prisonId: String,
-    // no payload is needed
+    @Suppress("unused") // no payload is needed
     @RequestBody
     body: Unit,
   ): List<PrisonIncentiveLevel> {

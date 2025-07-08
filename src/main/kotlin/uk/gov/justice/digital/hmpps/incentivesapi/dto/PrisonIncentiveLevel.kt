@@ -8,29 +8,34 @@ import uk.gov.justice.digital.hmpps.incentivesapi.config.DataIntegrityException
  * Publicly exposed representation of an incentive level’s configuration in a prison
  */
 data class PrisonIncentiveLevel(
-  @Schema(description = "The incentive level code this refers to", example = "STD", minLength = 1, maxLength = 6)
-  @JsonProperty(required = true)
+  @param:Schema(description = "The incentive level code this refers to", example = "STD", minLength = 1, maxLength = 6)
+  @param:JsonProperty(required = true)
   val levelCode: String,
-  @Schema(description = "The incentive level this refers to", example = "Standard", minLength = 1, readOnly = true)
-  @JsonProperty(required = false, access = JsonProperty.Access.READ_ONLY)
+  @param:Schema(
+    description = "The incentive level this refers to",
+    example = "Standard",
+    minLength = 1,
+    readOnly = true,
+  )
+  @param:JsonProperty(required = false, access = JsonProperty.Access.READ_ONLY)
   val levelName: String = "",
-  @Schema(description = "The prison this refers to", example = "MDI", minLength = 1, maxLength = 6)
-  @JsonProperty(required = true)
+  @param:Schema(description = "The prison this refers to", example = "MDI", minLength = 1, maxLength = 6)
+  @param:JsonProperty(required = true)
   val prisonId: String,
-  @Schema(
+  @param:Schema(
     description = "Indicates that this incentive level is enabled in this prison (true if not supplied)",
     example = "true",
   )
-  @JsonProperty(required = false, defaultValue = "true")
+  @param:JsonProperty(required = false, defaultValue = "true")
   val active: Boolean = true,
-  @Schema(
+  @param:Schema(
     description = "Indicates that this incentive level is the default for new admissions (false if not supplied)",
     example = "false",
   )
-  @JsonProperty(required = false, defaultValue = "false")
+  @param:JsonProperty(required = false, defaultValue = "false")
   val defaultOnAdmission: Boolean = false,
 
-  @Schema(
+  @param:Schema(
     description = "The amount transferred weekly from the private cash account to the spends account " +
       "for a remand prisoner to use",
     example = "5500",
@@ -38,18 +43,18 @@ data class PrisonIncentiveLevel(
     type = "integer",
     format = "int32",
   )
-  @JsonProperty(required = true)
+  @param:JsonProperty(required = true)
   val remandTransferLimitInPence: Int,
-  @Schema(
+  @param:Schema(
     description = "The maximum amount allowed in the spends account for a remand prisoner",
     example = "55000",
     minimum = "0",
     type = "integer",
     format = "int32",
   )
-  @JsonProperty(required = true)
+  @param:JsonProperty(required = true)
   val remandSpendLimitInPence: Int,
-  @Schema(
+  @param:Schema(
     description = "The amount transferred weekly from the private cash account to the spends account " +
       "for a convicted prisoner to use",
     example = "1800",
@@ -57,35 +62,35 @@ data class PrisonIncentiveLevel(
     type = "integer",
     format = "int32",
   )
-  @JsonProperty(required = true)
+  @param:JsonProperty(required = true)
   val convictedTransferLimitInPence: Int,
-  @Schema(
+  @param:Schema(
     description = "The maximum amount allowed in the spends account for a convicted prisoner",
     example = "18000",
     minimum = "0",
     type = "integer",
     format = "int32",
   )
-  @JsonProperty(required = true)
+  @param:JsonProperty(required = true)
   val convictedSpendLimitInPence: Int,
 
-  @Schema(
+  @param:Schema(
     description = "The number of weekday visits for a convicted prisoner per fortnight",
     example = "2",
     minimum = "0",
     type = "integer",
     format = "int32",
   )
-  @JsonProperty(required = true)
+  @param:JsonProperty(required = true)
   val visitOrders: Int,
-  @Schema(
+  @param:Schema(
     description = "The number of privileged/weekend visits for a convicted prisoner per 4 weeks",
     example = "1",
     minimum = "0",
     type = "integer",
     format = "int32",
   )
-  @JsonProperty(required = true)
+  @param:JsonProperty(required = true)
   val privilegedVisitOrders: Int,
 ) {
   fun toUpdate() = PrisonIncentiveLevelUpdate(
@@ -107,20 +112,20 @@ fun List<PrisonIncentiveLevel>.findDefaultOnAdmission() = find(PrisonIncentiveLe
  * Update payload for PrisonIncentiveLevel
  */
 data class PrisonIncentiveLevelUpdate(
-  @Schema(
+  @param:Schema(
     description = "Indicates that this incentive level is enabled in this prison",
     example = "true",
     required = false,
   )
   val active: Boolean? = null,
-  @Schema(
+  @param:Schema(
     description = "Indicates that this incentive level is the default for new admissions",
     example = "true",
     required = false,
   )
   val defaultOnAdmission: Boolean? = null,
 
-  @Schema(
+  @param:Schema(
     description = "The amount transferred weekly from the private cash account to the spends account " +
       "for a remand prisoner to use",
     example = "5500",
@@ -130,7 +135,7 @@ data class PrisonIncentiveLevelUpdate(
     required = false,
   )
   val remandTransferLimitInPence: Int? = null,
-  @Schema(
+  @param:Schema(
     description = "The maximum amount allowed in the spends account for a remand prisoner",
     example = "55000",
     minimum = "0",
@@ -139,7 +144,7 @@ data class PrisonIncentiveLevelUpdate(
     required = false,
   )
   val remandSpendLimitInPence: Int? = null,
-  @Schema(
+  @param:Schema(
     description = "The amount transferred weekly from the private cash account to the spends account " +
       "for a convicted prisoner to use",
     example = "1800",
@@ -149,7 +154,7 @@ data class PrisonIncentiveLevelUpdate(
     required = false,
   )
   val convictedTransferLimitInPence: Int? = null,
-  @Schema(
+  @param:Schema(
     description = "The maximum amount allowed in the spends account for a convicted prisoner",
     example = "18000",
     minimum = "0",
@@ -159,7 +164,7 @@ data class PrisonIncentiveLevelUpdate(
   )
   val convictedSpendLimitInPence: Int? = null,
 
-  @Schema(
+  @param:Schema(
     description = "The number of weekday visits for a convicted prisoner per fortnight",
     example = "2",
     minimum = "0",
@@ -168,7 +173,7 @@ data class PrisonIncentiveLevelUpdate(
     required = false,
   )
   val visitOrders: Int? = null,
-  @Schema(
+  @param:Schema(
     description = "The number of privileged/weekend visits for a convicted prisoner per 4 weeks",
     example = "1",
     minimum = "0",

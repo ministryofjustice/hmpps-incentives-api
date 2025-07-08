@@ -7,24 +7,24 @@ import io.swagger.v3.oas.annotations.media.Schema
  * Publicly exposed representation of an incentive level
  */
 data class IncentiveLevel(
-  @Schema(description = "Unique id for the incentive level", example = "STD", minLength = 1, maxLength = 6)
-  @JsonProperty(required = true)
+  @param:Schema(description = "Unique id for the incentive level", example = "STD", minLength = 1, maxLength = 6)
+  @param:JsonProperty(required = true)
   val code: String,
-  @Schema(description = "Name of the incentive level", example = "Standard", minLength = 1, maxLength = 30)
-  @JsonProperty(required = true)
+  @param:Schema(description = "Name of the incentive level", example = "Standard", minLength = 1, maxLength = 30)
+  @param:JsonProperty(required = true)
   val name: String,
-  @Schema(
+  @param:Schema(
     description = "Indicates that the incentive level is active (true if not supplied); " +
       "inactive levels are historic levels no longer in use",
     example = "true",
   )
-  @JsonProperty(required = false, defaultValue = "true")
+  @param:JsonProperty(required = false, defaultValue = "true")
   val active: Boolean = true,
-  @Schema(
+  @param:Schema(
     description = "Indicates that all prisons must have this level active (false if not supplied)",
     example = "false",
   )
-  @JsonProperty(required = false, defaultValue = "false")
+  @param:JsonProperty(required = false, defaultValue = "false")
   val required: Boolean = false,
 ) {
   companion object {
@@ -42,7 +42,7 @@ data class IncentiveLevel(
  * Update payload for IncentiveLevel
  */
 data class IncentiveLevelUpdate(
-  @Schema(
+  @param:Schema(
     description = "Name of the incentive level",
     example = "Standard",
     minLength = 1,
@@ -50,12 +50,16 @@ data class IncentiveLevelUpdate(
     required = false,
   )
   val name: String? = null,
-  @Schema(
+  @param:Schema(
     description = "Indicates that the incentive level is active; inactive levels are historic levels no longer in use",
     example = "true",
     required = false,
   )
   val active: Boolean? = null,
-  @Schema(description = "Indicates that all prisons must have this level active", example = "true", required = false)
+  @param:Schema(
+    description = "Indicates that all prisons must have this level active",
+    example = "true",
+    required = false,
+  )
   val required: Boolean? = null,
 )

@@ -22,7 +22,7 @@ data class IncentiveLevel(
   val whenUpdated: LocalDateTime = LocalDateTime.now(),
 
   @Transient
-  @Value("false")
+  @param:Value("false")
   val new: Boolean,
 ) : Persistable<String> {
   override fun getId(): String = code

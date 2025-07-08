@@ -229,7 +229,7 @@ class PrisonIncentiveLevelService(
       throw ValidationExceptionWithErrorCode(
         "A level must remain active if there are prisoners on it currently",
         ErrorCode.PrisonIncentiveLevelActiveIfPrisonersExist,
-        moreInfo = prisonIncentiveLevelsWithPrisoners.map(PrisonIncentiveLevel::levelCode).joinToString(","),
+        moreInfo = prisonIncentiveLevelsWithPrisoners.joinToString(",", transform = PrisonIncentiveLevel::levelCode),
       )
     }
     return prisonIncentiveLevelRepository.saveAll(

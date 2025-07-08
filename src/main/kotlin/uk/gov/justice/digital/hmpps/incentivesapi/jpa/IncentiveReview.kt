@@ -31,7 +31,7 @@ data class IncentiveReview(
   override val reviewType: ReviewType = ReviewType.REVIEW,
 
   @Transient
-  @Value("false")
+  @param:Value("false")
   val new: Boolean = true,
 
   val whenCreated: LocalDateTime? = null,
