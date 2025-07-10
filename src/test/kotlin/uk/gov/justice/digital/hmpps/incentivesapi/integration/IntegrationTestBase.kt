@@ -74,7 +74,4 @@ abstract class IntegrationTestBase : TestBase() {
     scope = scopes,
     roles = roles,
   )
-
-  @Suppress("RECEIVER_NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
-  fun readFile(file: String): String = this.javaClass.getResource(file).readText()
 }

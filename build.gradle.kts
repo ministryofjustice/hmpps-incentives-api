@@ -5,7 +5,7 @@ import uk.gov.justice.digital.hmpps.gradle.PortForwardRedisTask
 import uk.gov.justice.digital.hmpps.gradle.RevealSecretsTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "8.3.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "8.3.1"
   kotlin("plugin.jpa") version "2.2.0"
   kotlin("plugin.spring") version "2.2.0"
   id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
@@ -45,8 +45,8 @@ dependencies {
   runtimeOnly("org.postgresql:postgresql")
 
   // Shedlock dependencies
-  implementation("net.javacrumbs.shedlock:shedlock-spring:6.9.0")
-  implementation("net.javacrumbs.shedlock:shedlock-provider-r2dbc:6.9.0")
+  implementation("net.javacrumbs.shedlock:shedlock-spring:6.9.2")
+  implementation("net.javacrumbs.shedlock:shedlock-provider-r2dbc:6.9.2")
 
   implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.9")
 
@@ -67,7 +67,7 @@ dependencies {
   testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:1.4.7")
   testImplementation("org.awaitility:awaitility-kotlin")
   testImplementation("org.mockito:mockito-inline:5.2.0")
-  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.27")
+  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.31")
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("org.wiremock:wiremock-standalone:3.13.1")
   testImplementation("org.testcontainers:localstack:1.21.3")

@@ -20,7 +20,7 @@ class SubjectAccessRequestService(
   ): HmppsSubjectAccessRequestContent? {
     val history = try {
       prisonerIncentiveReviewService.getPrisonerIncentiveHistory(prn)
-    } catch (e: IncentiveReviewNotFoundException) {
+    } catch (@Suppress("unused") e: IncentiveReviewNotFoundException) {
       throw SubjectAccessRequestNoContentException(prn)
     }
 

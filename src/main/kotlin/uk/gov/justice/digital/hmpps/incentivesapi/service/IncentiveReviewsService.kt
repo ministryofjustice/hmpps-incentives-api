@@ -59,7 +59,7 @@ class IncentiveReviewsService(
         val location = locationsService.getByKey(locationKey)
 
         location.localName ?: location.pathHierarchy
-      } catch (e: NotFound) {
+      } catch (@Suppress("unused") e: NotFound) {
         "Unknown location"
       }
     }

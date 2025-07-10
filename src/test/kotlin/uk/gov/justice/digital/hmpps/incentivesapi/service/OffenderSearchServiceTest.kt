@@ -84,7 +84,7 @@ class OffenderSearchServiceTest {
             mapper.writeValueAsString(
               mapOf(
                 "content" to responses[page],
-                "totalElements" to responses.sumOf { it.size },
+                "totalElements" to responses.sumOf { response -> response.size },
                 "last" to (page == responses.size - 1),
               ),
             ),

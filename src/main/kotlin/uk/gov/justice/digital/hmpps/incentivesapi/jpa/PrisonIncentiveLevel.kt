@@ -33,7 +33,7 @@ data class PrisonIncentiveLevel(
   val privilegedVisitOrders: Int,
 
   @Transient
-  @Value("false")
+  @param:Value("false")
   val new: Boolean,
 ) : Persistable<Int> {
   override fun getId(): Int = id

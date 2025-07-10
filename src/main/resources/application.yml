@@ -12,8 +12,9 @@ spring:
     name: hmpps-incentives-api
   main:
     web-application-type: reactive
-  codec:
-    max-in-memory-size: 10MB
+  http:
+    codecs:
+      max-in-memory-size: 10MB
   mvc:
     async:
       request-timeout: 1m

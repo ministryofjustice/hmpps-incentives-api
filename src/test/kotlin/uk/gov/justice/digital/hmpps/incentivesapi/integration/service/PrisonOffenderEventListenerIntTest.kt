@@ -323,7 +323,12 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     description = "A prisoner has been received into a prison with reason: admission on new charges",
   )
 
-  private fun publishPrisonerMergedMessage(nomsNumber: String, removedNomsNumber: String) = publishDomainEventMessage(
+  private fun publishPrisonerMergedMessage(
+    @Suppress("SameParameterValue")
+    nomsNumber: String,
+    @Suppress("SameParameterValue")
+    removedNomsNumber: String,
+  ) = publishDomainEventMessage(
     eventType = "prison-offender-events.prisoner.merged",
     additionalInformation = AdditionalInformation(
       nomsNumber = nomsNumber,
@@ -334,7 +339,9 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
   )
 
   private fun publishPrisonerAlertsUpdatedMessage(
+    @Suppress("SameParameterValue")
     nomsNumber: String,
+    @Suppress("SameParameterValue")
     bookingId: Long,
     alertsAdded: List<String> = listOf(PrisonerAlert.ACCT_ALERT_CODE),
     alertsRemoved: List<String> = emptyList(),

@@ -68,5 +68,6 @@ class Ensure {
 
 // NB: property `errors` is read in tests so must be public
 class ParameterValidationException(
+  @Suppress("unused")
   val errors: List<String>,
 ) : ValidationException("Invalid parameters: ${errors.joinToString(", ")}")

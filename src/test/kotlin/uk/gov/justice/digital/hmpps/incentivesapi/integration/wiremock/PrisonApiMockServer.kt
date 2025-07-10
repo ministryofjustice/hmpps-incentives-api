@@ -24,6 +24,7 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
     )
   }
 
+  @Suppress("unused")
   fun stubLocation(locationId: String) {
     stubFor(
       get("/api/locations/code/$locationId").willReturn(

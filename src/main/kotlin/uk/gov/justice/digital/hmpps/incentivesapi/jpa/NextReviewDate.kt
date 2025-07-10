@@ -20,7 +20,7 @@ data class NextReviewDate(
   val whenUpdated: LocalDateTime? = null,
 
   @Transient
-  @Value("false")
+  @param:Value("false")
   val new: Boolean = true,
 ) : Persistable<Long> {
   override fun getId(): Long = bookingId

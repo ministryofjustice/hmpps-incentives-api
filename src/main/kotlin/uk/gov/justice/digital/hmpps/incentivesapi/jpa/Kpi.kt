@@ -22,7 +22,7 @@ data class Kpi(
   val whenUpdated: LocalDateTime? = null,
 
   @Transient
-  @Value("false")
+  @param:Value("false")
   val new: Boolean = true,
 ) : Persistable<LocalDate> {
   override fun getId(): LocalDate = day

@@ -93,6 +93,7 @@ class NextReviewDateUpdaterServiceTest {
         ),
       )
 
+      @Suppress("UnusedFlow")
       verify(nextReviewDateRepository, times(1))
         .saveAll(expectedRecordsList)
 
@@ -159,6 +160,7 @@ class NextReviewDateUpdaterServiceTest {
         ),
       )
 
+      @Suppress("UnusedFlow")
       verify(nextReviewDateRepository, times(1))
         .saveAll(expectedRecordsList)
 
@@ -227,6 +229,7 @@ class NextReviewDateUpdaterServiceTest {
 
     assertThat(result).isEqualTo(expectedNextReviewDate)
 
+    @Suppress("UnusedFlow")
     verify(nextReviewDateRepository, times(1))
       .saveAll(expectedRecordsList)
 
