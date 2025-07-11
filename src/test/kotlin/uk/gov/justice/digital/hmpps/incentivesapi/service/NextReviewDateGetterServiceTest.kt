@@ -27,24 +27,24 @@ class NextReviewDateGetterServiceTest {
 
   @Test
   fun `getMany() returns the next review dates (updates missing ones)`(): Unit = runBlocking {
-    val offenders = listOf(
-      offenderSearchPrisoner("AB123C", 123L),
-      offenderSearchPrisoner("XY456Z", 456L),
+    val prisoners = listOf(
+      mockPrisoner("AB123C", 123L),
+      mockPrisoner("XY456Z", 456L),
     )
     val expectedNextReviewDates = mapOf(
       123L to LocalDate.parse("2025-01-23"),
       456L to LocalDate.parse("2025-04-06"),
     )
 
-    // one offender with a NextReviewDate record
+    // one prisoner with a NextReviewDate record
     whenever(nextReviewDateRepository.findAllById(listOf(123L, 456L)))
       .thenReturn(flowOf(NextReviewDate(456L, expectedNextReviewDates[456L]!!)))
 
-    // calls update() with offenders without next review date
-    whenever(nextReviewDateUpdaterService.updateMany(listOf(offenders[0])))
+    // calls update() with prisoners without next review date
+    whenever(nextReviewDateUpdaterService.updateMany(listOf(prisoners[0])))
       .thenReturn(mapOf(123L to expectedNextReviewDates[123L]!!))
 
-    val result = nextReviewDateGetterService.getMany(offenders)
+    val result = nextReviewDateGetterService.getMany(prisoners)
 
     assertThat(result).isEqualTo(expectedNextReviewDates)
   }

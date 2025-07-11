@@ -11,7 +11,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ListOfDataNotFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewResponse
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.util.flow.toMap
@@ -24,7 +24,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReview as Incenti
 
 @Service
 class IncentiveReviewsService(
-  private val offenderSearchService: OffenderSearchService,
+  private val prisonerSearchService: PrisonerSearchService,
   private val locationsService: LocationsService,
   private val prisonIncentiveLevelService: PrisonIncentiveLevelAuditedService,
   private val incentiveReviewRepository: IncentiveReviewRepository,
@@ -49,9 +49,9 @@ class IncentiveReviewsService(
     page: Int = 0,
     size: Int = DEFAULT_PAGE_SIZE,
   ): IncentiveReviewResponse = coroutineScope {
-    val deferredOffenders = async {
-      // all offenders at location are required to determine total number with overdue reviews
-      offenderSearchService.getOffendersAtLocation(prisonId, cellLocationPrefix)
+    val deferredPrisoners = async {
+      // all prisoners at location are required to determine total number with overdue reviews
+      prisonerSearchService.getPrisonersAtLocation(prisonId, cellLocationPrefix)
     }
     val deferredLocationDescription = async {
       try {
@@ -64,16 +64,16 @@ class IncentiveReviewsService(
       }
     }
 
-    val offenders = deferredOffenders.await()
+    val prisoners = deferredPrisoners.await()
 
-    val bookingIds = offenders.map(OffenderSearchPrisoner::bookingId)
+    val bookingIds = prisoners.map(Prisoner::bookingId)
 
     val deferredBehaviourCaseNotesSinceLastReview = async {
       val reviews = incentiveReviewRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds = bookingIds)
       behaviourService.getBehaviours(reviews.toList())
     }
-    val deferredIncentiveLevels = async { getIncentiveLevelsForOffenders(bookingIds) }
-    val deferredNextReviewDates = async { nextReviewDateGetterService.getMany(offenders) }
+    val deferredIncentiveLevels = async { getIncentiveLevelsForPrisoners(bookingIds) }
+    val deferredNextReviewDates = async { nextReviewDateGetterService.getMany(prisoners) }
 
     val incentiveLevels = deferredIncentiveLevels.await()
     val bookingIdsMissingIncentiveLevel = bookingIds subtract incentiveLevels.keys
@@ -89,7 +89,7 @@ class IncentiveReviewsService(
       lastRealReviewDate?.let { ChronoUnit.DAYS.between(it.toLocalDate(), today).toInt() }
     }
 
-    val allReviews = offenders
+    val allReviews = prisoners
       .map {
         IncentiveReviewDTO(
           prisonerNumber = it.prisonerNumber,
@@ -151,7 +151,7 @@ class IncentiveReviewsService(
     )
   }
 
-  private suspend fun getIncentiveLevelsForOffenders(bookingIds: List<Long>): Map<Long, IncentiveReview> =
+  private suspend fun getIncentiveLevelsForPrisoners(bookingIds: List<Long>): Map<Long, IncentiveReview> =
     incentiveReviewRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(bookingIds)
       .toMap(IncentiveReview::bookingId)
 }

@@ -5,11 +5,11 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.Prisoner
 import java.time.LocalDate
 
-class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
+class PrisonerSearchMockServer : WireMockServer(WIREMOCK_PORT) {
   companion object {
     private const val WIREMOCK_PORT = 8094
   }
@@ -27,10 +27,10 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
     )
   }
 
-  fun stubFindOffenders(prisonId: String = "MDI", includeInvalid: Boolean = false) {
-    // <editor-fold desc="mocked offenders">
-    val offenders = mutableListOf(
-      OffenderSearchPrisoner(
+  fun stubFindPrisoners(prisonId: String = "MDI", includeInvalid: Boolean = false) {
+    // <editor-fold desc="mocked prisoners">
+    val prisoners = mutableListOf(
+      Prisoner(
         prisonerNumber = "A1234AA",
         bookingId = 1234134,
         firstName = "JOHN",
@@ -47,7 +47,7 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
           ),
         ),
       ),
-      OffenderSearchPrisoner(
+      Prisoner(
         prisonerNumber = "A1234AB",
         bookingId = 1234135,
         firstName = "DAVID",
@@ -56,7 +56,7 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
         receptionDate = LocalDate.parse("2020-07-01"),
         prisonId = prisonId,
       ),
-      OffenderSearchPrisoner(
+      Prisoner(
         prisonerNumber = "A1234AC",
         bookingId = 1234136,
         firstName = "TREVOR",
@@ -65,7 +65,7 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
         receptionDate = LocalDate.parse("2020-07-01"),
         prisonId = prisonId,
       ),
-      OffenderSearchPrisoner(
+      Prisoner(
         prisonerNumber = "A1234AD",
         bookingId = 1234137,
         firstName = "ANTHONY",
@@ -74,7 +74,7 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
         receptionDate = LocalDate.parse("2020-07-01"),
         prisonId = prisonId,
       ),
-      OffenderSearchPrisoner(
+      Prisoner(
         prisonerNumber = "A1234AE",
         bookingId = 1234138,
         firstName = "PAUL",
@@ -85,10 +85,10 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
       ),
     )
     if (includeInvalid) {
-      offenders.addAll(
+      prisoners.addAll(
         listOf(
           // does not have a known incentive level according to prison-api
-          OffenderSearchPrisoner(
+          Prisoner(
             prisonerNumber = "A1834AA",
             bookingId = 2234134,
             firstName = "MISSING",
@@ -98,7 +98,7 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
             prisonId = prisonId,
           ),
           // has an unknown incentive level
-          OffenderSearchPrisoner(
+          Prisoner(
             prisonerNumber = "A1934AA",
             bookingId = 2734134,
             firstName = "OLD",
@@ -118,8 +118,8 @@ class OffenderSearchMockServer : WireMockServer(WIREMOCK_PORT) {
           .withBody(
             mapper.writeValueAsBytes(
               mapOf(
-                "content" to offenders,
-                "totalElements" to offenders.size,
+                "content" to prisoners,
+                "totalElements" to prisoners.size,
                 "last" to true,
               ),
             ),

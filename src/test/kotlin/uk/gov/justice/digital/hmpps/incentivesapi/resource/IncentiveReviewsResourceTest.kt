@@ -35,7 +35,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
   @BeforeEach
   fun setUp(): Unit = runBlocking {
     locationsMockServer.resetAll()
-    offenderSearchMockServer.resetAll()
+    prisonerSearchMockServer.resetAll()
     prisonApiMockServer.resetAll()
 
     incentiveReviewRepository.deleteAll()
@@ -126,7 +126,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
 
     @Test
     fun `when prisonId is incorrect`() {
-      offenderSearchMockServer.stubFindOffenders("Moorland")
+      prisonerSearchMockServer.stubFindPrisoners("Moorland")
       locationsMockServer.stubGetByKey("MDI-1")
 
       webTestClient.get()
@@ -138,7 +138,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
 
     @Test
     fun `when level code is incorrect`() {
-      offenderSearchMockServer.stubFindOffenders("Moorland")
+      prisonerSearchMockServer.stubFindPrisoners("Moorland")
       locationsMockServer.stubGetByKey("MDI-1")
 
       webTestClient.get()
@@ -150,7 +150,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
 
     @Test
     fun `when sorting is incorrect`() {
-      offenderSearchMockServer.stubFindOffenders("MDI")
+      prisonerSearchMockServer.stubFindPrisoners("MDI")
       locationsMockServer.stubGetByKey("MDI-1")
 
       webTestClient.get()
@@ -162,7 +162,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
 
     @Test
     fun `when page is incorrect`() {
-      offenderSearchMockServer.stubFindOffenders("MDI")
+      prisonerSearchMockServer.stubFindPrisoners("MDI")
       locationsMockServer.stubGetByKey("MDI-1")
 
       webTestClient.get()
@@ -174,7 +174,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
 
     @Test
     fun `when page & pageSize are incorrect`() {
-      offenderSearchMockServer.stubFindOffenders("MDI")
+      prisonerSearchMockServer.stubFindPrisoners("MDI")
       locationsMockServer.stubGetByKey("MDI-1")
 
       webTestClient.get()
@@ -189,8 +189,8 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
   }
 
   @Test
-  fun `loads prisoner details from offender search and prison api`() {
-    offenderSearchMockServer.stubFindOffenders("MDI")
+  fun `loads prisoner details from prisoner search and prison api`() {
+    prisonerSearchMockServer.stubFindPrisoners("MDI")
     locationsMockServer.stubGetByKey("MDI-1")
     prisonApiMockServer.stubCaseNoteSummary()
 
@@ -279,7 +279,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
 
   @Test
   fun `loads prisoner details even when location description not found`() {
-    offenderSearchMockServer.stubFindOffenders("MDI")
+    prisonerSearchMockServer.stubFindPrisoners("MDI")
     prisonApiMockServer.stubCaseNoteSummary()
     listOf("BAS", "STD", "ENH", "ENT").forEach { levelCode ->
       listOf("MDI").forEach { prisonId ->
@@ -367,7 +367,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
   @ParameterizedTest
   @EnumSource(IncentiveReviewSort::class)
   fun `sorts by provided parameters`(sort: IncentiveReviewSort): Unit = runBlocking {
-    offenderSearchMockServer.stubFindOffenders("MDI")
+    prisonerSearchMockServer.stubFindPrisoners("MDI")
     locationsMockServer.stubGetByKey("MDI-1")
     prisonApiMockServer.stubCaseNoteSummary()
 
@@ -406,7 +406,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
   inner class Pagination {
     @BeforeEach
     fun setUp() {
-      offenderSearchMockServer.stubFindOffenders("MDI")
+      prisonerSearchMockServer.stubFindPrisoners("MDI")
       locationsMockServer.stubGetByKey("MDI-1")
       prisonApiMockServer.stubCaseNoteSummary()
     }
@@ -456,7 +456,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
 
   @Test
   fun `describes error when incentive levels not available in DB`(): Unit = runBlocking {
-    offenderSearchMockServer.stubFindOffenders("MDI")
+    prisonerSearchMockServer.stubFindPrisoners("MDI")
     locationsMockServer.stubGetByKey("MDI-1")
     prisonApiMockServer.stubCaseNoteSummary()
 

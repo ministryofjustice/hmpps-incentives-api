@@ -52,7 +52,7 @@ class HealthCheckTest : SqsIntegrationTestBase() {
   private fun stubPingWithResponse(@Suppress("SameParameterValue") status: Int) {
     hmppsAuthMockServer.stubHealthPing(status)
     prisonApiMockServer.stubHealthPing(status)
-    offenderSearchMockServer.stubHealthPing(status)
+    prisonerSearchMockServer.stubHealthPing(status)
     locationsMockServer.stubHealthPing(status)
   }
 }

@@ -19,10 +19,10 @@ import org.mockito.kotlin.whenever
 import org.mockito.stubbing.OngoingStubbing
 import org.springframework.data.domain.Sort
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ListOfDataNotFoundException
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
 import java.time.Clock
 import java.time.Instant
@@ -34,7 +34,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReview as Incenti
 @DisplayName("Incentive reviews service")
 class IncentiveReviewsServiceTest {
   private val prisonIncentiveLevelService: PrisonIncentiveLevelAuditedService = mock()
-  private val offenderSearchService: OffenderSearchService = mock()
+  private val prisonerSearchService: PrisonerSearchService = mock()
   private val locationsService: LocationsService = mock()
   private val behaviourService: BehaviourService = mock()
   private val incentiveReviewRepository: IncentiveReviewRepository = mock()
@@ -42,7 +42,7 @@ class IncentiveReviewsServiceTest {
   private var clock: Clock = Clock.fixed(Instant.parse("2022-08-01T12:45:00.00Z"), ZoneId.of("Europe/London"))
   private val incentiveReviewsService =
     IncentiveReviewsService(
-      offenderSearchService,
+      prisonerSearchService,
       locationsService,
       prisonIncentiveLevelService,
       incentiveReviewRepository,
@@ -139,9 +139,9 @@ class IncentiveReviewsServiceTest {
   }
 
   @Test
-  fun `maps responses from offender search`(): Unit = runBlocking {
-    val offenders = listOf(
-      OffenderSearchPrisoner(
+  fun `maps responses from prisoner search`(): Unit = runBlocking {
+    val prisoners = listOf(
+      Prisoner(
         prisonerNumber = "A1409AE",
         bookingId = 110001,
         firstName = "JAMES",
@@ -159,7 +159,7 @@ class IncentiveReviewsServiceTest {
           ),
         ),
       ),
-      OffenderSearchPrisoner(
+      Prisoner(
         prisonerNumber = "G6123VU",
         bookingId = 110002,
         firstName = "RHYS",
@@ -171,16 +171,16 @@ class IncentiveReviewsServiceTest {
       ),
     )
     whenever(locationsService.getByKey(any())).thenReturnLocation("MDI-2")
-    whenever(offenderSearchService.getOffendersAtLocation(any(), any())).thenReturn(offenders)
+    whenever(prisonerSearchService.getPrisonersAtLocation(any(), any())).thenReturn(prisoners)
     val nextReviewDatesMap = mapOf(
       110001L to LocalDate.now(clock).plusYears(1),
       110002L to LocalDate.now(clock).plusYears(1),
     )
-    whenever(nextReviewDateGetterService.getMany(offenders)).thenReturn(nextReviewDatesMap)
+    whenever(nextReviewDateGetterService.getMany(prisoners)).thenReturn(nextReviewDatesMap)
 
     val reviews = incentiveReviewsService.reviews("MDI", "MDI-2-", "STD")
 
-    verify(offenderSearchService, times(1)).getOffendersAtLocation(any(), eq("MDI-2-"))
+    verify(prisonerSearchService, times(1)).getPrisonersAtLocation(any(), eq("MDI-2-"))
     verify(locationsService, times(1)).getByKey(eq("MDI-2"))
     assertThat(reviews.locationDescription).isEqualTo("A houseblock")
     val reviewCount = reviews.levels.find { level -> level.levelCode == "STD" }?.reviewCount
@@ -222,10 +222,10 @@ class IncentiveReviewsServiceTest {
     // Given
     val prisonerNumber = "G6123VU"
     whenever(locationsService.getByKey(any())).thenReturnLocation("MDI-2-1")
-    val offenders = listOf(offenderSearchPrisoner(prisonerNumber))
-    whenever(offenderSearchService.getOffendersAtLocation(any(), any())).thenReturn(offenders)
-    val nextReviewDatesMap = mapOf(offenders[0].bookingId to LocalDate.now(clock).plusYears(1))
-    whenever(nextReviewDateGetterService.getMany(offenders)).thenReturn(nextReviewDatesMap)
+    val prisoners = listOf(mockPrisoner(prisonerNumber))
+    whenever(prisonerSearchService.getPrisonersAtLocation(any(), any())).thenReturn(prisoners)
+    val nextReviewDatesMap = mapOf(prisoners[0].bookingId to LocalDate.now(clock).plusYears(1))
+    whenever(nextReviewDateGetterService.getMany(prisoners)).thenReturn(nextReviewDatesMap)
 
     whenever(behaviourService.getBehaviours(anyList()))
       .thenReturn(
@@ -279,8 +279,8 @@ class IncentiveReviewsServiceTest {
 
     whenever(locationsService.getByKey(any())).thenReturnLocation("MDI-2-1")
     whenever(
-      offenderSearchService.getOffendersAtLocation(any(), any()),
-    ).thenReturn(listOf(offenderSearchPrisoner(prisonerNumber)))
+      prisonerSearchService.getPrisonersAtLocation(any(), any()),
+    ).thenReturn(listOf(mockPrisoner(prisonerNumber)))
 
     whenever(nextReviewDateGetterService.getMany(any())).thenReturn(mapOf(110002L to expectedNextReviewDate))
 
@@ -309,15 +309,15 @@ class IncentiveReviewsServiceTest {
 
   @Test
   fun `filters reviews by level`(): Unit = runBlocking {
-    val offenders = listOf(
-      offenderSearchPrisoner("A1409AE", 110001),
-      offenderSearchPrisoner("G6123VU", 110002),
-      offenderSearchPrisoner("G6123VX", 110003),
+    val prisoners = listOf(
+      mockPrisoner("A1409AE", 110001),
+      mockPrisoner("G6123VU", 110002),
+      mockPrisoner("G6123VX", 110003),
     )
     val someFutureNextReviewDate = LocalDate.now(clock).plusYears(1)
 
     whenever(locationsService.getByKey(any())).thenReturnLocation("MDI-2-1")
-    whenever(offenderSearchService.getOffendersAtLocation(any(), any())).thenReturn(offenders)
+    whenever(prisonerSearchService.getPrisonersAtLocation(any(), any())).thenReturn(prisoners)
     whenever(incentiveReviewRepository.findAllByBookingIdInOrderByReviewTimeDesc(any()))
       .thenReturn(
         flowOf(
@@ -360,7 +360,7 @@ class IncentiveReviewsServiceTest {
           prisonerIepLevel(110003, iepCode = "STD", reviewTime = LocalDateTime.now(clock)),
         ),
       )
-    whenever(nextReviewDateGetterService.getMany(offenders))
+    whenever(nextReviewDateGetterService.getMany(prisoners))
       .thenReturn(
         mapOf(
           110001L to someFutureNextReviewDate,
@@ -418,12 +418,12 @@ class IncentiveReviewsServiceTest {
     fun `oldest date of next review is first by default`(): Unit = runBlocking {
       // Given
       whenever(locationsService.getByKey(any())).thenReturnLocation("MDI-2-1")
-      val offenders = listOf(
-        offenderSearchPrisoner("A1409AE", 110001L),
-        offenderSearchPrisoner("G6123VU", 110002L),
+      val prisoners = listOf(
+        mockPrisoner("A1409AE", 110001L),
+        mockPrisoner("G6123VU", 110002L),
       )
-      whenever(offenderSearchService.getOffendersAtLocation(any(), any())).thenReturn(offenders)
-      whenever(nextReviewDateGetterService.getMany(offenders)).thenReturn(nextReviewDatesMap)
+      whenever(prisonerSearchService.getPrisonersAtLocation(any(), any())).thenReturn(prisoners)
+      whenever(nextReviewDateGetterService.getMany(prisoners)).thenReturn(nextReviewDatesMap)
 
       // When
       val reviews = incentiveReviewsService.reviews("MDI", "MDI-2-1", "STD")
@@ -465,12 +465,12 @@ class IncentiveReviewsServiceTest {
     fun `can reverse order by date of next review`(): Unit = runBlocking {
       // Given
       whenever(locationsService.getByKey(any())).thenReturnLocation("MDI-2-1")
-      val offenders = listOf(
-        offenderSearchPrisoner("A1409AE", 110001L),
-        offenderSearchPrisoner("G6123VU", 110002L),
+      val prisoners = listOf(
+        mockPrisoner("A1409AE", 110001L),
+        mockPrisoner("G6123VU", 110002L),
       )
-      whenever(offenderSearchService.getOffendersAtLocation(any(), any())).thenReturn(offenders)
-      whenever(nextReviewDateGetterService.getMany(offenders)).thenReturn(nextReviewDatesMap)
+      whenever(prisonerSearchService.getPrisonersAtLocation(any(), any())).thenReturn(prisoners)
+      whenever(nextReviewDateGetterService.getMany(prisoners)).thenReturn(nextReviewDatesMap)
 
       // When
       val reviews = incentiveReviewsService.reviews("MDI", "MDI-2-1", "STD", order = Sort.Direction.DESC)
@@ -483,12 +483,12 @@ class IncentiveReviewsServiceTest {
     fun `can sort by non-default parameters`(): Unit = runBlocking {
       // Given
       whenever(locationsService.getByKey(any())).thenReturnLocation("MDI-2-1")
-      val offenders = listOf(
-        offenderSearchPrisoner("A1409AE", 110001L),
-        offenderSearchPrisoner("G6123VU", 110002L),
+      val prisoners = listOf(
+        mockPrisoner("A1409AE", 110001L),
+        mockPrisoner("G6123VU", 110002L),
       )
-      whenever(offenderSearchService.getOffendersAtLocation(any(), any())).thenReturn(offenders)
-      whenever(nextReviewDateGetterService.getMany(offenders)).thenReturn(nextReviewDatesMap)
+      whenever(prisonerSearchService.getPrisonersAtLocation(any(), any())).thenReturn(prisoners)
+      whenever(nextReviewDateGetterService.getMany(prisoners)).thenReturn(nextReviewDatesMap)
 
       // When
       val reviews = incentiveReviewsService.reviews(
@@ -508,10 +508,10 @@ class IncentiveReviewsServiceTest {
   fun `throw exception if cannot find incentive level one bookingId`(): Unit = runBlocking {
     // Given - we only have prisonerIepLevel records for 110001
     whenever(locationsService.getByKey(any())).thenReturnLocation("MDI-2-1")
-    whenever(offenderSearchService.getOffendersAtLocation(any(), any())).thenReturn(
+    whenever(prisonerSearchService.getPrisonersAtLocation(any(), any())).thenReturn(
       listOf(
-        offenderSearchPrisoner("A1409AE", 110001),
-        offenderSearchPrisoner("G6123VU", 110002),
+        mockPrisoner("A1409AE", 110001),
+        mockPrisoner("G6123VU", 110002),
       ),
     )
     whenever(incentiveReviewRepository.findAllByBookingIdInOrderByReviewTimeDesc(any()))
@@ -542,10 +542,10 @@ class IncentiveReviewsServiceTest {
   fun `throw exception if cannot find incentive levels all bookingIds`(): Unit = runBlocking {
     // Given - we don't have prisonerIepLevel records for either bookingId
     whenever(locationsService.getByKey(any())).thenReturnLocation("MDI-2-1")
-    whenever(offenderSearchService.getOffendersAtLocation(any(), any())).thenReturn(
+    whenever(prisonerSearchService.getPrisonersAtLocation(any(), any())).thenReturn(
       listOf(
-        offenderSearchPrisoner("A1409AE", 110001),
-        offenderSearchPrisoner("G6123VU", 110002),
+        mockPrisoner("A1409AE", 110001),
+        mockPrisoner("G6123VU", 110002),
       ),
     )
 
@@ -568,12 +568,12 @@ class IncentiveReviewsServiceTest {
   fun `overdue count where 2 next review are in the past`(): Unit = runBlocking {
     // Given
     whenever(locationsService.getByKey(any())).thenReturnLocation("MDI-2-1")
-    val offenders = listOf(
-      offenderSearchPrisoner("A1409AE", 110001),
-      offenderSearchPrisoner("G6123VU", 110002),
-      offenderSearchPrisoner("G6123VX", 110003),
+    val prisoners = listOf(
+      mockPrisoner("A1409AE", 110001),
+      mockPrisoner("G6123VU", 110002),
+      mockPrisoner("G6123VX", 110003),
     )
-    whenever(offenderSearchService.getOffendersAtLocation(any(), any())).thenReturn(offenders)
+    whenever(prisonerSearchService.getPrisonersAtLocation(any(), any())).thenReturn(prisoners)
     whenever(incentiveReviewRepository.findAllByBookingIdInOrderByReviewTimeDesc(any()))
       .thenReturn(
         flowOf(
@@ -615,7 +615,7 @@ class IncentiveReviewsServiceTest {
       // next review will be 10 days before LocalDateTime.now(clock)
       110003L to LocalDate.now(clock).minusYears(1).minusDays(10),
     )
-    whenever(nextReviewDateGetterService.getMany(offenders)).thenReturn(nextReviewDatesMap)
+    whenever(nextReviewDateGetterService.getMany(prisoners)).thenReturn(nextReviewDatesMap)
 
     // When
     val reviews = incentiveReviewsService.reviews("MDI", "MDI-2-1", "STD")
@@ -631,12 +631,12 @@ class IncentiveReviewsServiceTest {
     runBlocking {
       // Given
       whenever(locationsService.getByKey(any())).thenReturnLocation("MDI-2-1")
-      val offenders = listOf(
-        offenderSearchPrisoner("A1409AE", 110001),
-        offenderSearchPrisoner("G6123VU", 110002),
-        offenderSearchPrisoner("G6123VX", 110003),
+      val prisoners = listOf(
+        mockPrisoner("A1409AE", 110001),
+        mockPrisoner("G6123VU", 110002),
+        mockPrisoner("G6123VX", 110003),
       )
-      whenever(offenderSearchService.getOffendersAtLocation(any(), any())).thenReturn(offenders)
+      whenever(prisonerSearchService.getPrisonersAtLocation(any(), any())).thenReturn(prisoners)
       whenever(incentiveReviewRepository.findAllByBookingIdInOrderByReviewTimeDesc(any())).thenReturn(emptyFlow())
 
       whenever(incentiveReviewRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(any()))
@@ -654,7 +654,7 @@ class IncentiveReviewsServiceTest {
         // next review will be 10 days before LocalDateTime.now(clock)
         110003L to LocalDate.now(clock).minusYears(1),
       )
-      whenever(nextReviewDateGetterService.getMany(offenders)).thenReturn(nextReviewDatesMap)
+      whenever(nextReviewDateGetterService.getMany(prisoners)).thenReturn(nextReviewDatesMap)
 
       // When
       val reviews = incentiveReviewsService.reviews("MDI", "MDI-2-1", "STD")
@@ -670,12 +670,12 @@ class IncentiveReviewsServiceTest {
   fun `overdue count where 3 next review are in the past but not all in page of results`(): Unit = runBlocking {
     // Given
     whenever(locationsService.getByKey(any())).thenReturnLocation("MDI-2-1")
-    val offenders = listOf(
-      offenderSearchPrisoner("A1409AE", 110001),
-      offenderSearchPrisoner("G6123VU", 110002),
-      offenderSearchPrisoner("G6123VX", 110003),
+    val prisoners = listOf(
+      mockPrisoner("A1409AE", 110001),
+      mockPrisoner("G6123VU", 110002),
+      mockPrisoner("G6123VX", 110003),
     )
-    whenever(offenderSearchService.getOffendersAtLocation(any(), any())).thenReturn(offenders)
+    whenever(prisonerSearchService.getPrisonersAtLocation(any(), any())).thenReturn(prisoners)
     whenever(incentiveReviewRepository.findAllByBookingIdInOrderByReviewTimeDesc(any()))
       .thenReturn(
         flowOf(
@@ -746,7 +746,7 @@ class IncentiveReviewsServiceTest {
       // next review will be 10 days before LocalDateTime.now(clock)
       110003L to LocalDate.now(clock).minusYears(1),
     )
-    whenever(nextReviewDateGetterService.getMany(offenders)).thenReturn(nextReviewDatesMap)
+    whenever(nextReviewDateGetterService.getMany(prisoners)).thenReturn(nextReviewDatesMap)
 
     // When
     val reviews = incentiveReviewsService.reviews("MDI", "MDI-2-1", "STD", page = 0, size = 1)
@@ -761,10 +761,10 @@ class IncentiveReviewsServiceTest {
   fun `overdue count where no next reviews are in the past`(): Unit = runBlocking {
     // Given
     whenever(locationsService.getByKey(any())).thenReturnLocation("MDI-2-1")
-    whenever(offenderSearchService.getOffendersAtLocation(any(), any())).thenReturn(
+    whenever(prisonerSearchService.getPrisonersAtLocation(any(), any())).thenReturn(
       listOf(
-        offenderSearchPrisoner("A1409AE", 110001),
-        offenderSearchPrisoner("G6123VU", 110002),
+        mockPrisoner("A1409AE", 110001),
+        mockPrisoner("G6123VU", 110002),
       ),
     )
 
@@ -790,7 +790,7 @@ class IncentiveReviewsServiceTest {
     )
   }
 
-  private fun offenderSearchPrisoner(prisonerNumber: String, bookingId: Long = 110002) = OffenderSearchPrisoner(
+  private fun mockPrisoner(prisonerNumber: String, bookingId: Long = 110002) = Prisoner(
     prisonerNumber = prisonerNumber,
     bookingId = bookingId,
     firstName = "RHYS",

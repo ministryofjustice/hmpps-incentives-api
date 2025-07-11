@@ -25,7 +25,7 @@ class NextReviewDateUpdaterService(
   /**
    * Update next review date for the given bookingId
    *
-   * @param bookingId of the offender to update
+   * @param bookingId of the prisoner to update
    *
    * @return the nextReviewDate for the given bookingId
    * */
@@ -36,19 +36,19 @@ class NextReviewDateUpdaterService(
   }
 
   /**
-   * Update next review date for the given offenders
+   * Update next review date for the given prisoners
    *
-   * @param offenders is the list of offenders to update
+   * @param prisoners is the list of prisoners to update
    *
    * @return a map with bookingIds as keys and nextReviewDate as value
    * */
-  suspend fun updateMany(offenders: List<PrisonerInfoForNextReviewDate>): Map<Long, LocalDate> {
-    if (offenders.isEmpty()) {
+  suspend fun updateMany(prisoners: List<PrisonerInfoForNextReviewDate>): Map<Long, LocalDate> {
+    if (prisoners.isEmpty()) {
       return emptyMap()
     }
 
-    val offendersMap = offenders.associateBy(PrisonerInfoForNextReviewDate::bookingId)
-    val bookingIds = offendersMap.keys.toList()
+    val prisonerMap = prisoners.associateBy(PrisonerInfoForNextReviewDate::bookingId)
+    val bookingIds = prisonerMap.keys.toList()
 
     val nextReviewDatesBeforeUpdate: Map<Long, LocalDate> = nextReviewDateRepository.findAllById(
       bookingIds,
@@ -62,13 +62,13 @@ class NextReviewDateUpdaterService(
         .groupBy(IncentiveReview::bookingId)
 
     val nextReviewDateRecords = reviewsMap.map { (bookingId, incentiveRecords) ->
-      val offender = offendersMap[bookingId]!!
+      val prisoner = prisonerMap[bookingId]!!
 
       val nextReviewDate = NextReviewDateService(
         NextReviewDateInput(
-          dateOfBirth = offender.dateOfBirth,
-          receptionDate = offender.receptionDate,
-          hasAcctOpen = offender.hasAcctOpen,
+          dateOfBirth = prisoner.dateOfBirth,
+          receptionDate = prisoner.receptionDate,
+          hasAcctOpen = prisoner.hasAcctOpen,
           incentiveRecords = incentiveRecords,
         ),
       ).calculate()
@@ -92,14 +92,14 @@ class NextReviewDateUpdaterService(
         nextReviewDatesAfterUpdate[bookingId] != nextReviewDatesBeforeUpdate[bookingId]
     }
 
-    publishDomainEvents(bookingIdsChanged, offendersMap, nextReviewDatesAfterUpdate)
+    publishDomainEvents(bookingIdsChanged, prisonerMap, nextReviewDatesAfterUpdate)
 
     return nextReviewDatesAfterUpdate
   }
 
   private fun publishDomainEvents(
     bookingIdsChanged: List<Long>,
-    offendersMap: Map<Long, PrisonerInfoForNextReviewDate>,
+    prisonerMap: Map<Long, PrisonerInfoForNextReviewDate>,
     nextReviewDatesMap: Map<Long, LocalDate>,
   ) {
     bookingIdsChanged.forEach { bookingId ->
@@ -109,7 +109,7 @@ class NextReviewDateUpdaterService(
         occurredAt = LocalDateTime.now(clock),
         additionalInformation = AdditionalInformation(
           id = bookingId,
-          nomsNumber = offendersMap[bookingId]!!.prisonerNumber,
+          nomsNumber = prisonerMap[bookingId]!!.prisonerNumber,
           nextReviewDate = nextReviewDatesMap[bookingId],
         ),
       )

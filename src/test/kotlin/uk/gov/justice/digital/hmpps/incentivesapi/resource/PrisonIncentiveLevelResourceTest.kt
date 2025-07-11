@@ -47,9 +47,9 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
     prisonIncentiveLevelRepository.deleteAll()
     incentiveReviewRepository.deleteAll()
 
-    offenderSearchMockServer.stubFindOffenders("BAI")
-    offenderSearchMockServer.stubFindOffenders("MDI")
-    offenderSearchMockServer.stubFindOffenders("WRI")
+    prisonerSearchMockServer.stubFindPrisoners("BAI")
+    prisonerSearchMockServer.stubFindPrisoners("MDI")
+    prisonerSearchMockServer.stubFindPrisoners("WRI")
   }
 
   @AfterEach
@@ -2282,7 +2282,7 @@ class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
   }
 
   private fun makeIncentiveReviews(prisonId: String): Unit = runBlocking {
-    // prisoner numbers and booking ids match stubbed offender search response
+    // prisoner numbers and booking ids match stubbed prisoner search response
     incentiveReviewRepository.saveAll(
       listOf(
         IncentiveReview(
