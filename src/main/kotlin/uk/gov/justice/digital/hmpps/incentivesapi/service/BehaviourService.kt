@@ -17,7 +17,7 @@ class BehaviourService(
   private val behaviourCaseNoteMap = mapOf("POS" to "IEP_ENC", "NEG" to "IEP_WARN")
 
   suspend fun getBehaviours(reviews: List<IncentiveReview>): BehaviourSummary {
-    val lastRealReviews = getLastRealReviewForOffenders(reviews)
+    val lastRealReviews = getLastRealReviewForPrisoners(reviews)
     val lastReviewsOrDefaultPeriods = lastRealReviews.mapValues { truncateReviewDate(it.value) }
     val caseNoteCountsByType = getCaseNoteUsageByLastReviewDate(
       prisonApiService.retrieveCaseNoteCountsByFromDate(
@@ -45,7 +45,7 @@ class BehaviourService(
   private fun calcTypeCount(caseNoteUsage: List<PrisonerCaseNoteByTypeSubType>): Int =
     caseNoteUsage.sumOf { it.numCaseNotes }
 
-  private fun getLastRealReviewForOffenders(reviews: List<IncentiveReview>) = reviews
+  private fun getLastRealReviewForPrisoners(reviews: List<IncentiveReview>) = reviews
     .groupBy { it.bookingId }
     .mapValues { review ->
       val latestRealReview = review.value.firstOrNull(IncentiveReview::isRealReview)

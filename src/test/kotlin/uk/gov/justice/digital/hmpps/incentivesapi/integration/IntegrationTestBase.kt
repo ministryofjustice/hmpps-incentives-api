@@ -11,8 +11,8 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.incentivesapi.helper.TestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.wiremock.HmppsAuthMockServer
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.wiremock.LocationsMockServer
-import uk.gov.justice.digital.hmpps.incentivesapi.integration.wiremock.OffenderSearchMockServer
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.wiremock.PrisonApiMockServer
+import uk.gov.justice.digital.hmpps.incentivesapi.integration.wiremock.PrisonerSearchMockServer
 import uk.gov.justice.hmpps.test.kotlin.auth.JwtAuthorisationHelper
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -33,7 +33,7 @@ abstract class IntegrationTestBase : TestBase() {
     val hmppsAuthMockServer = HmppsAuthMockServer()
 
     @JvmField
-    val offenderSearchMockServer = OffenderSearchMockServer()
+    val prisonerSearchMockServer = PrisonerSearchMockServer()
 
     @JvmField
     val locationsMockServer = LocationsMockServer()
@@ -45,7 +45,7 @@ abstract class IntegrationTestBase : TestBase() {
       hmppsAuthMockServer.stubGrantToken()
 
       prisonApiMockServer.start()
-      offenderSearchMockServer.start()
+      prisonerSearchMockServer.start()
       locationsMockServer.start()
     }
 
@@ -53,7 +53,7 @@ abstract class IntegrationTestBase : TestBase() {
     @JvmStatic
     fun stopMocks() {
       locationsMockServer.stop()
-      offenderSearchMockServer.stop()
+      prisonerSearchMockServer.stop()
       prisonApiMockServer.stop()
       hmppsAuthMockServer.stop()
     }

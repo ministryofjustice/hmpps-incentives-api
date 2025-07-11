@@ -9,8 +9,8 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Prison
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.KpiRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.ReviewsConductedPrisonersReviewed
 import java.time.LocalDate
@@ -20,9 +20,9 @@ class KpiServiceTest {
 
   private val kpiRepository: KpiRepository = mock()
   private val prisonApiService: PrisonApiService = mock()
-  private val offenderSearchService: OffenderSearchService = mock()
+  private val prisonerSearchService: PrisonerSearchService = mock()
 
-  private val kpiService = KpiService(kpiRepository, prisonApiService, offenderSearchService)
+  private val kpiService = KpiService(kpiRepository, prisonApiService, prisonerSearchService)
 
   @DisplayName("number of prisoners and reviews conducted")
   @Nested
@@ -83,7 +83,7 @@ class KpiServiceTest {
         )
 
       val aaaPrisoners = listOf(
-        OffenderSearchPrisoner(
+        Prisoner(
           prisonerNumber = "A1111AA",
           bookingId = 111111,
           firstName = "JAMES",
@@ -94,7 +94,7 @@ class KpiServiceTest {
           prisonId = "AAA",
           alerts = emptyList(),
         ),
-        OffenderSearchPrisoner(
+        Prisoner(
           prisonerNumber = "A9999AA",
           bookingId = 999999,
           firstName = "JONATHAN",
@@ -107,7 +107,7 @@ class KpiServiceTest {
         ),
       )
       val bbbPrisoners = listOf(
-        OffenderSearchPrisoner(
+        Prisoner(
           prisonerNumber = "B1111BB",
           bookingId = 555555,
           firstName = "JOHN",
@@ -118,7 +118,7 @@ class KpiServiceTest {
           prisonId = "BBB",
           alerts = emptyList(),
         ),
-        OffenderSearchPrisoner(
+        Prisoner(
           prisonerNumber = "B2222BB",
           bookingId = 222222,
           firstName = "JOE",
@@ -130,8 +130,8 @@ class KpiServiceTest {
           alerts = emptyList(),
         ),
       )
-      whenever(offenderSearchService.getOffendersAtLocation("AAA")).thenReturn(aaaPrisoners)
-      whenever(offenderSearchService.getOffendersAtLocation("BBB")).thenReturn(bbbPrisoners)
+      whenever(prisonerSearchService.getPrisonersAtLocation("AAA")).thenReturn(aaaPrisoners)
+      whenever(prisonerSearchService.getPrisonersAtLocation("BBB")).thenReturn(bbbPrisoners)
     }
 
     @Test

@@ -11,38 +11,38 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
 import java.time.LocalDate
 
 @DisplayName("Count prisoners service")
 class CountPrisonersServiceTest {
   private val incentiveReviewRepository: IncentiveReviewRepository = mock()
-  private val offenderSearchService: OffenderSearchService = mock()
+  private val prisonerSearchService: PrisonerSearchService = mock()
 
-  private val countPrisonersService = CountPrisonersService(incentiveReviewRepository, offenderSearchService)
+  private val countPrisonersService = CountPrisonersService(incentiveReviewRepository, prisonerSearchService)
 
   @Test
   fun `finds no prisoners in a prison`(): Unit = runBlocking {
-    // mock offender search returning no prisoners
-    whenever(offenderSearchService.findOffendersAtLocation("MDI", "")).thenReturn(flowOf(listOf()))
+    // mock prisoner search returning no prisoners
+    whenever(prisonerSearchService.findPrisonersAtLocation("MDI", "")).thenReturn(flowOf(listOf()))
 
     assertThat(
       countPrisonersService.prisonersExistOnLevelInPrison("MDI", "STD"),
     ).isFalse()
 
     @Suppress("UnusedFlow")
-    verify(offenderSearchService, times(1)).findOffendersAtLocation("MDI", "")
+    verify(prisonerSearchService, times(1)).findPrisonersAtLocation("MDI", "")
     verify(incentiveReviewRepository, times(0)).somePrisonerCurrentlyOnLevel(any(), eq("STD"))
   }
 
   @Test
   fun `finds prisoners on a level in a prison`(): Unit = runBlocking {
-    // mock offender search returning 2 pages of results with 3 prisoners, only 2 of which are on Standard in the repository
-    whenever(offenderSearchService.findOffendersAtLocation("MDI", "")).thenReturn(
+    // mock prisoner search returning 2 pages of results with 3 prisoners, only 2 of which are on Standard in the repository
+    whenever(prisonerSearchService.findPrisonersAtLocation("MDI", "")).thenReturn(
       flowOf(
         listOf(
-          OffenderSearchPrisoner(
+          Prisoner(
             prisonerNumber = "A1409AE",
             bookingId = 110001,
             firstName = "JAMES",
@@ -51,7 +51,7 @@ class CountPrisonersServiceTest {
             receptionDate = LocalDate.parse("2020-07-01"),
             prisonId = "MDI",
           ),
-          OffenderSearchPrisoner(
+          Prisoner(
             prisonerNumber = "G6123VU",
             bookingId = 110002,
             firstName = "RHYS",
@@ -62,7 +62,7 @@ class CountPrisonersServiceTest {
           ),
         ),
         listOf(
-          OffenderSearchPrisoner(
+          Prisoner(
             prisonerNumber = "G6123VX",
             bookingId = 110003,
             firstName = "JOHN",
@@ -85,7 +85,7 @@ class CountPrisonersServiceTest {
     ).isTrue
 
     @Suppress("UnusedFlow")
-    verify(offenderSearchService, times(1)).findOffendersAtLocation("MDI", "")
+    verify(prisonerSearchService, times(1)).findPrisonersAtLocation("MDI", "")
     verify(incentiveReviewRepository, times(1)).somePrisonerCurrentlyOnLevel(any(), eq("STD"))
   }
 }

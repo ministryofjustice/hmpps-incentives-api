@@ -5,8 +5,8 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.count
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Prison
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.KpiRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.ReviewsConductedPrisonersReviewed
 import java.time.LocalDate
@@ -15,7 +15,7 @@ import java.time.LocalDate
 class KpiService(
   private val kpiRepository: KpiRepository,
   private val prisonApiService: PrisonApiService,
-  private val offenderSearchService: OffenderSearchService,
+  private val prisonerSearchService: PrisonerSearchService,
 ) {
 
   suspend fun getNumberOfReviewsConductedAndPrisonersReviewed(day: LocalDate): ReviewsConductedPrisonersReviewed {
@@ -28,7 +28,7 @@ class KpiService(
     getPrisons().map { prisonId ->
       async { getPrisonersInPrison(prisonId) }
     }.awaitAll().forEach { prisoners ->
-      allPrisoners.addAll(prisoners.map(OffenderSearchPrisoner::prisonerNumber))
+      allPrisoners.addAll(prisoners.map(Prisoner::prisonerNumber))
     }
 
     println("Number of prisoners across the estate: ${allPrisoners.size}")
@@ -46,8 +46,8 @@ class KpiService(
       .map(Prison::agencyId)
   }
 
-  private suspend fun getPrisonersInPrison(prisonId: String): List<OffenderSearchPrisoner> {
+  private suspend fun getPrisonersInPrison(prisonId: String): List<Prisoner> {
     println("Getting list of prisoners for $prisonId...")
-    return offenderSearchService.getOffendersAtLocation(prisonId)
+    return prisonerSearchService.getPrisonersAtLocation(prisonId)
   }
 }

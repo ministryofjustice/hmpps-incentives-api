@@ -8,16 +8,16 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReview
 @Service
 class CountPrisonersService(
   private val incentiveReviewRepository: IncentiveReviewRepository,
-  private val offenderSearchService: OffenderSearchService,
+  private val prisonerSearchService: PrisonerSearchService,
 ) {
   /**
    * True if there are currently any prisoners on a given incentive level at a prison
    */
   suspend fun prisonersExistOnLevelInPrison(prisonId: String, levelCode: String): Boolean {
     var prisonersExistOnLevel = false
-    offenderSearchService.findOffendersAtLocation(prisonId)
-      .takeWhile { offenders ->
-        val bookingIds = offenders.map { it.bookingId }
+    prisonerSearchService.findPrisonersAtLocation(prisonId)
+      .takeWhile { prisoners ->
+        val bookingIds = prisoners.map { it.bookingId }
         prisonersExistOnLevel = if (bookingIds.isEmpty()) {
           false
         } else {

@@ -10,17 +10,17 @@ import org.springframework.web.reactive.function.client.ClientResponse
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.util.UriComponentsBuilder
 import reactor.core.publisher.Mono
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.Prisoner
 import java.time.LocalDate
 
-@DisplayName("Offender search service")
-class OffenderSearchServiceTest {
+@DisplayName("Prisoner search service")
+class PrisonerSearchServiceTest {
   private val mapper = ObjectMapper().findAndRegisterModules()
 
   @Test
-  fun `offender search object indicates if ACCT open`() {
-    val offenderWithHaAlert = OffenderSearchPrisoner(
+  fun `prisoner search object indicates if ACCT open`() {
+    val prisonerWithHaAlert = Prisoner(
       prisonerNumber = "A1409AE",
       bookingId = 110001,
       firstName = "JAMES",
@@ -38,9 +38,9 @@ class OffenderSearchServiceTest {
         ),
       ),
     )
-    assertThat(offenderWithHaAlert.hasAcctOpen).isTrue
+    assertThat(prisonerWithHaAlert.hasAcctOpen).isTrue
 
-    val offenderWithoutHaAlert = OffenderSearchPrisoner(
+    val prisonerWithoutHaAlert = Prisoner(
       prisonerNumber = "A1409AE",
       bookingId = 110001,
       firstName = "JAMES",
@@ -58,9 +58,9 @@ class OffenderSearchServiceTest {
         ),
       ),
     )
-    assertThat(offenderWithoutHaAlert.hasAcctOpen).isFalse
+    assertThat(prisonerWithoutHaAlert.hasAcctOpen).isFalse
 
-    val offenderWithoutAlerts = OffenderSearchPrisoner(
+    val prisonerWithoutAlerts = Prisoner(
       prisonerNumber = "A1409AE",
       bookingId = 110001,
       firstName = "JAMES",
@@ -71,10 +71,10 @@ class OffenderSearchServiceTest {
       prisonId = "MDI",
       alerts = emptyList(),
     )
-    assertThat(offenderWithoutAlerts.hasAcctOpen).isFalse
+    assertThat(prisonerWithoutAlerts.hasAcctOpen).isFalse
   }
 
-  private fun createWebClientMockResponses(vararg responses: List<OffenderSearchPrisoner>) = WebClient.builder()
+  private fun createWebClientMockResponses(vararg responses: List<Prisoner>) = WebClient.builder()
     .exchangeFunction {
       val page = UriComponentsBuilder.fromUri(it.url()).build().queryParams["page"]?.get(0)?.toIntOrNull()
       val response = if (page != null && page < responses.size) {
@@ -102,7 +102,7 @@ class OffenderSearchServiceTest {
     // mocks 1 page with 1 result
     val webClient = createWebClientMockResponses(
       listOf(
-        OffenderSearchPrisoner(
+        Prisoner(
           prisonerNumber = "A1409AE",
           bookingId = 110001,
           firstName = "JAMES",
@@ -113,9 +113,9 @@ class OffenderSearchServiceTest {
         ),
       ),
     )
-    val offenderSearchService = OffenderSearchService(webClient)
-    val offenders = offenderSearchService.getOffendersAtLocation("MDI", "MDI-1")
-    assertThat(offenders).hasSize(1)
+    val prisonerSearchService = PrisonerSearchService(webClient, mapper)
+    val prisoners = prisonerSearchService.getPrisonersAtLocation("MDI", "MDI-1")
+    assertThat(prisoners).hasSize(1)
   }
 
   @Test
@@ -123,7 +123,7 @@ class OffenderSearchServiceTest {
     // mocks 3 pages of 1 result per page
     val webClient = createWebClientMockResponses(
       listOf(
-        OffenderSearchPrisoner(
+        Prisoner(
           prisonerNumber = "A1409AE",
           bookingId = 110001,
           firstName = "JAMES",
@@ -134,7 +134,7 @@ class OffenderSearchServiceTest {
         ),
       ),
       listOf(
-        OffenderSearchPrisoner(
+        Prisoner(
           prisonerNumber = "G6123VU",
           bookingId = 110002,
           firstName = "RHYS",
@@ -146,7 +146,7 @@ class OffenderSearchServiceTest {
         ),
       ),
       listOf(
-        OffenderSearchPrisoner(
+        Prisoner(
           prisonerNumber = "G6123VX",
           bookingId = 110003,
           firstName = "JOHN",
@@ -157,8 +157,8 @@ class OffenderSearchServiceTest {
         ),
       ),
     )
-    val offenderSearchService = OffenderSearchService(webClient)
-    val offenders = offenderSearchService.getOffendersAtLocation("MDI", "MDI-1")
-    assertThat(offenders).hasSize(3)
+    val prisonerSearchService = PrisonerSearchService(webClient, mapper)
+    val prisoners = prisonerSearchService.getPrisonersAtLocation("MDI", "MDI-1")
+    assertThat(prisoners).hasSize(3)
   }
 }

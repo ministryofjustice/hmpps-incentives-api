@@ -6,7 +6,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.NextReviewDateR
 import java.time.LocalDate
 
 /**
- * Get the next review dates for the given offender(s). Calculates/persists these if not present in the database.
+ * Get the next review dates for the given prisoner(s). Calculates/persists these if not present in the database.
  */
 @Service
 class NextReviewDateGetterService(
@@ -24,25 +24,25 @@ class NextReviewDateGetterService(
   }
 
   /**
-   * Get the next review dates for the given offender(s)
+   * Get the next review dates for the given prisoner(s)
    *
    * Tries to get next review dates from the database. For bookingIds without a next review date record it calculates
    * and persist the next review dates before returning it with the ones already present.
    *
-   * @param offenders is the list of offenders to get the next review dates for
+   * @param prisoners is the list of prisoners to get the next review dates for
    *
    * @return a Map with bookingIds as keys and next review dates as values
    */
-  suspend fun getMany(offenders: List<PrisonerInfoForNextReviewDate>): Map<Long, LocalDate> {
-    val bookingIds = offenders.map(PrisonerInfoForNextReviewDate::bookingId)
+  suspend fun getMany(prisoners: List<PrisonerInfoForNextReviewDate>): Map<Long, LocalDate> {
+    val bookingIds = prisoners.map(PrisonerInfoForNextReviewDate::bookingId)
     val existingNextReviewDates = nextReviewDateRepository.findAllById(bookingIds).toList().toMapByBookingId()
 
     val bookingIdsWithDate = existingNextReviewDates.keys
     val bookingIdsWithoutDate = bookingIds subtract bookingIdsWithDate
 
-    val offendersWithoutDate = offenders.filter { offender -> offender.bookingId in bookingIdsWithoutDate }
+    val prisonersWithoutDate = prisoners.filter { prisoner -> prisoner.bookingId in bookingIdsWithoutDate }
 
-    val newNextReviewDates = nextReviewDateUpdaterService.updateMany(offendersWithoutDate)
+    val newNextReviewDates = nextReviewDateUpdaterService.updateMany(prisonersWithoutDate)
 
     return existingNextReviewDates + newNextReviewDates
   }

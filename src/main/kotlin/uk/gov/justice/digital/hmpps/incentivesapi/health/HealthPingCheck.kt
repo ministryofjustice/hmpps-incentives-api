@@ -15,9 +15,9 @@ class PrisonHealthPing(
   @Qualifier("prisonHealthWebClient") webClient: WebClient,
 ) : ReactiveHealthPingCheck(webClient)
 
-@Component("offenderSearch")
-class OffenderSearchHealthPing(
-  @Qualifier("offenderSearchHealthWebClient") webClient: WebClient,
+@Component("prisonerSearch")
+class PrisonerSearchHealthPing(
+  @Qualifier("prisonerSearchHealthWebClient") webClient: WebClient,
 ) : ReactiveHealthPingCheck(webClient)
 
 @Component("locations")

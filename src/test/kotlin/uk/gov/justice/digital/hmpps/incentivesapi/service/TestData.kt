@@ -1,10 +1,10 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerExtraInfo
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerInfo
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -46,7 +46,7 @@ fun prisonIncentiveLevel(
   privilegedVisitOrders = 1,
 )
 
-fun offenderSearchPrisoner(prisonerNumber: String = "A1244AB", bookingId: Long = 1234567L) = OffenderSearchPrisoner(
+fun mockPrisoner(prisonerNumber: String = "A1244AB", bookingId: Long = 1234567L) = Prisoner(
   prisonerNumber = prisonerNumber,
   bookingId = bookingId,
   firstName = "JAMES",
