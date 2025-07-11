@@ -1,5 +1,6 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.springframework.stereotype.Service
@@ -11,17 +12,13 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisonerList
 @Service
 class OffenderSearchService(
   private val offenderSearchWebClient: WebClient,
+  objectMapper: ObjectMapper,
 ) {
-  private val responseFields = listOf(
-    "bookingId",
-    "prisonerNumber",
-    "dateOfBirth",
-    "receptionDate",
-    "firstName", "middleNames", "lastName",
-    "prisonId",
-    "alerts",
-  )
-    .joinToString(",")
+  private val responseFields by lazy {
+    objectMapper.serializerProviderInstance.findValueSerializer(OffenderSearchPrisoner::class.java).properties()
+      .asSequence()
+      .joinToString(",") { it.name }
+  }
 
   /**
    * Searches for offenders in a prison using an optional cell location prefix (e.g. MDI-1)
