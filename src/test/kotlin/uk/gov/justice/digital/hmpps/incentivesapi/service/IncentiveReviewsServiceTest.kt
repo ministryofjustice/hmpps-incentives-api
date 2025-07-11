@@ -197,7 +197,7 @@ class IncentiveReviewsServiceTest {
           negativeBehaviours = 0,
           hasAcctOpen = true,
           isNewToPrison = true,
-          nextReviewDate = nextReviewDatesMap[110001L]!!,
+          nextReviewDate = nextReviewDatesMap[110001]!!,
           daysSinceLastReview = null,
         ),
         IncentiveReviewDTO(
@@ -210,7 +210,7 @@ class IncentiveReviewsServiceTest {
           negativeBehaviours = 0,
           hasAcctOpen = false,
           isNewToPrison = true,
-          nextReviewDate = nextReviewDatesMap[110002L]!!,
+          nextReviewDate = nextReviewDatesMap[110002]!!,
           daysSinceLastReview = null,
         ),
       ),
@@ -222,7 +222,7 @@ class IncentiveReviewsServiceTest {
     // Given
     val prisonerNumber = "G6123VU"
     whenever(locationsService.getByKey(any())).thenReturnLocation("MDI-2-1")
-    val prisoners = listOf(mockPrisoner(prisonerNumber))
+    val prisoners = listOf(mockPrisoner(prisonerNumber, 110002))
     whenever(prisonerSearchService.getPrisonersAtLocation(any(), any())).thenReturn(prisoners)
     val nextReviewDatesMap = mapOf(prisoners[0].bookingId to LocalDate.now(clock).plusYears(1))
     whenever(nextReviewDateGetterService.getMany(prisoners)).thenReturn(nextReviewDatesMap)
@@ -231,15 +231,15 @@ class IncentiveReviewsServiceTest {
       .thenReturn(
         BehaviourSummary(
           mapOf(
-            BookingTypeKey(bookingId = 110002L, caseNoteType = "POS")
+            BookingTypeKey(bookingId = 110002, caseNoteType = "POS")
               to CaseNoteSummary(
-                key = BookingTypeKey(bookingId = 110002L, caseNoteType = "POS"),
+                key = BookingTypeKey(bookingId = 110002, caseNoteType = "POS"),
                 totalCaseNotes = 5,
                 numSubTypeCount = 5,
               ),
-            BookingTypeKey(bookingId = 110002L, caseNoteType = "NEG")
+            BookingTypeKey(bookingId = 110002, caseNoteType = "NEG")
               to CaseNoteSummary(
-                key = BookingTypeKey(bookingId = 110002L, caseNoteType = "NEG"),
+                key = BookingTypeKey(bookingId = 110002, caseNoteType = "NEG"),
                 totalCaseNotes = 7,
                 numSubTypeCount = 7,
               ),
@@ -257,14 +257,14 @@ class IncentiveReviewsServiceTest {
         IncentiveReviewDTO(
           prisonerNumber = prisonerNumber,
           bookingId = 110002,
-          firstName = "Rhys",
-          lastName = "Jones",
+          firstName = "James",
+          lastName = "Halls",
           levelCode = "STD",
           positiveBehaviours = 5,
           negativeBehaviours = 7,
           hasAcctOpen = false,
           isNewToPrison = false,
-          nextReviewDate = nextReviewDatesMap[110002L]!!,
+          nextReviewDate = nextReviewDatesMap[110002]!!,
           daysSinceLastReview = 31,
         ),
       ),
@@ -280,7 +280,7 @@ class IncentiveReviewsServiceTest {
     whenever(locationsService.getByKey(any())).thenReturnLocation("MDI-2-1")
     whenever(
       prisonerSearchService.getPrisonersAtLocation(any(), any()),
-    ).thenReturn(listOf(mockPrisoner(prisonerNumber)))
+    ).thenReturn(listOf(mockPrisoner(prisonerNumber, 110002)))
 
     whenever(nextReviewDateGetterService.getMany(any())).thenReturn(mapOf(110002L to expectedNextReviewDate))
 
@@ -293,8 +293,8 @@ class IncentiveReviewsServiceTest {
         IncentiveReviewDTO(
           prisonerNumber = prisonerNumber,
           bookingId = 110002,
-          firstName = "Rhys",
-          lastName = "Jones",
+          firstName = "James",
+          lastName = "Halls",
           levelCode = "STD",
           positiveBehaviours = 0,
           negativeBehaviours = 0,
@@ -378,8 +378,8 @@ class IncentiveReviewsServiceTest {
         IncentiveReviewDTO(
           prisonerNumber = "A1409AE",
           bookingId = 110001,
-          firstName = "Rhys",
-          lastName = "Jones",
+          firstName = "James",
+          lastName = "Halls",
           levelCode = "STD",
           positiveBehaviours = 0,
           negativeBehaviours = 0,
@@ -391,8 +391,8 @@ class IncentiveReviewsServiceTest {
         IncentiveReviewDTO(
           prisonerNumber = "G6123VX",
           bookingId = 110003,
-          firstName = "Rhys",
-          lastName = "Jones",
+          firstName = "James",
+          lastName = "Halls",
           levelCode = "STD",
           positiveBehaviours = 0,
           negativeBehaviours = 0,
@@ -419,8 +419,8 @@ class IncentiveReviewsServiceTest {
       // Given
       whenever(locationsService.getByKey(any())).thenReturnLocation("MDI-2-1")
       val prisoners = listOf(
-        mockPrisoner("A1409AE", 110001L),
-        mockPrisoner("G6123VU", 110002L),
+        mockPrisoner("A1409AE", 110001),
+        mockPrisoner("G6123VU", 110002),
       )
       whenever(prisonerSearchService.getPrisonersAtLocation(any(), any())).thenReturn(prisoners)
       whenever(nextReviewDateGetterService.getMany(prisoners)).thenReturn(nextReviewDatesMap)
@@ -434,27 +434,27 @@ class IncentiveReviewsServiceTest {
           IncentiveReviewDTO(
             prisonerNumber = "G6123VU",
             bookingId = 110002,
-            firstName = "Rhys",
-            lastName = "Jones",
+            firstName = "James",
+            lastName = "Halls",
             levelCode = "STD",
             positiveBehaviours = 0,
             negativeBehaviours = 0,
             hasAcctOpen = false,
             isNewToPrison = true,
-            nextReviewDate = nextReviewDatesMap[110002L]!!,
+            nextReviewDate = nextReviewDatesMap[110002]!!,
             daysSinceLastReview = null,
           ),
           IncentiveReviewDTO(
             prisonerNumber = "A1409AE",
             bookingId = 110001,
-            firstName = "Rhys",
-            lastName = "Jones",
+            firstName = "James",
+            lastName = "Halls",
             levelCode = "STD",
             positiveBehaviours = 0,
             negativeBehaviours = 0,
             hasAcctOpen = false,
             isNewToPrison = true,
-            nextReviewDate = nextReviewDatesMap[110001L]!!,
+            nextReviewDate = nextReviewDatesMap[110001]!!,
             daysSinceLastReview = null,
           ),
         ),
@@ -466,8 +466,8 @@ class IncentiveReviewsServiceTest {
       // Given
       whenever(locationsService.getByKey(any())).thenReturnLocation("MDI-2-1")
       val prisoners = listOf(
-        mockPrisoner("A1409AE", 110001L),
-        mockPrisoner("G6123VU", 110002L),
+        mockPrisoner("A1409AE", 110001),
+        mockPrisoner("G6123VU", 110002),
       )
       whenever(prisonerSearchService.getPrisonersAtLocation(any(), any())).thenReturn(prisoners)
       whenever(nextReviewDateGetterService.getMany(prisoners)).thenReturn(nextReviewDatesMap)
@@ -484,8 +484,8 @@ class IncentiveReviewsServiceTest {
       // Given
       whenever(locationsService.getByKey(any())).thenReturnLocation("MDI-2-1")
       val prisoners = listOf(
-        mockPrisoner("A1409AE", 110001L),
-        mockPrisoner("G6123VU", 110002L),
+        mockPrisoner("A1409AE", 110001),
+        mockPrisoner("G6123VU", 110002),
       )
       whenever(prisonerSearchService.getPrisonersAtLocation(any(), any())).thenReturn(prisoners)
       whenever(nextReviewDateGetterService.getMany(prisoners)).thenReturn(nextReviewDatesMap)
@@ -789,15 +789,4 @@ class IncentiveReviewsServiceTest {
       ),
     )
   }
-
-  private fun mockPrisoner(prisonerNumber: String, bookingId: Long = 110002) = Prisoner(
-    prisonerNumber = prisonerNumber,
-    bookingId = bookingId,
-    firstName = "RHYS",
-    middleNames = "BARRY",
-    lastName = "JONES",
-    dateOfBirth = LocalDate.parse("1970-03-01"),
-    receptionDate = LocalDate.parse("2020-07-01"),
-    prisonId = "MDI",
-  )
 }
