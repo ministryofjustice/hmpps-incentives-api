@@ -12,6 +12,17 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.OffenderSearchPrisonerList
 class OffenderSearchService(
   private val offenderSearchWebClient: WebClient,
 ) {
+  private val responseFields = listOf(
+    "bookingId",
+    "prisonerNumber",
+    "dateOfBirth",
+    "receptionDate",
+    "firstName", "middleNames", "lastName",
+    "prisonId",
+    "alerts",
+  )
+    .joinToString(",")
+
   /**
    * Searches for offenders in a prison using an optional cell location prefix (e.g. MDI-1)
    * returning a flow of pages.
@@ -23,9 +34,13 @@ class OffenderSearchService(
       do {
         val pageOfData = offenderSearchWebClient.get()
           .uri(
-            "/prison/{prisonId}/prisoners?cellLocationPrefix={cellLocationPrefix}&size={size}&page={page}&sort={sort}",
+            "/prison/{prisonId}/prisoners?" +
+              "responseFields={responseFields}&" +
+              "cellLocationPrefix={cellLocationPrefix}&" +
+              "size={size}&page={page}&sort={sort}",
             mapOf(
               "prisonId" to prisonId,
+              "responseFields" to responseFields,
               "cellLocationPrefix" to cellLocationPrefix,
               // NB: API allows up 3,000 results per page
               "size" to 500,
