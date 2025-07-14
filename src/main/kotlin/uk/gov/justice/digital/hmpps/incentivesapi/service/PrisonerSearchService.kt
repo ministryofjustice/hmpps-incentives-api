@@ -17,6 +17,7 @@ class PrisonerSearchService(
   private val responseFields by lazy {
     objectMapper.serializerProviderInstance.findValueSerializer(Prisoner::class.java).properties()
       .asSequence()
+      .filterNot { it.name == "hasAcctOpen" }
       .joinToString(",") { it.name }
   }
 
