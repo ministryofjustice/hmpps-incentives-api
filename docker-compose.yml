@@ -19,7 +19,7 @@ services:
       - HMPPS_SQS_LOCALSTACK_URL=http://localstack:4566
       - API_BASE_URL_OAUTH=http://hmpps-auth:8080/auth
       - API_BASE_URL_PRISON=http://prison-api-incentives-api:8080
-      - API_BASE_URL_OFFENDER_SEARCH=http://prisoner-search:8080
+      - API_BASE_URL_PRISONER_SEARCH=http://prisoner-search:8080
       - SPRING_FLYWAY_URL=jdbc:postgresql://incentives-db:5432/incentives?sslmode=prefer
       - SPRING_R2DBC_URL=r2dbc:postgresql://incentives-db:5432/incentives?sslmode=prefer
       - INCENTIVES_API_CLIENT_ID=omicadmin
