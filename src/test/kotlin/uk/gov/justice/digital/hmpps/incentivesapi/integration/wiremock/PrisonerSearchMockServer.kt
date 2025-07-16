@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.post
+import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
@@ -18,6 +19,8 @@ class PrisonerSearchMockServer : WireMockServer(WIREMOCK_PORT) {
   }
 
   private val mapper = ObjectMapper().findAndRegisterModules()
+
+  fun getCountFor(path: String) = this.findAll(getRequestedFor(urlPathEqualTo(path))).count()
 
   fun stubHealthPing(status: Int) {
     stubFor(
