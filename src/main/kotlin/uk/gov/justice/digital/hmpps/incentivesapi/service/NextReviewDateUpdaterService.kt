@@ -18,7 +18,7 @@ class NextReviewDateUpdaterService(
   private val clock: Clock,
   private val incentiveReviewRepository: IncentiveReviewRepository,
   private val nextReviewDateRepository: NextReviewDateRepository,
-  private val prisonApiService: PrisonApiService,
+  private val prisonerSearchService: PrisonerSearchService,
   private val snsService: SnsService,
 ) {
 
@@ -30,7 +30,7 @@ class NextReviewDateUpdaterService(
    * @return the nextReviewDate for the given bookingId
    * */
   suspend fun update(bookingId: Long): LocalDate {
-    val prisonerInfo = prisonApiService.getPrisonerExtraInfo(bookingId, useClientCredentials = true)
+    val prisonerInfo = prisonerSearchService.getPrisonerInfo(bookingId)
 
     return updateMany(listOf(prisonerInfo))[prisonerInfo.bookingId]!!
   }

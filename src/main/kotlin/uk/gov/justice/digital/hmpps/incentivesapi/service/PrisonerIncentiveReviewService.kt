@@ -21,7 +21,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.findDefaultOnAdmission
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerInfo
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
 import uk.gov.justice.hmpps.kotlin.auth.HmppsReactiveAuthenticationHolder
@@ -31,7 +31,7 @@ import java.time.format.DateTimeFormatter
 
 @Service
 class PrisonerIncentiveReviewService(
-  private val prisonApiService: PrisonApiService,
+  private val prisonerSearchService: PrisonerSearchService,
   private val incentiveReviewRepository: IncentiveReviewRepository,
   private val incentiveLevelService: IncentiveLevelAuditedService,
   private val prisonIncentiveLevelService: PrisonIncentiveLevelAuditedService,
@@ -66,7 +66,7 @@ class PrisonerIncentiveReviewService(
     prisonerNumber: String,
     createIncentiveReviewRequest: CreateIncentiveReviewRequest,
   ): IncentiveReviewDetail {
-    val prisonerInfo = prisonApiService.getPrisonerInfo(prisonerNumber)
+    val prisonerInfo = prisonerSearchService.getPrisonerInfo(prisonerNumber)
     return addIncentiveReviewForPrisonerAtLocation(prisonerInfo, createIncentiveReviewRequest)
   }
 
@@ -74,7 +74,7 @@ class PrisonerIncentiveReviewService(
     bookingId: Long,
     createIncentiveReviewRequest: CreateIncentiveReviewRequest,
   ): IncentiveReviewDetail {
-    val prisonerInfo = prisonApiService.getPrisonerInfo(bookingId)
+    val prisonerInfo = prisonerSearchService.getPrisonerInfo(bookingId)
     return addIncentiveReviewForPrisonerAtLocation(prisonerInfo, createIncentiveReviewRequest)
   }
 
@@ -187,7 +187,7 @@ class PrisonerIncentiveReviewService(
     reviewType: ReviewType,
   ) {
     prisonOffenderEvent.additionalInformation?.nomsNumber?.let {
-      val prisonerInfo = prisonApiService.getPrisonerInfo(it, true)
+      val prisonerInfo = prisonerSearchService.getPrisonerInfo(it)
       val iepLevel = getIncentiveLevelForReviewType(prisonerInfo, reviewType)
       val comment = getReviewCommentForEvent(prisonOffenderEvent)
 
@@ -196,12 +196,12 @@ class PrisonerIncentiveReviewService(
           levelCode = iepLevel,
           commentText = comment,
           bookingId = prisonerInfo.bookingId,
-          prisonId = prisonerInfo.agencyId,
+          prisonId = prisonerInfo.prisonId,
           current = true,
           reviewedBy = SYSTEM_USERNAME,
           reviewTime = LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
           reviewType = reviewType,
-          prisonerNumber = prisonerInfo.offenderNo,
+          prisonerNumber = prisonerInfo.prisonerNumber,
         ),
       )
 
@@ -219,8 +219,8 @@ class PrisonerIncentiveReviewService(
     }
   }
 
-  private suspend fun getIncentiveLevelForReviewType(prisonerInfo: PrisonerInfo, reviewType: ReviewType): String {
-    val prisonIncentiveLevels = prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonerInfo.agencyId)
+  private suspend fun getIncentiveLevelForReviewType(prisonerInfo: Prisoner, reviewType: ReviewType): String {
+    val prisonIncentiveLevels = prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonerInfo.prisonId)
     val defaultLevelCode = prisonIncentiveLevels.findDefaultOnAdmission().levelCode
 
     return when (reviewType) {
@@ -236,11 +236,11 @@ class PrisonerIncentiveReviewService(
             ).incentiveReviewDetails
           val levelCodeBeforeTransfer =
             iepHistory.sortedBy(IncentiveReviewDetail::iepTime).lastOrNull {
-              it.agencyId != prisonerInfo.agencyId
+              it.agencyId != prisonerInfo.prisonId
             }?.iepCode
               ?: defaultLevelCode // if no previous prison
           nearestPrisonIncentiveLevelService.findNearestHighestLevel(
-            prisonerInfo.agencyId,
+            prisonerInfo.prisonId,
             levelCodeBeforeTransfer,
           )
         } catch (_: IncentiveReviewNotFoundException) {
@@ -289,7 +289,7 @@ class PrisonerIncentiveReviewService(
   }
 
   private suspend fun addIncentiveReviewForPrisonerAtLocation(
-    prisonerInfo: PrisonerInfo,
+    prisonerInfo: Prisoner,
     createIncentiveReviewRequest: CreateIncentiveReviewRequest,
   ): IncentiveReviewDetail {
     if (createIncentiveReviewRequest.reviewTime != null &&
@@ -306,12 +306,12 @@ class PrisonerIncentiveReviewService(
         levelCode = createIncentiveReviewRequest.iepLevel,
         commentText = createIncentiveReviewRequest.comment,
         bookingId = prisonerInfo.bookingId,
-        prisonId = prisonerInfo.agencyId,
+        prisonId = prisonerInfo.prisonId,
         current = true,
         reviewedBy = reviewerUserName,
         reviewTime = reviewTime,
         reviewType = createIncentiveReviewRequest.reviewType ?: ReviewType.REVIEW,
-        prisonerNumber = prisonerInfo.offenderNo,
+        prisonerNumber = prisonerInfo.prisonerNumber,
       ),
     ).toIncentiveReviewDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
 
@@ -364,7 +364,7 @@ class PrisonerIncentiveReviewService(
     val activeReviews = incentiveReviewRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(removedPrisonerNumber)
       .map { review -> review.copy(prisonerNumber = remainingPrisonerNumber) }
 
-    val remainingBookingId = prisonApiService.getPrisonerInfo(remainingPrisonerNumber, true).bookingId
+    val remainingBookingId = prisonerSearchService.getPrisonerInfo(remainingPrisonerNumber).bookingId
     val reviewsFromOldBooking =
       incentiveReviewRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(remainingPrisonerNumber)
         .map { review -> review.copy(bookingId = remainingBookingId, current = false, new = true, id = 0) }

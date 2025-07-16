@@ -27,14 +27,14 @@ class NextReviewDateUpdaterServiceTest {
   private var clock: Clock = Clock.fixed(Instant.parse("2022-08-01T12:45:00.00Z"), ZoneId.of("Europe/London"))
   private val incentiveReviewRepository: IncentiveReviewRepository = mock()
   private val nextReviewDateRepository: NextReviewDateRepository = mock()
-  private val prisonApiService: PrisonApiService = mock()
+  private val prisonerSearchService: PrisonerSearchService = mock()
   private val snsService: SnsService = mock()
 
   private val nextReviewDateUpdaterService = NextReviewDateUpdaterService(
     clock,
     incentiveReviewRepository,
     nextReviewDateRepository,
-    prisonApiService,
+    prisonerSearchService,
     snsService,
   )
 
@@ -195,9 +195,9 @@ class NextReviewDateUpdaterServiceTest {
     val bookingId = 1234L
     val prisonerNumber = "A1244AB"
 
-    val prisonerExtraInfo = prisonerExtraInfo(prisonerNumber, bookingId)
-    whenever(prisonApiService.getPrisonerExtraInfo(bookingId, useClientCredentials = true))
-      .thenReturn(prisonerExtraInfo)
+    val prisonerInfo = mockPrisoner(prisonerNumber, bookingId)
+    whenever(prisonerSearchService.getPrisonerInfo(bookingId))
+      .thenReturn(prisonerInfo)
 
     val reviews = flowOf(
       prisonerIepLevel(bookingId, reviewTime = LocalDateTime.now(clock)),
@@ -210,9 +210,9 @@ class NextReviewDateUpdaterServiceTest {
 
     val expectedNextReviewDate = NextReviewDateService(
       NextReviewDateInput(
-        dateOfBirth = prisonerExtraInfo.dateOfBirth,
-        receptionDate = prisonerExtraInfo.receptionDate,
-        hasAcctOpen = prisonerExtraInfo.hasAcctOpen,
+        dateOfBirth = prisonerInfo.dateOfBirth,
+        receptionDate = prisonerInfo.receptionDate,
+        hasAcctOpen = prisonerInfo.hasAcctOpen,
         incentiveRecords = reviews.toList(),
       ),
     ).calculate()
