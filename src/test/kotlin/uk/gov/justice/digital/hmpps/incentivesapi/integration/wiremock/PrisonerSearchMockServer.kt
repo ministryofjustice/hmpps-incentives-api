@@ -4,9 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get
+import com.github.tomakehurst.wiremock.client.WireMock.post
+import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.Prisoner
+import uk.gov.justice.digital.hmpps.incentivesapi.service.mockPrisoner
 import java.time.LocalDate
 
 class PrisonerSearchMockServer : WireMockServer(WIREMOCK_PORT) {
@@ -123,6 +126,41 @@ class PrisonerSearchMockServer : WireMockServer(WIREMOCK_PORT) {
                 "last" to true,
               ),
             ),
+          ),
+      ),
+    )
+  }
+
+  fun stubGetPrisonerInfoByPrisonerNumber(bookingId: Long, prisonerNumber: String) {
+    val prisoner = mockPrisoner(prisonerNumber, bookingId)
+    stubFor(
+      get(urlPathEqualTo("/prisoner/$prisonerNumber")).willReturn(
+        aResponse()
+          .withHeader("Content-Type", "application/json")
+          // language=json
+          .withBody(
+            mapper.writeValueAsBytes(
+              prisoner
+            )
+          ),
+      ),
+    )
+  }
+
+  fun stubGetPrisonerInfoByBookingId(bookingId: Long, prisonerNumber: String) {
+    val prisoner = mockPrisoner(prisonerNumber, bookingId)
+    stubFor(
+      post(urlPathEqualTo("/prisoner-search/booking-ids"))
+        .withRequestBody(
+          equalToJson("""{ "bookingIds": [$bookingId] }""", true, true),
+        ).willReturn(
+        aResponse()
+          .withHeader("Content-Type", "application/json")
+          // language=json
+          .withBody(
+            mapper.writeValueAsBytes(
+              listOf(prisoner)
+            )
           ),
       ),
     )
