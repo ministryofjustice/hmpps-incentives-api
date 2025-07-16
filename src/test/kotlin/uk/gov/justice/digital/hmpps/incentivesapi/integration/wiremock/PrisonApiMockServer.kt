@@ -11,8 +11,6 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
     private const val WIREMOCK_PORT = 8093
   }
 
-  fun getCountFor(url: String) = this.findAll(WireMock.getRequestedFor(WireMock.urlEqualTo(url))).count()
-
   fun stubHealthPing(status: Int) {
     stubFor(
       get("/health/ping").willReturn(
@@ -161,71 +159,6 @@ class PrisonApiMockServer : WireMockServer(WIREMOCK_PORT) {
               """,
             ),
         ),
-    )
-  }
-
-  fun stubGetPrisonerInfoByNoms(prisonerNumber: String, bookingId: Long) {
-    stubFor(
-      get("/api/bookings/offenderNo/$prisonerNumber").willReturn(
-        aResponse()
-          .withHeader("Content-Type", "application/json")
-          // language=json
-          .withBody(
-            """
-              {
-                "agencyId": "MDI",
-                "bookingId": $bookingId,
-                "bookingNo": "A12121",
-                "firstName": "JOHN",
-                "lastName": "SMITH",
-                "offenderNo": "$prisonerNumber"
-              }
-            """,
-          ),
-      ),
-    )
-  }
-
-  fun stubGetPrisonerInfoByBooking(bookingId: Long, prisonerNumber: String) {
-    stubFor(
-      get("/api/bookings/$bookingId?basicInfo=true").willReturn(
-        aResponse()
-          .withHeader("Content-Type", "application/json")
-          .withBody(
-            // language=json
-            """
-              {
-                "agencyId": "MDI",
-                "bookingId": $bookingId,
-                "bookingNo": "A12121",
-                "firstName": "JOHN",
-                "lastName": "SMITH",
-                "offenderNo": "$prisonerNumber"
-              }
-            """,
-          ),
-      ),
-    )
-  }
-
-  fun stubGetPrisonerExtraInfo(bookingId: Long, prisonerNumber: String) {
-    stubFor(
-      get("/api/bookings/$bookingId?extraInfo=true").willReturn(
-        aResponse()
-          .withHeader("Content-Type", "application/json")
-          .withBody(
-            // language=json
-            """
-              {
-                "bookingId": $bookingId,
-                "offenderNo": "$prisonerNumber",
-                "dateOfBirth": "1971-07-01",
-                "receptionDate": "2020-07-01",
-                "alerts":  []
-              }
-            """,
-          ),
-      ),
     )
   }
 }
