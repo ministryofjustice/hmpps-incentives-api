@@ -66,12 +66,6 @@ fun prisonerExtraInfo(prisonerNumber: String = "A1244AB", bookingId: Long = 1234
   alerts = emptyList(),
 )
 
-fun prisonerAtLocation(
-  bookingId: Long = 1234567,
-  offenderNo: String = "A1234AA",
-  agencyId: String = "MDI",
-) = PrisonerInfo(bookingId, 1, "John", "Smith", offenderNo, agencyId)
-
 fun prisonerIepLevel(
   bookingId: Long,
   iepCode: String = "STD",
