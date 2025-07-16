@@ -64,4 +64,56 @@ class PrisonerSearchService(
     }
     return prisoners
   }
+
+  /**
+   * Get a prisoner info by prisonerNumber
+   * Requires role PRISONER_SEARCH or VIEW_PRISONER_DATA or PRISONER_SEARCH__PRISONER__RO
+   */
+  suspend fun getPrisonerInfo(prisonerNumber: String): Prisoner {
+    return prisonerSearchWebClient.get()
+      .uri(
+        "/prisoner/{prisonerNumber}?" +
+          "responseFields={responseFields}&",
+        mapOf(
+          "prisonerNumber" to prisonerNumber,
+          "responseFields" to responseFields,
+        ),
+      )
+      .retrieve()
+      .awaitBody<Prisoner>()
+  }
+
+  /**
+   * Get a prisoner info by bookingId
+   * Requires role GLOBAL_SEARCH or PRISONER_SEARCH
+   */
+  suspend fun getPrisonerInfo(bookingId: Long): Prisoner {
+    val results = prisonerSearchWebClient.post()
+      .uri(
+        "/prisoner-search/booking-ids?" +
+          "responseFields={responseFields}&",
+        mapOf(
+          "responseFields" to responseFields,
+        ),
+      )
+      .bodyValue(
+        // language=json
+        """
+          {
+            "bookingIds": [$bookingId]
+          }
+            """,
+      )
+      .retrieve()
+      .awaitBody<List<Prisoner>>()
+    if (results.isEmpty()) {
+      throw PrisonerNotFoundException("Prisoner with bookingId $bookingId not found")
+    }
+
+    return results.first()
+  }
 }
+
+class PrisonerNotFoundException(
+  message: String,
+) : RuntimeException(message)

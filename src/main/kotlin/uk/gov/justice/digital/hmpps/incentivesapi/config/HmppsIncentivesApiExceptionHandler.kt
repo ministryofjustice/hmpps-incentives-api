@@ -20,6 +20,7 @@ import org.springframework.web.reactive.resource.NoResourceFoundException
 import org.springframework.web.server.ServerWebInputException
 import org.springframework.web.server.UnsupportedMediaTypeStatusException
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveReviewNotFoundException
+import uk.gov.justice.digital.hmpps.incentivesapi.service.PrisonerNotFoundException
 
 @RestControllerAdvice
 class HmppsIncentivesApiExceptionHandler {
@@ -172,6 +173,20 @@ class HmppsIncentivesApiExceptionHandler {
   @ExceptionHandler(IncentiveReviewNotFoundException::class)
   fun handleIncentiveReviewNotFoundException(e: IncentiveReviewNotFoundException): ResponseEntity<ErrorResponse?>? {
     log.debug("No incentive review found exception caught: {}", e.message)
+    return ResponseEntity
+      .status(NOT_FOUND)
+      .body(
+        ErrorResponse(
+          status = NOT_FOUND,
+          userMessage = "Not Found: ${e.message}",
+          developerMessage = e.message,
+        ),
+      )
+  }
+
+  @ExceptionHandler(PrisonerNotFoundException::class)
+  fun handlePrisonerNotFoundIException(e: PrisonerNotFoundException): ResponseEntity<ErrorResponse?>? {
+    log.debug("Prisoner not found exception caught: {}", e.message)
     return ResponseEntity
       .status(NOT_FOUND)
       .body(
