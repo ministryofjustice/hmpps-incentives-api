@@ -140,7 +140,6 @@ class PrisonerSearchMockServer : WireMockServer(WIREMOCK_PORT) {
       get(urlPathEqualTo("/prisoner/$prisonerNumber")).willReturn(
         aResponse()
           .withHeader("Content-Type", "application/json")
-          // language=json
           .withBody(
             mapper.writeValueAsBytes(
               prisoner,
@@ -159,7 +158,6 @@ class PrisonerSearchMockServer : WireMockServer(WIREMOCK_PORT) {
         ).willReturn(
           aResponse()
             .withHeader("Content-Type", "application/json")
-            // language=json
             .withBody(
               mapper.writeValueAsBytes(
                 listOf(prisoner),
