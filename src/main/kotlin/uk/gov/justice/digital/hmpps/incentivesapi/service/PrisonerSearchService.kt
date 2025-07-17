@@ -74,7 +74,7 @@ class PrisonerSearchService(
     return prisonerSearchWebClient.get()
       .uri(
         "/prisoner/{prisonerNumber}?" +
-          "responseFields={responseFields}&",
+          "responseFields={responseFields}",
         mapOf(
           "prisonerNumber" to prisonerNumber,
           "responseFields" to responseFields,
@@ -92,7 +92,7 @@ class PrisonerSearchService(
     val results = prisonerSearchWebClient.post()
       .uri(
         "/prisoner-search/booking-ids?" +
-          "responseFields={responseFields}&",
+          "responseFields={responseFields}",
         mapOf(
           "responseFields" to responseFields,
         ),
