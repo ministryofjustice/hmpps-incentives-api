@@ -3,13 +3,13 @@ package uk.gov.justice.digital.hmpps.incentivesapi.integration.wiremock
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
-import com.github.tomakehurst.wiremock.client.WireMock.get
-import com.github.tomakehurst.wiremock.client.WireMock.post
-import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
+import com.github.tomakehurst.wiremock.client.WireMock.get
+import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.post
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.Prisoner
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.service.mockPrisoner
 import java.time.LocalDate
 
@@ -143,8 +143,8 @@ class PrisonerSearchMockServer : WireMockServer(WIREMOCK_PORT) {
           // language=json
           .withBody(
             mapper.writeValueAsBytes(
-              prisoner
-            )
+              prisoner,
+            ),
           ),
       ),
     )
@@ -157,15 +157,15 @@ class PrisonerSearchMockServer : WireMockServer(WIREMOCK_PORT) {
         .withRequestBody(
           equalToJson("""{ "bookingIds": [$bookingId] }""", true, true),
         ).willReturn(
-        aResponse()
-          .withHeader("Content-Type", "application/json")
-          // language=json
-          .withBody(
-            mapper.writeValueAsBytes(
-              listOf(prisoner)
-            )
-          ),
-      ),
+          aResponse()
+            .withHeader("Content-Type", "application/json")
+            // language=json
+            .withBody(
+              mapper.writeValueAsBytes(
+                listOf(prisoner),
+              ),
+            ),
+        ),
     )
   }
 }
