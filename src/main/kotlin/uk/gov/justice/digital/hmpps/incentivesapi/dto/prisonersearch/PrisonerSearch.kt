@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch
 
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.service.PrisonerInfoForNextReviewDate
 import java.time.LocalDate
 
@@ -16,6 +15,19 @@ data class Prisoner(
   val alerts: List<PrisonerAlert> = emptyList(),
 ) : PrisonerInfoForNextReviewDate {
   override val hasAcctOpen = alerts.any(PrisonerAlert::isOpenAcct)
+}
+
+data class PrisonerAlert(
+  val alertType: String,
+  val alertCode: String,
+  val active: Boolean,
+  val expired: Boolean,
+) {
+  companion object {
+    const val ACCT_ALERT_CODE = "HA"
+  }
+
+  val isOpenAcct = alertCode == ACCT_ALERT_CODE && active && !expired
 }
 
 data class PageOfPrisoners(

@@ -10,7 +10,7 @@ import org.springframework.web.reactive.function.client.ClientResponse
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.util.UriComponentsBuilder
 import reactor.core.publisher.Mono
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.Prisoner
 import java.time.LocalDate
 
