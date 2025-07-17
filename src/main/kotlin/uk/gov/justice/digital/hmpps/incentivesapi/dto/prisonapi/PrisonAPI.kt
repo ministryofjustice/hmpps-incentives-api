@@ -13,15 +13,6 @@ data class Prison(
   val active: Boolean,
 )
 
-data class PrisonerInfo(
-  val bookingId: Long,
-  val facialImageId: Long,
-  val firstName: String,
-  val lastName: String,
-  val offenderNo: String,
-  val agencyId: String,
-)
-
 data class PrisonerAlert(
   val alertType: String,
   val alertCode: String,
@@ -33,17 +24,6 @@ data class PrisonerAlert(
   }
 
   val isOpenAcct = alertCode == ACCT_ALERT_CODE && active && !expired
-}
-
-data class PrisonerExtraInfo(
-  override val bookingId: Long,
-  override val dateOfBirth: LocalDate,
-  override val receptionDate: LocalDate,
-  val offenderNo: String,
-  val alerts: List<PrisonerAlert> = emptyList(),
-) : PrisonerInfoForNextReviewDate {
-  override val hasAcctOpen = alerts.any(PrisonerAlert::isOpenAcct)
-  override val prisonerNumber = offenderNo
 }
 
 data class PrisonerCaseNoteByTypeSubType(

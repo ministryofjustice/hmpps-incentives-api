@@ -9,8 +9,6 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.BookingFromDateP
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.CaseNoteUsageTypesRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.Prison
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerCaseNoteByTypeSubType
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerExtraInfo
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerInfo
 import java.time.LocalDateTime
 
 @Service
@@ -36,30 +34,6 @@ class PrisonApiService(
     )
     .retrieve()
     .bodyToFlow()
-
-  suspend fun getPrisonerInfo(prisonerNumber: String, useClientCredentials: Boolean = false): PrisonerInfo {
-    return getClient(useClientCredentials)
-      .get()
-      .uri("/api/bookings/offenderNo/$prisonerNumber")
-      .retrieve()
-      .awaitBody()
-  }
-
-  suspend fun getPrisonerInfo(bookingId: Long, useClientCredentials: Boolean = false): PrisonerInfo {
-    return getClient(useClientCredentials)
-      .get()
-      .uri("/api/bookings/$bookingId?basicInfo=true")
-      .retrieve()
-      .awaitBody()
-  }
-
-  suspend fun getPrisonerExtraInfo(bookingId: Long, useClientCredentials: Boolean = false): PrisonerExtraInfo {
-    return getClient(useClientCredentials)
-      .get()
-      .uri("/api/bookings/$bookingId?extraInfo=true")
-      .retrieve()
-      .awaitBody()
-  }
 
   suspend fun getActivePrisons(useClientCredentials: Boolean = false): List<Prison> {
     return getClient(useClientCredentials)
