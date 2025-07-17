@@ -20,7 +20,6 @@ import org.springframework.web.reactive.resource.NoResourceFoundException
 import org.springframework.web.server.ServerWebInputException
 import org.springframework.web.server.UnsupportedMediaTypeStatusException
 import uk.gov.justice.digital.hmpps.incentivesapi.service.IncentiveReviewNotFoundException
-import uk.gov.justice.digital.hmpps.incentivesapi.service.PrisonerNotFoundException
 
 @RestControllerAdvice
 class HmppsIncentivesApiExceptionHandler {
@@ -297,6 +296,10 @@ class HmppsIncentivesApiExceptionHandler {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 }
+
+class PrisonerNotFoundException(
+  message: String,
+) : RuntimeException(message)
 
 class NoDataFoundException(
   id: Long,

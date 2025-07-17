@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.flow
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitBody
+import uk.gov.justice.digital.hmpps.incentivesapi.config.PrisonerNotFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.PageOfPrisoners
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.Prisoner
 
@@ -113,7 +114,3 @@ class PrisonerSearchService(
     return results.first()
   }
 }
-
-class PrisonerNotFoundException(
-  message: String,
-) : RuntimeException(message)
