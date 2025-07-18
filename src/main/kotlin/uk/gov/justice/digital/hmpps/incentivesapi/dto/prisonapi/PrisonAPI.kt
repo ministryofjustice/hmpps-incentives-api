@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi
 
 import org.springframework.format.annotation.DateTimeFormat
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.PrisonerAlert
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.service.PrisonerInfoForNextReviewDate
 import java.time.LocalDate
 import java.time.LocalDateTime

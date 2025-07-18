@@ -22,9 +22,9 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveRecordUpdate
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerInfo
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
 import uk.gov.justice.hmpps.kotlin.auth.HmppsReactiveAuthenticationHolder

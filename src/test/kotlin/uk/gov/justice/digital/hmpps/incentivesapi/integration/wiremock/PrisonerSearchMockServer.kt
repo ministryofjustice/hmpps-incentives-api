@@ -6,8 +6,8 @@ import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.Prisoner
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.service.mockPrisoner
 import java.time.LocalDate
 
