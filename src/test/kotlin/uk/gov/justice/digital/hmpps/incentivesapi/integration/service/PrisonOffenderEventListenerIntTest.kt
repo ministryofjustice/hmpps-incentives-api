@@ -44,6 +44,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
 
   @BeforeEach
   fun setUp(): Unit = runBlocking {
+    prisonApiMockServer.resetRequests()
     prisonerSearchMockServer.resetRequests()
     incentiveReviewRepository.deleteAll()
     nextReviewDateRepository.deleteAll()
@@ -51,6 +52,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
 
   @AfterEach
   fun tearDown(): Unit = runBlocking {
+    prisonApiMockServer.resetRequests()
     prisonerSearchMockServer.resetRequests()
     incentiveReviewRepository.deleteAll()
     nextReviewDateRepository.deleteAll()
@@ -63,7 +65,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     val bookingId = 1294134L
     val prisonerNumber = "A1244AB"
     prisonerSearchMockServer.stubGetPrisonerInfoByPrisonerNumber(bookingId, prisonerNumber)
-    prisonerSearchMockServer.stubGetPrisonerInfoByBookingId(bookingId, prisonerNumber)
+    prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
 
     val reviewsCount = incentiveReviewRepository.count()
 
@@ -96,7 +98,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     val bookingId = 1294134L
     val prisonerNumber = "A1244AB"
     prisonerSearchMockServer.stubGetPrisonerInfoByPrisonerNumber(bookingId, prisonerNumber)
-    prisonerSearchMockServer.stubGetPrisonerInfoByBookingId(bookingId, prisonerNumber)
+    prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
 
     // When
     publishPrisonerReceivedMessage("TRANSFERRED")
@@ -123,7 +125,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     val prisonerNumber = "A1244AB"
     val removedNomsNumber = "A4432FD"
 
-    prisonerSearchMockServer.stubGetPrisonerInfoByBookingId(bookingId, prisonerNumber)
+    prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
 
     incentiveReviewRepository.save(
       IncentiveReview(
@@ -262,7 +264,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     val bookingId = 1294134L
     val prisonerNumber = "A1244AB"
     val prisonId = "MDI"
-    prisonerSearchMockServer.stubGetPrisonerInfoByBookingId(bookingId, prisonerNumber)
+    prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
     nextReviewDateRepository.deleteAll()
 
     // Prisoner was not suitable to return to Standard level

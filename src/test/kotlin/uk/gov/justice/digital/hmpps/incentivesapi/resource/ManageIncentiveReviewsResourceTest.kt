@@ -24,12 +24,14 @@ class ManageIncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
 
   @BeforeEach
   fun setUp(): Unit = runBlocking {
+    prisonApiMockServer.resetAll()
     prisonerSearchMockServer.resetAll()
     repository.deleteAll()
   }
 
   @AfterEach
   override fun tearDown(): Unit = runBlocking {
+    prisonApiMockServer.resetRequests()
     prisonerSearchMockServer.resetRequests()
     repository.deleteAll()
     super.tearDown()
@@ -83,7 +85,8 @@ class ManageIncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
     val bookingId = 3330000L
     val prisonerNumber = "A1234AC"
 
-    prisonerSearchMockServer.stubGetPrisonerInfoByBookingId(bookingId = bookingId, prisonerNumber = prisonerNumber)
+    prisonApiMockServer.stubGetPrisonerInfoByBooking(bookingId = bookingId, prisonerNumber = prisonerNumber)
+    prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId = bookingId, prisonerNumber = prisonerNumber)
 
     webTestClient.post().uri("/incentive-reviews/booking/$bookingId")
       .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read", "write")))
@@ -132,7 +135,7 @@ class ManageIncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
     val prisonId = "MDI"
 
     prisonerSearchMockServer.stubGetPrisonerInfoByPrisonerNumber(bookingId, prisonerNumber)
-    prisonerSearchMockServer.stubGetPrisonerInfoByBookingId(bookingId, prisonerNumber)
+    prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
 
     val now = LocalDateTime.now()
     val previousTime = now.minusDays(2)
@@ -218,10 +221,11 @@ class ManageIncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
     val bookingId = 3330000L
     val prisonerNumber = "A1234AC"
 
-    prisonerSearchMockServer.stubGetPrisonerInfoByBookingId(
+    prisonApiMockServer.stubGetPrisonerInfoByBooking(
       bookingId = bookingId,
       prisonerNumber = prisonerNumber,
     )
+    prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
 
     webTestClient.post().uri("/incentive-reviews/booking/$bookingId")
       .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read", "write")))
@@ -238,10 +242,11 @@ class ManageIncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
     val bookingId2 = 3330001L
     val prisonerNumber2 = "A1234AD"
 
-    prisonerSearchMockServer.stubGetPrisonerInfoByBookingId(
+    prisonApiMockServer.stubGetPrisonerInfoByBooking(
       bookingId = bookingId2,
       prisonerNumber = prisonerNumber2,
     )
+    prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId2, prisonerNumber2)
 
     webTestClient.post().uri("/incentive-reviews/booking/$bookingId2")
       .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read", "write")))

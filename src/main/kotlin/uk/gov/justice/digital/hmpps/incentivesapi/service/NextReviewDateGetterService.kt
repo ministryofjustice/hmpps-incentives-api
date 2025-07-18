@@ -11,13 +11,13 @@ import java.time.LocalDate
 @Service
 class NextReviewDateGetterService(
   private val nextReviewDateRepository: NextReviewDateRepository,
-  private val prisonerSearchService: PrisonerSearchService,
+  private val prisonApiService: PrisonApiService,
   private val nextReviewDateUpdaterService: NextReviewDateUpdaterService,
 ) {
 
   suspend fun get(bookingId: Long): LocalDate {
     return nextReviewDateRepository.findById(bookingId)?.nextReviewDate ?: run {
-      val prisonerInfo = prisonerSearchService.getPrisonerInfo(bookingId)
+      val prisonerInfo = prisonApiService.getPrisonerExtraInfo(bookingId, useClientCredentials = true)
 
       return getMany(listOf(prisonerInfo))[prisonerInfo.bookingId]!!
     }

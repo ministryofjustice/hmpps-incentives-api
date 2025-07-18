@@ -20,7 +20,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.findDefaultOnAdmission
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.Prisoner
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerBasicInfo
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
@@ -31,6 +31,7 @@ import java.time.format.DateTimeFormatter
 
 @Service
 class PrisonerIncentiveReviewService(
+  private val prisonApiService: PrisonApiService,
   private val prisonerSearchService: PrisonerSearchService,
   private val incentiveReviewRepository: IncentiveReviewRepository,
   private val incentiveLevelService: IncentiveLevelAuditedService,
@@ -74,7 +75,7 @@ class PrisonerIncentiveReviewService(
     bookingId: Long,
     createIncentiveReviewRequest: CreateIncentiveReviewRequest,
   ): IncentiveReviewDetail {
-    val prisonerInfo = prisonerSearchService.getPrisonerInfo(bookingId)
+    val prisonerInfo = prisonApiService.getPrisonerInfo(bookingId)
     return addIncentiveReviewForPrisonerAtLocation(prisonerInfo, createIncentiveReviewRequest)
   }
 
@@ -219,7 +220,7 @@ class PrisonerIncentiveReviewService(
     }
   }
 
-  private suspend fun getIncentiveLevelForReviewType(prisonerInfo: Prisoner, reviewType: ReviewType): String {
+  private suspend fun getIncentiveLevelForReviewType(prisonerInfo: PrisonerBasicInfo, reviewType: ReviewType): String {
     val prisonIncentiveLevels = prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonerInfo.prisonId)
     val defaultLevelCode = prisonIncentiveLevels.findDefaultOnAdmission().levelCode
 
@@ -289,7 +290,7 @@ class PrisonerIncentiveReviewService(
   }
 
   private suspend fun addIncentiveReviewForPrisonerAtLocation(
-    prisonerInfo: Prisoner,
+    prisonerInfo: PrisonerBasicInfo,
     createIncentiveReviewRequest: CreateIncentiveReviewRequest,
   ): IncentiveReviewDetail {
     if (createIncentiveReviewRequest.reviewTime != null &&

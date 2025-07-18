@@ -23,6 +23,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveRecordUpdate
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerInfo
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
@@ -37,6 +38,7 @@ import java.time.format.DateTimeFormatter
 @DisplayName("Prisoner incentive reviews service")
 class PrisonerIncentiveReviewServiceTest {
 
+  private val prisonApiService: PrisonApiService = mock()
   private val prisonerSearchService: PrisonerSearchService = mock()
   private val incentiveReviewRepository: IncentiveReviewRepository = mock()
   private val authenticationHolder: HmppsReactiveAuthenticationHolder = mock()
@@ -53,6 +55,7 @@ class PrisonerIncentiveReviewServiceTest {
     NearestPrisonIncentiveLevelService(incentiveLevelService, prisonIncentiveLevelService)
 
   private val prisonerIncentiveReviewService = PrisonerIncentiveReviewService(
+    prisonApiService,
     prisonerSearchService,
     incentiveReviewRepository,
     incentiveLevelService,
@@ -86,6 +89,11 @@ class PrisonerIncentiveReviewServiceTest {
     private val reviewerUserName = "USER_1_GEN"
     private val reviewTime = LocalDateTime.now(clock)
     private val prisonerInfo = mockPrisoner(
+      bookingId = bookingId,
+      prisonerNumber = prisonerNumber,
+    )
+    private val prisonerBasicInfo = PrisonerInfo(bookingId, prisonerNumber, "MDI", "John", "Smith")
+    private val prisonerExtraInfo = prisonerExtraInfo(
       bookingId = bookingId,
       prisonerNumber = prisonerNumber,
     )
@@ -127,7 +135,7 @@ class PrisonerIncentiveReviewServiceTest {
     @Test
     fun `addIncentiveReview() by booking id`(): Unit = runBlocking {
       // Given
-      whenever(prisonerSearchService.getPrisonerInfo(bookingId)).thenReturn(prisonerInfo)
+      whenever(prisonApiService.getPrisonerInfo(bookingId)).thenReturn(prisonerBasicInfo)
 
       // When
       prisonerIncentiveReviewService.addIncentiveReview(bookingId, createIncentiveReviewRequest)
@@ -167,7 +175,7 @@ class PrisonerIncentiveReviewServiceTest {
     @Test
     fun `update multiple reviews with current flag`(): Unit = runBlocking {
       // Given
-      whenever(prisonerSearchService.getPrisonerInfo(bookingId)).thenReturn(prisonerInfo)
+      whenever(prisonApiService.getPrisonerInfo(bookingId)).thenReturn(prisonerBasicInfo)
 
       // When
       prisonerIncentiveReviewService.addIncentiveReview(bookingId, createIncentiveReviewRequest)

@@ -183,20 +183,6 @@ class HmppsIncentivesApiExceptionHandler {
       )
   }
 
-  @ExceptionHandler(PrisonerNotFoundException::class)
-  fun handlePrisonerNotFoundIException(e: PrisonerNotFoundException): ResponseEntity<ErrorResponse?>? {
-    log.debug("Prisoner not found exception caught: {}", e.message)
-    return ResponseEntity
-      .status(NOT_FOUND)
-      .body(
-        ErrorResponse(
-          status = NOT_FOUND,
-          userMessage = "Not Found: ${e.message}",
-          developerMessage = e.message,
-        ),
-      )
-  }
-
   @ExceptionHandler(NoDataFoundException::class)
   fun handleNoDataFoundException(e: NoDataFoundException): ResponseEntity<ErrorResponse?>? {
     @Suppress("LoggingSimilarMessage")
@@ -296,10 +282,6 @@ class HmppsIncentivesApiExceptionHandler {
     private val log = LoggerFactory.getLogger(this::class.java)
   }
 }
-
-class PrisonerNotFoundException(
-  message: String,
-) : RuntimeException(message)
 
 class NoDataFoundException(
   id: Long,

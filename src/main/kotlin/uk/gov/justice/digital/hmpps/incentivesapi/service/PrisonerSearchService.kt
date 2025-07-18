@@ -6,7 +6,6 @@ import kotlinx.coroutines.flow.flow
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.awaitBody
-import uk.gov.justice.digital.hmpps.incentivesapi.config.PrisonerNotFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.PageOfPrisoners
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.Prisoner
 
@@ -82,35 +81,5 @@ class PrisonerSearchService(
       )
       .retrieve()
       .awaitBody<Prisoner>()
-  }
-
-  /**
-   * Get a prisoner info by bookingId
-   * Requires role GLOBAL_SEARCH or PRISONER_SEARCH
-   */
-  suspend fun getPrisonerInfo(bookingId: Long): Prisoner {
-    val results = prisonerSearchWebClient.post()
-      .uri(
-        "/prisoner-search/booking-ids?" +
-          "responseFields={responseFields}",
-        mapOf(
-          "responseFields" to responseFields,
-        ),
-      )
-      .bodyValue(
-        // language=json
-        """
-          {
-            "bookingIds": [$bookingId]
-          }
-            """,
-      )
-      .retrieve()
-      .awaitBody<List<Prisoner>>()
-    if (results.isEmpty()) {
-      throw PrisonerNotFoundException("Prisoner with bookingId $bookingId not found")
-    }
-
-    return results.first()
   }
 }

@@ -17,11 +17,11 @@ import java.time.LocalDate
 @DisplayName("Next review date getter service")
 class NextReviewDateGetterServiceTest {
   private val nextReviewDateRepository: NextReviewDateRepository = mock()
-  private val prisonerSearchService: PrisonerSearchService = mock()
+  private val prisonApiService: PrisonApiService = mock()
   private val nextReviewDateUpdaterService: NextReviewDateUpdaterService = mock()
   private val nextReviewDateGetterService = NextReviewDateGetterService(
     nextReviewDateRepository,
-    prisonerSearchService,
+    prisonApiService,
     nextReviewDateUpdaterService,
   )
 
@@ -55,21 +55,21 @@ class NextReviewDateGetterServiceTest {
     val prisonerNumber = "A1244AB"
     val expectedNextReviewDate = LocalDate.parse("2022-07-30")
 
-    val prisonerInfo = mockPrisoner(prisonerNumber, bookingId)
-    whenever(prisonerSearchService.getPrisonerInfo(bookingId))
-      .thenReturn(prisonerInfo)
+    val prisonerExtraInfo = prisonerExtraInfo(prisonerNumber, bookingId)
+    whenever(prisonApiService.getPrisonerExtraInfo(bookingId, useClientCredentials = true))
+      .thenReturn(prisonerExtraInfo)
 
     // no record found in the database
     whenever(nextReviewDateRepository.findAllById(listOf(bookingId)))
       .thenReturn(emptyFlow())
-    whenever(nextReviewDateUpdaterService.updateMany(listOf(prisonerInfo)))
-      .thenReturn(mapOf(prisonerInfo.bookingId to expectedNextReviewDate))
+    whenever(nextReviewDateUpdaterService.updateMany(listOf(prisonerExtraInfo)))
+      .thenReturn(mapOf(prisonerExtraInfo.bookingId to expectedNextReviewDate))
 
     val result = nextReviewDateGetterService.get(bookingId)
 
     // check next review date was updated for prisoner
     verify(nextReviewDateUpdaterService, times(1))
-      .updateMany(listOf(prisonerInfo))
+      .updateMany(listOf(prisonerExtraInfo))
 
     assertThat(result).isEqualTo(expectedNextReviewDate)
   }

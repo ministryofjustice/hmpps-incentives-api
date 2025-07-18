@@ -3,10 +3,8 @@ package uk.gov.justice.digital.hmpps.incentivesapi.integration.wiremock
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
-import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
-import com.github.tomakehurst.wiremock.client.WireMock.post
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.PrisonerAlert
@@ -146,24 +144,6 @@ class PrisonerSearchMockServer : WireMockServer(WIREMOCK_PORT) {
             ),
           ),
       ),
-    )
-  }
-
-  fun stubGetPrisonerInfoByBookingId(bookingId: Long, prisonerNumber: String) {
-    val prisoner = mockPrisoner(prisonerNumber, bookingId)
-    stubFor(
-      post(urlPathEqualTo("/prisoner-search/booking-ids"))
-        .withRequestBody(
-          equalToJson("""{ "bookingIds": [$bookingId] }""", true, true),
-        ).willReturn(
-          aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withBody(
-              mapper.writeValueAsBytes(
-                listOf(prisoner),
-              ),
-            ),
-        ),
     )
   }
 }
