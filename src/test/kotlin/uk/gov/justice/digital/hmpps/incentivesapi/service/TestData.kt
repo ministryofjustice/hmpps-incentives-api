@@ -3,7 +3,6 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerExtraInfo
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerInfo
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import java.time.LocalDate
@@ -65,12 +64,6 @@ fun prisonerExtraInfo(prisonerNumber: String = "A1244AB", bookingId: Long = 1234
   receptionDate = LocalDate.parse("2020-07-01"),
   alerts = emptyList(),
 )
-
-fun prisonerAtLocation(
-  bookingId: Long = 1234567,
-  offenderNo: String = "A1234AA",
-  agencyId: String = "MDI",
-) = PrisonerInfo(bookingId, 1, "John", "Smith", offenderNo, agencyId)
 
 fun prisonerIepLevel(
   bookingId: Long,

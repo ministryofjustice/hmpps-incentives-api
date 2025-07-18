@@ -37,14 +37,6 @@ class PrisonApiService(
     .retrieve()
     .bodyToFlow()
 
-  suspend fun getPrisonerInfo(prisonerNumber: String, useClientCredentials: Boolean = false): PrisonerInfo {
-    return getClient(useClientCredentials)
-      .get()
-      .uri("/api/bookings/offenderNo/$prisonerNumber")
-      .retrieve()
-      .awaitBody()
-  }
-
   suspend fun getPrisonerInfo(bookingId: Long, useClientCredentials: Boolean = false): PrisonerInfo {
     return getClient(useClientCredentials)
       .get()

@@ -22,8 +22,9 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveRecordUpdate
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerInfo
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
 import uk.gov.justice.hmpps.kotlin.auth.HmppsReactiveAuthenticationHolder
@@ -38,6 +39,7 @@ import java.time.format.DateTimeFormatter
 class PrisonerIncentiveReviewServiceTest {
 
   private val prisonApiService: PrisonApiService = mock()
+  private val prisonerSearchService: PrisonerSearchService = mock()
   private val incentiveReviewRepository: IncentiveReviewRepository = mock()
   private val authenticationHolder: HmppsReactiveAuthenticationHolder = mock()
   private val clock: Clock = Clock.fixed(Instant.parse("2022-08-01T12:45:00.00Z"), ZoneId.of("Europe/London"))
@@ -54,6 +56,7 @@ class PrisonerIncentiveReviewServiceTest {
 
   private val prisonerIncentiveReviewService = PrisonerIncentiveReviewService(
     prisonApiService,
+    prisonerSearchService,
     incentiveReviewRepository,
     incentiveLevelService,
     prisonIncentiveLevelService,
@@ -85,9 +88,14 @@ class PrisonerIncentiveReviewServiceTest {
     private val prisonerNumber = "A1234BC"
     private val reviewerUserName = "USER_1_GEN"
     private val reviewTime = LocalDateTime.now(clock)
-    private val prisonerInfo = prisonerAtLocation(
+    private val prisonerInfo = mockPrisoner(
       bookingId = bookingId,
-      offenderNo = prisonerNumber,
+      prisonerNumber = prisonerNumber,
+    )
+    private val prisonerBasicInfo = PrisonerInfo(bookingId, prisonerNumber, "MDI", "John", "Smith")
+    private val prisonerExtraInfo = prisonerExtraInfo(
+      bookingId = bookingId,
+      prisonerNumber = prisonerNumber,
     )
     private val createIncentiveReviewRequest = CreateIncentiveReviewRequest(
       iepLevel = "ENH",
@@ -98,11 +106,11 @@ class PrisonerIncentiveReviewServiceTest {
       levelCode = createIncentiveReviewRequest.iepLevel,
       commentText = createIncentiveReviewRequest.comment,
       reviewType = createIncentiveReviewRequest.reviewType!!,
-      prisonId = prisonerInfo.agencyId,
+      prisonId = prisonerInfo.prisonId,
       current = true,
       reviewedBy = reviewerUserName,
       reviewTime = reviewTime,
-      prisonerNumber = prisonerInfo.offenderNo,
+      prisonerNumber = prisonerInfo.prisonerNumber,
       bookingId = prisonerInfo.bookingId,
     )
 
@@ -116,7 +124,7 @@ class PrisonerIncentiveReviewServiceTest {
     @Test
     fun `addIncentiveReview() by prisoner number`(): Unit = runBlocking {
       // Given
-      whenever(prisonApiService.getPrisonerInfo(prisonerNumber)).thenReturn(prisonerInfo)
+      whenever(prisonerSearchService.getPrisonerInfo(prisonerNumber)).thenReturn(prisonerInfo)
 
       // When
       prisonerIncentiveReviewService.addIncentiveReview(prisonerNumber, createIncentiveReviewRequest)
@@ -127,7 +135,7 @@ class PrisonerIncentiveReviewServiceTest {
     @Test
     fun `addIncentiveReview() by booking id`(): Unit = runBlocking {
       // Given
-      whenever(prisonApiService.getPrisonerInfo(bookingId)).thenReturn(prisonerInfo)
+      whenever(prisonApiService.getPrisonerInfo(bookingId)).thenReturn(prisonerBasicInfo)
 
       // When
       prisonerIncentiveReviewService.addIncentiveReview(bookingId, createIncentiveReviewRequest)
@@ -167,7 +175,7 @@ class PrisonerIncentiveReviewServiceTest {
     @Test
     fun `update multiple reviews with current flag`(): Unit = runBlocking {
       // Given
-      whenever(prisonApiService.getPrisonerInfo(bookingId)).thenReturn(prisonerInfo)
+      whenever(prisonApiService.getPrisonerInfo(bookingId)).thenReturn(prisonerBasicInfo)
 
       // When
       prisonerIncentiveReviewService.addIncentiveReview(bookingId, createIncentiveReviewRequest)
@@ -226,8 +234,13 @@ class PrisonerIncentiveReviewServiceTest {
 
       // Given - default for that prison is Enhanced
       val prisonOffenderEvent = prisonOffenderEvent(reason)
-      val prisonerAtLocation = prisonerAtLocation()
-      whenever(prisonApiService.getPrisonerInfo("A1244AB", true)).thenReturn(prisonerAtLocation)
+      val prisonerNumber = prisonOffenderEvent.additionalInformation?.nomsNumber!!
+      val bookingId = prisonOffenderEvent.additionalInformation?.id!!
+      val prisonerAtLocation = mockPrisoner(
+        prisonerNumber = prisonerNumber,
+        bookingId = bookingId,
+      )
+      whenever(prisonerSearchService.getPrisonerInfo(prisonerNumber)).thenReturn(prisonerAtLocation)
       // Enhanced is the default for this prison so use that
       whenever(prisonIncentiveLevelService.getActivePrisonIncentiveLevels("MDI")).thenReturn(
         listOf(
@@ -267,13 +280,13 @@ class PrisonerIncentiveReviewServiceTest {
       val expectedIncentiveReview = IncentiveReview(
         levelCode = "ENH",
         commentText = "Default level assigned on arrival",
-        bookingId = prisonerAtLocation().bookingId,
-        prisonId = prisonerAtLocation().agencyId,
+        bookingId = prisonerAtLocation.bookingId,
+        prisonId = prisonerAtLocation.prisonId,
         current = true,
         reviewedBy = "INCENTIVES_API",
         reviewTime = LocalDateTime.parse(prisonOffenderEvent.occurredAt, DateTimeFormatter.ISO_DATE_TIME),
         reviewType = expectedReviewType,
-        prisonerNumber = prisonerAtLocation().offenderNo,
+        prisonerNumber = prisonerAtLocation.prisonerNumber,
       )
 
       verify(incentiveStoreService, times(1)).saveIncentiveReview(expectedIncentiveReview)
@@ -284,7 +297,7 @@ class PrisonerIncentiveReviewServiceTest {
         occurredAt = expectedIncentiveReview.reviewTime,
         additionalInformation = AdditionalInformation(
           id = 0,
-          nomsNumber = prisonerAtLocation().offenderNo,
+          nomsNumber = prisonerNumber,
         ),
       )
       verify(auditService, times(1))
@@ -361,11 +374,11 @@ class PrisonerIncentiveReviewServiceTest {
     fun `process merge event`(): Unit = runBlocking {
       // Given - default for that prison is Enhanced
       val prisonerMergedEvent = prisonerMergedEvent()
-      val prisonerAtLocation = prisonerAtLocation(
+      val prisonerAtLocation = mockPrisoner(
         bookingId = 1234567,
-        offenderNo = "A1244AB",
+        prisonerNumber = "A1244AB",
       )
-      whenever(prisonApiService.getPrisonerInfo("A1244AB", true))
+      whenever(prisonerSearchService.getPrisonerInfo("A1244AB"))
         .thenReturn(prisonerAtLocation)
 
       val newReview = IncentiveReview(
@@ -503,7 +516,7 @@ class PrisonerIncentiveReviewServiceTest {
 
     private val id = 42L
     private val bookingId = 123456L
-    private val offenderNo = "A1234AA"
+    private val prisonerNumber = "A1234AA"
     private val iepLevelCode = "ENH"
     private val iepLevelDescription = "Enhanced"
     private val reviewTime = LocalDateTime.now().minusDays(10)
@@ -519,7 +532,7 @@ class PrisonerIncentiveReviewServiceTest {
       reviewedBy = "USER_1_GEN",
       reviewTime = reviewTime,
       reviewType = ReviewType.REVIEW,
-      prisonerNumber = offenderNo,
+      prisonerNumber = prisonerNumber,
     )
 
     private val incentiveReviewDetail = IncentiveReviewDetail(
@@ -527,7 +540,7 @@ class PrisonerIncentiveReviewServiceTest {
       iepLevel = iepLevelDescription,
       iepCode = iepLevelCode,
       comments = incentiveRecord.commentText,
-      prisonerNumber = offenderNo,
+      prisonerNumber = prisonerNumber,
       bookingId = bookingId,
       iepDate = reviewTime.toLocalDate(),
       iepTime = reviewTime,
@@ -577,7 +590,7 @@ class PrisonerIncentiveReviewServiceTest {
         occurredAt = incentiveRecord.reviewTime,
         additionalInformation = AdditionalInformation(
           id = id,
-          nomsNumber = prisonerAtLocation().offenderNo,
+          nomsNumber = prisonerNumber,
         ),
       )
 
@@ -641,7 +654,7 @@ class PrisonerIncentiveReviewServiceTest {
 
     private val id = 42L
     private val bookingId = 123456L
-    private val offenderNo = "A1234AA"
+    private val prisonerNumber = "A1234AA"
     private val iepLevelCode = "ENH"
     private val iepLevelDescription = "Enhanced"
     private val reviewTime = LocalDateTime.now().minusDays(10)
@@ -662,7 +675,7 @@ class PrisonerIncentiveReviewServiceTest {
       reviewedBy = "USER_1_GEN",
       reviewTime = reviewTime,
       reviewType = ReviewType.REVIEW,
-      prisonerNumber = offenderNo,
+      prisonerNumber = prisonerNumber,
     )
     private val expectedIncentiveRecord = incentiveRecord.copy(commentText = update.comment)
 
@@ -671,7 +684,7 @@ class PrisonerIncentiveReviewServiceTest {
       iepLevel = iepLevelDescription,
       iepCode = iepLevelCode,
       comments = update.comment,
-      prisonerNumber = offenderNo,
+      prisonerNumber = prisonerNumber,
       bookingId = bookingId,
       iepDate = reviewTime.toLocalDate(),
       iepTime = reviewTime,
@@ -722,7 +735,7 @@ class PrisonerIncentiveReviewServiceTest {
         occurredAt = incentiveRecord.reviewTime,
         additionalInformation = AdditionalInformation(
           id = id,
-          nomsNumber = prisonerAtLocation().offenderNo,
+          nomsNumber = prisonerNumber,
         ),
       )
 

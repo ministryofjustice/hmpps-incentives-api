@@ -20,8 +20,8 @@ import org.mockito.stubbing.OngoingStubbing
 import org.springframework.data.domain.Sort
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ListOfDataNotFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
 import java.time.Clock

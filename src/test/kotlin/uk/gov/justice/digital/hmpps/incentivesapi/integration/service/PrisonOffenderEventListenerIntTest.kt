@@ -15,8 +15,8 @@ import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
 import software.amazon.awssdk.services.sns.model.MessageAttributeValue
 import software.amazon.awssdk.services.sns.model.PublishRequest
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
@@ -45,6 +45,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
   @BeforeEach
   fun setUp(): Unit = runBlocking {
     prisonApiMockServer.resetRequests()
+    prisonerSearchMockServer.resetRequests()
     incentiveReviewRepository.deleteAll()
     nextReviewDateRepository.deleteAll()
   }
@@ -52,6 +53,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
   @AfterEach
   fun tearDown(): Unit = runBlocking {
     prisonApiMockServer.resetRequests()
+    prisonerSearchMockServer.resetRequests()
     incentiveReviewRepository.deleteAll()
     nextReviewDateRepository.deleteAll()
   }
@@ -62,7 +64,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     // Given
     val bookingId = 1294134L
     val prisonerNumber = "A1244AB"
-    prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber)
+    prisonerSearchMockServer.stubGetPrisonerInfoByPrisonerNumber(bookingId, prisonerNumber)
     prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
 
     val reviewsCount = incentiveReviewRepository.count()
@@ -77,7 +79,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
       }
     } matches { it == true }
     awaitAtMost30Secs untilCallTo {
-      prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber")
+      prisonerSearchMockServer.getCountFor("/prisoner/$prisonerNumber")
     } matches
       { it == 1 }
 
@@ -95,14 +97,14 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     // Given
     val bookingId = 1294134L
     val prisonerNumber = "A1244AB"
-    prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber)
+    prisonerSearchMockServer.stubGetPrisonerInfoByPrisonerNumber(bookingId, prisonerNumber)
     prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
 
     // When
     publishPrisonerReceivedMessage("TRANSFERRED")
     awaitAtMost30Secs untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
     awaitAtMost30Secs untilCallTo {
-      prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber")
+      prisonerSearchMockServer.getCountFor("/prisoner/$prisonerNumber")
     } matches
       { it == 1 }
 
@@ -158,14 +160,14 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
         reviewTime = LocalDateTime.now().minusDays(200),
       ),
     )
-    prisonApiMockServer.stubGetPrisonerInfoByNoms(bookingId = bookingId, prisonerNumber = prisonerNumber)
+    prisonerSearchMockServer.stubGetPrisonerInfoByPrisonerNumber(bookingId, prisonerNumber)
 
     // When
     publishPrisonerMergedMessage(prisonerNumber, removedNomsNumber)
 
     awaitAtMost30Secs untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
     awaitAtMost30Secs untilCallTo {
-      prisonApiMockServer.getCountFor("/api/bookings/offenderNo/$prisonerNumber")
+      prisonerSearchMockServer.getCountFor("/prisoner/$prisonerNumber")
     } matches
       { it == 1 }
   }
