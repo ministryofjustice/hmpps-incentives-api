@@ -1,7 +1,7 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch
 
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonerAlert
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerBasicInfo
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonerBasicInfo
 import uk.gov.justice.digital.hmpps.incentivesapi.service.PrisonerInfoForNextReviewDate
 import java.time.LocalDate
 
