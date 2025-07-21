@@ -26,7 +26,7 @@ class NextReviewDateGetterService(
   /**
    * Get the next review dates for the given prisoner(s)
    *
-   * Tries to get next review dates from the database. For bookingIds without a next review date record it calculates
+   * Tries to get next review dates from the database. For bookingIds without a next review date record, calculate
    * and persist the next review dates before returning it with the ones already present.
    *
    * @param prisoners is the list of prisoners to get the next review dates for
