@@ -1,7 +1,6 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.resource
 
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -19,11 +18,9 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.CreateIncentiveReviewRequest
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.CurrentIncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.service.PrisonerIncentiveReviewService
-import uk.gov.justice.digital.hmpps.incentivesapi.util.ensure
 
 @RestController
 @RequestMapping("/incentive-reviews", produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -122,51 +119,6 @@ class ManageIncentiveReviewsResource(
     id: Long,
   ): IncentiveReviewDetail = prisonerIncentiveReviewService.getReviewById(id)
 
-  @PostMapping("/bookings")
-  @Operation(
-    summary = "Returns a history of incentive reviews for a list of prisoners, " +
-      "Requires INCENTIVE_REVIEWS role and read scope",
-    responses = [
-      ApiResponse(
-        responseCode = "200",
-        description = "Incentive review level information returned per prisoner",
-      ),
-      ApiResponse(
-        responseCode = "400",
-        description = "Incorrect data specified to return incentive review Level History",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun getCurrentIncentiveLevelForPrisoner(
-    @ArraySchema(
-      schema = Schema(description = "List of booking Ids", required = true, type = "array"),
-      arraySchema = Schema(
-        type = "integer",
-        format = "int64",
-        pattern = "^[0-9]{1,20}$",
-        additionalProperties = Schema.AdditionalPropertiesValue.FALSE,
-      ),
-    )
-    @RequestBody
-    bookingIds: List<Long>,
-  ): List<CurrentIncentiveLevel> {
-    ensure {
-      ("bookingIds" to bookingIds).isNotEmpty()
-    }
-    return prisonerIncentiveReviewService.getCurrentIncentiveLevelForPrisoners(bookingIds)
-  }
-
   @GetMapping("/prisoner/{prisonerNumber}")
   @Operation(
     summary = "Returns a history of incentive reviews for a prisoner, Requires INCENTIVE_REVIEWS role and read scope",
@@ -198,55 +150,6 @@ class ManageIncentiveReviewsResource(
     @PathVariable
     prisonerNumber: String,
   ): IncentiveReviewSummary = prisonerIncentiveReviewService.getPrisonerIncentiveHistory(prisonerNumber)
-
-  @PostMapping("/booking/{bookingId}")
-  @PreAuthorize("hasRole('ROLE_INCENTIVE_REVIEWS') and hasAuthority('SCOPE_write')")
-  @ResponseStatus(HttpStatus.CREATED)
-  @Operation(
-    summary = "Adds a new incentive review for this specific prisoner by booking Id",
-    description = "Booking ID is an internal ID for a prisoner in NOMIS, " +
-      "requires INCENTIVE_REVIEWS role and write scope",
-    responses = [
-      ApiResponse(
-        responseCode = "201",
-        description = "Incentive Review Added",
-      ),
-      ApiResponse(
-        responseCode = "400",
-        description = "Incorrect data specified to add new incentive review",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "401",
-        description = "Unauthorized to access this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-      ApiResponse(
-        responseCode = "403",
-        description = "Incorrect permissions to use this endpoint",
-        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
-      ),
-    ],
-  )
-  suspend fun addIncentiveReview(
-    @Schema(
-      description = "Booking Id",
-      example = "3000002",
-      required = true,
-      type = "integer",
-      format = "int64",
-      pattern = "^[0-9]{1,20}$",
-    )
-    @PathVariable
-    bookingId: Long,
-    @Schema(
-      description = "Incentive Review",
-      required = true,
-      implementation = CreateIncentiveReviewRequest::class,
-    )
-    @RequestBody
-    createIncentiveReviewRequest: CreateIncentiveReviewRequest,
-  ): IncentiveReviewDetail = prisonerIncentiveReviewService.addIncentiveReview(bookingId, createIncentiveReviewRequest)
 
   @PostMapping("/prisoner/{prisonerNumber}")
   @PreAuthorize("hasRole('ROLE_INCENTIVE_REVIEWS') and hasAuthority('SCOPE_write')")

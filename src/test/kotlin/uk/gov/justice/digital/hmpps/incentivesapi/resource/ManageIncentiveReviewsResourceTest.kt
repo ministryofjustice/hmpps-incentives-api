@@ -6,11 +6,9 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpStatus
 import org.springframework.test.json.JsonCompareMode
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.CreateIncentiveReviewRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
-import uk.gov.justice.digital.hmpps.incentivesapi.helper.expectErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.IncentiveLevelResourceTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
 import java.time.LocalDate.now
@@ -38,36 +36,6 @@ class ManageIncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
   }
 
   @Test
-  fun `handle undefined path variable`() {
-    webTestClient.get().uri("/incentive-reviews/booking/undefined")
-      .headers(setAuthorisation())
-      .exchange()
-      .expectErrorResponse(HttpStatus.BAD_REQUEST, "Invalid request format")
-  }
-
-  @Test
-  fun `add incentive review fails without write scope`() {
-    val bookingId = 3330000L
-
-    webTestClient.post().uri("/incentive-reviews/booking/$bookingId")
-      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read")))
-      .bodyValue(CreateIncentiveReviewRequest("STD", "A comment"))
-      .exchange()
-      .expectStatus().isForbidden
-  }
-
-  @Test
-  fun `add incentive review fails without correct role`() {
-    val bookingId = 3330000L
-
-    webTestClient.post().uri("/incentive-reviews/booking/$bookingId")
-      .headers(setAuthorisation(roles = listOf("ROLE_DUMMY"), scopes = listOf("read", "write")))
-      .bodyValue(CreateIncentiveReviewRequest("STD", "A comment"))
-      .exchange()
-      .expectStatus().isForbidden
-  }
-
-  @Test
   fun `add incentive review fails when review time in future`() {
     val prisonerNumber = "A1244AB"
     prisonerSearchMockServer.stubGetPrisonerInfoByPrisonerNumber(bookingId = 1231232, prisonerNumber = prisonerNumber)
@@ -85,10 +53,10 @@ class ManageIncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
     val bookingId = 3330000L
     val prisonerNumber = "A1234AC"
 
-    prisonApiMockServer.stubGetPrisonerInfoByBooking(bookingId = bookingId, prisonerNumber = prisonerNumber)
+    prisonerSearchMockServer.stubGetPrisonerInfoByPrisonerNumber(prisonerNumber = prisonerNumber, bookingId = bookingId)
     prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId = bookingId, prisonerNumber = prisonerNumber)
 
-    webTestClient.post().uri("/incentive-reviews/booking/$bookingId")
+    webTestClient.post().uri("/incentive-reviews/prisoner/$prisonerNumber")
       .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read", "write")))
       .bodyValue(CreateIncentiveReviewRequest("STD", "A comment"))
       .exchange()
@@ -96,7 +64,7 @@ class ManageIncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
 
     val today = now().format(DateTimeFormatter.ISO_DATE)
     val nextReviewDate = now().plusYears(1).format(DateTimeFormatter.ISO_DATE)
-    webTestClient.get().uri("/incentive-reviews/booking/$bookingId")
+    webTestClient.get().uri("/incentive-reviews/prisoner/$prisonerNumber")
       .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read")))
       .exchange()
       .expectStatus().isOk
@@ -211,67 +179,6 @@ class ManageIncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
             }
           ]
         }
-        """,
-        JsonCompareMode.LENIENT,
-      )
-  }
-
-  @Test
-  fun `retrieve list of incentive reviews from incentives DB`() {
-    val bookingId = 3330000L
-    val prisonerNumber = "A1234AC"
-
-    prisonApiMockServer.stubGetPrisonerInfoByBooking(
-      bookingId = bookingId,
-      prisonerNumber = prisonerNumber,
-    )
-    prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
-
-    webTestClient.post().uri("/incentive-reviews/booking/$bookingId")
-      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read", "write")))
-      .bodyValue(CreateIncentiveReviewRequest("BAS", "Basic Level"))
-      .exchange()
-      .expectStatus().isCreated
-
-    webTestClient.post().uri("/incentive-reviews/booking/$bookingId")
-      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read", "write")))
-      .bodyValue(CreateIncentiveReviewRequest("STD", "Standard Level"))
-      .exchange()
-      .expectStatus().isCreated
-
-    val bookingId2 = 3330001L
-    val prisonerNumber2 = "A1234AD"
-
-    prisonApiMockServer.stubGetPrisonerInfoByBooking(
-      bookingId = bookingId2,
-      prisonerNumber = prisonerNumber2,
-    )
-    prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId2, prisonerNumber2)
-
-    webTestClient.post().uri("/incentive-reviews/booking/$bookingId2")
-      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read", "write")))
-      .bodyValue(CreateIncentiveReviewRequest("ENH", "Standard Level"))
-      .exchange()
-      .expectStatus().isCreated
-
-    webTestClient.post().uri("/incentive-reviews/bookings")
-      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read")))
-      .bodyValue(listOf(3330000L, 3330001L))
-      .exchange()
-      .expectStatus().isOk
-      .expectBody().json(
-        // language=json
-        """
-        [
-          {
-            "bookingId": 3330000,
-            "iepLevel": "Standard"
-          },
-          {
-            "bookingId": 3330001,
-            "iepLevel": "Enhanced"
-          }
-        ]
         """,
         JsonCompareMode.LENIENT,
       )
