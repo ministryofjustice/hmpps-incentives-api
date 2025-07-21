@@ -64,4 +64,22 @@ class PrisonerSearchService(
     }
     return prisoners
   }
+
+  /**
+   * Get a prisoner info by prisonerNumber
+   * Requires role PRISONER_SEARCH or VIEW_PRISONER_DATA or PRISONER_SEARCH__PRISONER__RO
+   */
+  suspend fun getPrisonerInfo(prisonerNumber: String): Prisoner {
+    return prisonerSearchWebClient.get()
+      .uri(
+        "/prisoner/{prisonerNumber}?" +
+          "responseFields={responseFields}",
+        mapOf(
+          "prisonerNumber" to prisonerNumber,
+          "responseFields" to responseFields,
+        ),
+      )
+      .retrieve()
+      .awaitBody<Prisoner>()
+  }
 }

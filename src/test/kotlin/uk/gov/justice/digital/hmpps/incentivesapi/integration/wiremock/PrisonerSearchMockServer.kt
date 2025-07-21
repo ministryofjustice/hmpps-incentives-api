@@ -4,9 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get
+import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerAlert
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.Prisoner
+import uk.gov.justice.digital.hmpps.incentivesapi.service.mockPrisoner
 import java.time.LocalDate
 
 class PrisonerSearchMockServer : WireMockServer(WIREMOCK_PORT) {
@@ -15,6 +17,8 @@ class PrisonerSearchMockServer : WireMockServer(WIREMOCK_PORT) {
   }
 
   private val mapper = ObjectMapper().findAndRegisterModules()
+
+  fun getCountFor(path: String) = this.findAll(getRequestedFor(urlPathEqualTo(path))).count()
 
   fun stubHealthPing(status: Int) {
     stubFor(
@@ -122,6 +126,21 @@ class PrisonerSearchMockServer : WireMockServer(WIREMOCK_PORT) {
                 "totalElements" to prisoners.size,
                 "last" to true,
               ),
+            ),
+          ),
+      ),
+    )
+  }
+
+  fun stubGetPrisonerInfoByPrisonerNumber(bookingId: Long, prisonerNumber: String) {
+    val prisoner = mockPrisoner(prisonerNumber, bookingId)
+    stubFor(
+      get(urlPathEqualTo("/prisoner/$prisonerNumber")).willReturn(
+        aResponse()
+          .withHeader("Content-Type", "application/json")
+          .withBody(
+            mapper.writeValueAsBytes(
+              prisoner,
             ),
           ),
       ),
