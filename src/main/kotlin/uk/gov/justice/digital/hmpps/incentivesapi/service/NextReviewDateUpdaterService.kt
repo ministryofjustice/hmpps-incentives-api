@@ -23,7 +23,7 @@ class NextReviewDateUpdaterService(
 ) {
 
   /**
-   * Update next review date for the given bookingId
+   * Update the next review date for the given bookingId
    *
    * @param bookingId of the prisoner to update
    *

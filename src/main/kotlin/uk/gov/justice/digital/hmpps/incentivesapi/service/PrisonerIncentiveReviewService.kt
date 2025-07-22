@@ -13,9 +13,7 @@ import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.incentivesapi.SYSTEM_USERNAME
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.CreateIncentiveReviewRequest
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.CurrentIncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveRecordUpdate
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonerAlert
@@ -71,74 +69,6 @@ class PrisonerIncentiveReviewService(
     return addIncentiveReviewForPrisonerAtLocation(prisonerInfo, createIncentiveReviewRequest)
   }
 
-  suspend fun addIncentiveReview(
-    bookingId: Long,
-    createIncentiveReviewRequest: CreateIncentiveReviewRequest,
-  ): IncentiveReviewDetail {
-    val prisonerInfo = prisonApiService.getPrisonerInfo(bookingId)
-    return addIncentiveReviewForPrisonerAtLocation(prisonerInfo, createIncentiveReviewRequest)
-  }
-
-  suspend fun updateIncentiveRecord(
-    bookingId: Long,
-    id: Long,
-    update: IncentiveRecordUpdate,
-  ): IncentiveReviewDetail {
-    if (listOf(update.reviewTime, update.comment, update.current).all { it == null }) {
-      throw ValidationException("Please provide fields to update")
-    }
-
-    val prisonerIepLevel = incentiveReviewRepository.findById(id) ?: throw NoDataFoundException(id)
-
-    // Check bookingId on found record matches the bookingId provided
-    if (prisonerIepLevel.bookingId != bookingId) {
-      log.warn(
-        "Patch of IncentiveReview with ID $id failed because provided bookingID ($bookingId) didn't match bookingId on DB record (${prisonerIepLevel.bookingId})",
-      )
-      throw NoDataFoundException(bookingId)
-    }
-
-    val iepDetail = incentiveStoreService.updateIncentiveRecord(update, prisonerIepLevel)
-      .toIncentiveReviewDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
-
-    publishReviewDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_UPDATED)
-    publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_UPDATED)
-
-    return iepDetail
-  }
-
-  suspend fun deleteIncentiveRecord(bookingId: Long, id: Long) {
-    val incentiveReview: IncentiveReview? = incentiveReviewRepository.findById(id)
-    if (incentiveReview == null) {
-      log.debug("IncentiveReview with ID $id not found")
-      throw NoDataFoundException(id)
-    }
-    // Check bookingId on found record matches the bookingId provided
-    if (incentiveReview.bookingId != bookingId) {
-      log.warn(
-        "Delete of IncentiveReview with ID $id failed because provided bookingID ($bookingId) didn't match bookingId on DB record (${incentiveReview.bookingId})",
-      )
-      throw NoDataFoundException(bookingId)
-    }
-
-    incentiveStoreService.deleteIncentiveRecord(incentiveReview)
-
-    val iepDetail = incentiveReview.toIncentiveReviewDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
-    publishReviewDomainEvent(iepDetail, IncentivesDomainEventType.IEP_REVIEW_DELETED)
-    publishAuditEvent(iepDetail, AuditType.IEP_REVIEW_DELETED)
-  }
-
-  suspend fun getCurrentIncentiveLevelForPrisoners(bookingIds: List<Long>): List<CurrentIncentiveLevel> {
-    val incentiveLevels = incentiveLevelService.getAllIncentiveLevelsMapByCode()
-    return incentiveReviewRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(bookingIds)
-      .map {
-        CurrentIncentiveLevel(
-          iepLevel = incentiveLevels[it.levelCode]?.name ?: "Unmapped",
-          bookingId = it.bookingId,
-        )
-      }.toList()
-  }
-
   suspend fun getReviewById(id: Long): IncentiveReviewDetail = incentiveReviewRepository.findById(
     id,
   )?.toIncentiveReviewDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
@@ -147,7 +77,7 @@ class PrisonerIncentiveReviewService(
   suspend fun processOffenderEvent(prisonOffenderEvent: HMPPSDomainEvent) =
     when (prisonOffenderEvent.additionalInformation?.reason) {
       "NEW_ADMISSION" -> createIncentiveReviewForReceivedPrisoner(prisonOffenderEvent, ReviewType.INITIAL)
-      // NOTE: This may NOT be a recall. Someone could be readmitted back to prison for a number of other reasons (e.g. remands)
+      // NOTE: This may NOT be a recall. Someone could be readmitted back to prison for a number of other reasons (e.g., remands)
       "READMISSION" -> createIncentiveReviewForReceivedPrisoner(prisonOffenderEvent, ReviewType.READMISSION)
       "TRANSFERRED" -> createIncentiveReviewForReceivedPrisoner(prisonOffenderEvent, ReviewType.TRANSFER)
       "MERGE" -> mergedPrisonerDetails(prisonOffenderEvent)
@@ -316,7 +246,7 @@ class PrisonerIncentiveReviewService(
       ),
     ).toIncentiveReviewDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
 
-    // Propagate new IEP review to other services
+    // Propagate the new IEP review to other services
     publishReviewDomainEvent(newIepReview, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
 
     publishAuditEvent(newIepReview, AuditType.IEP_REVIEW_ADDED)
