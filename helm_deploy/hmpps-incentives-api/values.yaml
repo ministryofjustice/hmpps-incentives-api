@@ -41,13 +41,12 @@ generic-service:
     APPLICATIONINSIGHTS_CONFIGURATION_FILE: applicationinsights.json
     HMPPS_SQS_USE_WEB_TOKEN: "true"
 
-  envFrom:
-    - secretRef:
-        name: hmpps-incentives-api
-    - secretRef:
-        name: hmpps-incentives-api-application-insights
-
   namespace_secrets:
+    hmpps-incentives-api-application-insights:
+      APPLICATIONINSIGHTS_CONNECTION_STRING: "APPLICATIONINSIGHTS_CONNECTION_STRING"
+    hmpps-incentives-api-client-creds:
+      INCENTIVES_API_CLIENT_ID: "API_CLIENT_ID"
+      INCENTIVES_API_CLIENT_SECRET: "API_CLIENT_SECRET"
     dps-rds-instance-output:
       SPRING_FLYWAY_USER: "database_username"
       SPRING_FLYWAY_PASSWORD: "database_password"
