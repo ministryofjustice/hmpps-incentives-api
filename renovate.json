@@ -6,6 +6,13 @@
   "packageRules": [
     {
       "matchManagers": ["gradle"],
+      "matchPackageNames": ["io.swagger.parser.v3:swagger-parser"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "swagger-parser",
+      "groupSlug": "swagger-parser"
+    },
+    {
+      "matchManagers": ["gradle"],
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "all non major Gradle dependencies",
       "groupSlug": "all-gradle-minor-patch"
