@@ -16,7 +16,7 @@ class NearestPrisonIncentiveLevelService(
    */
   suspend fun findNearestHighestLevel(prisonId: String, levelCode: String): String {
     val prisonLevels = prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)
-    val defaultLevelCode = prisonLevels.findDefaultOnAdmission().levelCode
+    val defaultLevelCode = prisonLevels.findDefaultOnAdmission(prisonId).levelCode
     val levelCodesAvailableInPrison = prisonLevels.filter(PrisonIncentiveLevel::active)
       .map(PrisonIncentiveLevel::levelCode)
       .toSet()

@@ -152,7 +152,7 @@ class PrisonerIncentiveReviewService(
 
   private suspend fun getIncentiveLevelForReviewType(prisonerInfo: PrisonerBasicInfo, reviewType: ReviewType): String {
     val prisonIncentiveLevels = prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonerInfo.prisonId)
-    val defaultLevelCode = prisonIncentiveLevels.findDefaultOnAdmission().levelCode
+    val defaultLevelCode = prisonIncentiveLevels.findDefaultOnAdmission(prisonerInfo.prisonId).levelCode
 
     return when (reviewType) {
       ReviewType.INITIAL, ReviewType.READMISSION -> {
