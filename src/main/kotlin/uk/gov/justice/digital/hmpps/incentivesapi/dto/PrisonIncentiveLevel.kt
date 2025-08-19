@@ -105,8 +105,8 @@ data class PrisonIncentiveLevel(
   )
 }
 
-fun List<PrisonIncentiveLevel>.findDefaultOnAdmission() = find(PrisonIncentiveLevel::defaultOnAdmission)
-  ?: throw DataIntegrityException("No default level for new admissions")
+fun List<PrisonIncentiveLevel>.findDefaultOnAdmission(prisonId: String) = find(PrisonIncentiveLevel::defaultOnAdmission)
+  ?: throw DataIntegrityException("No default level for new admissions (prisonId = '$prisonId')")
 
 /**
  * Update payload for PrisonIncentiveLevel
