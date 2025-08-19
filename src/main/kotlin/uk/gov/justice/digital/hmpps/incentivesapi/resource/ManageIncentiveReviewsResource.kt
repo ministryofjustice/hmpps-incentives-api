@@ -56,6 +56,11 @@ class ManageIncentiveReviewsResource(
         description = "Incorrect permissions to use this endpoint",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
+      ApiResponse(
+        responseCode = "404",
+        description = "No incentive reviews found",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
     ],
   )
   suspend fun getPrisonerIncentiveLevelHistory(
@@ -104,6 +109,11 @@ class ManageIncentiveReviewsResource(
         description = "Incorrect permissions to use this endpoint",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Incentive review not found",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
     ],
   )
   suspend fun getIncentiveReviewById(
@@ -141,6 +151,11 @@ class ManageIncentiveReviewsResource(
       ApiResponse(
         responseCode = "403",
         description = "Incorrect permissions to use this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "No incentive reviews found",
         content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
       ),
     ],
