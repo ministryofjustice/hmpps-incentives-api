@@ -35,8 +35,7 @@ class ClientCachingOAuth2AuthorizedClientService(
     return Mono.justOrEmpty(clientRegistrationId)
       .flatMap { id -> clientRegistrationRepository.findByRegistrationId(id) }
       .doOnNext { registration ->
-        val principal = principalName ?: SYSTEM_USERNAME
-        authorizedClients.remove(OAuth2AuthorizedClientId(registration.registrationId, principal))
+        authorizedClients.remove(OAuth2AuthorizedClientId(registration.registrationId, SYSTEM_USERNAME))
       }
       .then()
   }
