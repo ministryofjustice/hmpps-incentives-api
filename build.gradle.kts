@@ -5,12 +5,12 @@ import uk.gov.justice.digital.hmpps.gradle.PortForwardRedisTask
 import uk.gov.justice.digital.hmpps.gradle.RevealSecretsTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "8.3.4"
-  kotlin("plugin.jpa") version "2.2.0"
-  kotlin("plugin.spring") version "2.2.0"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "8.3.7"
+  kotlin("plugin.jpa") version "2.2.10"
+  kotlin("plugin.spring") version "2.2.10"
   id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
   id("jacoco")
-  id("org.sonarqube") version "6.2.0.5505"
+  id("org.sonarqube") version "6.3.1.5724"
 }
 
 dependencyCheck {
@@ -45,15 +45,15 @@ dependencies {
   runtimeOnly("org.postgresql:postgresql")
 
   // Shedlock dependencies
-  implementation("net.javacrumbs.shedlock:shedlock-spring:6.9.2")
-  implementation("net.javacrumbs.shedlock:shedlock-provider-r2dbc:6.9.2")
+  implementation("net.javacrumbs.shedlock:shedlock-spring:6.10.0")
+  implementation("net.javacrumbs.shedlock:shedlock-provider-r2dbc:6.10.0")
 
-  implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.9")
+  implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.12")
 
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
   implementation("io.opentelemetry:opentelemetry-api:1.53.0")
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.18.1")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.19.0")
 
   implementation("org.apache.commons:commons-lang3")
   implementation("org.apache.commons:commons-text:1.14.0")
