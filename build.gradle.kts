@@ -5,7 +5,7 @@ import uk.gov.justice.digital.hmpps.gradle.PortForwardRedisTask
 import uk.gov.justice.digital.hmpps.gradle.RevealSecretsTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.1.2"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.1.3"
   kotlin("plugin.jpa") version "2.2.20"
   kotlin("plugin.spring") version "2.2.20"
   id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
@@ -50,8 +50,8 @@ dependencies {
 
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
-  implementation("io.opentelemetry:opentelemetry-api:1.54.1")
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.20.1")
+  implementation("io.opentelemetry:opentelemetry-api:1.55.0")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.21.0")
 
   implementation("org.apache.commons:commons-lang3")
   implementation("org.apache.commons:commons-text:1.14.0")
@@ -73,10 +73,10 @@ dependencies {
   testImplementation("io.projectreactor:reactor-test")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
   testImplementation("javax.xml.bind:jaxb-api:2.3.1")
-  testImplementation("io.opentelemetry:opentelemetry-sdk:1.54.1")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-common:1.54.1")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-metrics:1.54.1")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.54.1")
+  testImplementation("io.opentelemetry:opentelemetry-sdk:1.55.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-common:1.55.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-metrics:1.55.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.55.0")
 
   if (project.hasProperty("docs")) {
     implementation("com.h2database:h2")
