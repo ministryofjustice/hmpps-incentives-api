@@ -49,6 +49,7 @@ jobs:
       postgres-username: incentives
       postgres-password: incentives
       localstack-tag: '4'
+      java-version: '25'
   build:
     name: Build docker image from hmpps-github-actions
     if: github.ref == 'refs/heads/main'
