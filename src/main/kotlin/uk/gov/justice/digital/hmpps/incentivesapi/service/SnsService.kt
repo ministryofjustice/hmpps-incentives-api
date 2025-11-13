@@ -6,9 +6,8 @@ import io.opentelemetry.instrumentation.annotations.WithSpan
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import software.amazon.awssdk.services.sns.model.MessageAttributeValue
-import software.amazon.awssdk.services.sns.model.PublishRequest
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
+import uk.gov.justice.hmpps.sqs.publish
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -30,7 +29,6 @@ class SnsService(
     hmppsQueueService.findByTopicId("domainevents")
       ?: throw RuntimeException("Topic with name domainevents doesn't exist")
   }
-  private val domaineventsTopicClient by lazy { domaineventsTopic.snsClient }
 
   @WithSpan(value = "hmpps-domain-events-topic", kind = SpanKind.PRODUCER)
   fun publishDomainEvent(
@@ -51,18 +49,10 @@ class SnsService(
 
   private fun publishToDomainEventsTopic(payload: HMPPSDomainEvent) {
     log.debug("Event {} for id {}", payload.eventType, payload.additionalInformation)
-    domaineventsTopicClient.publish(
-      PublishRequest.builder()
-        .topicArn(domaineventsTopic.arn)
-        .message(objectMapper.writeValueAsString(payload))
-        .messageAttributes(
-          mapOf(
-            "eventType" to MessageAttributeValue.builder().dataType("String").stringValue(payload.eventType).build(),
-          ),
-        )
-        .build()
-        .also { log.info("Published event $payload to outbound topic") },
-    )
+    domaineventsTopic.publish(
+      eventType = payload.eventType.toString(),
+      event = objectMapper.writeValueAsString(payload),
+    ).also { log.info("Published event $payload to outbound topic") }
   }
 }
 
