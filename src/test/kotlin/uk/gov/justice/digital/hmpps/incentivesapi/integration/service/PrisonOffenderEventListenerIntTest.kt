@@ -13,8 +13,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
-import software.amazon.awssdk.services.sns.model.MessageAttributeValue
-import software.amazon.awssdk.services.sns.model.PublishRequest
+import software.amazon.awssdk.services.sns.model.PublishResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
@@ -26,6 +25,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.service.AdditionalInformationB
 import uk.gov.justice.digital.hmpps.incentivesapi.service.HMPPSBookingMovedDomainEvent
 import uk.gov.justice.digital.hmpps.incentivesapi.service.HMPPSDomainEvent
 import uk.gov.justice.digital.hmpps.incentivesapi.util.flow.toMap
+import uk.gov.justice.hmpps.sqs.publish
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDateTime
@@ -203,7 +203,7 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
         reviewTime = LocalDateTime.now().minusDays(2),
       ),
     )
-    // will NOT have prisoner number changed as previous booking
+    // will NOT have the prisoner number changed as previous booking
     var review3 = incentiveReviewRepository.save(
       IncentiveReview(
         bookingId = 1000245L,
@@ -363,51 +363,32 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     additionalInformation: AdditionalInformation,
     description: String,
   ) {
-    domainEventsTopicSnsClient.publish(
-      PublishRequest.builder()
-        .topicArn(domainEventsTopicArn)
-        .message(
-          jsonString(
-            HMPPSDomainEvent(
-              eventType = eventType,
-              additionalInformation = additionalInformation,
-              occurredAt = Instant.now(),
-              description = description,
-            ),
-          ),
-        )
-        .messageAttributes(
-          mapOf(
-            "eventType" to MessageAttributeValue.builder().dataType("String").stringValue(eventType).build(),
-          ),
-        )
-        .build(),
+    domainEventsTopic.publish(
+      eventType = eventType,
+      event = jsonString(
+        HMPPSDomainEvent(
+          eventType = eventType,
+          additionalInformation = additionalInformation,
+          occurredAt = Instant.now(),
+          description = description,
+        ),
+      ),
     )
   }
 
-  private fun publishBookingMovedMessage(additionalInformation: AdditionalInformationBookingMoved) =
-    domainEventsTopicSnsClient.publish(
-      PublishRequest.builder()
-        .topicArn(domainEventsTopicArn)
-        .message(
-          jsonString(
-            HMPPSBookingMovedDomainEvent(
-              eventType = "prison-offender-events.prisoner.booking.moved",
-              additionalInformation = additionalInformation,
-              occurredAt = ZonedDateTime.now(),
-              version = "1.0",
-              description = "a NOMIS booking has moved between prisoners",
-            ),
-          ),
-        )
-        .messageAttributes(
-          mapOf(
-            "eventType" to
-              MessageAttributeValue.builder().dataType(
-                "String",
-              ).stringValue("prison-offender-events.prisoner.booking.moved").build(),
-          ),
-        )
-        .build(),
+  private fun publishBookingMovedMessage(additionalInformation: AdditionalInformationBookingMoved): PublishResponse {
+    val eventType = "prison-offender-events.prisoner.booking.moved"
+    return domainEventsTopic.publish(
+      eventType = eventType,
+      event = jsonString(
+        HMPPSBookingMovedDomainEvent(
+          eventType = eventType,
+          additionalInformation = additionalInformation,
+          occurredAt = ZonedDateTime.now(),
+          version = "1.0",
+          description = "a NOMIS booking has moved between prisoners",
+        ),
+      ),
     )
+  }
 }
