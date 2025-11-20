@@ -10,7 +10,7 @@ plugins {
   kotlin("plugin.spring") version "2.2.21"
   id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
   id("jacoco")
-  id("org.sonarqube") version "7.0.1.6134"
+  id("org.sonarqube") version "7.1.0.6387"
 }
 
 dependencyCheck {
@@ -51,7 +51,7 @@ dependencies {
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
   implementation("io.opentelemetry:opentelemetry-api:1.56.0")
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.21.0")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.22.0")
 
   implementation("org.apache.commons:commons-lang3")
   implementation("org.apache.commons:commons-text:1.14.0")
@@ -67,7 +67,7 @@ dependencies {
   testImplementation("org.mockito:mockito-inline:5.2.0")
   testImplementation("io.swagger.parser.v3:swagger-parser:2.1.35")
   testImplementation("org.springframework.security:spring-security-test")
-  testImplementation("org.wiremock:wiremock-standalone:3.13.1")
+  testImplementation("org.wiremock:wiremock-standalone:3.13.2")
   testImplementation("org.testcontainers:localstack:1.21.3")
   testImplementation("org.testcontainers:postgresql:1.21.3")
   testImplementation("io.projectreactor:reactor-test")
