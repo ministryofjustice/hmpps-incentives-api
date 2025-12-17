@@ -6,8 +6,8 @@ import uk.gov.justice.digital.hmpps.gradle.RevealSecretsTask
 
 plugins {
   id("uk.gov.justice.hmpps.gradle-spring-boot") version "9.2.0"
-  kotlin("plugin.jpa") version "2.2.21"
-  kotlin("plugin.spring") version "2.2.21"
+  kotlin("plugin.jpa") version "2.3.0"
+  kotlin("plugin.spring") version "2.3.0"
   id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
   id("jacoco")
   id("org.sonarqube") version "7.2.1.6560"
@@ -43,8 +43,8 @@ dependencies {
   runtimeOnly("org.postgresql:postgresql")
 
   // Shedlock dependencies
-  implementation("net.javacrumbs.shedlock:shedlock-spring:7.2.2")
-  implementation("net.javacrumbs.shedlock:shedlock-provider-r2dbc:7.2.2")
+  implementation("net.javacrumbs.shedlock:shedlock-spring:7.3.0")
+  implementation("net.javacrumbs.shedlock:shedlock-provider-r2dbc:7.3.0")
 
   implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:2.8.14")
 
@@ -68,8 +68,8 @@ dependencies {
   testImplementation("io.swagger.parser.v3:swagger-parser:2.1.36")
   testImplementation("org.springframework.security:spring-security-test")
   testImplementation("org.wiremock:wiremock-standalone:3.13.2")
-  testImplementation("org.testcontainers:localstack:1.21.3")
-  testImplementation("org.testcontainers:postgresql:1.21.3")
+  testImplementation("org.testcontainers:localstack:1.21.4")
+  testImplementation("org.testcontainers:postgresql:1.21.4")
   testImplementation("io.projectreactor:reactor-test")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
   testImplementation("javax.xml.bind:jaxb-api:2.3.1")
