@@ -79,9 +79,6 @@ class IncentiveReviewsResource(
       defaultValue = "0",
       minimum = "0",
       example = "2",
-      type = "integer",
-      required = false,
-      format = "int32",
     )
     @RequestParam(required = false, defaultValue = "0")
     page: Int = 0,
@@ -91,9 +88,6 @@ class IncentiveReviewsResource(
       minimum = "1",
       maximum = "100",
       example = "20",
-      type = "integer",
-      required = false,
-      format = "int32",
     )
     @RequestParam(required = false, defaultValue = "$DEFAULT_PAGE_SIZE")
     pageSize: Int = DEFAULT_PAGE_SIZE,
