@@ -68,8 +68,6 @@ class ManageIncentiveReviewsResource(
       description = "Booking Id",
       example = "3000002",
       required = true,
-      type = "integer",
-      format = "int64",
       pattern = "^[0-9]{1,20}$",
     )
     @PathVariable
@@ -121,11 +119,9 @@ class ManageIncentiveReviewsResource(
       description = "Review ID (internal)",
       example = "1000",
       required = true,
-      type = "integer",
-      format = "int64",
       pattern = "^[0-9]{1,20}$",
     )
-    @PathVariable(value = "id", required = true)
+    @PathVariable(required = true)
     id: Long,
   ): IncentiveReviewDetail = prisonerIncentiveReviewService.getReviewById(id)
 

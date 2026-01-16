@@ -35,60 +35,51 @@ data class PrisonIncentiveLevel(
   @param:JsonProperty(required = false, defaultValue = "false")
   val defaultOnAdmission: Boolean = false,
 
-  @param:Schema(
+  @field:Schema(
     description = "The amount transferred weekly from the private cash account to the spends account " +
       "for a remand prisoner to use",
     example = "5500",
     minimum = "0",
-    type = "integer",
-    format = "int32",
   )
   @param:JsonProperty(required = true)
   val remandTransferLimitInPence: Int,
-  @param:Schema(
+  @field:Schema(
     description = "The maximum amount allowed in the spends account for a remand prisoner",
     example = "55000",
     minimum = "0",
-    type = "integer",
-    format = "int32",
   )
   @param:JsonProperty(required = true)
   val remandSpendLimitInPence: Int,
-  @param:Schema(
+
+  @field:Schema(
     description = "The amount transferred weekly from the private cash account to the spends account " +
       "for a convicted prisoner to use",
     example = "1800",
     minimum = "0",
-    type = "integer",
-    format = "int32",
   )
   @param:JsonProperty(required = true)
   val convictedTransferLimitInPence: Int,
-  @param:Schema(
+
+  @field:Schema(
     description = "The maximum amount allowed in the spends account for a convicted prisoner",
     example = "18000",
     minimum = "0",
-    type = "integer",
-    format = "int32",
   )
   @param:JsonProperty(required = true)
   val convictedSpendLimitInPence: Int,
 
-  @param:Schema(
+  @field:Schema(
     description = "The number of weekday visits for a convicted prisoner per fortnight",
     example = "2",
     minimum = "0",
-    type = "integer",
-    format = "int32",
   )
   @param:JsonProperty(required = true)
   val visitOrders: Int,
-  @param:Schema(
+
+  @field:Schema(
     description = "The number of privileged/weekend visits for a convicted prisoner per 4 weeks",
     example = "1",
     minimum = "0",
-    type = "integer",
-    format = "int32",
   )
   @param:JsonProperty(required = true)
   val privilegedVisitOrders: Int,
@@ -125,61 +116,43 @@ data class PrisonIncentiveLevelUpdate(
   )
   val defaultOnAdmission: Boolean? = null,
 
-  @param:Schema(
+  @field:Schema(
     description = "The amount transferred weekly from the private cash account to the spends account " +
       "for a remand prisoner to use",
     example = "5500",
     minimum = "0",
-    type = "integer",
-    format = "int32",
-    required = false,
   )
   val remandTransferLimitInPence: Int? = null,
-  @param:Schema(
+  @field:Schema(
     description = "The maximum amount allowed in the spends account for a remand prisoner",
     example = "55000",
     minimum = "0",
-    type = "integer",
-    format = "int32",
-    required = false,
   )
   val remandSpendLimitInPence: Int? = null,
-  @param:Schema(
+  @field:Schema(
     description = "The amount transferred weekly from the private cash account to the spends account " +
       "for a convicted prisoner to use",
     example = "1800",
     minimum = "0",
-    type = "integer",
-    format = "int32",
-    required = false,
   )
   val convictedTransferLimitInPence: Int? = null,
-  @param:Schema(
+  @field:Schema(
     description = "The maximum amount allowed in the spends account for a convicted prisoner",
     example = "18000",
     minimum = "0",
-    type = "integer",
-    format = "int32",
-    required = false,
   )
   val convictedSpendLimitInPence: Int? = null,
 
-  @param:Schema(
+  @field:Schema(
     description = "The number of weekday visits for a convicted prisoner per fortnight",
     example = "2",
     minimum = "0",
-    type = "integer",
-    format = "int32",
-    required = false,
   )
   val visitOrders: Int? = null,
-  @param:Schema(
+  @field:Schema(
     description = "The number of privileged/weekend visits for a convicted prisoner per 4 weeks",
     example = "1",
     minimum = "0",
-    type = "integer",
-    format = "int32",
-    required = false,
   )
   val privilegedVisitOrders: Int? = null,
 )
