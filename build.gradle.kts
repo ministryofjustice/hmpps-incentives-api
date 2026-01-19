@@ -51,7 +51,7 @@ dependencies {
   implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
   implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
   implementation("io.opentelemetry:opentelemetry-api:1.58.0")
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.23.0")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.24.0")
 
   implementation("org.apache.commons:commons-lang3")
   implementation("org.apache.commons:commons-text:1.15.0")
