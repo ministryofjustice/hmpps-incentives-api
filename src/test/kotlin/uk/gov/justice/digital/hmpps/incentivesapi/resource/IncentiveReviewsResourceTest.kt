@@ -364,6 +364,55 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
       )
   }
 
+  @Test
+  fun `loads empty review response when no prisoners found at location`() {
+    prisonerSearchMockServer.stubFindPrisoners(prisonId = "MDI", emptyList = true)
+    prisonApiMockServer.stubCaseNoteSummary()
+    listOf("BAS", "STD", "ENH", "ENT").forEach { levelCode ->
+      listOf("MDI").forEach { prisonId ->
+        makePrisonIncentiveLevel(prisonId, levelCode)
+      }
+    }
+
+    webTestClient.get()
+      .uri("/incentives-reviews/prison/MDI/location/MDI-COURT/level/STD")
+      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVES")))
+      .exchange()
+      .expectStatus().isOk
+      .expectBody().json(
+        // language=json
+        """
+          {
+            "levels": [
+              {
+                "levelCode": "BAS",
+                "levelName": "Basic",
+                "reviewCount": 0,
+                "overdueCount": 0
+              },
+              {
+                "levelCode": "STD",
+                "levelName": "Standard",
+                "reviewCount": 0,
+                "overdueCount": 0
+              },
+              {
+                "levelCode": "ENH",
+                "levelName": "Enhanced",
+                "reviewCount": 0,
+                "overdueCount": 0
+              }
+            ],
+            "reviews": [
+
+            ],
+            "locationDescription": "Unknown location"
+          }
+        """,
+        JsonCompareMode.STRICT,
+      )
+  }
+
   @ParameterizedTest
   @EnumSource(IncentiveReviewSort::class)
   fun `sorts by provided parameters`(sort: IncentiveReviewSort): Unit = runBlocking {
