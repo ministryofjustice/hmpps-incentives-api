@@ -11,6 +11,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ListOfDataNotFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewResponse
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonersearch.Prisoner
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
@@ -32,8 +33,12 @@ class IncentiveReviewsService(
   private val behaviourService: BehaviourService,
   private val clock: Clock,
 ) {
+
   companion object {
     const val DEFAULT_PAGE_SIZE = 20
+    const val POSITIVE_BEHAVIOUR = "POS"
+    const val NEGATIVE_BEHAVIOUR = "NEG"
+    const val UNKNOWN_LOCATION = "Unknown location"
   }
 
   /**
@@ -50,25 +55,26 @@ class IncentiveReviewsService(
     size: Int = DEFAULT_PAGE_SIZE,
   ): IncentiveReviewResponse = coroutineScope {
     val deferredPrisoners = async {
-      // all prisoners at location are required to determine total number with overdue reviews
       prisonerSearchService.getPrisonersAtLocation(prisonId, cellLocationPrefix)
     }
     val deferredLocationDescription = async {
-      try {
-        val locationKey = cellLocationPrefix.removeSuffix("-")
-        val location = locationsService.getByKey(locationKey)
-
-        location.localName ?: location.pathHierarchy
-      } catch (@Suppress("unused") e: NotFound) {
-        "Unknown location"
-      }
+      getLocationDescription(cellLocationPrefix)
     }
 
+    val prisonIncentiveLevels = prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)
     val prisoners = deferredPrisoners.await()
+
+    if (prisoners.isEmpty()) {
+      return@coroutineScope IncentiveReviewResponse(
+        locationDescription = deferredLocationDescription.await(),
+        levels = buildLevels(prisonIncentiveLevels, emptyMap(), emptyMap()),
+        reviews = emptyList(),
+      )
+    }
 
     val bookingIds = prisoners.map(Prisoner::bookingId)
 
-    val deferredBehaviourCaseNotesSinceLastReview = async {
+    val deferredBehavioursAndLastReviews = async {
       val reviews = incentiveReviewRepository.findAllByBookingIdInOrderByReviewTimeDesc(bookingIds = bookingIds)
       behaviourService.getBehaviours(reviews.toList())
     }
@@ -82,75 +88,86 @@ class IncentiveReviewsService(
     }
 
     val nextReviewDates = deferredNextReviewDates.await()
-    val (behaviourCaseNotesSinceLastReview, lastRealReviews) = deferredBehaviourCaseNotesSinceLastReview.await()
-
+    val (behavioursSinceLastReview, lastRealReviews) = deferredBehavioursAndLastReviews.await()
     val today = LocalDate.now(clock)
+
     val daysSinceLastRealReview = lastRealReviews.mapValues { (_, lastRealReviewDate) ->
       lastRealReviewDate?.let { ChronoUnit.DAYS.between(it.toLocalDate(), today).toInt() }
     }
 
-    val allReviews = prisoners
-      .map {
-        IncentiveReviewDTO(
-          prisonerNumber = it.prisonerNumber,
-          bookingId = it.bookingId,
-          firstName = WordUtils.capitalizeFully(it.firstName),
-          lastName = WordUtils.capitalizeFully(it.lastName),
-          levelCode = incentiveLevels[it.bookingId]!!.levelCode,
-          positiveBehaviours =
-          behaviourCaseNotesSinceLastReview[BookingTypeKey(it.bookingId, "POS")]?.totalCaseNotes ?: 0,
-          negativeBehaviours =
-          behaviourCaseNotesSinceLastReview[BookingTypeKey(it.bookingId, "NEG")]?.totalCaseNotes ?: 0,
-          hasAcctOpen = it.hasAcctOpen,
-          isNewToPrison = daysSinceLastRealReview[it.bookingId] == null,
-          nextReviewDate = nextReviewDates[it.bookingId]!!,
-          daysSinceLastReview = daysSinceLastRealReview[it.bookingId],
-        )
-      }
-
-    val comparator = sort.orDefault() comparingIn order
-    val reviewsAtLevel = allReviews
-      .filter { it.levelCode == levelCode }
-      .sortedWith(comparator)
-
-    // Count overdue reviews and total reviews by Incentive levels
-    val prisonersCounts: MutableMap<String, Int> = mutableMapOf()
-    val overdueCounts: MutableMap<String, Int> = mutableMapOf()
-    allReviews.forEach { review ->
-      val currentReviewLevel = review.levelCode
-
-      if (!prisonersCounts.containsKey(currentReviewLevel)) {
-        prisonersCounts[currentReviewLevel] = 0
-      }
-      if (!overdueCounts.containsKey(currentReviewLevel)) {
-        overdueCounts[currentReviewLevel] = 0
-      }
-
-      prisonersCounts[currentReviewLevel] = prisonersCounts[currentReviewLevel]!! + 1
-      if (nextReviewDates[review.bookingId]!!.isBefore(today)) {
-        overdueCounts[currentReviewLevel] = overdueCounts[currentReviewLevel]!! + 1
-      }
-    }
-
-    val prisonIncentiveLevels = prisonIncentiveLevelService.getActivePrisonIncentiveLevels(prisonId)
-    val levels = prisonIncentiveLevels.map { prisonIncentiveLevel ->
-      IncentiveReviewLevel(
-        levelCode = prisonIncentiveLevel.levelCode,
-        levelName = prisonIncentiveLevel.levelName,
-        reviewCount = prisonersCounts[prisonIncentiveLevel.levelCode] ?: 0,
-        overdueCount = overdueCounts[prisonIncentiveLevel.levelCode] ?: 0,
+    val allReviews = prisoners.map { prisoner ->
+      toReviewDto(
+        prisoner = prisoner,
+        incentiveLevels = incentiveLevels,
+        behavioursSinceLastReview = behavioursSinceLastReview,
+        nextReviewDates = nextReviewDates,
+        daysSinceLastRealReview = daysSinceLastRealReview,
       )
     }
 
-    val reviewsPage = reviewsAtLevel paginateWith PageRequest.of(page, size)
-    val locationDescription = deferredLocationDescription.await()
+    val comparator = sort.orDefault() comparingIn order
+    val reviewsForLevel = allReviews
+      .filter { it.levelCode == levelCode }
+      .sortedWith(comparator)
+
+    val reviewCountsByLevel = allReviews
+      .groupingBy { it.levelCode }
+      .eachCount()
+
+    val overdueCountsByLevel = allReviews
+      .filter { nextReviewDates[it.bookingId]!!.isBefore(today) }
+      .groupingBy { it.levelCode }
+      .eachCount()
+
     IncentiveReviewResponse(
-      locationDescription = locationDescription,
-      levels = levels,
-      reviews = reviewsPage,
+      locationDescription = deferredLocationDescription.await(),
+      levels = buildLevels(prisonIncentiveLevels, reviewCountsByLevel, overdueCountsByLevel),
+      reviews = reviewsForLevel paginateWith PageRequest.of(page, size),
     )
   }
 
+  private suspend fun getLocationDescription(cellLocationPrefix: String): String = try {
+    val locationKey = cellLocationPrefix.removeSuffix("-")
+    val location = locationsService.getByKey(locationKey)
+    location.localName ?: location.pathHierarchy
+  } catch (@Suppress("unused") e: NotFound) {
+    UNKNOWN_LOCATION
+  }
+
+  private fun buildLevels(
+    prisonIncentiveLevels: List<PrisonIncentiveLevel>,
+    reviewCountsByLevel: Map<String, Int>,
+    overdueCountsByLevel: Map<String, Int>,
+  ): List<IncentiveReviewLevel> = prisonIncentiveLevels.map { prisonIncentiveLevel ->
+    IncentiveReviewLevel(
+      levelCode = prisonIncentiveLevel.levelCode,
+      levelName = prisonIncentiveLevel.levelName,
+      reviewCount = reviewCountsByLevel[prisonIncentiveLevel.levelCode] ?: 0,
+      overdueCount = overdueCountsByLevel[prisonIncentiveLevel.levelCode] ?: 0,
+    )
+  }
+
+  private fun toReviewDto(
+    prisoner: Prisoner,
+    incentiveLevels: Map<Long, IncentiveReview>,
+    behavioursSinceLastReview: Map<BookingTypeKey, CaseNoteSummary>,
+    nextReviewDates: Map<Long, LocalDate>,
+    daysSinceLastRealReview: Map<Long, Int?>,
+  ): IncentiveReviewDTO = IncentiveReviewDTO(
+    prisonerNumber = prisoner.prisonerNumber,
+    bookingId = prisoner.bookingId,
+    firstName = WordUtils.capitalizeFully(prisoner.firstName),
+    lastName = WordUtils.capitalizeFully(prisoner.lastName),
+    levelCode = incentiveLevels[prisoner.bookingId]!!.levelCode,
+    positiveBehaviours =
+    behavioursSinceLastReview[BookingTypeKey(prisoner.bookingId, POSITIVE_BEHAVIOUR)]?.totalCaseNotes ?: 0,
+    negativeBehaviours =
+    behavioursSinceLastReview[BookingTypeKey(prisoner.bookingId, NEGATIVE_BEHAVIOUR)]?.totalCaseNotes ?: 0,
+    hasAcctOpen = prisoner.hasAcctOpen,
+    isNewToPrison = daysSinceLastRealReview[prisoner.bookingId] == null,
+    nextReviewDate = nextReviewDates[prisoner.bookingId]!!,
+    daysSinceLastReview = daysSinceLastRealReview[prisoner.bookingId],
+  )
   private suspend fun getIncentiveLevelsForPrisoners(bookingIds: List<Long>): Map<Long, IncentiveReview> =
     incentiveReviewRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(bookingIds)
       .toMap(IncentiveReview::bookingId)
