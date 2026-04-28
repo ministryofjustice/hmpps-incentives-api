@@ -6,9 +6,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Primary
 import org.springframework.test.json.JsonCompareMode
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.IncentiveLevelResourceTestBase
@@ -16,17 +13,10 @@ import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.NextReviewDate
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.NextReviewDateRepository
-import java.time.Clock
 import java.time.LocalDateTime
 
 @DisplayName("SAR resource")
 class SARResourceTest : IncentiveLevelResourceTestBase() {
-  @TestConfiguration
-  class FixedClockConfig {
-    @Primary
-    @Bean
-    fun fixedClock(): Clock = clock // "2022-03-15T12:34:56+00:00"
-  }
 
   @Autowired
   private lateinit var incentiveReviewRepository: IncentiveReviewRepository
@@ -129,7 +119,7 @@ class SARResourceTest : IncentiveLevelResourceTestBase() {
               "levelCode": "STD",
               "prisonId": "MDI",
               "locationId": "1-1-002",
-              "reviewTime": "2022-03-15T12:34:56",
+              "reviewTime": "2022-03-15T12:34:56.123456",
               "reviewedBy": "TEST_USER",
               "commentText": "test comment",
               "current": true,
@@ -142,7 +132,7 @@ class SARResourceTest : IncentiveLevelResourceTestBase() {
               "levelCode": "STD",
               "prisonId": "MDI",
               "locationId": "1-1-002",
-              "reviewTime": "2022-03-13T12:34:56",
+              "reviewTime": "2022-03-13T12:34:56.123456",
               "reviewedBy": "TEST_USER",
               "commentText": "test comment",
               "current": false,
@@ -155,7 +145,7 @@ class SARResourceTest : IncentiveLevelResourceTestBase() {
               "levelCode": "ENH",
               "prisonId": "MDI",
               "locationId": "1-1-002",
-              "reviewTime": "2022-03-11T12:34:56",
+              "reviewTime": "2022-03-11T12:34:56.123456",
               "reviewedBy": "TEST_USER",
               "commentText": "test comment",
               "current": false,
@@ -168,7 +158,7 @@ class SARResourceTest : IncentiveLevelResourceTestBase() {
               "levelCode": "STD",
               "prisonId": "MDI",
               "locationId": "1-1-002",
-              "reviewTime": "2022-03-09T12:34:56",
+              "reviewTime": "2022-03-09T12:34:56.123456",
               "reviewedBy": "TEST_USER",
               "commentText": "test comment",
               "current": false,
@@ -181,7 +171,7 @@ class SARResourceTest : IncentiveLevelResourceTestBase() {
               "levelCode": "BAS",
               "prisonId": "MDI",
               "locationId": "1-1-002",
-              "reviewTime": "2021-03-15T12:34:56",
+              "reviewTime": "2021-03-15T12:34:56.123456",
               "reviewedBy": "TEST_USER",
               "commentText": "test comment",
               "current": false,
@@ -213,7 +203,7 @@ class SARResourceTest : IncentiveLevelResourceTestBase() {
               "levelCode": "STD",
               "prisonId": "MDI",
               "locationId": "1-1-002",
-              "reviewTime": "2022-03-13T12:34:56",
+              "reviewTime": "2022-03-13T12:34:56.123456",
               "reviewedBy": "TEST_USER",
               "commentText": "test comment",
               "current": false,
@@ -226,7 +216,7 @@ class SARResourceTest : IncentiveLevelResourceTestBase() {
               "levelCode": "ENH",
               "prisonId": "MDI",
               "locationId": "1-1-002",
-              "reviewTime": "2022-03-11T12:34:56",
+              "reviewTime": "2022-03-11T12:34:56.123456",
               "reviewedBy": "TEST_USER",
               "commentText": "test comment",
               "current": false,
@@ -239,7 +229,7 @@ class SARResourceTest : IncentiveLevelResourceTestBase() {
               "levelCode": "STD",
               "prisonId": "MDI",
               "locationId": "1-1-002",
-              "reviewTime": "2022-03-09T12:34:56",
+              "reviewTime": "2022-03-09T12:34:56.123456",
               "reviewedBy": "TEST_USER",
               "commentText": "test comment",
               "current": false,

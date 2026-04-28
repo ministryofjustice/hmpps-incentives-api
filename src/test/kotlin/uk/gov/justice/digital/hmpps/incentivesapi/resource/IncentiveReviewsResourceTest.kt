@@ -30,7 +30,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
   @Autowired
   private lateinit var nextReviewDateRepository: NextReviewDateRepository
 
-  private val timeNow: LocalDateTime = LocalDateTime.now()
+  private val timeNow: LocalDateTime = LocalDateTime.now(clock)
 
   @BeforeEach
   fun setUp(): Unit = runBlocking {

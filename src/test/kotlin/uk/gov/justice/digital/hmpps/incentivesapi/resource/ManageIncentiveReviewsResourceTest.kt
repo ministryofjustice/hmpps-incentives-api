@@ -40,7 +40,7 @@ class ManageIncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
     val prisonerNumber = "A1244AB"
     prisonerSearchMockServer.stubGetPrisonerInfoByPrisonerNumber(bookingId = 1231232, prisonerNumber = prisonerNumber)
 
-    val reviewTime = LocalDateTime.now().plusDays(1)
+    val reviewTime = LocalDateTime.now(clock).plusDays(1)
     webTestClient.post().uri("/incentive-reviews/prisoner/$prisonerNumber")
       .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read", "write")))
       .bodyValue(CreateIncentiveReviewRequest("ENH", "Future Review", reviewTime = reviewTime))
@@ -62,8 +62,8 @@ class ManageIncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
       .exchange()
       .expectStatus().isCreated
 
-    val today = now().format(DateTimeFormatter.ISO_DATE)
-    val nextReviewDate = now().plusYears(1).format(DateTimeFormatter.ISO_DATE)
+    val today = now(clock).format(DateTimeFormatter.ISO_DATE)
+    val nextReviewDate = now(clock).plusYears(1).format(DateTimeFormatter.ISO_DATE)
     webTestClient.get().uri("/incentive-reviews/prisoner/$prisonerNumber")
       .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read")))
       .exchange()
@@ -105,7 +105,6 @@ class ManageIncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
     prisonerSearchMockServer.stubGetPrisonerInfoByPrisonerNumber(bookingId, prisonerNumber)
     prisonApiMockServer.stubGetPrisonerExtraInfo(bookingId, prisonerNumber)
 
-    val now = LocalDateTime.now()
     val previousTime = now.minusDays(2)
     webTestClient.post().uri("/incentive-reviews/prisoner/$prisonerNumber")
       .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read", "write")))

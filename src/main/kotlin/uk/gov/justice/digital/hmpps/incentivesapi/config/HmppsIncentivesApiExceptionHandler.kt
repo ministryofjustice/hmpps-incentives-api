@@ -126,7 +126,7 @@ class HmppsIncentivesApiExceptionHandler {
   }
 
   @ExceptionHandler(NotFound::class)
-  fun handleNotFound(e: NotFound): ResponseEntity<ErrorResponse?>? {
+  fun handleNotFound(e: NotFound): ResponseEntity<ErrorResponse>? {
     log.debug("Not found exception caught: {}", e.message)
     return ResponseEntity
       .status(NOT_FOUND)
@@ -142,7 +142,7 @@ class HmppsIncentivesApiExceptionHandler {
   @ExceptionHandler(SubjectAccessRequestNoContentException::class)
   fun handleSubjectAccessRequestNoContentException(
     e: SubjectAccessRequestNoContentException,
-  ): ResponseEntity<ErrorResponse?>? {
+  ): ResponseEntity<ErrorResponse>? {
     log.debug("SAR No Content exception caught: {}", e.message)
     return ResponseEntity
       .status(HttpStatus.NO_CONTENT)
@@ -156,7 +156,7 @@ class HmppsIncentivesApiExceptionHandler {
   }
 
   @ExceptionHandler(NoResourceFoundException::class)
-  fun handleNoResourceFoundException(e: NoResourceFoundException): ResponseEntity<ErrorResponse?>? {
+  fun handleNoResourceFoundException(e: NoResourceFoundException): ResponseEntity<ErrorResponse>? {
     log.debug("No resource found exception caught: {}", e.message)
     return ResponseEntity
       .status(NOT_FOUND)
@@ -170,7 +170,7 @@ class HmppsIncentivesApiExceptionHandler {
   }
 
   @ExceptionHandler(IncentiveReviewNotFoundException::class)
-  fun handleIncentiveReviewNotFoundException(e: IncentiveReviewNotFoundException): ResponseEntity<ErrorResponse?>? {
+  fun handleIncentiveReviewNotFoundException(e: IncentiveReviewNotFoundException): ResponseEntity<ErrorResponse>? {
     log.debug("No incentive review found exception caught: {}", e.message)
     return ResponseEntity
       .status(NOT_FOUND)
@@ -184,7 +184,7 @@ class HmppsIncentivesApiExceptionHandler {
   }
 
   @ExceptionHandler(NoDataFoundException::class)
-  fun handleNoDataFoundException(e: NoDataFoundException): ResponseEntity<ErrorResponse?>? {
+  fun handleNoDataFoundException(e: NoDataFoundException): ResponseEntity<ErrorResponse>? {
     @Suppress("LoggingSimilarMessage")
     log.debug("No data found exception caught: {}", e.message)
     return ResponseEntity
@@ -199,7 +199,7 @@ class HmppsIncentivesApiExceptionHandler {
   }
 
   @ExceptionHandler(NoDataWithCodeFoundException::class)
-  fun handleNoDataWithCodeFoundException(e: NoDataWithCodeFoundException): ResponseEntity<ErrorResponse?>? {
+  fun handleNoDataWithCodeFoundException(e: NoDataWithCodeFoundException): ResponseEntity<ErrorResponse>? {
     log.debug("No data found exception caught: {}", e.message)
     return ResponseEntity
       .status(NOT_FOUND)
@@ -213,7 +213,7 @@ class HmppsIncentivesApiExceptionHandler {
   }
 
   @ExceptionHandler(ListOfDataNotFoundException::class)
-  fun handleListOfDataNotFoundException(e: ListOfDataNotFoundException): ResponseEntity<ErrorResponse?>? {
+  fun handleListOfDataNotFoundException(e: ListOfDataNotFoundException): ResponseEntity<ErrorResponse>? {
     log.debug("List of data not found exception caught: {}", e.message)
     return ResponseEntity
       .status(NOT_FOUND)
@@ -227,7 +227,7 @@ class HmppsIncentivesApiExceptionHandler {
   }
 
   @ExceptionHandler(DataIntegrityException::class)
-  fun handleDataIntegrityException(e: DataIntegrityException): ResponseEntity<ErrorResponse?>? {
+  fun handleDataIntegrityException(e: DataIntegrityException): ResponseEntity<ErrorResponse>? {
     log.error("Data integrity exception: {}", e.message)
     return ResponseEntity
       .status(INTERNAL_SERVER_ERROR)
@@ -241,7 +241,7 @@ class HmppsIncentivesApiExceptionHandler {
   }
 
   @ExceptionHandler(java.lang.Exception::class)
-  fun handleException(e: java.lang.Exception): ResponseEntity<ErrorResponse?>? {
+  fun handleException(e: java.lang.Exception): ResponseEntity<ErrorResponse>? {
     log.error("Unexpected exception", e)
     return ResponseEntity
       .status(INTERNAL_SERVER_ERROR)

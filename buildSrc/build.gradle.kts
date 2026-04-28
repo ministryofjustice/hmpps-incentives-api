@@ -6,7 +6,7 @@ version = "1.0-SNAPSHOT"
 description = "Custom gradle tasks"
 
 plugins {
-  kotlin("jvm") version "2.3.0"
+  kotlin("jvm") version "2.3.21"
 }
 
 repositories {
@@ -18,12 +18,12 @@ kotlin {
 }
 
 java {
-  sourceCompatibility = JavaVersion.VERSION_24
-  targetCompatibility = JavaVersion.VERSION_24
+  sourceCompatibility = JavaVersion.VERSION_25
+  targetCompatibility = JavaVersion.VERSION_25
 }
 
 tasks {
   withType<KotlinCompile> {
-    compilerOptions.jvmTarget = JvmTarget.JVM_24
+    compilerOptions.jvmTarget = JvmTarget.JVM_25
   }
 }

@@ -8,8 +8,12 @@ import org.awaitility.kotlin.await
 import org.awaitility.kotlin.matches
 import org.awaitility.kotlin.untilCallTo
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
+import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
+import uk.gov.justice.digital.hmpps.incentivesapi.helper.TestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.PrisonIncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveLevelRepository
@@ -19,17 +23,15 @@ import uk.gov.justice.digital.hmpps.incentivesapi.service.HMPPSDomainEvent
 import uk.gov.justice.digital.hmpps.incentivesapi.service.HMPPSMessage
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
 import java.time.Clock
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneId
 
 class IncentiveLevelResourceTestBase : SqsIntegrationTestBase() {
-  companion object {
-    val clock: Clock = Clock.fixed(
-      Instant.parse("2022-03-15T12:34:56+00:00"),
-      ZoneId.of("Europe/London"),
-    )
-    val now: LocalDateTime = LocalDateTime.now(clock)
+  @MockitoBean
+  private lateinit var clock: Clock
+
+  @BeforeEach
+  fun setupClock() {
+    whenever(clock.instant()).thenReturn(TestBase.clock.instant())
+    whenever(clock.zone).thenReturn(TestBase.clock.zone)
   }
 
   @Autowired
