@@ -1,7 +1,9 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import kotlinx.coroutines.flow.toList
+import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.NextReviewDate
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
@@ -16,8 +18,7 @@ import java.time.LocalDateTime
 @Service
 class NextReviewDateUpdaterService(
   private val clock: Clock,
-  private val incentiveReviewRepository: IncentiveReviewRepository,
-  private val nextReviewDateRepository: NextReviewDateRepository,
+  private val nextReviewDatePersistence: NextReviewDatePersistence,
   private val prisonApiService: PrisonApiService,
   private val snsService: SnsService,
 ) {
@@ -47,6 +48,44 @@ class NextReviewDateUpdaterService(
       return emptyMap()
     }
 
+    val result = nextReviewDatePersistence.updateMany(prisoners)
+    publishDomainEvents(result.bookingIdsChanged, result.prisonerMap, result.nextReviewDates)
+    return result.nextReviewDates
+  }
+
+  private fun publishDomainEvents(
+    bookingIdsChanged: List<Long>,
+    prisonerMap: Map<Long, PrisonerInfoForNextReviewDate>,
+    nextReviewDatesMap: Map<Long, LocalDate>,
+  ) {
+    bookingIdsChanged.forEach { bookingId ->
+      snsService.publishDomainEvent(
+        eventType = IncentivesDomainEventType.PRISONER_NEXT_REVIEW_DATE_CHANGED,
+        description = "A prisoner's next incentive review date has changed",
+        occurredAt = LocalDateTime.now(clock),
+        additionalInformation = AdditionalInformation(
+          id = bookingId,
+          nomsNumber = prisonerMap[bookingId]!!.prisonerNumber,
+          nextReviewDate = nextReviewDatesMap[bookingId],
+        ),
+      )
+    }
+  }
+}
+
+/**
+ * Handles the transactional DB work for recalculating and persisting next review dates.
+ * Kept separate from NextReviewDateUpdaterService so that the transaction commits before
+ * domain events are published.
+ */
+@Component
+class NextReviewDatePersistence(
+  private val clock: Clock,
+  private val incentiveReviewRepository: IncentiveReviewRepository,
+  private val nextReviewDateRepository: NextReviewDateRepository,
+) {
+  @Transactional
+  suspend fun updateMany(prisoners: List<PrisonerInfoForNextReviewDate>): NextReviewDateUpdateResult {
     val prisonerMap = prisoners.associateBy(PrisonerInfoForNextReviewDate::bookingId)
     val bookingIds = prisonerMap.keys.toList()
 
@@ -85,37 +124,21 @@ class NextReviewDateUpdaterService(
       nextReviewDateRecords,
     ).toList().toMapByBookingId()
 
-    // Determine which next review dates records actually changed
     val bookingIdsChanged = bookingIds.filter { bookingId ->
       nextReviewDatesBeforeUpdate[bookingId] != null &&
         // only publish domain events when next review date changed
         nextReviewDatesAfterUpdate[bookingId] != nextReviewDatesBeforeUpdate[bookingId]
     }
 
-    publishDomainEvents(bookingIdsChanged, prisonerMap, nextReviewDatesAfterUpdate)
-
-    return nextReviewDatesAfterUpdate
-  }
-
-  private fun publishDomainEvents(
-    bookingIdsChanged: List<Long>,
-    prisonerMap: Map<Long, PrisonerInfoForNextReviewDate>,
-    nextReviewDatesMap: Map<Long, LocalDate>,
-  ) {
-    bookingIdsChanged.forEach { bookingId ->
-      snsService.publishDomainEvent(
-        eventType = IncentivesDomainEventType.PRISONER_NEXT_REVIEW_DATE_CHANGED,
-        description = "A prisoner's next incentive review date has changed",
-        occurredAt = LocalDateTime.now(clock),
-        additionalInformation = AdditionalInformation(
-          id = bookingId,
-          nomsNumber = prisonerMap[bookingId]!!.prisonerNumber,
-          nextReviewDate = nextReviewDatesMap[bookingId],
-        ),
-      )
-    }
+    return NextReviewDateUpdateResult(nextReviewDatesAfterUpdate, bookingIdsChanged, prisonerMap)
   }
 }
+
+data class NextReviewDateUpdateResult(
+  val nextReviewDates: Map<Long, LocalDate>,
+  val bookingIdsChanged: List<Long>,
+  val prisonerMap: Map<Long, PrisonerInfoForNextReviewDate>,
+)
 
 interface PrisonerInfoForNextReviewDate {
   val bookingId: Long

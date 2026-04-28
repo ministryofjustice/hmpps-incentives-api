@@ -32,8 +32,11 @@ class NextReviewDateUpdaterServiceTest {
 
   private val nextReviewDateUpdaterService = NextReviewDateUpdaterService(
     clock,
-    incentiveReviewRepository,
-    nextReviewDateRepository,
+    NextReviewDatePersistence(
+      clock,
+      incentiveReviewRepository,
+      nextReviewDateRepository,
+    ),
     prisonApiService,
     snsService,
   )
