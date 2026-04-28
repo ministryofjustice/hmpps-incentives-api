@@ -1,6 +1,5 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.dto
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import io.swagger.v3.oas.annotations.media.Schema
@@ -50,21 +49,14 @@ data class IncentiveReviewSummary(
   var incentiveReviewDetails: List<IncentiveReviewDetail>,
   @param:Schema(description = "Date of next review", example = "2022-12-31", required = true)
   val nextReviewDate: LocalDate,
-) {
 
-  @Suppress("unused")
-  @get:Schema(description = "Days since last review", example = "23", required = true)
-  @get:JsonProperty
-  val daysSinceReview: Int
-    get() {
-      return daysSinceReviewCalc(Clock.systemDefaultZone())
-    }
+  @param:Schema(description = "Days since last review", example = "23", required = true)
+  val daysSinceReview: Int,
+)
 
-  @JsonIgnore
-  fun daysSinceReviewCalc(clock: Clock): Int {
-    val today = LocalDate.now(clock).atStartOfDay()
-    return Duration.between(iepDate.atStartOfDay(), today).toDays().toInt()
-  }
+fun daysSinceReviewCalc(iepDate: LocalDate, clock: Clock): Int {
+  val today = LocalDate.now(clock).atStartOfDay()
+  return Duration.between(iepDate.atStartOfDay(), today).toDays().toInt()
 }
 
 @JsonInclude(JsonInclude.Include.NON_NULL)

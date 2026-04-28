@@ -14,9 +14,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Primary
 import org.springframework.http.HttpStatus
 import org.springframework.test.json.JsonCompareMode
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -26,18 +23,11 @@ import uk.gov.justice.digital.hmpps.incentivesapi.helper.expectErrorResponse
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.IncentiveLevelResourceTestBase
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
-import java.time.Clock
 import java.time.LocalDateTime
 import kotlin.text.Regex
 
 @DisplayName("Prison incentive level resource")
 class PrisonIncentiveLevelResourceTest : IncentiveLevelResourceTestBase() {
-  @TestConfiguration
-  class FixedClockConfig {
-    @Primary
-    @Bean
-    fun fixedClock(): Clock = clock
-  }
 
   @Autowired
   private lateinit var incentiveReviewRepository: IncentiveReviewRepository
