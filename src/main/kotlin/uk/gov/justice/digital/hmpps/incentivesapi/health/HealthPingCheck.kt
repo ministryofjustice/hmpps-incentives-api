@@ -7,7 +7,7 @@ import uk.gov.justice.hmpps.kotlin.health.ReactiveHealthPingCheck
 
 @Component("hmppsAuth")
 class AuthHealthPing(
-  @Qualifier("authWebClient") webClient: WebClient,
+  @Qualifier("authHealthWebClient") webClient: WebClient,
 ) : ReactiveHealthPingCheck(webClient)
 
 @Component("prisonApi")

@@ -37,7 +37,6 @@ import java.time.format.DateTimeFormatter
 @DisplayName("Prisoner incentive reviews service")
 class PrisonerIncentiveReviewServiceTest {
 
-  private val prisonApiService: PrisonApiService = mock()
   private val prisonerSearchService: PrisonerSearchService = mock()
   private val incentiveReviewRepository: IncentiveReviewRepository = mock()
   private val authenticationHolder: HmppsReactiveAuthenticationHolder = mock()
@@ -54,7 +53,6 @@ class PrisonerIncentiveReviewServiceTest {
     NearestPrisonIncentiveLevelService(incentiveLevelService, prisonIncentiveLevelService)
 
   private val prisonerIncentiveReviewService = PrisonerIncentiveReviewService(
-    prisonApiService,
     prisonerSearchService,
     incentiveReviewRepository,
     incentiveLevelService,

@@ -19,6 +19,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonerBasicInfo
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.daysSinceReviewCalc
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.findDefaultOnAdmission
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
@@ -29,7 +30,6 @@ import java.time.format.DateTimeFormatter
 
 @Service
 class PrisonerIncentiveReviewService(
-  private val prisonApiService: PrisonApiService,
   private val prisonerSearchService: PrisonerSearchService,
   private val incentiveReviewRepository: IncentiveReviewRepository,
   private val incentiveLevelService: IncentiveLevelAuditedService,
@@ -210,6 +210,7 @@ class PrisonerIncentiveReviewService(
       locationId = currentIep.locationId,
       incentiveReviewDetails = iepDetails,
       nextReviewDate = nextReviewDateGetterService.get(currentIep.bookingId),
+      daysSinceReview = daysSinceReviewCalc(currentIep.iepDate, clock),
     )
 
     if (!withDetails) {

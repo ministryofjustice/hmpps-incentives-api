@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewSummary
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.daysSinceReviewCalc
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
@@ -31,6 +32,7 @@ class IncentiveReviewSummaryDateTest {
         iepCode = "ENH",
         iepTime = LocalDateTime.of(2022, 6, 2, 12, 45, 0),
         nextReviewDate = LocalDate.of(2022, 6, 2).plusYears(1),
+        daysSinceReview = daysSinceReviewCalc(LocalDate.of(2022, 6, 2), clock),
         incentiveReviewDetails = listOf(
           IncentiveReviewDetail(
             id = 222,
@@ -61,7 +63,7 @@ class IncentiveReviewSummaryDateTest {
         ),
       )
 
-      assertThat(incentiveReviewSummary.daysSinceReviewCalc(clock)).isEqualTo(60)
+      assertThat(daysSinceReviewCalc(incentiveReviewSummary.iepDate, clock)).isEqualTo(60)
     }
 
     @Test
@@ -75,6 +77,7 @@ class IncentiveReviewSummaryDateTest {
         iepCode = "BAS",
         iepTime = LocalDateTime.of(2022, 7, 29, 12, 45, 0),
         nextReviewDate = LocalDate.of(2022, 7, 29).plusDays(7),
+        daysSinceReview = daysSinceReviewCalc(LocalDate.of(2022, 7, 29), clock),
         incentiveReviewDetails = listOf(
           IncentiveReviewDetail(
             id = 111,
@@ -93,7 +96,7 @@ class IncentiveReviewSummaryDateTest {
         ),
       )
 
-      assertThat(incentiveReviewSummary.daysSinceReviewCalc(clock)).isEqualTo(3)
+      assertThat(daysSinceReviewCalc(incentiveReviewSummary.iepDate, clock)).isEqualTo(3)
     }
 
     @Test
@@ -107,6 +110,7 @@ class IncentiveReviewSummaryDateTest {
         iepCode = "STD",
         iepTime = LocalDateTime.of(2022, 8, 1, 8, 30, 0),
         nextReviewDate = LocalDate.of(2022, 8, 1).plusYears(1),
+        daysSinceReview = daysSinceReviewCalc(LocalDate.of(2022, 8, 1), clock),
         incentiveReviewDetails = listOf(
           IncentiveReviewDetail(
             id = 222,
@@ -139,7 +143,7 @@ class IncentiveReviewSummaryDateTest {
         ),
       )
 
-      assertThat(incentiveReviewSummary.daysSinceReviewCalc(clock)).isEqualTo(0)
+      assertThat(daysSinceReviewCalc(incentiveReviewSummary.iepDate, clock)).isEqualTo(0)
     }
 
     @Test
@@ -153,6 +157,8 @@ class IncentiveReviewSummaryDateTest {
         iepCode = "BAS",
         iepTime = LocalDateTime.of(2022, 7, 31, 19, 0, 0),
         nextReviewDate = LocalDate.of(2022, 7, 31).plusDays(28),
+        daysSinceReview = daysSinceReviewCalc(LocalDate.of(2022, 7, 29), clock),
+
         incentiveReviewDetails = listOf(
           IncentiveReviewDetail(
             id = 333,
@@ -199,7 +205,7 @@ class IncentiveReviewSummaryDateTest {
         ),
       )
 
-      assertThat(incentiveReviewSummary.daysSinceReviewCalc(clock)).isEqualTo(1)
+      assertThat(daysSinceReviewCalc(incentiveReviewSummary.iepDate, clock)).isEqualTo(1)
     }
 
     @Test
@@ -213,6 +219,8 @@ class IncentiveReviewSummaryDateTest {
         iepCode = "ENH",
         iepTime = LocalDateTime.of(2022, 8, 1, 8, 30, 0),
         nextReviewDate = LocalDate.of(2022, 8, 1).plusYears(1),
+        daysSinceReview = daysSinceReviewCalc(LocalDate.of(2022, 7, 29), clock),
+
         incentiveReviewDetails = listOf(
           IncentiveReviewDetail(
             id = 222,
@@ -243,7 +251,7 @@ class IncentiveReviewSummaryDateTest {
         ),
       )
 
-      assertThat(incentiveReviewSummary.daysSinceReviewCalc(clock)).isEqualTo(0)
+      assertThat(daysSinceReviewCalc(incentiveReviewSummary.iepDate, clock)).isEqualTo(0)
     }
 
     @Test
@@ -257,6 +265,8 @@ class IncentiveReviewSummaryDateTest {
         iepCode = "ENH",
         iepTime = LocalDateTime.of(2022, 7, 2, 12, 30, 0),
         nextReviewDate = LocalDate.of(2022, 7, 2).plusYears(1),
+        daysSinceReview = daysSinceReviewCalc(LocalDate.of(2022, 7, 29), clock),
+
         incentiveReviewDetails = listOf(
           IncentiveReviewDetail(
             id = 333,
@@ -300,7 +310,7 @@ class IncentiveReviewSummaryDateTest {
         ),
       )
 
-      assertThat(incentiveReviewSummary.daysSinceReviewCalc(clock)).isEqualTo(30)
+      assertThat(daysSinceReviewCalc(incentiveReviewSummary.iepDate, clock)).isEqualTo(30)
     }
   }
 }
