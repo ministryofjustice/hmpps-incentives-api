@@ -212,7 +212,6 @@ class PrisonerIncentiveReviewService(
       iepLevel = currentIep.iepLevel,
       id = currentIep.id,
       prisonerNumber = currentIep.prisonerNumber,
-      locationId = currentIep.locationId,
       incentiveReviewDetails = iepDetails,
       nextReviewDate = nextReviewDateGetterService.get(currentIep.bookingId),
       daysSinceReview = daysSinceReviewCalc(currentIep.iepDate, clock),
