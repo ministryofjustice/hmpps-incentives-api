@@ -10,6 +10,8 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.transaction.reactive.TransactionalOperator
+import org.springframework.transaction.reactive.executeAndAwait
 import uk.gov.justice.digital.hmpps.incentivesapi.SYSTEM_USERNAME
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataFoundException
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.CreateIncentiveReviewRequest
@@ -42,6 +44,7 @@ class PrisonerIncentiveReviewService(
   private val nextReviewDateGetterService: NextReviewDateGetterService,
   private val nextReviewDateUpdaterService: NextReviewDateUpdaterService,
   private val incentiveStoreService: IncentiveStoreService,
+  private val transactionalOperator: TransactionalOperator,
 ) {
   companion object {
     val log: Logger = LoggerFactory.getLogger(this::class.java)
@@ -86,7 +89,6 @@ class PrisonerIncentiveReviewService(
       }
     }
 
-  @Transactional
   suspend fun processPrisonerAlertsUpdatedEvent(prisonOffenderEvent: HMPPSDomainEvent) {
     val acctAdded: Boolean = prisonOffenderEvent.additionalInformation?.alertsAdded
       ?.contains(PrisonerAlert.ACCT_ALERT_CODE) == true
@@ -107,7 +109,10 @@ class PrisonerIncentiveReviewService(
 
   private suspend fun updateNextReviewDate(prisonOffenderEvent: HMPPSDomainEvent) {
     prisonOffenderEvent.additionalInformation?.bookingId?.let { bookingId ->
-      nextReviewDateUpdaterService.update(bookingId)
+      val changes = transactionalOperator.executeAndAwait {
+        nextReviewDateUpdaterService.updateWriteOnly(bookingId)
+      }
+      nextReviewDateUpdaterService.publishDomainEvents(changes)
     } ?: run {
       log.error("Could not update next review date: bookingId null for prisonOffenderEvent: $prisonOffenderEvent")
     }
