@@ -18,7 +18,6 @@ fun IncentiveReview.toIncentiveReviewDetail(incentiveLevels: Map<String, Incenti
   reviewType = reviewType,
   comments = commentText,
   userId = reviewedBy,
-  locationId = locationId,
   prisonerNumber = prisonerNumber,
   auditModuleName = SYSTEM_USERNAME,
 )

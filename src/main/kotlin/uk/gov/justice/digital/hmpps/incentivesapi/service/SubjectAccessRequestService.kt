@@ -33,7 +33,6 @@ class SubjectAccessRequestService(
           nextReviewDate = history.nextReviewDate,
           levelCode = review.iepCode,
           prisonId = review.agencyId,
-          locationId = review.locationId,
           reviewTime = review.iepTime,
           reviewedBy = review.userId,
           commentText = review.comments,
@@ -66,8 +65,6 @@ data class ReviewForSar(
   val nextReviewDate: LocalDate,
   val levelCode: String,
   val prisonId: String,
-  @Deprecated("DEPRECATED - locationId not populated anymore (existing data is returned for now)")
-  val locationId: String? = null,
   val reviewTime: LocalDateTime,
   val reviewedBy: String?,
   val commentText: String?,

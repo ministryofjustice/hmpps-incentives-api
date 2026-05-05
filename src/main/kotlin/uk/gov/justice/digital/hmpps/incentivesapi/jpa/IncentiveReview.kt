@@ -20,8 +20,6 @@ data class IncentiveReview(
   val bookingId: Long,
   var prisonerNumber: String,
   val prisonId: String,
-  @Deprecated("DEPRECATED - locationId always null now")
-  val locationId: String? = null,
   val reviewTime: LocalDateTime,
   val reviewedBy: String? = null,
   @Column("iep_code")

@@ -36,7 +36,7 @@ class PrisonIncentiveLevelService(
   private val countPrisonersService: CountPrisonersService,
 ) {
   /**
-   * Returns all incentive levels for given prison, including inactive ones, along with associated information, in globally-defined order
+   * Returns all incentive levels for a given prison, including inactive ones, along with associated information, in globally-defined order
    */
   suspend fun getAllPrisonIncentiveLevels(prisonId: String): List<PrisonIncentiveLevelDTO> {
     return prisonIncentiveLevelRepository.findAllByPrisonId(prisonId).toListOfDTO()
@@ -194,7 +194,7 @@ class PrisonIncentiveLevelService(
 
     val incentiveLevelCodesNeedingUpdate = mutableListOf<String>()
     val missingActiveIncentiveLevelCodes = requiredIncentiveLevelCodes.toMutableSet()
-    missingActiveIncentiveLevelCodes.removeAll(currentActiveIncentiveLevelCodes)
+    missingActiveIncentiveLevelCodes.removeAll(currentActiveIncentiveLevelCodes.toSet())
     if (currentDefaultIncentiveLevelCode != defaultIncentiveLevelCode ||
       !currentActiveIncentiveLevelCodes.contains(defaultIncentiveLevelCode)
     ) {
