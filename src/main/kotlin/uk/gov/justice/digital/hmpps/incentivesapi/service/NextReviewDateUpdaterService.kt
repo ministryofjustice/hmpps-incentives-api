@@ -30,9 +30,23 @@ class NextReviewDateUpdaterService(
    * @return the nextReviewDate for the given bookingId
    * */
   suspend fun update(bookingId: Long): LocalDate {
-    val prisonerInfo = prisonApiService.getPrisonerExtraInfo(bookingId, useClientCredentials = true)
+    val changes = updateWriteOnly(bookingId)
+    publishDomainEvents(changes)
+    return changes.nextReviewDates[bookingId]!!
+  }
 
-    return updateMany(listOf(prisonerInfo))[prisonerInfo.bookingId]!!
+  /**
+   * Update the next review date for the given bookingId without publishing domain events.
+   * Callers inside a transaction should use this method and call [publishDomainEvents]
+   * after the transaction commits to avoid consumers seeing stale data.
+   *
+   * @param bookingId of the prisoner to update
+   *
+   * @return [NextReviewDateChanges] describing what changed, used to publish events after commit
+   * */
+  suspend fun updateWriteOnly(bookingId: Long): NextReviewDateChanges {
+    val prisonerInfo = prisonApiService.getPrisonerExtraInfo(bookingId, useClientCredentials = true)
+    return updateManyWriteOnly(listOf(prisonerInfo))
   }
 
   /**
@@ -43,8 +57,23 @@ class NextReviewDateUpdaterService(
    * @return a map with bookingIds as keys and nextReviewDate as value
    * */
   suspend fun updateMany(prisoners: List<PrisonerInfoForNextReviewDate>): Map<Long, LocalDate> {
+    val changes = updateManyWriteOnly(prisoners)
+    publishDomainEvents(changes)
+    return changes.nextReviewDates
+  }
+
+  /**
+   * Update next review dates for the given prisoners without publishing domain events.
+   * Callers inside a transaction should use this method and call [publishDomainEvents]
+   * after the transaction commits to avoid consumers seeing stale data.
+   *
+   * @param prisoners is the list of prisoners to update
+   *
+   * @return [NextReviewDateChanges] describing what changed, used to publish events after commit
+   * */
+  suspend fun updateManyWriteOnly(prisoners: List<PrisonerInfoForNextReviewDate>): NextReviewDateChanges {
     if (prisoners.isEmpty()) {
-      return emptyMap()
+      return NextReviewDateChanges(emptyMap(), emptyList(), emptyMap())
     }
 
     val prisonerMap = prisoners.associateBy(PrisonerInfoForNextReviewDate::bookingId)
@@ -92,30 +121,30 @@ class NextReviewDateUpdaterService(
         nextReviewDatesAfterUpdate[bookingId] != nextReviewDatesBeforeUpdate[bookingId]
     }
 
-    publishDomainEvents(bookingIdsChanged, prisonerMap, nextReviewDatesAfterUpdate)
-
-    return nextReviewDatesAfterUpdate
+    return NextReviewDateChanges(nextReviewDatesAfterUpdate, bookingIdsChanged, prisonerMap)
   }
 
-  private fun publishDomainEvents(
-    bookingIdsChanged: List<Long>,
-    prisonerMap: Map<Long, PrisonerInfoForNextReviewDate>,
-    nextReviewDatesMap: Map<Long, LocalDate>,
-  ) {
-    bookingIdsChanged.forEach { bookingId ->
+  fun publishDomainEvents(changes: NextReviewDateChanges) {
+    changes.bookingIdsChanged.forEach { bookingId ->
       snsService.publishDomainEvent(
         eventType = IncentivesDomainEventType.PRISONER_NEXT_REVIEW_DATE_CHANGED,
         description = "A prisoner's next incentive review date has changed",
         occurredAt = LocalDateTime.now(clock),
         additionalInformation = AdditionalInformation(
           id = bookingId,
-          nomsNumber = prisonerMap[bookingId]!!.prisonerNumber,
-          nextReviewDate = nextReviewDatesMap[bookingId],
+          nomsNumber = changes.prisonerMap[bookingId]!!.prisonerNumber,
+          nextReviewDate = changes.nextReviewDates[bookingId],
         ),
       )
     }
   }
 }
+
+data class NextReviewDateChanges(
+  val nextReviewDates: Map<Long, LocalDate>,
+  val bookingIdsChanged: List<Long>,
+  val prisonerMap: Map<Long, PrisonerInfoForNextReviewDate>,
+)
 
 interface PrisonerInfoForNextReviewDate {
   val bookingId: Long

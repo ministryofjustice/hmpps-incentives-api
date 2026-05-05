@@ -17,13 +17,17 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
+import org.springframework.transaction.ReactiveTransaction
+import org.springframework.transaction.ReactiveTransactionManager
+import org.springframework.transaction.TransactionDefinition
+import org.springframework.transaction.reactive.TransactionalOperator
+import reactor.core.publisher.Mono
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.CreateIncentiveReviewRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonIncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerInfo
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
 import uk.gov.justice.hmpps.kotlin.auth.HmppsReactiveAuthenticationHolder
@@ -46,6 +50,14 @@ class PrisonerIncentiveReviewServiceTest {
   private val nextReviewDateGetterService: NextReviewDateGetterService = mock()
   private val nextReviewDateUpdaterService: NextReviewDateUpdaterService = mock()
   private val incentiveStoreService: IncentiveStoreService = mock()
+  private val transactionalOperator = TransactionalOperator.create(
+    object : ReactiveTransactionManager {
+      override fun getReactiveTransaction(definition: TransactionDefinition?): Mono<ReactiveTransaction> =
+        Mono.just(mock())
+      override fun commit(transaction: ReactiveTransaction): Mono<Void> = Mono.empty()
+      override fun rollback(transaction: ReactiveTransaction): Mono<Void> = Mono.empty()
+    },
+  )
   private val incentiveLevelService: IncentiveLevelAuditedService = mock()
   private val prisonIncentiveLevelService: PrisonIncentiveLevelAuditedService = mock()
 
@@ -65,6 +77,7 @@ class PrisonerIncentiveReviewServiceTest {
     nextReviewDateGetterService,
     nextReviewDateUpdaterService,
     incentiveStoreService,
+    transactionalOperator,
   )
 
   @BeforeEach
@@ -89,7 +102,6 @@ class PrisonerIncentiveReviewServiceTest {
       bookingId = bookingId,
       prisonerNumber = prisonerNumber,
     )
-    private val prisonerBasicInfo = PrisonerInfo(bookingId, prisonerNumber, "MDI", "John", "Smith")
     private val createIncentiveReviewRequest = CreateIncentiveReviewRequest(
       iepLevel = "ENH",
       comment = "A review took place",
@@ -206,7 +218,7 @@ class PrisonerIncentiveReviewServiceTest {
       // Given - default for that prison is Enhanced
       val prisonOffenderEvent = prisonOffenderEvent(reason)
       val prisonerNumber = prisonOffenderEvent.additionalInformation?.nomsNumber!!
-      val bookingId = prisonOffenderEvent.additionalInformation?.id!!
+      val bookingId = prisonOffenderEvent.additionalInformation.id!!
       val prisonerAtLocation = mockPrisoner(
         prisonerNumber = prisonerNumber,
         bookingId = bookingId,
@@ -289,12 +301,14 @@ class PrisonerIncentiveReviewServiceTest {
         alertsAdded = listOf(PrisonerAlert.ACCT_ALERT_CODE),
         alertsRemoved = emptyList(),
       )
+      whenever(nextReviewDateUpdaterService.updateWriteOnly(bookingId))
+        .thenReturn(NextReviewDateChanges(emptyMap(), emptyList(), emptyMap()))
 
       // When
       prisonerIncentiveReviewService.processPrisonerAlertsUpdatedEvent(prisonerAlertsUpdatedEvent)
 
       verify(nextReviewDateUpdaterService, times(1))
-        .update(bookingId)
+        .updateWriteOnly(bookingId)
     }
 
     @Test
@@ -306,12 +320,14 @@ class PrisonerIncentiveReviewServiceTest {
         alertsAdded = emptyList(),
         alertsRemoved = listOf(PrisonerAlert.ACCT_ALERT_CODE),
       )
+      whenever(nextReviewDateUpdaterService.updateWriteOnly(bookingId))
+        .thenReturn(NextReviewDateChanges(emptyMap(), emptyList(), emptyMap()))
 
       // When
       prisonerIncentiveReviewService.processPrisonerAlertsUpdatedEvent(prisonerAlertsUpdatedEvent)
 
       verify(nextReviewDateUpdaterService, times(1))
-        .update(bookingId)
+        .updateWriteOnly(bookingId)
     }
 
     @Test
@@ -328,7 +344,7 @@ class PrisonerIncentiveReviewServiceTest {
       prisonerIncentiveReviewService.processPrisonerAlertsUpdatedEvent(prisonerUpdatedEvent)
 
       verify(nextReviewDateUpdaterService, times(0))
-        .update(bookingId)
+        .updateWriteOnly(bookingId)
     }
 
     @ParameterizedTest
