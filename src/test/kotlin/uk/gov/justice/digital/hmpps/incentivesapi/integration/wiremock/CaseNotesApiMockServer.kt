@@ -1,9 +1,10 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.integration.wiremock
 
 import com.github.tomakehurst.wiremock.WireMockServer
-import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import com.github.tomakehurst.wiremock.client.WireMock.equalTo
 import com.github.tomakehurst.wiremock.client.WireMock.get
+import com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath
 import com.github.tomakehurst.wiremock.client.WireMock.post
 
 class CaseNotesApiMockServer : WireMockServer(WIREMOCK_PORT) {
@@ -23,120 +24,157 @@ class CaseNotesApiMockServer : WireMockServer(WIREMOCK_PORT) {
   }
 
   fun stubCaseNoteSummary() {
-    stubFor(
-      post("/case-notes/usage")
-        .withRequestBody(
-          WireMock.equalToJson("""{ "types": ["POS", "NEG"] }""", true, true),
-        )
-        .willReturn(
-          aResponse()
-            .withHeader("Content-Type", "application/json")
-            .withBody(
-              // language=json
-              """
-              [
-                {
-                  "caseNoteSubType": "POS_GEN",
-                  "caseNoteType": "POS",
-                  "latestCaseNote": "2022-01-21T09:28:25.673Z",
-                  "numCaseNotes": 2,
-                  "bookingId": 1234134
-                },
-                {
-                  "caseNoteSubType": "IEP_ENC",
-                  "caseNoteType": "POS",
-                  "latestCaseNote": "2022-01-21T09:28:25.673Z",
-                  "numCaseNotes": 1,
-                  "bookingId": 1234134
-                },
-                {
-                  "caseNoteSubType": "QUAL_ATT",
-                  "caseNoteType": "POS",
-                  "latestCaseNote": "2022-01-21T09:28:25.673Z",
-                  "numCaseNotes": 3,
-                  "bookingId": 1234135
-                },
-                {
-                  "caseNoteSubType": "POS_GEN",
-                  "caseNoteType": "POS",
-                  "latestCaseNote": "2022-01-21T09:28:25.673Z",
-                  "numCaseNotes": 2,
-                  "bookingId": 1234136
-                },
-                {
-                  "caseNoteSubType": "IEP_ENC",
-                  "caseNoteType": "POS",
-                  "latestCaseNote": "2022-01-21T09:28:25.673Z",
-                  "numCaseNotes": 1,
-                  "bookingId": 1234137
-                },
-                {
-                  "caseNoteSubType": "POS_GEN",
-                  "caseNoteType": "POS",
-                  "latestCaseNote": "2022-01-21T09:28:25.673Z",
-                  "numCaseNotes": 5,
-                  "bookingId": 1234138
-                },
-                {
-                  "caseNoteSubType": "IEP_ENC",
-                  "caseNoteType": "POS",
-                  "latestCaseNote": "2022-01-21T09:28:25.673Z",
-                  "numCaseNotes": 3,
-                  "bookingId": 1234138
-                },
-                {
-                  "caseNoteSubType": "BEHAVEWARN",
-                  "caseNoteType": "NEG",
-                  "latestCaseNote": "2022-01-21T09:28:25.673Z",
-                  "numCaseNotes": 2,
-                  "bookingId": 1234134
-                },
-                {
-                  "caseNoteSubType": "IEP_WARN",
-                  "caseNoteType": "NEG",
-                  "latestCaseNote": "2022-01-21T09:28:25.673Z",
-                  "numCaseNotes": 1,
-                  "bookingId": 1234134
-                },
-                {
-                  "caseNoteSubType": "WORKWARN",
-                  "caseNoteType": "NEG",
-                  "latestCaseNote": "2022-01-21T09:28:25.673Z",
-                  "numCaseNotes": 3,
-                  "bookingId": 1234135
-                },
-                {
-                  "caseNoteSubType": "NEG_GEN",
-                  "caseNoteType": "NEG",
-                  "latestCaseNote": "2022-01-21T09:28:25.673Z",
-                  "numCaseNotes": 2,
-                  "bookingId": 1234136
-                },
-                {
-                  "caseNoteSubType": "NEG_GEN",
-                  "caseNoteType": "NEG",
-                  "latestCaseNote": "2022-01-21T09:28:25.673Z",
-                  "numCaseNotes": 1,
-                  "bookingId": 1234137
-                },
-                {
-                  "caseNoteSubType": "NEG_GEN",
-                  "caseNoteType": "NEG",
-                  "latestCaseNote": "2022-01-21T09:28:25.673Z",
-                  "numCaseNotes": 5,
-                  "bookingId": 1234138
-                },
-                {
-                  "caseNoteSubType": "IEP_WARN",
-                  "caseNoteType": "NEG",
-                  "latestCaseNote": "2022-01-21T09:28:25.673Z",
-                  "numCaseNotes": 4,
-                  "bookingId": 1234138
-                }
-              ]
-              """,
-            ),
-        ),
+    val prisonerResponses = mapOf(
+      "A1234AA" to """
+        {
+          "content": {
+            "A1234AA": [
+              {
+                "personIdentifier": "A1234AA",
+                "type": "POS",
+                "subType": "POS_GEN",
+                "count": 2,
+                "latestNote": { "occurredAt": "2022-01-21T09:28:25.673Z" }
+              },
+              {
+                "personIdentifier": "A1234AA",
+                "type": "POS",
+                "subType": "IEP_ENC",
+                "count": 1,
+                "latestNote": { "occurredAt": "2022-01-21T09:28:25.673Z" }
+              },
+              {
+                "personIdentifier": "A1234AA",
+                "type": "NEG",
+                "subType": "BEHAVEWARN",
+                "count": 2,
+                "latestNote": { "occurredAt": "2022-01-21T09:28:25.673Z" }
+              },
+              {
+                "personIdentifier": "A1234AA",
+                "type": "NEG",
+                "subType": "IEP_WARN",
+                "count": 1,
+                "latestNote": { "occurredAt": "2022-01-21T09:28:25.673Z" }
+              }
+            ]
+          }
+        }
+      """,
+      "A1234AB" to """
+        {
+          "content": {
+            "A1234AB": [
+              {
+                "personIdentifier": "A1234AB",
+                "type": "POS",
+                "subType": "QUAL_ATT",
+                "count": 3,
+                "latestNote": { "occurredAt": "2022-01-21T09:28:25.673Z" }
+              },
+              {
+                "personIdentifier": "A1234AB",
+                "type": "NEG",
+                "subType": "WORKWARN",
+                "count": 3,
+                "latestNote": { "occurredAt": "2022-01-21T09:28:25.673Z" }
+              }
+            ]
+          }
+        }
+      """,
+      "A1234AC" to """
+        {
+          "content": {
+            "A1234AC": [
+              {
+                "personIdentifier": "A1234AC",
+                "type": "POS",
+                "subType": "POS_GEN",
+                "count": 2,
+                "latestNote": { "occurredAt": "2022-01-21T09:28:25.673Z" }
+              },
+              {
+                "personIdentifier": "A1234AC",
+                "type": "NEG",
+                "subType": "NEG_GEN",
+                "count": 2,
+                "latestNote": { "occurredAt": "2022-01-21T09:28:25.673Z" }
+              }
+            ]
+          }
+        }
+      """,
+      "A1234AD" to """
+        {
+          "content": {
+            "A1234AD": [
+              {
+                "personIdentifier": "A1234AD",
+                "type": "POS",
+                "subType": "IEP_ENC",
+                "count": 1,
+                "latestNote": { "occurredAt": "2022-01-21T09:28:25.673Z" }
+              },
+              {
+                "personIdentifier": "A1234AD",
+                "type": "NEG",
+                "subType": "NEG_GEN",
+                "count": 1,
+                "latestNote": { "occurredAt": "2022-01-21T09:28:25.673Z" }
+              }
+            ]
+          }
+        }
+      """,
+      "A1234AE" to """
+        {
+          "content": {
+            "A1234AE": [
+              {
+                "personIdentifier": "A1234AE",
+                "type": "POS",
+                "subType": "POS_GEN",
+                "count": 5,
+                "latestNote": { "occurredAt": "2022-01-21T09:28:25.673Z" }
+              },
+              {
+                "personIdentifier": "A1234AE",
+                "type": "POS",
+                "subType": "IEP_ENC",
+                "count": 3,
+                "latestNote": { "occurredAt": "2022-01-21T09:28:25.673Z" }
+              },
+              {
+                "personIdentifier": "A1234AE",
+                "type": "NEG",
+                "subType": "NEG_GEN",
+                "count": 5,
+                "latestNote": { "occurredAt": "2022-01-21T09:28:25.673Z" }
+              },
+              {
+                "personIdentifier": "A1234AE",
+                "type": "NEG",
+                "subType": "IEP_WARN",
+                "count": 4,
+                "latestNote": { "occurredAt": "2022-01-21T09:28:25.673Z" }
+              }
+            ]
+          }
+        }
+      """,
     )
+
+    prisonerResponses.forEach { (personIdentifier, body) ->
+      stubFor(
+        post("/case-notes/usage")
+          .withRequestBody(matchingJsonPath("$.personIdentifiers[0]", equalTo(personIdentifier)))
+          .willReturn(
+            aResponse()
+              .withHeader("Content-Type", "application/json")
+              .withBody(body),
+          ),
+      )
+    }
   }
 }

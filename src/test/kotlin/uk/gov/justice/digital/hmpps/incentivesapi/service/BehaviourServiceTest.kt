@@ -5,11 +5,12 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.casenoteapi.PrisonerCaseNoteByTypeSubType
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDateTime
@@ -28,6 +29,7 @@ class BehaviourServiceTest {
     val reviews = listOf(
       prisonerIepLevel(
         bookingId = 110001,
+        prisonerNumber = "110001",
         iepCode = "STD",
         current = true,
         reviewType = ReviewType.TRANSFER,
@@ -36,6 +38,7 @@ class BehaviourServiceTest {
       // real review
       prisonerIepLevel(
         bookingId = 110001,
+        prisonerNumber = "110001",
         iepCode = "STD",
         current = false,
         reviewType = ReviewType.REVIEW,
@@ -43,6 +46,7 @@ class BehaviourServiceTest {
       ),
       prisonerIepLevel(
         bookingId = 110001,
+        prisonerNumber = "110001",
         iepCode = "STD",
         current = false,
         reviewType = ReviewType.INITIAL,
@@ -52,6 +56,7 @@ class BehaviourServiceTest {
       // real review
       prisonerIepLevel(
         bookingId = 110002,
+        prisonerNumber = "110002",
         iepCode = "ENH",
         current = true,
         reviewType = ReviewType.REVIEW,
@@ -59,6 +64,7 @@ class BehaviourServiceTest {
       ),
       prisonerIepLevel(
         bookingId = 110002,
+        prisonerNumber = "110002",
         iepCode = "STD",
         current = false,
         reviewType = ReviewType.TRANSFER,
@@ -66,6 +72,7 @@ class BehaviourServiceTest {
       ),
       prisonerIepLevel(
         bookingId = 110002,
+        prisonerNumber = "110002",
         iepCode = "STD",
         current = false,
         reviewType = ReviewType.REVIEW,
@@ -73,6 +80,7 @@ class BehaviourServiceTest {
       ),
       prisonerIepLevel(
         bookingId = 110002,
+        prisonerNumber = "110002",
         iepCode = "STD",
         current = false,
         reviewType = ReviewType.INITIAL,
@@ -82,6 +90,7 @@ class BehaviourServiceTest {
       // presumed to be real review
       prisonerIepLevel(
         bookingId = 110003,
+        prisonerNumber = "110003",
         iepCode = "STD",
         current = true,
         reviewType = ReviewType.MIGRATED,
@@ -90,6 +99,7 @@ class BehaviourServiceTest {
 
       prisonerIepLevel(
         bookingId = 110004,
+        prisonerNumber = "110004",
         iepCode = "STD",
         current = true,
         reviewType = ReviewType.INITIAL,
@@ -99,6 +109,7 @@ class BehaviourServiceTest {
       // real review
       prisonerIepLevel(
         bookingId = 110005,
+        prisonerNumber = "110005",
         iepCode = "BAS",
         current = true,
         reviewType = ReviewType.REVIEW,
@@ -106,6 +117,7 @@ class BehaviourServiceTest {
       ),
       prisonerIepLevel(
         bookingId = 110005,
+        prisonerNumber = "110005",
         iepCode = "STD",
         current = false,
         reviewType = ReviewType.MIGRATED,
@@ -130,74 +142,140 @@ class BehaviourServiceTest {
     )
 
     runBlocking {
+      val typeSubType = setOf(TypeSubTypeRequest(type = "POS"), TypeSubTypeRequest(type = "NEG"))
       whenever(
         caseNotesApiService.retrieveCaseNoteCountsByFromDate(
-          listOf("POS", "NEG"),
-          prisonerByLastReviewDateOrDefaultPeriod,
+          typeSubType,
+          setOf("110001"),
+          prisonerByLastReviewDateOrDefaultPeriod[110001L]!!,
         ),
       ).thenReturn(
         flowOf(
-          PrisonerCaseNoteByTypeSubType(
-            bookingId = 110001,
-            caseNoteType = "POS",
-            caseNoteSubType = "IEP_ENC",
-            numCaseNotes = 2,
+          NoteUsageResponse(
+            mapOf(
+              "110001" to listOf(
+                UsageByPersonIdentifierResponse(
+                  personIdentifier = "110001",
+                  type = "POS",
+                  subType = "IEP_ENC",
+                  count = 2,
+                ),
+                UsageByPersonIdentifierResponse(
+                  personIdentifier = "110001",
+                  type = "POS",
+                  subType = "QUAL_ATT",
+                  count = 1,
+                ),
+                UsageByPersonIdentifierResponse(
+                  personIdentifier = "110001",
+                  type = "POS",
+                  subType = "POS_GEN",
+                  count = 1,
+                ),
+                UsageByPersonIdentifierResponse(
+                  personIdentifier = "110001",
+                  type = "NEG",
+                  subType = "IEP_WARN",
+                  count = 1,
+                ),
+                UsageByPersonIdentifierResponse(
+                  personIdentifier = "110001",
+                  type = "NEG",
+                  subType = "BEHAVEWARN",
+                  count = 1,
+                ),
+              ),
+            ),
           ),
-          PrisonerCaseNoteByTypeSubType(
-            bookingId = 110001,
-            caseNoteType = "POS",
-            caseNoteSubType = "QUAL_ATT",
-            numCaseNotes = 1,
-          ),
-          PrisonerCaseNoteByTypeSubType(
-            bookingId = 110001,
-            caseNoteType = "POS",
-            caseNoteSubType = "POS_GEN",
-            numCaseNotes = 1,
-          ),
-          PrisonerCaseNoteByTypeSubType(
-            bookingId = 110001,
-            caseNoteType = "NEG",
-            caseNoteSubType = "IEP_WARN",
-            numCaseNotes = 1,
-          ),
-          PrisonerCaseNoteByTypeSubType(
-            bookingId = 110001,
-            caseNoteType = "NEG",
-            caseNoteSubType = "BEHAVEWARN",
-            numCaseNotes = 1,
-          ),
-
-          PrisonerCaseNoteByTypeSubType(
-            bookingId = 110002,
-            caseNoteType = "POS",
-            caseNoteSubType = "IEP_ENC",
-            numCaseNotes = 1,
-          ),
-          PrisonerCaseNoteByTypeSubType(
-            bookingId = 110002,
-            caseNoteType = "POS",
-            caseNoteSubType = "QUAL_ATT",
-            numCaseNotes = 10,
-          ),
-
-          PrisonerCaseNoteByTypeSubType(
-            bookingId = 110003,
-            caseNoteType = "NEG",
-            caseNoteSubType = "BEHAVEWARN",
-            numCaseNotes = 3,
-          ),
-
-          PrisonerCaseNoteByTypeSubType(
-            bookingId = 110004,
-            caseNoteType = "POS",
-            caseNoteSubType = "IEP_ENC",
-            numCaseNotes = 1,
-          ),
-
         ),
       )
 
+      whenever(
+        caseNotesApiService.retrieveCaseNoteCountsByFromDate(
+          typeSubType,
+          setOf("110002"),
+          prisonerByLastReviewDateOrDefaultPeriod[110002L]!!,
+        ),
+      ).thenReturn(
+        flowOf(
+          NoteUsageResponse(
+            mapOf(
+              "110002" to listOf(
+                UsageByPersonIdentifierResponse(
+                  personIdentifier = "110002",
+                  type = "POS",
+                  subType = "IEP_ENC",
+                  count = 1,
+                ),
+                UsageByPersonIdentifierResponse(
+                  personIdentifier = "110002",
+                  type = "POS",
+                  subType = "QUAL_ATT",
+                  count = 10,
+                ),
+              ),
+            ),
+          ),
+        ),
+      )
+
+      whenever(
+        caseNotesApiService.retrieveCaseNoteCountsByFromDate(
+          typeSubType,
+          setOf("110003"),
+          prisonerByLastReviewDateOrDefaultPeriod[110003L]!!,
+        ),
+      ).thenReturn(
+        flowOf(
+          NoteUsageResponse(
+            mapOf(
+              "110003" to listOf(
+                UsageByPersonIdentifierResponse(
+                  personIdentifier = "110003",
+                  type = "NEG",
+                  subType = "BEHAVEWARN",
+                  count = 3,
+                ),
+              ),
+            ),
+          ),
+        ),
+      )
+
+      whenever(
+        caseNotesApiService.retrieveCaseNoteCountsByFromDate(
+          typeSubType,
+          setOf("110004"),
+          prisonerByLastReviewDateOrDefaultPeriod[110004L]!!,
+        ),
+      ).thenReturn(
+        flowOf(
+          NoteUsageResponse(
+            mapOf(
+              "110004" to listOf(
+                UsageByPersonIdentifierResponse(
+                  personIdentifier = "110004",
+                  type = "POS",
+                  subType = "IEP_ENC",
+                  count = 1,
+                ),
+              ),
+            ),
+          ),
+        ),
+      )
+
+      whenever(
+        caseNotesApiService.retrieveCaseNoteCountsByFromDate(
+          typeSubType,
+          setOf("110005"),
+          prisonerByLastReviewDateOrDefaultPeriod[110005L]!!,
+        ),
+      ).thenReturn(
+        flowOf(
+          NoteUsageResponse(emptyMap()),
+        ),
+      )
       val behaviours = behaviourService.getBehaviours(reviews)
 
       assertThat(behaviours.caseNoteCountsByType).isEqualTo(
@@ -221,7 +299,12 @@ class BehaviourServiceTest {
 
       verify(
         caseNotesApiService,
-      ).retrieveCaseNoteCountsByFromDate(listOf("POS", "NEG"), prisonerByLastReviewDateOrDefaultPeriod)
+        times(5),
+      ).retrieveCaseNoteCountsByFromDate(
+        any(),
+        any(),
+        any(),
+      )
     }
   }
 }

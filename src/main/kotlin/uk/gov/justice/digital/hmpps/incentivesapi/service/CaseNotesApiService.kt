@@ -4,9 +4,6 @@ import kotlinx.coroutines.flow.Flow
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToFlow
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.casenoteapi.BookingFromDatePair
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.casenoteapi.CaseNoteUsageTypesRequest
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.casenoteapi.PrisonerCaseNoteByTypeSubType
 import java.time.LocalDateTime
 
 @Service
@@ -15,16 +12,45 @@ class CaseNotesApiService(
 ) {
 
   fun retrieveCaseNoteCountsByFromDate(
-    types: List<String>,
-    prisonerByLastReviewDate: Map<Long, LocalDateTime>,
-  ): Flow<PrisonerCaseNoteByTypeSubType> = caseNoteApiClientClientCredentials.post()
+    typeSubType: Set<TypeSubTypeRequest>,
+    personIdentifiers: Set<String>,
+    from: LocalDateTime,
+  ): Flow<NoteUsageResponse> = caseNoteApiClientClientCredentials.post()
     .uri("/case-notes/usage")
     .bodyValue(
-      CaseNoteUsageTypesRequest(
-        types = types,
-        bookingFromDateSelection = prisonerByLastReviewDate.map { BookingFromDatePair(it.key, it.value) },
+      UsageByPersonIdentifierRequest(
+        typeSubTypes = typeSubType,
+        personIdentifiers = personIdentifiers,
+        from = from,
       ),
     )
     .retrieve()
     .bodyToFlow()
 }
+
+data class UsageByPersonIdentifierRequest(
+  val typeSubTypes: Set<TypeSubTypeRequest> = emptySet(),
+  val from: LocalDateTime? = null,
+  val personIdentifiers: Set<String> = setOf(),
+)
+
+data class TypeSubTypeRequest(
+  val type: String,
+  val subTypes: Set<String> = setOf(),
+)
+
+data class NoteUsageResponse(
+  val content: Map<String, List<UsageByPersonIdentifierResponse>>,
+)
+
+data class UsageByPersonIdentifierResponse(
+  val personIdentifier: String,
+  val type: String,
+  val subType: String,
+  val count: Int,
+  val latestNote: LatestNote? = null,
+)
+
+data class LatestNote(
+  val occurredAt: LocalDateTime,
+)
