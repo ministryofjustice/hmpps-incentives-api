@@ -2,7 +2,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 
 import kotlinx.coroutines.flow.toList
 import org.springframework.stereotype.Service
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerCaseNoteByTypeSubType
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.casenoteapi.PrisonerCaseNoteByTypeSubType
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import java.time.Clock
 import java.time.LocalDateTime
@@ -11,7 +11,7 @@ const val DEFAULT_MONTHS = 3L
 
 @Service
 class BehaviourService(
-  private val prisonApiService: PrisonApiService,
+  private val caseNotesApiService: CaseNotesApiService,
   private val clock: Clock,
 ) {
   private val behaviourCaseNoteMap = mapOf("POS" to "IEP_ENC", "NEG" to "IEP_WARN")
@@ -20,7 +20,7 @@ class BehaviourService(
     val lastRealReviews = getLastRealReviewForPrisoners(reviews)
     val lastReviewsOrDefaultPeriods = lastRealReviews.mapValues { truncateReviewDate(it.value) }
     val caseNoteCountsByType = getCaseNoteUsageByLastReviewDate(
-      prisonApiService.retrieveCaseNoteCountsByFromDate(
+      caseNotesApiService.retrieveCaseNoteCountsByFromDate(
         behaviourCaseNoteMap.keys.toList(),
         lastReviewsOrDefaultPeriods,
       ).toList(),

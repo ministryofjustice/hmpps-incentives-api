@@ -15,6 +15,7 @@ api:
       prison: http://localhost:8093
       prisoner-search: http://localhost:8094
       locations: http://localhost:8095
+      case-notes: http://localhost:8096
 
 spring:
   flyway:

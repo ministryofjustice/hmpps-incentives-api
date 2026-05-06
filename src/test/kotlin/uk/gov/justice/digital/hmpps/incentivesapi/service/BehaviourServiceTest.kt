@@ -9,7 +9,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
-import uk.gov.justice.digital.hmpps.incentivesapi.dto.prisonapi.PrisonerCaseNoteByTypeSubType
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.casenoteapi.PrisonerCaseNoteByTypeSubType
 import java.time.Clock
 import java.time.Instant
 import java.time.LocalDateTime
@@ -17,9 +17,9 @@ import java.time.ZoneId
 
 @DisplayName("Behaviour service")
 class BehaviourServiceTest {
-  private val prisonApiService: PrisonApiService = mock()
+  private val caseNotesApiService: CaseNotesApiService = mock()
   private var clock: Clock = Clock.fixed(Instant.parse("2022-08-01T12:45:00.00Z"), ZoneId.of("Europe/London"))
-  private val behaviourService = BehaviourService(prisonApiService, clock)
+  private val behaviourService = BehaviourService(caseNotesApiService, clock)
 
   private val timeNow = LocalDateTime.now(clock)
 
@@ -131,7 +131,7 @@ class BehaviourServiceTest {
 
     runBlocking {
       whenever(
-        prisonApiService.retrieveCaseNoteCountsByFromDate(
+        caseNotesApiService.retrieveCaseNoteCountsByFromDate(
           listOf("POS", "NEG"),
           prisonerByLastReviewDateOrDefaultPeriod,
         ),
@@ -220,7 +220,7 @@ class BehaviourServiceTest {
       assertThat(behaviours.lastRealReviews).isEqualTo(prisonerByLastRealReviewDate)
 
       verify(
-        prisonApiService,
+        caseNotesApiService,
       ).retrieveCaseNoteCountsByFromDate(listOf("POS", "NEG"), prisonerByLastReviewDateOrDefaultPeriod)
     }
   }

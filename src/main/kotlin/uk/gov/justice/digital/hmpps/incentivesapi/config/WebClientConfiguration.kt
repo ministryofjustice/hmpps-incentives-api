@@ -19,6 +19,7 @@ class WebClientConfiguration(
   @param:Value($$"${api.base.url.prison}") private val prisonRootUri: String,
   @param:Value($$"${api.base.url.prisoner-search}") private val prisonerSearchUri: String,
   @param:Value($$"${api.base.url.locations}") private val locationsUri: String,
+  @param:Value($$"${api.base.url.case-notes}") private val caseNotesApiUri: String,
   @param:Value($$"${api.health-timeout:10s}") val healthTimeout: Duration,
   @param:Value($$"${api.timeout:2m}") val timeout: Duration,
 ) {
@@ -46,6 +47,17 @@ class WebClientConfiguration(
     reactiveAuthorizedClientManager,
     registrationId = SYSTEM_USERNAME,
     url = prisonRootUri,
+    timeout,
+  )
+
+  @Bean
+  fun caseNoteApiClientClientCredentials(
+    reactiveAuthorizedClientManager: ReactiveOAuth2AuthorizedClientManager,
+    builder: WebClient.Builder,
+  ): WebClient = builder.reactiveAuthorisedWebClient(
+    reactiveAuthorizedClientManager,
+    registrationId = SYSTEM_USERNAME,
+    url = caseNotesApiUri,
     timeout,
   )
 
