@@ -18,7 +18,7 @@ class CaseNotesApiService(
     types: List<String>,
     prisonerByLastReviewDate: Map<Long, LocalDateTime>,
   ): Flow<PrisonerCaseNoteByTypeSubType> = caseNoteApiClientClientCredentials.post()
-    .uri("/api/case-notes/usage")
+    .uri("/case-notes/usage")
     .bodyValue(
       CaseNoteUsageTypesRequest(
         types = types,
