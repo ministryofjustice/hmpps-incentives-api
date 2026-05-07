@@ -10,6 +10,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.reactive.server.WebTestClient
 import uk.gov.justice.digital.hmpps.incentivesapi.helper.TestBase
+import uk.gov.justice.digital.hmpps.incentivesapi.integration.wiremock.CaseNotesApiMockServer
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.wiremock.HmppsAuthMockServer
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.wiremock.LocationsMockServer
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.wiremock.PrisonApiMockServer
@@ -40,6 +41,9 @@ abstract class IntegrationTestBase : TestBase() {
     @JvmField
     val locationsMockServer = LocationsMockServer()
 
+    @JvmField
+    val caseNotesApiMockServer = CaseNotesApiMockServer()
+
     @BeforeAll
     @JvmStatic
     fun startMocks() {
@@ -49,11 +53,13 @@ abstract class IntegrationTestBase : TestBase() {
       prisonApiMockServer.start()
       prisonerSearchMockServer.start()
       locationsMockServer.start()
+      caseNotesApiMockServer.start()
     }
 
     @AfterAll
     @JvmStatic
     fun stopMocks() {
+      caseNotesApiMockServer.stop()
       locationsMockServer.stop()
       prisonerSearchMockServer.stop()
       prisonApiMockServer.stop()
