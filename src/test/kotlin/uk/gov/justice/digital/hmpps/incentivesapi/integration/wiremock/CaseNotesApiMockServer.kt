@@ -2,7 +2,6 @@ package uk.gov.justice.digital.hmpps.incentivesapi.integration.wiremock
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
-import com.github.tomakehurst.wiremock.client.WireMock.equalTo
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath
 import com.github.tomakehurst.wiremock.client.WireMock.post
@@ -168,7 +167,7 @@ class CaseNotesApiMockServer : WireMockServer(WIREMOCK_PORT) {
     prisonerResponses.forEach { (personIdentifier, body) ->
       stubFor(
         post("/case-notes/usage")
-          .withRequestBody(matchingJsonPath("$.personIdentifiers[0]", equalTo(personIdentifier)))
+          .withRequestBody(matchingJsonPath("$.personIdentifiers[?(@ == '$personIdentifier')]"))
           .willReturn(
             aResponse()
               .withHeader("Content-Type", "application/json")

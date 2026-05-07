@@ -219,10 +219,11 @@ class BehaviourServiceTest {
         ),
       )
 
+      // 110003, 110004, 110005 all truncate to the same default period — batched into one call
       whenever(
         caseNotesApiService.retrieveCaseNoteCountsByFromDate(
           typeSubType,
-          setOf("110003"),
+          setOf("110003", "110004", "110005"),
           prisonerByLastReviewDateOrDefaultPeriod[110003L]!!,
         ),
       ).thenReturn(
@@ -237,21 +238,6 @@ class BehaviourServiceTest {
                   count = 3,
                 ),
               ),
-            ),
-          ),
-        ),
-      )
-
-      whenever(
-        caseNotesApiService.retrieveCaseNoteCountsByFromDate(
-          typeSubType,
-          setOf("110004"),
-          prisonerByLastReviewDateOrDefaultPeriod[110004L]!!,
-        ),
-      ).thenReturn(
-        flowOf(
-          NoteUsageResponse(
-            mapOf(
               "110004" to listOf(
                 UsageByPersonIdentifierResponse(
                   personIdentifier = "110004",
@@ -262,18 +248,6 @@ class BehaviourServiceTest {
               ),
             ),
           ),
-        ),
-      )
-
-      whenever(
-        caseNotesApiService.retrieveCaseNoteCountsByFromDate(
-          typeSubType,
-          setOf("110005"),
-          prisonerByLastReviewDateOrDefaultPeriod[110005L]!!,
-        ),
-      ).thenReturn(
-        flowOf(
-          NoteUsageResponse(emptyMap()),
         ),
       )
       val behaviours = behaviourService.getBehaviours(reviews)
@@ -299,7 +273,7 @@ class BehaviourServiceTest {
 
       verify(
         caseNotesApiService,
-        times(5),
+        times(3),
       ).retrieveCaseNoteCountsByFromDate(
         any(),
         any(),

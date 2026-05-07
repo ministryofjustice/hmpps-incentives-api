@@ -28,13 +28,17 @@ class BehaviourService(
 
     val bookingIdToPersonIdentifier = personIdentifierToBookingId.map { it.value to it.key }.toMap()
 
-    val result = lastReviewsOrDefaultPeriods.map { (bookingId, lastReviewTime) ->
-      caseNotesApiService.retrieveCaseNoteCountsByFromDate(
-        typeSubType,
-        setOf(bookingIdToPersonIdentifier[bookingId] ?: error("No prisonerNumber found for bookingId: $bookingId")),
-        from = lastReviewTime,
-      )
-    }
+    val result = lastReviewsOrDefaultPeriods.entries
+      .groupBy({ it.value }) { it.key }
+      .map { (fromDate, bookingIds) ->
+        caseNotesApiService.retrieveCaseNoteCountsByFromDate(
+          typeSubType,
+          bookingIds.map { bookingId ->
+            bookingIdToPersonIdentifier[bookingId] ?: error("No prisonerNumber found for bookingId: $bookingId")
+          }.toSet(),
+          from = fromDate,
+        )
+      }
 
     val caseNotesByType = transformCaseNoteResults(result, personIdentifierToBookingId)
     val caseNoteCountsByType = getCaseNoteUsageByLastReviewDate(caseNotesByType)
