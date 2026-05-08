@@ -281,4 +281,55 @@ class BehaviourServiceTest {
       )
     }
   }
+
+  @Test
+  fun `prisoners sharing default review period are batched into a single API call even with a drifting clock`() {
+    // Simulates a real wall clock that advances by 1ms on each call to now(),
+    // replicating the millisecond drift that occurs in production between successive
+    // calls to LocalDateTime.now(clock) inside truncateReviewDate.
+    var driftMs = 0L
+    val driftingClock = object : Clock() {
+      override fun getZone(): ZoneId = ZoneId.of("Europe/London")
+      override fun withZone(zone: ZoneId): Clock = this
+      override fun instant(): Instant = Instant.parse("2022-08-01T12:45:00.00Z").plusMillis(driftMs++)
+    }
+    val serviceWithDriftingClock = BehaviourService(caseNotesApiService, driftingClock)
+
+    // Three prisoners with only INITIAL reviews — none qualify as a "real" review,
+    // so all three fall back to the default 3-month lookback period.
+    val reviews = listOf(
+      prisonerIepLevel(
+        bookingId = 200001L,
+        prisonerNumber = "200001",
+        reviewType = ReviewType.INITIAL,
+        reviewTime = timeNow.minusMonths(6),
+      ),
+      prisonerIepLevel(
+        bookingId = 200002L,
+        prisonerNumber = "200002",
+        reviewType = ReviewType.INITIAL,
+        reviewTime = timeNow.minusMonths(6),
+      ),
+      prisonerIepLevel(
+        bookingId = 200003L,
+        prisonerNumber = "200003",
+        reviewType = ReviewType.INITIAL,
+        reviewTime = timeNow.minusMonths(6),
+      ),
+    )
+
+    runBlocking {
+      whenever(
+        caseNotesApiService.retrieveCaseNoteCountsByFromDate(any(), any(), any()),
+      ).thenReturn(flowOf(NoteUsageResponse(emptyMap())))
+
+      serviceWithDriftingClock.getBehaviours(reviews)
+
+      // All three prisoners share the same default period, so they must be batched
+      // into a single API call. If the default period is recomputed per prisoner
+      // (the old bug), each prisoner receives a different millisecond-offset
+      // LocalDateTime, groupBy produces 3 distinct keys, and 3 calls are made.
+      verify(caseNotesApiService, times(1)).retrieveCaseNoteCountsByFromDate(any(), any(), any())
+    }
+  }
 }
