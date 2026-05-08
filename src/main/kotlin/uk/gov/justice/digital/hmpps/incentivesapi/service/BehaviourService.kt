@@ -19,9 +19,10 @@ class BehaviourService(
 
   suspend fun getBehaviours(reviews: List<IncentiveReview>): BehaviourSummary {
     val typeSubType = behaviourCaseNoteMap.map { TypeSubTypeRequest(type = it.key) }.toSet()
+    val defaultReviewPeriod = LocalDateTime.now(clock).minusMonths(DEFAULT_MONTHS)
 
     val lastRealReviews = getLastRealReviewForPrisoners(reviews)
-    val lastReviewsOrDefaultPeriods = lastRealReviews.mapValues { truncateReviewDate(it.value) }
+    val lastReviewsOrDefaultPeriods = lastRealReviews.mapValues { truncateReviewDate(it.value, defaultReviewPeriod) }
 
     val personIdentifierToBookingId = reviews.groupBy { it.prisonerNumber }
       .mapValues { review -> review.value.first().bookingId }
@@ -87,8 +88,7 @@ class BehaviourService(
       latestRealReview?.reviewTime
     }
 
-  private fun truncateReviewDate(lastReviewTime: LocalDateTime?): LocalDateTime {
-    val defaultReviewPeriod = LocalDateTime.now(clock).minusMonths(DEFAULT_MONTHS)
+  private fun truncateReviewDate(lastReviewTime: LocalDateTime?, defaultReviewPeriod: LocalDateTime): LocalDateTime {
     return if (lastReviewTime == null || lastReviewTime.isBefore(defaultReviewPeriod)) {
       defaultReviewPeriod
     } else {
