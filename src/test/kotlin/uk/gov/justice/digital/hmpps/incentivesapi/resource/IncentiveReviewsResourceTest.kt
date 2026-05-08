@@ -121,7 +121,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
   inner class Validation {
     @BeforeEach
     fun setUp() {
-      prisonApiMockServer.stubCaseNoteSummary()
+      caseNotesApiMockServer.stubCaseNoteSummary()
     }
 
     @Test
@@ -192,7 +192,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
   fun `loads prisoner details from prisoner search and prison api`() {
     prisonerSearchMockServer.stubFindPrisoners("MDI")
     locationsMockServer.stubGetByKey("MDI-1")
-    prisonApiMockServer.stubCaseNoteSummary()
+    caseNotesApiMockServer.stubCaseNoteSummary()
 
     listOf("BAS", "STD", "ENH", "ENT").forEach { levelCode ->
       listOf("MDI").forEach { prisonId ->
@@ -280,7 +280,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
   @Test
   fun `loads prisoner details even when location description not found`() {
     prisonerSearchMockServer.stubFindPrisoners("MDI")
-    prisonApiMockServer.stubCaseNoteSummary()
+    caseNotesApiMockServer.stubCaseNoteSummary()
     listOf("BAS", "STD", "ENH", "ENT").forEach { levelCode ->
       listOf("MDI").forEach { prisonId ->
         makePrisonIncentiveLevel(prisonId, levelCode)
@@ -367,7 +367,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
   @Test
   fun `loads empty review response when no prisoners found at location`() {
     prisonerSearchMockServer.stubFindPrisoners(prisonId = "MDI", emptyList = true)
-    prisonApiMockServer.stubCaseNoteSummary()
+    caseNotesApiMockServer.stubCaseNoteSummary()
     listOf("BAS", "STD", "ENH", "ENT").forEach { levelCode ->
       listOf("MDI").forEach { prisonId ->
         makePrisonIncentiveLevel(prisonId, levelCode)
@@ -418,7 +418,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
   fun `sorts by provided parameters`(sort: IncentiveReviewSort): Unit = runBlocking {
     prisonerSearchMockServer.stubFindPrisoners("MDI")
     locationsMockServer.stubGetByKey("MDI-1")
-    prisonApiMockServer.stubCaseNoteSummary()
+    caseNotesApiMockServer.stubCaseNoteSummary()
 
     if (sort == IncentiveReviewSort.IS_NEW_TO_PRISON) {
       // convert one prisoner to be "new to prison" so that sorting is possible
@@ -457,7 +457,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
     fun setUp() {
       prisonerSearchMockServer.stubFindPrisoners("MDI")
       locationsMockServer.stubGetByKey("MDI-1")
-      prisonApiMockServer.stubCaseNoteSummary()
+      caseNotesApiMockServer.stubCaseNoteSummary()
     }
 
     private fun loadPage(page: Int) = webTestClient.get()
@@ -507,7 +507,7 @@ class IncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
   fun `describes error when incentive levels not available in DB`(): Unit = runBlocking {
     prisonerSearchMockServer.stubFindPrisoners("MDI")
     locationsMockServer.stubGetByKey("MDI-1")
-    prisonApiMockServer.stubCaseNoteSummary()
+    caseNotesApiMockServer.stubCaseNoteSummary()
 
     incentiveReviewRepository.deleteAll()
 

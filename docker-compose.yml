@@ -20,6 +20,7 @@ services:
       - API_BASE_URL_OAUTH=http://hmpps-auth:8080/auth
       - API_BASE_URL_PRISON=http://prison-api-incentives-api:8080
       - API_BASE_URL_PRISONER_SEARCH=http://prisoner-search:8080
+      - API_BASE_URL_CASE_NOTES=http://case-notes-api:8080
       - SPRING_FLYWAY_URL=jdbc:postgresql://incentives-db:5432/incentives?sslmode=prefer
       - SPRING_R2DBC_URL=r2dbc:postgresql://incentives-db:5432/incentives?sslmode=prefer
       - INCENTIVES_API_CLIENT_ID=omicadmin
@@ -92,6 +93,20 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8080/auth/health"]
     environment:
       - SPRING_PROFILES_ACTIVE=nomis-hsqldb
+
+  case-notes-api:
+    image: ghcr.io/ministryofjustice/offender-case-notes:latest
+    networks:
+      - hmpps
+    container_name: case-notes-api-incentives-api
+    depends_on:
+      - hmpps-auth
+    ports:
+      - "8086:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/auth/health"]
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
 
   incentives-db:
     image: postgres:16

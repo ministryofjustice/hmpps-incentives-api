@@ -54,5 +54,6 @@ class HealthCheckTest : SqsIntegrationTestBase() {
     prisonApiMockServer.stubHealthPing(status)
     prisonerSearchMockServer.stubHealthPing(status)
     locationsMockServer.stubHealthPing(status)
+    caseNotesApiMockServer.stubHealthPing(status)
   }
 }

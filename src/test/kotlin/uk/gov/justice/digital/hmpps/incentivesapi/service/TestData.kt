@@ -71,6 +71,7 @@ fun prisonerIepLevel(
   reviewTime: LocalDateTime,
   current: Boolean = true,
   reviewType: ReviewType = ReviewType.REVIEW,
+  prisonerNumber: String = "A1234AB",
 ) = IncentiveReview(
   levelCode = iepCode,
   prisonId = "MDI",
@@ -78,6 +79,6 @@ fun prisonerIepLevel(
   current = current,
   reviewedBy = "TEST_STAFF1",
   reviewTime = reviewTime,
-  prisonerNumber = "A1234AB",
+  prisonerNumber = prisonerNumber,
   reviewType = reviewType,
 )
