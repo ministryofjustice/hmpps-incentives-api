@@ -5,7 +5,7 @@ import uk.gov.justice.digital.hmpps.gradle.PortForwardRedisTask
 import uk.gov.justice.digital.hmpps.gradle.RevealSecretsTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.2.3"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "10.3.1"
   kotlin("plugin.jpa") version "2.3.21"
   kotlin("plugin.spring") version "2.3.21"
   id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
@@ -29,7 +29,7 @@ repositories {
 }
 
 dependencies {
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:2.2.0")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:2.5.0")
   implementation("org.springframework.boot:spring-boot-starter-webclient")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
   implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
@@ -37,10 +37,10 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-security-oauth2-client")
   implementation("org.springframework.security:spring-security-access")
   implementation("org.springframework.boot:spring-boot-starter-flyway")
-  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:7.3.1")
+  implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:7.3.2")
 
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.10.2")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.11.0")
 
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
   runtimeOnly("org.postgresql:r2dbc-postgresql:1.1.1.RELEASE")
@@ -53,8 +53,8 @@ dependencies {
 
   implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:3.0.3")
 
-  implementation("io.opentelemetry:opentelemetry-extension-kotlin:1.61.0")
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.27.0")
+  implementation("io.opentelemetry:opentelemetry-extension-kotlin:1.62.0")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.28.1")
 
   implementation("org.apache.commons:commons-lang3")
   implementation("org.apache.commons:commons-text:1.15.0")
@@ -63,7 +63,7 @@ dependencies {
 
   implementation("com.pauldijou:jwt-core_2.11:5.0.0")
 
-  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:2.2.0")
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:2.5.0")
   testImplementation("org.springframework.boot:spring-boot-starter-data-r2dbc-test")
   testImplementation("org.springframework.boot:spring-boot-starter-security-test")
   testImplementation("org.springframework.boot:spring-boot-starter-webclient-test")
@@ -78,12 +78,12 @@ dependencies {
   testImplementation("org.testcontainers:testcontainers-localstack:2.0.5")
   testImplementation("org.testcontainers:testcontainers-postgresql:2.0.5")
   testImplementation("io.projectreactor:reactor-test")
-  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
   testImplementation("javax.xml.bind:jaxb-api:2.3.1")
-  testImplementation("io.opentelemetry:opentelemetry-sdk:1.61.0")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-common:1.61.0")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-metrics:1.61.0")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.61.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk:1.62.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-common:1.62.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-metrics:1.62.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.62.0")
 
   if (project.hasProperty("docs")) {
     implementation("com.h2database:h2")
