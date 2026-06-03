@@ -12,26 +12,28 @@ import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean
 import software.amazon.awssdk.services.sqs.model.PurgeQueueRequest
-import uk.gov.justice.digital.hmpps.incentivesapi.config.LocalStackTestcontainer
+import uk.gov.justice.digital.hmpps.incentivesapi.config.LocalStackContainer
+import uk.gov.justice.digital.hmpps.incentivesapi.config.LocalStackContainer.setLocalStackProperties
 import uk.gov.justice.hmpps.sqs.HmppsQueue
 import uk.gov.justice.hmpps.sqs.HmppsQueueService
 import uk.gov.justice.hmpps.sqs.HmppsSqsProperties
 import uk.gov.justice.hmpps.sqs.MissingQueueException
 import uk.gov.justice.hmpps.sqs.MissingTopicException
 import uk.gov.justice.hmpps.sqs.countMessagesOnQueue
+import java.time.Duration
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 class SqsIntegrationTestBase : IntegrationTestBase() {
 
   companion object {
-    private val localstackInstance = LocalStackTestcontainer.instance
+    private val localStackContainer = LocalStackContainer.instance
 
     @Suppress("unused")
     @JvmStatic
     @DynamicPropertySource
-    fun localstackProperties(registry: DynamicPropertyRegistry) {
-      localstackInstance?.let { LocalStackTestcontainer.setupProperties(localstackInstance, registry) }
+    fun testcontainers(registry: DynamicPropertyRegistry) {
+      localStackContainer?.also { setLocalStackProperties(it, registry) }
     }
   }
 
@@ -60,18 +62,19 @@ class SqsIntegrationTestBase : IntegrationTestBase() {
 
   @BeforeEach
   fun cleanQueue() {
-    auditQueue.sqsClient.purgeQueue(PurgeQueueRequest.builder().queueUrl(auditQueue.queueUrl).build())
-    incentivesQueue.sqsClient.purgeQueue(PurgeQueueRequest.builder().queueUrl(incentivesQueue.queueUrl).build())
-    testDomainEventQueue.sqsClient.purgeQueue(
-      PurgeQueueRequest.builder().queueUrl(testDomainEventQueue.queueUrl).build(),
-    )
-    await untilCallTo { auditQueue.sqsClient.countMessagesOnQueue(auditQueue.queueUrl).get() } matches { it == 0 }
-    await untilCallTo { incentivesQueue.sqsClient.countMessagesOnQueue(incentivesQueue.queueUrl).get() } matches
-      { it == 0 }
-    await untilCallTo {
-      testDomainEventQueue.sqsClient.countMessagesOnQueue(testDomainEventQueue.queueUrl).get()
-    } matches
-      { it == 0 }
+    listOf(auditQueue, incentivesQueue, testDomainEventQueue).forEach { it.purgeAndAwaitEmpty() }
+  }
+
+  /**
+   * Purges a queue and waits for it to drain. SQS [PurgeQueueRequest] is asynchronous (and message counts are only
+   * approximate), so this allows generous time for in-flight messages to clear rather than relying on the default
+   * 10s await, which is prone to flaking when a preceding test leaves a message being consumed.
+   */
+  private fun HmppsQueue.purgeAndAwaitEmpty() {
+    sqsClient.purgeQueue(PurgeQueueRequest.builder().queueUrl(queueUrl).build())
+    await.atMost(Duration.ofSeconds(30)) untilCallTo {
+      sqsClient.countMessagesOnQueue(queueUrl).get()
+    } matches { it == 0 }
   }
 
   protected fun jsonString(any: Any) = objectMapper.writeValueAsString(any) as String
