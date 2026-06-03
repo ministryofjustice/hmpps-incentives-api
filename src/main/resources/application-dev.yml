@@ -8,14 +8,13 @@ api:
       prison: http://localhost:8082
       prisoner-search: http://localhost:8083
       locations: http://localhost:8085
+      case-notes: http://localhost:8086
 
 management.endpoint:
   health.cache.time-to-live: 0
   info.cache.time-to-live: 0
 
 spring:
-  devtools:
-    add-properties: true
 
   flyway:
     url: jdbc:postgresql://localhost:5432/incentives?sslmode=prefer
@@ -29,6 +28,3 @@ spring:
     properties:
       sslMode: DISABLE
       sslRootCert:
-
-  feature-toggles:
-    afine: true

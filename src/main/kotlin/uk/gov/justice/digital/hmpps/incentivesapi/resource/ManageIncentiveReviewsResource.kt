@@ -33,9 +33,16 @@ class ManageIncentiveReviewsResource(
   private val prisonerIncentiveReviewService: PrisonerIncentiveReviewService,
 ) {
   @GetMapping("/booking/{bookingId}")
+  @Deprecated(
+    message = "WARNING: this endpoint will be removed in a future release. BookingId will be removed.",
+    replaceWith = ReplaceWith(expression = "incentive-reviews/prisoner/{prisonerNumber}"),
+    level = DeprecationLevel.WARNING,
+  )
   @Operation(
-    summary = "Returns a history of incentive reviews for a prisoner, Requires INCENTIVE_REVIEWS role and read scope",
-    description = "Booking ID is an internal ID for a prisoner in NOMIS",
+    summary = "Deprecated: Please use `/incentive-reviews/prisoner/{prisonerNumber}` instead.",
+    description = "Returns a history of incentive reviews for a prisoner, " +
+      "Requires INCENTIVE_REVIEWS role and read scope.",
+    deprecated = true,
     responses = [
       ApiResponse(
         responseCode = "200",
