@@ -14,6 +14,8 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
 import software.amazon.awssdk.services.sns.model.PublishResponse
+import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.PrisonerAlert
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.SqsIntegrationTestBase
@@ -24,6 +26,7 @@ import uk.gov.justice.digital.hmpps.incentivesapi.service.AdditionalInformation
 import uk.gov.justice.digital.hmpps.incentivesapi.service.AdditionalInformationBookingMoved
 import uk.gov.justice.digital.hmpps.incentivesapi.service.HMPPSBookingMovedDomainEvent
 import uk.gov.justice.digital.hmpps.incentivesapi.service.HMPPSDomainEvent
+import uk.gov.justice.digital.hmpps.incentivesapi.service.HMPPSMessage
 import uk.gov.justice.digital.hmpps.incentivesapi.util.flow.toMap
 import uk.gov.justice.hmpps.sqs.publish
 import java.time.Duration
@@ -170,6 +173,11 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
       prisonerSearchMockServer.getCountFor("/prisoner/$prisonerNumber")
     } matches
       { it == 1 }
+
+    // The survivor's current incentive changed from Standard to Basic, so an iep-review.updated
+    // event is emitted for the survivor so consumers (e.g. prisoner-search) refresh
+    val updatedEvent = awaitDomainEventOfType("incentives.iep-review.updated")
+    assertThat(updatedEvent.additionalInformation?.nomsNumber).isEqualTo(prisonerNumber)
   }
 
   @Test
@@ -313,6 +321,35 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
 
     assertThat(nextReviewDateRepository.findById(bookingId)?.nextReviewDate)
       .isEqualTo(lastReviewTime.plusDays(28).toLocalDate())
+  }
+
+  /**
+   * Drains the test domain-events queue (which may carry several event types, e.g.
+   * next-review-date-changed) until an event of [eventType] is observed, then returns it.
+   */
+  private fun awaitDomainEventOfType(eventType: String): HMPPSDomainEvent {
+    val sqsClient = testDomainEventQueue.sqsClient
+    val collected = mutableListOf<HMPPSDomainEvent>()
+    awaitAtMost30Secs untilCallTo {
+      sqsClient.receiveMessage(
+        ReceiveMessageRequest.builder()
+          .queueUrl(testDomainEventQueue.queueUrl)
+          .maxNumberOfMessages(10)
+          .waitTimeSeconds(1)
+          .build(),
+      ).get().messages().forEach { sqsMessage ->
+        val (message) = objectMapper.readValue(sqsMessage.body(), HMPPSMessage::class.java)
+        collected += objectMapper.readValue(message, HMPPSDomainEvent::class.java)
+        sqsClient.deleteMessage(
+          DeleteMessageRequest.builder()
+            .queueUrl(testDomainEventQueue.queueUrl)
+            .receiptHandle(sqsMessage.receiptHandle())
+            .build(),
+        )
+      }
+      collected.firstOrNull { it.eventType == eventType }
+    } matches { it != null }
+    return collected.first { it.eventType == eventType }
   }
 
   private fun publishPrisonerReceivedMessage(reason: String) = publishDomainEventMessage(

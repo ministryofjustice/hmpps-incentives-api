@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.service
 import jakarta.validation.ValidationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.count
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.toList
@@ -259,6 +260,25 @@ class PrisonerIncentiveReviewService(
     return newIepReview
   }
 
+  private suspend fun currentReviewFor(prisonerNumber: String): IncentiveReview? =
+    incentiveReviewRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(prisonerNumber)
+      .firstOrNull { it.current }
+
+  /**
+   * Publishes an [IncentivesDomainEventType.IEP_REVIEW_UPDATED] domain event when a prisoner's
+   * current incentive review has changed (e.g. after a merge or booking move), so downstream
+   * consumers such as prisoner-search can refresh. No event is published if the current review
+   * is unchanged.
+   */
+  private suspend fun publishIfCurrentReviewChanged(prisonerNumber: String, before: IncentiveReview?) {
+    val after = currentReviewFor(prisonerNumber)
+    val changed = before?.id != after?.id || before?.levelCode != after?.levelCode
+    if (changed && after != null) {
+      val detail = after.toIncentiveReviewDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
+      publishReviewDomainEvent(detail, IncentivesDomainEventType.IEP_REVIEW_UPDATED)
+    }
+  }
+
   private suspend fun publishReviewDomainEvent(
     incentiveReviewDetail: IncentiveReviewDetail,
     eventType: IncentivesDomainEventType,
@@ -297,6 +317,8 @@ class PrisonerIncentiveReviewService(
     val remainingPrisonerNumber = prisonerMergeEvent.additionalInformation.nomsNumber!!
     log.info("Processing merge event: Prisoner Number Merge $removedPrisonerNumber -> $remainingPrisonerNumber")
 
+    val survivorBefore = currentReviewFor(remainingPrisonerNumber)
+
     val activeReviews = incentiveReviewRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(removedPrisonerNumber)
       .map { review -> review.copy(prisonerNumber = remainingPrisonerNumber) }
 
@@ -319,6 +341,7 @@ class PrisonerIncentiveReviewService(
         message,
         SYSTEM_USERNAME,
       )
+      publishIfCurrentReviewChanged(remainingPrisonerNumber, survivorBefore)
     } else {
       log.info("No incentive records found for $removedPrisonerNumber, no records updated")
     }
@@ -330,12 +353,19 @@ class PrisonerIncentiveReviewService(
     val removedPrisonerNumber = bookingMovedEvent.additionalInformation.movedFromNomsNumber
     val remainingPrisonerNumber = bookingMovedEvent.additionalInformation.movedToNomsNumber
     log.info("Moving incentive reviews for booking $bookingId from $removedPrisonerNumber to $remainingPrisonerNumber")
+
+    val movedFromBefore = currentReviewFor(removedPrisonerNumber)
+    val movedToBefore = currentReviewFor(remainingPrisonerNumber)
+
     incentiveReviewRepository.saveAll(
       incentiveReviewRepository.findAllByBookingIdOrderByReviewTimeDesc(bookingId)
         .toList()
         .filter { it.prisonerNumber == removedPrisonerNumber }
         .onEach { it.prisonerNumber = remainingPrisonerNumber },
     ).collect {}
+
+    publishIfCurrentReviewChanged(removedPrisonerNumber, movedFromBefore)
+    publishIfCurrentReviewChanged(remainingPrisonerNumber, movedToBefore)
   }
 }
 

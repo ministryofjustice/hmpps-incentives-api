@@ -12,7 +12,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
@@ -85,6 +87,11 @@ class PrisonerIncentiveReviewServiceTest {
     // Fixes tests which do not explicitly mock findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc
     // while other tests may override the call to the repo
     whenever(incentiveReviewRepository.findAllByBookingIdInAndCurrentIsTrueOrderByReviewTimeDesc(any()))
+      .thenReturn(emptyFlow())
+
+    // Default for the before/after current-review lookups in merge / booking-moved handling.
+    // Tests that exercise a change in current incentive override this for specific prisoner numbers.
+    whenever(incentiveReviewRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(any()))
       .thenReturn(emptyFlow())
 
     whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
@@ -471,7 +478,111 @@ class PrisonerIncentiveReviewServiceTest {
           olderReview.copy(prisonerNumber = "A1244AB"),
         ),
       )
+
+      // Current incentive unchanged (no current-review stubs) so no iep-review.updated event
+      verify(snsService, never()).publishDomainEvent(
+        eventType = eq(IncentivesDomainEventType.IEP_REVIEW_UPDATED),
+        description = any(),
+        occurredAt = any(),
+        additionalInformation = any(),
+      )
     }
+
+    @Test
+    fun `merge publishes iep-review-updated when survivor's current incentive changes`(): Unit = runBlocking {
+      val survivorCurrentBefore = IncentiveReview(
+        id = 3L,
+        prisonerNumber = "A1244AB",
+        bookingId = 1234567L,
+        prisonId = "LEI",
+        reviewedBy = "TEST_STAFF1",
+        levelCode = "STD",
+        current = true,
+        reviewTime = LocalDateTime.now(clock).minusDays(100),
+      )
+      // The removed prisoner's current (Enhanced) review, which the survivor takes on after the merge
+      val survivorCurrentAfter = IncentiveReview(
+        id = 100L,
+        prisonerNumber = "A1244AB",
+        bookingId = 999999L,
+        prisonId = "LEI",
+        reviewedBy = "TEST_STAFF1",
+        levelCode = "ENH",
+        current = true,
+        reviewTime = LocalDateTime.now(clock).minusDays(1),
+      )
+
+      whenever(prisonerSearchService.getPrisonerInfo("A1244AB"))
+        .thenReturn(mockPrisoner(bookingId = 1234567, prisonerNumber = "A1244AB"))
+      whenever(incentiveReviewRepository.findAllByPrisonerNumberOrderByReviewTimeDesc("A8765SS"))
+        .thenReturn(flowOf(survivorCurrentAfter.copy(prisonerNumber = "A8765SS")))
+      // before lookup, then the merge logic's read of the survivor's reviews, then the after lookup
+      whenever(incentiveReviewRepository.findAllByPrisonerNumberOrderByReviewTimeDesc("A1244AB"))
+        .thenReturn(
+          flowOf(survivorCurrentBefore),
+          flowOf(survivorCurrentBefore),
+          flowOf(survivorCurrentAfter),
+        )
+
+      prisonerIncentiveReviewService.processOffenderEvent(prisonerMergedEvent())
+
+      verify(snsService, times(1)).publishDomainEvent(
+        eventType = IncentivesDomainEventType.IEP_REVIEW_UPDATED,
+        description = "An IEP review has been updated",
+        occurredAt = survivorCurrentAfter.reviewTime,
+        additionalInformation = AdditionalInformation(
+          id = 100L,
+          nomsNumber = "A1244AB",
+        ),
+      )
+    }
+
+    @Test
+    fun `booking moved publishes iep-review-updated when moved-to prisoner's current incentive changes`(): Unit =
+      runBlocking {
+        val movedReview = IncentiveReview(
+          id = 10L,
+          prisonerNumber = "A8765SS",
+          bookingId = 1234567L,
+          prisonId = "LEI",
+          reviewedBy = "TEST_STAFF1",
+          levelCode = "ENH",
+          current = true,
+          reviewTime = LocalDateTime.now(clock).minusDays(1),
+        )
+        val movedToBefore = IncentiveReview(
+          id = 5L,
+          prisonerNumber = "A1244AB",
+          bookingId = 222222L,
+          prisonId = "LEI",
+          reviewedBy = "TEST_STAFF1",
+          levelCode = "STD",
+          current = true,
+          reviewTime = LocalDateTime.now(clock).minusDays(5),
+        )
+        val movedToAfter = movedReview.copy(prisonerNumber = "A1244AB")
+
+        whenever(incentiveReviewRepository.findAllByBookingIdOrderByReviewTimeDesc(1234567))
+          .thenReturn(flowOf(movedReview))
+        whenever(incentiveReviewRepository.saveAll(any<List<IncentiveReview>>()))
+          .thenReturn(flowOf())
+        // moved-from prisoner: unchanged current (default empty stub leaves it null before & after)
+        // moved-to prisoner: before lookup then after lookup
+        whenever(incentiveReviewRepository.findAllByPrisonerNumberOrderByReviewTimeDesc("A1244AB"))
+          .thenReturn(flowOf(movedToBefore), flowOf(movedToAfter))
+
+        prisonerIncentiveReviewService.processBookingMovedEvent(bookingMovedEvent())
+
+        verify(snsService, times(1)).publishDomainEvent(
+          eventType = IncentivesDomainEventType.IEP_REVIEW_UPDATED,
+          description = "An IEP review has been updated",
+          occurredAt = movedToAfter.reviewTime,
+          additionalInformation = AdditionalInformation(
+            id = 10L,
+            nomsNumber = "A1244AB",
+          ),
+        )
+      }
 
     @Test
     fun `do not create review if prisoner number is null`(): Unit = runBlocking {
