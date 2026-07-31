@@ -121,6 +121,62 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
   }
 
   @Test
+  fun `prisoner with READMISSION_SWITCH_BOOKING reason is processed`(): Unit = runBlocking {
+    // Given - the prisoner was mistakenly admitted on a new (higher) booking, where this service
+    // recorded the prison's default level, and NOMIS staff have since put them back on the
+    // earlier booking where they hold Enhanced
+    val reinstatedBookingId = 1294100L
+    val mistakenBookingId = 1294200L
+    val prisonerNumber = "A1244AB"
+
+    prisonerSearchMockServer.stubGetPrisonerInfoByPrisonerNumber(reinstatedBookingId, prisonerNumber)
+    prisonApiMockServer.stubGetPrisonerExtraInfo(reinstatedBookingId, prisonerNumber)
+
+    val reinstatedReview = incentiveReviewRepository.save(
+      IncentiveReview(
+        bookingId = reinstatedBookingId,
+        prisonerNumber = prisonerNumber,
+        prisonId = "LEI",
+        reviewedBy = "TEST_STAFF1",
+        levelCode = "ENH",
+        current = true,
+        reviewTime = LocalDateTime.now().minusDays(100),
+      ),
+    )
+    val mistakenReview = incentiveReviewRepository.save(
+      IncentiveReview(
+        bookingId = mistakenBookingId,
+        prisonerNumber = prisonerNumber,
+        prisonId = "MDI",
+        reviewedBy = "INCENTIVES_API",
+        levelCode = "STD",
+        current = true,
+        reviewType = ReviewType.INITIAL,
+        reviewTime = LocalDateTime.now().minusDays(1),
+      ),
+    )
+
+    // When
+    publishPrisonerReceivedMessage("READMISSION_SWITCH_BOOKING")
+
+    awaitAtMost30Secs untilCallTo { getNumberOfMessagesCurrentlyOnQueue() } matches { it == 0 }
+    awaitAtMost30Secs untilCallTo {
+      runBlocking { incentiveReviewRepository.findById(mistakenReview.id)?.current }
+    } matches { it == false }
+
+    // Then - the review on the reinstated booking is the prisoner's current one again
+    val reviews = incentiveReviewRepository.findAll().toMap { it.id }
+    assertThat(reviews[mistakenReview.id]?.current).isFalse()
+    assertThat(reviews[reinstatedReview.id]?.current).isTrue()
+    assertThat(reviews[reinstatedReview.id]?.levelCode).isEqualTo("ENH")
+
+    // and downstream consumers are told the current incentive changed
+    val domainEvent = awaitDomainEventOfType("incentives.iep-review.updated")
+    assertThat(domainEvent.additionalInformation?.nomsNumber).isEqualTo(prisonerNumber)
+    assertThat(domainEvent.additionalInformation?.id).isEqualTo(reinstatedReview.id)
+  }
+
+  @Test
   fun `prisoner with MERGE numbers is processed`(): Unit = runBlocking {
     // Given
     val bookingId = 1294133L
