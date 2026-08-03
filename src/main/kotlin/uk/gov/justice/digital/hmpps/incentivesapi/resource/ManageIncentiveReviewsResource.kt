@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import uk.gov.justice.digital.hmpps.incentivesapi.config.ErrorResponse
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.BookingSwitchRepairResult
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.CreateIncentiveReviewRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewDetail
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewSummary
@@ -211,4 +212,54 @@ class ManageIncentiveReviewsResource(
     createIncentiveReviewRequest: CreateIncentiveReviewRequest,
   ): IncentiveReviewDetail =
     prisonerIncentiveReviewService.addIncentiveReview(prisonerNumber, createIncentiveReviewRequest)
+
+  @PostMapping("/prisoner/{prisonerNumber}/repair-booking-switch")
+  @PreAuthorize("hasRole('ROLE_INCENTIVE_REVIEWS') and hasAuthority('SCOPE_write')")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(
+    summary = "Repairs a prisoner left on the wrong incentive level after NOMIS switched their booking",
+    description = "When a recall is mistakenly admitted onto a new booking and NOMIS staff correct it by " +
+      "re-admitting the prisoner onto their earlier booking, the default-level review written against the " +
+      "mistaken booking stays current and masks the level held on the reinstated booking. This does what the " +
+      "`READMISSION_SWITCH_BOOKING` event now does, for prisoners affected before it was handled or for whom " +
+      "the event was missed, and publishes `incentives.iep-review.updated` so downstream services resync. " +
+      "Safe to re-run: a prisoner who needs no repair is left untouched. " +
+      "Requires INCENTIVE_REVIEWS role and write scope.",
+    responses = [
+      ApiResponse(
+        responseCode = "200",
+        description = "Repair attempted; the response body reports what was changed, if anything",
+      ),
+      ApiResponse(
+        responseCode = "401",
+        description = "Unauthorized to access this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "403",
+        description = "Incorrect permissions to use this endpoint",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+      ApiResponse(
+        responseCode = "404",
+        description = "Prisoner not found",
+        content = [Content(mediaType = "application/json", schema = Schema(implementation = ErrorResponse::class))],
+      ),
+    ],
+  )
+  suspend fun repairAfterBookingSwitch(
+    @Schema(description = "Prisoner Number", example = "A1234AB", required = true, pattern = "^[A-Z0-9]{7}$")
+    @PathVariable
+    prisonerNumber: String,
+    @Schema(
+      description = "Report what would change without writing anything or publishing any events",
+      example = "false",
+      required = false,
+      defaultValue = "false",
+      type = "boolean",
+      pattern = "^true|false$",
+    )
+    @RequestParam(defaultValue = "false", value = "dry-run", required = false)
+    dryRun: Boolean = false,
+  ): BookingSwitchRepairResult = prisonerIncentiveReviewService.repairAfterBookingSwitch(prisonerNumber, dryRun)
 }

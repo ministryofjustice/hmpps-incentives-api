@@ -24,6 +24,7 @@ import org.springframework.transaction.ReactiveTransactionManager
 import org.springframework.transaction.TransactionDefinition
 import org.springframework.transaction.reactive.TransactionalOperator
 import reactor.core.publisher.Mono
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.BookingSwitchRepairOutcome
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.CreateIncentiveReviewRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewDetail
@@ -105,6 +106,50 @@ class PrisonerIncentiveReviewServiceTest {
       .thenReturn(NextReviewDate(bookingId = 0L, nextReviewDate = LocalDate.parse("2023-01-01")))
 
     whenever(incentiveLevelService.getAllIncentiveLevelsMapByCode()).thenReturn(incentiveLevels)
+  }
+
+  /**
+   * A mistaken new booking is corrected in NOMIS by releasing the prisoner and re-admitting them
+   * onto their earlier booking, so the reinstated booking always has the *lower* id. Shared by the
+   * event-driven correction and the repair endpoint, which are the same operation.
+   */
+  private val switchPrisonerNumber = "A1244AB"
+  private val reinstatedBookingId = 1000000L
+  private val mistakenBookingId = 2000000L
+
+  private val reviewOnReinstatedBooking = IncentiveReview(
+    id = 1L,
+    prisonerNumber = switchPrisonerNumber,
+    bookingId = reinstatedBookingId,
+    prisonId = "LEI",
+    reviewedBy = "TEST_STAFF1",
+    levelCode = "ENH",
+    current = true,
+    reviewTime = LocalDateTime.now(clock).minusDays(100),
+  )
+
+  private val reviewOnMistakenBooking = IncentiveReview(
+    id = 2L,
+    prisonerNumber = switchPrisonerNumber,
+    bookingId = mistakenBookingId,
+    prisonId = "MDI",
+    reviewedBy = "INCENTIVES_API",
+    levelCode = "STD",
+    current = true,
+    reviewType = ReviewType.INITIAL,
+    reviewTime = LocalDateTime.now(clock).minusDays(1),
+  )
+
+  private suspend fun stubBookingSwitch(vararg reviews: IncentiveReview) {
+    whenever(prisonerSearchService.getPrisonerInfo(switchPrisonerNumber))
+      .thenReturn(mockPrisoner(bookingId = reinstatedBookingId, prisonerNumber = switchPrisonerNumber))
+    // before snapshot, the handler's own read, then the after snapshot
+    whenever(incentiveReviewRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(switchPrisonerNumber))
+      .thenReturn(flowOf(*reviews), flowOf(*reviews), flowOf(*reviews))
+    whenever(incentiveReviewRepository.saveAll(any<List<IncentiveReview>>())).thenReturn(flowOf())
+    whenever(incentiveReviewRepository.save(any())).thenAnswer { i -> i.arguments[0] }
+    whenever(nextReviewDateUpdaterService.updateWriteOnly(reinstatedBookingId))
+      .thenReturn(NextReviewDateChanges(emptyMap(), emptyList(), emptyMap()))
   }
 
   @DisplayName("add incentive review")
@@ -677,49 +722,6 @@ class PrisonerIncentiveReviewServiceTest {
         )
       }
 
-    /**
-     * A mistaken new booking is corrected in NOMIS by releasing the prisoner and re-admitting them
-     * onto their earlier booking, so the reinstated booking always has the *lower* id.
-     */
-    private val switchPrisonerNumber = "A1244AB"
-    private val reinstatedBookingId = 1000000L
-    private val mistakenBookingId = 2000000L
-
-    private val reviewOnReinstatedBooking = IncentiveReview(
-      id = 1L,
-      prisonerNumber = switchPrisonerNumber,
-      bookingId = reinstatedBookingId,
-      prisonId = "LEI",
-      reviewedBy = "TEST_STAFF1",
-      levelCode = "ENH",
-      current = true,
-      reviewTime = LocalDateTime.now(clock).minusDays(100),
-    )
-
-    private val reviewOnMistakenBooking = IncentiveReview(
-      id = 2L,
-      prisonerNumber = switchPrisonerNumber,
-      bookingId = mistakenBookingId,
-      prisonId = "MDI",
-      reviewedBy = "INCENTIVES_API",
-      levelCode = "STD",
-      current = true,
-      reviewType = ReviewType.INITIAL,
-      reviewTime = LocalDateTime.now(clock).minusDays(1),
-    )
-
-    private suspend fun stubBookingSwitch(vararg reviews: IncentiveReview) {
-      whenever(prisonerSearchService.getPrisonerInfo(switchPrisonerNumber))
-        .thenReturn(mockPrisoner(bookingId = reinstatedBookingId, prisonerNumber = switchPrisonerNumber))
-      // before snapshot, the handler's own read, then the after snapshot
-      whenever(incentiveReviewRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(switchPrisonerNumber))
-        .thenReturn(flowOf(*reviews), flowOf(*reviews), flowOf(*reviews))
-      whenever(incentiveReviewRepository.saveAll(any<List<IncentiveReview>>())).thenReturn(flowOf())
-      whenever(incentiveReviewRepository.save(any())).thenAnswer { i -> i.arguments[0] }
-      whenever(nextReviewDateUpdaterService.updateWriteOnly(reinstatedBookingId))
-        .thenReturn(NextReviewDateChanges(emptyMap(), emptyList(), emptyMap()))
-    }
-
     @Test
     fun `booking switch stands down the review written against the mistaken later booking`(): Unit = runBlocking {
       // Given - the prisoner is back on their earlier booking, but the review this service wrote
@@ -905,6 +907,135 @@ class PrisonerIncentiveReviewServiceTest {
 
       // Then
       verifyNoInteractions(incentiveReviewRepository)
+    }
+  }
+
+  @DisplayName("repair after booking switch")
+  @Nested
+  inner class RepairAfterBookingSwitch {
+
+    @BeforeEach
+    fun setUp(): Unit = runBlocking {
+      whenever(authenticationHolder.getPrincipal()).thenReturn("REPAIR_USER")
+    }
+
+    @Test
+    fun `repairs a prisoner left on the level from a booking NOMIS has switched away from`(): Unit = runBlocking {
+      // Given - the same state the event handler corrects, but for a prisoner whose event was
+      // missed or who was affected before the event was handled at all
+      val notCurrentOnReinstatedBooking = reviewOnReinstatedBooking.copy(current = false)
+      whenever(prisonerSearchService.getPrisonerInfo(switchPrisonerNumber))
+        .thenReturn(mockPrisoner(bookingId = reinstatedBookingId, prisonerNumber = switchPrisonerNumber))
+      whenever(incentiveReviewRepository.saveAll(any<List<IncentiveReview>>())).thenReturn(flowOf())
+      whenever(incentiveReviewRepository.save(any())).thenAnswer { i -> i.arguments[0] }
+      whenever(nextReviewDateUpdaterService.updateWriteOnly(reinstatedBookingId))
+        .thenReturn(NextReviewDateChanges(emptyMap(), emptyList(), emptyMap()))
+      // before snapshot, the repair's own read, then the after snapshot
+      whenever(incentiveReviewRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(switchPrisonerNumber))
+        .thenReturn(
+          flowOf(reviewOnMistakenBooking, notCurrentOnReinstatedBooking),
+          flowOf(reviewOnMistakenBooking, notCurrentOnReinstatedBooking),
+          flowOf(reviewOnReinstatedBooking),
+        )
+
+      // When
+      val result = prisonerIncentiveReviewService.repairAfterBookingSwitch(switchPrisonerNumber)
+
+      // Then
+      assertThat(result.outcome).isEqualTo(BookingSwitchRepairOutcome.REPAIRED)
+      assertThat(result.dryRun).isFalse()
+      assertThat(result.bookingId).isEqualTo(reinstatedBookingId)
+      assertThat(result.levelCodeBefore).isEqualTo("STD")
+      assertThat(result.levelCodeAfter).isEqualTo("ENH")
+      assertThat(result.reviewIdsStoodDown).isEqualTo(listOf(reviewOnMistakenBooking.id))
+      assertThat(result.reviewIdReinstated).isEqualTo(reviewOnReinstatedBooking.id)
+
+      @Suppress("UnusedFlow")
+      verify(incentiveReviewRepository).saveAll(listOf(reviewOnMistakenBooking.copy(current = false, new = false)))
+      verify(incentiveReviewRepository).save(notCurrentOnReinstatedBooking.copy(current = true, new = false))
+      verify(nextReviewDateUpdaterService, times(1)).updateWriteOnly(reinstatedBookingId)
+    }
+
+    @Test
+    fun `repair publishes iep-review-updated so downstream services resync`(): Unit = runBlocking {
+      // Given - a database-level fix could not do this, which is why the repair is an endpoint
+      whenever(prisonerSearchService.getPrisonerInfo(switchPrisonerNumber))
+        .thenReturn(mockPrisoner(bookingId = reinstatedBookingId, prisonerNumber = switchPrisonerNumber))
+      whenever(incentiveReviewRepository.saveAll(any<List<IncentiveReview>>())).thenReturn(flowOf())
+      whenever(nextReviewDateUpdaterService.updateWriteOnly(reinstatedBookingId))
+        .thenReturn(NextReviewDateChanges(emptyMap(), emptyList(), emptyMap()))
+      whenever(incentiveReviewRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(switchPrisonerNumber))
+        .thenReturn(
+          flowOf(reviewOnMistakenBooking, reviewOnReinstatedBooking),
+          flowOf(reviewOnMistakenBooking, reviewOnReinstatedBooking),
+          flowOf(reviewOnReinstatedBooking),
+        )
+
+      // When
+      prisonerIncentiveReviewService.repairAfterBookingSwitch(switchPrisonerNumber)
+
+      // Then
+      verify(snsService, times(1)).publishDomainEvent(
+        eventType = IncentivesDomainEventType.IEP_REVIEW_UPDATED,
+        description = "An IEP review has been updated",
+        occurredAt = reviewOnReinstatedBooking.reviewTime,
+        additionalInformation = AdditionalInformation(
+          id = reviewOnReinstatedBooking.id,
+          nomsNumber = switchPrisonerNumber,
+        ),
+      )
+      // audited against the caller rather than the service, since a person asked for this
+      verify(auditService, times(1)).sendMessage(
+        eq(AuditType.PRISONER_BOOKING_SWITCHED),
+        eq(switchPrisonerNumber),
+        any(),
+        eq("REPAIR_USER"),
+      )
+    }
+
+    @Test
+    fun `dry run reports the repair without writing anything or publishing events`(): Unit = runBlocking {
+      // Given
+      stubBookingSwitch(reviewOnMistakenBooking, reviewOnReinstatedBooking)
+
+      // When
+      val result = prisonerIncentiveReviewService.repairAfterBookingSwitch(switchPrisonerNumber, dryRun = true)
+
+      // Then
+      assertThat(result.outcome).isEqualTo(BookingSwitchRepairOutcome.REPAIRED)
+      assertThat(result.dryRun).isTrue()
+      assertThat(result.levelCodeBefore).isEqualTo("STD")
+      assertThat(result.levelCodeAfter).isEqualTo("ENH")
+      assertThat(result.reviewIdsStoodDown).isEqualTo(listOf(reviewOnMistakenBooking.id))
+
+      @Suppress("UnusedFlow")
+      verify(incentiveReviewRepository, never()).saveAll(any<List<IncentiveReview>>())
+      verify(incentiveReviewRepository, never()).save(any())
+      verify(nextReviewDateUpdaterService, never()).updateWriteOnly(any())
+      verifyNoInteractions(snsService)
+      verifyNoInteractions(auditService)
+    }
+
+    @Test
+    fun `repairing a prisoner who is already correct is a safe no-op`(): Unit = runBlocking {
+      // Given - so the repair can be re-run over the whole list without checking first
+      stubBookingSwitch(reviewOnReinstatedBooking)
+
+      // When
+      val result = prisonerIncentiveReviewService.repairAfterBookingSwitch(switchPrisonerNumber)
+
+      // Then
+      assertThat(result.outcome).isEqualTo(BookingSwitchRepairOutcome.NOTHING_TO_DO)
+      assertThat(result.levelCodeBefore).isEqualTo("ENH")
+      assertThat(result.levelCodeAfter).isEqualTo("ENH")
+      assertThat(result.reviewIdsStoodDown).isEmpty()
+      assertThat(result.reviewIdReinstated).isNull()
+
+      @Suppress("UnusedFlow")
+      verify(incentiveReviewRepository, never()).saveAll(any<List<IncentiveReview>>())
+      verify(incentiveReviewRepository, never()).save(any())
+      verifyNoInteractions(snsService)
+      verifyNoInteractions(auditService)
     }
   }
 
