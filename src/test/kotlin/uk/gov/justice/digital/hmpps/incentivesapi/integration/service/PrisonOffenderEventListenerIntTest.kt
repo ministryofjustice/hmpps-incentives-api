@@ -170,6 +170,17 @@ class PrisonOffenderEventListenerIntTest : SqsIntegrationTestBase() {
     assertThat(reviews[reinstatedReview.id]?.current).isTrue()
     assertThat(reviews[reinstatedReview.id]?.levelCode).isEqualTo("ENH")
 
+    // and the prisoner reads back as Enhanced. Asserting the flags alone is not enough: the
+    // stood-down review is newer by review time, so a read that took the newest would still say
+    // Standard — which is what prisoner-search and the NOMIS reconciliation would then cache.
+    webTestClient.get().uri("/incentive-reviews/prisoner/$prisonerNumber")
+      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read")))
+      .exchange()
+      .expectStatus().isOk
+      .expectBody()
+      .jsonPath("$.iepCode").isEqualTo("ENH")
+      .jsonPath("$.bookingId").isEqualTo(reinstatedBookingId)
+
     // and downstream consumers are told the current incentive changed
     val domainEvent = awaitDomainEventOfType("incentives.iep-review.updated")
     assertThat(domainEvent.additionalInformation?.nomsNumber).isEqualTo(prisonerNumber)

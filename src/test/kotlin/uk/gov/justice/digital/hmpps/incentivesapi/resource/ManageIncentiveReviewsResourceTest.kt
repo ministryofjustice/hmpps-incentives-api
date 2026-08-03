@@ -269,6 +269,27 @@ class ManageIncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
     // Then
     assertThat(repository.findById(mistakenReviewId)?.current).isFalse()
     assertThat(repository.findById(reinstatedReviewId)?.current).isTrue()
+
+    // and — the assertion that matters — the prisoner now reads back as Enhanced. This is what
+    // prisoner-search and the NOMIS reconciliation both call, so flipping the flags is only useful
+    // insofar as it changes this. The stood-down review is newer by review time and would win a
+    // naive "newest wins" read.
+    webTestClient.get().uri("/incentive-reviews/prisoner/$repairPrisonerNumber")
+      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read")))
+      .exchange()
+      .expectStatus().isOk
+      .expectBody().json(
+        // language=json
+        """
+        {
+          "id": $reinstatedReviewId,
+          "bookingId": $reinstatedBookingId,
+          "iepCode": "ENH",
+          "iepLevel": "Enhanced"
+        }
+        """,
+        JsonCompareMode.LENIENT,
+      )
   }
 
   @Test

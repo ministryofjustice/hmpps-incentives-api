@@ -256,6 +256,46 @@ class PrisonerIncentiveReviewServiceTest {
       assertThat(result.incentiveReviewDetails.size).isZero
       assertThat(result.nextReviewDate).isEqualTo(expectedNextReviewDate)
     }
+
+    @Test
+    fun `reports the current review rather than simply the newest one`(): Unit = runBlocking {
+      // Given - the newest review sits on a booking the prisoner was mistakenly admitted onto and
+      // has been stood down, so it must not mask the level held on the booking they are on
+      whenever(nextReviewDateGetterService.get(reinstatedBookingId)).thenReturn(LocalDate.parse("2023-01-01"))
+      whenever(incentiveReviewRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(switchPrisonerNumber))
+        .thenReturn(
+          flowOf(reviewOnMistakenBooking.copy(current = false), reviewOnReinstatedBooking),
+          flowOf(reviewOnMistakenBooking.copy(current = false), reviewOnReinstatedBooking),
+        )
+
+      // When
+      val result = prisonerIncentiveReviewService.getPrisonerIncentiveHistory(switchPrisonerNumber)
+
+      // Then
+      assertThat(result.iepCode).isEqualTo("ENH")
+      assertThat(result.bookingId).isEqualTo(reinstatedBookingId)
+      assertThat(result.id).isEqualTo(reviewOnReinstatedBooking.id)
+      // the stood-down review is still returned in the history, just not as the current one
+      assertThat(result.incentiveReviewDetails).hasSize(2)
+    }
+
+    @Test
+    fun `falls back to the newest review when none is flagged current`(): Unit = runBlocking {
+      // Given - rows predating the flag being maintained must keep behaving as they did
+      whenever(nextReviewDateGetterService.get(mistakenBookingId)).thenReturn(LocalDate.parse("2023-01-01"))
+      whenever(incentiveReviewRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(switchPrisonerNumber))
+        .thenReturn(
+          flowOf(reviewOnMistakenBooking.copy(current = false), reviewOnReinstatedBooking.copy(current = false)),
+          flowOf(reviewOnMistakenBooking.copy(current = false), reviewOnReinstatedBooking.copy(current = false)),
+        )
+
+      // When
+      val result = prisonerIncentiveReviewService.getPrisonerIncentiveHistory(switchPrisonerNumber)
+
+      // Then
+      assertThat(result.iepCode).isEqualTo("STD")
+      assertThat(result.bookingId).isEqualTo(mistakenBookingId)
+    }
   }
 
   @DisplayName("process received prisoner")

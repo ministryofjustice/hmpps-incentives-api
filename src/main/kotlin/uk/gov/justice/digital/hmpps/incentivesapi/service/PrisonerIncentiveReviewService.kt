@@ -207,9 +207,18 @@ class PrisonerIncentiveReviewService(
     incentiveLevels: Map<String, IncentiveLevel>,
     withDetails: Boolean = true,
   ): IncentiveReviewSummary {
-    val iepDetails = levels.map { it.toIncentiveReviewDetail(incentiveLevels) }.toList()
+    val reviews = levels.toList()
+    val iepDetails = reviews.map { it.toIncentiveReviewDetail(incentiveLevels) }
 
-    val currentIep = iepDetails.firstOrNull() ?: throw IncentiveReviewNotFoundException("Not Found incentive reviews")
+    // Reviews arrive newest first, but the newest is not always the current one. A prisoner
+    // mistakenly admitted onto a new booking has a default-level review that is newer yet no longer
+    // current, and it must not mask the level they hold on the booking they are actually on; a
+    // backdated review is current while an older-dated one is newer. `current` is what
+    // IncentiveStoreService.saveIncentiveReview asserts, so it decides. Falling back to the newest
+    // keeps behaviour for any prisoner whose rows predate the flag being maintained.
+    val currentIep = reviews.zip(iepDetails).firstOrNull { (review, _) -> review.current }?.second
+      ?: iepDetails.firstOrNull()
+      ?: throw IncentiveReviewNotFoundException("Not Found incentive reviews")
 
     val incentiveReviewSummary = IncentiveReviewSummary(
       bookingId = currentIep.bookingId,
