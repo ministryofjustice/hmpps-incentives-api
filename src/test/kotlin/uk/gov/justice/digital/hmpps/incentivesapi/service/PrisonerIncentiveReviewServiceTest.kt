@@ -790,39 +790,56 @@ class PrisonerIncentiveReviewServiceTest {
     }
 
     @Test
-    fun `booking switch only stands down the newest booking when switched back past an intermediate one`(): Unit =
+    fun `booking switch stands down every later booking when staff got the admission wrong twice`(): Unit =
       runBlocking {
-        // Given - the prisoner is switched back to the oldest of three bookings. prisoner-search
-        // only requires the reinstated booking not to be the highest, so this is possible. The
-        // intermediate booking's current review is legitimate history and must survive.
-        val intermediateBookingReview = IncentiveReview(
+        // Given - staff admitted the prisoner onto a new booking, did it again two days later, then
+        // switched back past both. Seen in production for A3812EX. Booking ids are sequential, so
+        // anything above the reinstated booking was created after it and was abandoned; standing
+        // down only the newest would leave the second admission's default level winning the read.
+        val secondMistakenBooking = IncentiveReview(
           id = 4L,
           prisonerNumber = switchPrisonerNumber,
           bookingId = 1500000L,
           prisonId = "LEI",
           reviewedBy = "INCENTIVES_API",
-          levelCode = "BAS",
+          levelCode = "STD",
           current = true,
           reviewType = ReviewType.INITIAL,
-          reviewTime = LocalDateTime.now(clock).minusDays(50),
+          reviewTime = LocalDateTime.now(clock).minusDays(3),
         )
-        stubBookingSwitch(reviewOnMistakenBooking, intermediateBookingReview, reviewOnReinstatedBooking)
+        stubBookingSwitch(reviewOnMistakenBooking, secondMistakenBooking, reviewOnReinstatedBooking)
 
         // When
         prisonerIncentiveReviewService.processOffenderEvent(prisonOffenderEvent("READMISSION_SWITCH_BOOKING"))
 
-        // Then - only the newest (mistaken) booking is stood down
+        // Then - both abandoned bookings are stood down, leaving the reinstated booking's level
         @Suppress("UnusedFlow")
         verify(incentiveReviewRepository).saveAll(
-          listOf(reviewOnMistakenBooking.copy(current = false, new = false)),
+          listOf(
+            reviewOnMistakenBooking.copy(current = false, new = false),
+            secondMistakenBooking.copy(current = false, new = false),
+          ),
         )
       }
 
     @Test
     fun `booking switch leaves a human-authored review on a later booking alone`(): Unit = runBlocking {
-      // Given - only reviews this service wrote can be the mistaken admission
+      // Given - staff reviewed the prisoner the day after the mistaken admission, against that
+      // booking, so their decision superseded the default level within it. Seen in production for
+      // A6487AY. Only reviews this service wrote on admission may be stood down, so this no-ops and
+      // the prisoner keeps a level recorded against a booking they are no longer on — deliberately,
+      // because discarding a real review is not a decision this service can make.
+      val humanReviewOnMistakenBooking = reviewOnMistakenBooking.copy(
+        id = 5L,
+        reviewedBy = "TEST_STAFF1",
+        levelCode = "BAS",
+        reviewType = ReviewType.REVIEW,
+        reviewTime = LocalDateTime.now(clock),
+      )
       stubBookingSwitch(
-        reviewOnMistakenBooking.copy(reviewedBy = "TEST_STAFF1"),
+        humanReviewOnMistakenBooking,
+        // the service's own admission review, already stood down by the human one on the same booking
+        reviewOnMistakenBooking.copy(current = false),
         reviewOnReinstatedBooking,
       )
 
