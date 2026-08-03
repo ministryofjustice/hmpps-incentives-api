@@ -207,9 +207,18 @@ class PrisonerIncentiveReviewService(
     incentiveLevels: Map<String, IncentiveLevel>,
     withDetails: Boolean = true,
   ): IncentiveReviewSummary {
-    val iepDetails = levels.map { it.toIncentiveReviewDetail(incentiveLevels) }.toList()
+    val reviews = levels.toList()
+    val iepDetails = reviews.map { it.toIncentiveReviewDetail(incentiveLevels) }
 
-    val currentIep = iepDetails.firstOrNull() ?: throw IncentiveReviewNotFoundException("Not Found incentive reviews")
+    // Reviews arrive newest first, but the newest is not always the current one. A prisoner
+    // mistakenly admitted onto a new booking has a default-level review that is newer yet no longer
+    // current, and it must not mask the level they hold on the booking they are actually on; a
+    // backdated review is current while an older-dated one is newer. `current` is what
+    // IncentiveStoreService.saveIncentiveReview asserts, so it decides. Falling back to the newest
+    // keeps behaviour for any prisoner whose rows predate the flag being maintained.
+    val currentIep = reviews.zip(iepDetails).firstOrNull { (review, _) -> review.current }?.second
+      ?: iepDetails.firstOrNull()
+      ?: throw IncentiveReviewNotFoundException("Not Found incentive reviews")
 
     val incentiveReviewSummary = IncentiveReviewSummary(
       bookingId = currentIep.bookingId,
@@ -347,7 +356,7 @@ class PrisonerIncentiveReviewService(
    * NOMIS users correct a mistakenly-created new booking by releasing the prisoner and re-admitting
    * them onto their earlier booking. prisoner-search reports that as `READMISSION_SWITCH_BOOKING`
    * and, by its own definition, only when the booking the prisoner is now on is *not* their
-   * highest-numbered one — so the mistaken booking always has the higher id.
+   * highest-numbered one — so the mistaken bookings always have higher ids.
    */
   private suspend fun reinstateReviewsAfterBookingSwitch(prisonOffenderEvent: HMPPSDomainEvent) {
     val prisonerNumber = prisonOffenderEvent.additionalInformation?.nomsNumber ?: run {
@@ -390,14 +399,17 @@ class PrisonerIncentiveReviewService(
     val before = currentReviewSnapshotFor(prisonerNumber)
 
     val reviews = incentiveReviewRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(prisonerNumber).toList()
-    // The mistaken booking is the one NOMIS has just created, so it is the prisoner's newest.
-    // Restricting to the single highest booking above the reinstated one matters when a prisoner is
-    // switched back past an intermediate booking: reviews on earlier bookings are legitimate history
-    // from previous sentences, are routinely left current because nothing ever clears them, and must
-    // survive. Only reviews this service authored can be the mistaken admission.
-    val mistakenBookingId = reviews.mapNotNull { it.bookingId.takeIf { id -> id > correctBookingId } }.maxOrNull()
+    // Booking ids are sequential, so a booking above the one the prisoner is now on was created
+    // after it and is one they are not on — an admission that was abandoned. Staff sometimes get it
+    // wrong more than once before switching back, so every such booking is stood down, not just the
+    // newest. Genuine history from earlier sentences sits on *lower* bookings, is routinely left
+    // current because nothing ever clears it, and is excluded by the id comparison.
+    //
+    // Only reviews this service wrote on admission are touched. A human review on a later booking is
+    // a real decision about the prisoner and is never stood down, even though the booking was
+    // abandoned — see the note on IR-1808 about what that leaves behind.
     val supersededReviews = reviews.filter {
-      it.current && it.bookingId == mistakenBookingId && it.reviewedBy == SYSTEM_USERNAME
+      it.current && it.bookingId > correctBookingId && it.reviewedBy == SYSTEM_USERNAME
     }
     // `reviews` is ordered by review time descending, so this is the latest on the correct booking
     val latestOnCorrectBooking = reviews.firstOrNull { it.bookingId == correctBookingId }
