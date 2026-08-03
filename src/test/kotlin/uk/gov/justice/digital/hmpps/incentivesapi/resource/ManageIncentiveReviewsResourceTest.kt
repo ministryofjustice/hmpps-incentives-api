@@ -1,6 +1,7 @@
 package uk.gov.justice.digital.hmpps.incentivesapi.resource
 
 import kotlinx.coroutines.runBlocking
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -10,6 +11,7 @@ import org.springframework.test.json.JsonCompareMode
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.CreateIncentiveReviewRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.ReviewType
 import uk.gov.justice.digital.hmpps.incentivesapi.integration.IncentiveLevelResourceTestBase
+import uk.gov.justice.digital.hmpps.incentivesapi.jpa.IncentiveReview
 import uk.gov.justice.digital.hmpps.incentivesapi.jpa.repository.IncentiveReviewRepository
 import java.time.LocalDate.now
 import java.time.LocalDateTime
@@ -181,5 +183,154 @@ class ManageIncentiveReviewsResourceTest : IncentiveLevelResourceTestBase() {
         """,
         JsonCompareMode.LENIENT,
       )
+  }
+
+  /**
+   * The prisoner was mistakenly admitted on a new (higher) booking, where this service recorded the
+   * prison's default level, and NOMIS staff have since put them back on the earlier booking where
+   * they hold Enhanced. The repair endpoint corrects prisoners this happened to before the
+   * `READMISSION_SWITCH_BOOKING` event was handled, and any the event is missed for since.
+   */
+  private val repairPrisonerNumber = "A1244AB"
+  private val reinstatedBookingId = 1294100L
+  private val mistakenBookingId = 1294200L
+
+  private suspend fun givenPrisonerNeedingRepair(): Pair<Long, Long> {
+    prisonerSearchMockServer.stubGetPrisonerInfoByPrisonerNumber(reinstatedBookingId, repairPrisonerNumber)
+    prisonApiMockServer.stubGetPrisonerExtraInfo(reinstatedBookingId, repairPrisonerNumber)
+
+    val reinstatedReview = repository.save(
+      IncentiveReview(
+        bookingId = reinstatedBookingId,
+        prisonerNumber = repairPrisonerNumber,
+        prisonId = "LEI",
+        reviewedBy = "TEST_STAFF1",
+        levelCode = "ENH",
+        current = true,
+        reviewTime = LocalDateTime.now(clock).minusDays(100),
+      ),
+    )
+    val mistakenReview = repository.save(
+      IncentiveReview(
+        bookingId = mistakenBookingId,
+        prisonerNumber = repairPrisonerNumber,
+        prisonId = "MDI",
+        reviewedBy = "INCENTIVES_API",
+        levelCode = "STD",
+        current = true,
+        reviewType = ReviewType.INITIAL,
+        reviewTime = LocalDateTime.now(clock).minusDays(1),
+      ),
+    )
+    return reinstatedReview.id to mistakenReview.id
+  }
+
+  @Test
+  fun `repair after booking switch requires the write scope`() {
+    webTestClient.post().uri("/incentive-reviews/prisoner/$repairPrisonerNumber/repair-booking-switch")
+      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read")))
+      .exchange()
+      .expectStatus().isForbidden
+  }
+
+  @Test
+  fun `repair after booking switch requires authorisation`() {
+    webTestClient.post().uri("/incentive-reviews/prisoner/$repairPrisonerNumber/repair-booking-switch")
+      .exchange()
+      .expectStatus().isUnauthorized
+  }
+
+  @Test
+  fun `repair after booking switch moves the current level back onto the reinstated booking`(): Unit = runBlocking {
+    // Given
+    val (reinstatedReviewId, mistakenReviewId) = givenPrisonerNeedingRepair()
+
+    // When
+    webTestClient.post().uri("/incentive-reviews/prisoner/$repairPrisonerNumber/repair-booking-switch")
+      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read", "write")))
+      .exchange()
+      .expectStatus().isOk
+      .expectBody().json(
+        // language=json
+        """
+        {
+          "prisonerNumber": "$repairPrisonerNumber",
+          "bookingId": $reinstatedBookingId,
+          "outcome": "REPAIRED",
+          "dryRun": false,
+          "levelCodeBefore": "STD",
+          "levelCodeAfter": "ENH",
+          "reviewIdsStoodDown": [$mistakenReviewId]
+        }
+        """,
+        JsonCompareMode.LENIENT,
+      )
+
+    // Then
+    assertThat(repository.findById(mistakenReviewId)?.current).isFalse()
+    assertThat(repository.findById(reinstatedReviewId)?.current).isTrue()
+  }
+
+  @Test
+  fun `repair after booking switch is a safe no-op when the prisoner is already correct`(): Unit = runBlocking {
+    // Given - so the repair can be re-run over a list without checking each prisoner first
+    val (reinstatedReviewId, mistakenReviewId) = givenPrisonerNeedingRepair()
+    val uri = "/incentive-reviews/prisoner/$repairPrisonerNumber/repair-booking-switch"
+    webTestClient.post().uri(uri)
+      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read", "write")))
+      .exchange()
+      .expectStatus().isOk
+
+    // When - repaired a second time
+    webTestClient.post().uri(uri)
+      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read", "write")))
+      .exchange()
+      .expectStatus().isOk
+      .expectBody().json(
+        // language=json
+        """
+        {
+          "outcome": "NOTHING_TO_DO",
+          "levelCodeBefore": "ENH",
+          "levelCodeAfter": "ENH",
+          "reviewIdsStoodDown": [],
+          "reviewIdReinstated": null
+        }
+        """,
+        JsonCompareMode.LENIENT,
+      )
+
+    // Then
+    assertThat(repository.findById(mistakenReviewId)?.current).isFalse()
+    assertThat(repository.findById(reinstatedReviewId)?.current).isTrue()
+  }
+
+  @Test
+  fun `repair after booking switch dry run reports the change without making it`(): Unit = runBlocking {
+    // Given
+    val (reinstatedReviewId, mistakenReviewId) = givenPrisonerNeedingRepair()
+
+    // When
+    webTestClient.post().uri("/incentive-reviews/prisoner/$repairPrisonerNumber/repair-booking-switch?dry-run=true")
+      .headers(setAuthorisation(roles = listOf("ROLE_INCENTIVE_REVIEWS"), scopes = listOf("read", "write")))
+      .exchange()
+      .expectStatus().isOk
+      .expectBody().json(
+        // language=json
+        """
+        {
+          "outcome": "REPAIRED",
+          "dryRun": true,
+          "levelCodeBefore": "STD",
+          "levelCodeAfter": "ENH",
+          "reviewIdsStoodDown": [$mistakenReviewId]
+        }
+        """,
+        JsonCompareMode.LENIENT,
+      )
+
+    // Then - the reviews are untouched
+    assertThat(repository.findById(mistakenReviewId)?.current).isTrue()
+    assertThat(repository.findById(reinstatedReviewId)?.current).isTrue()
   }
 }

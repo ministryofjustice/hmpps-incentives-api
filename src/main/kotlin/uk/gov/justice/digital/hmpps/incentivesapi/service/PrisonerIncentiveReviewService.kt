@@ -15,6 +15,8 @@ import org.springframework.transaction.reactive.TransactionalOperator
 import org.springframework.transaction.reactive.executeAndAwait
 import uk.gov.justice.digital.hmpps.incentivesapi.SYSTEM_USERNAME
 import uk.gov.justice.digital.hmpps.incentivesapi.config.NoDataFoundException
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.BookingSwitchRepairOutcome
+import uk.gov.justice.digital.hmpps.incentivesapi.dto.BookingSwitchRepairResult
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.CreateIncentiveReviewRequest
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveLevel
 import uk.gov.justice.digital.hmpps.incentivesapi.dto.IncentiveReviewDetail
@@ -290,8 +292,11 @@ class PrisonerIncentiveReviewService(
    * date/time and the next review date — the fields prisoner-search caches. No event is published
    * if all three are unchanged.
    */
-  private suspend fun publishIfCurrentReviewChanged(prisonerNumber: String, before: CurrentReviewSnapshot?) {
-    val after = currentReviewSnapshotFor(prisonerNumber) ?: return
+  private suspend fun publishIfCurrentReviewChanged(
+    prisonerNumber: String,
+    before: CurrentReviewSnapshot?,
+  ): CurrentReviewSnapshot? {
+    val after = currentReviewSnapshotFor(prisonerNumber) ?: return null
     val changed = before == null ||
       before.review.levelCode != after.review.levelCode ||
       before.review.reviewTime != after.review.reviewTime ||
@@ -300,6 +305,7 @@ class PrisonerIncentiveReviewService(
       val detail = after.review.toIncentiveReviewDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
       publishReviewDomainEvent(detail, IncentivesDomainEventType.IEP_REVIEW_UPDATED)
     }
+    return after
   }
 
   private suspend fun publishReviewDomainEvent(
@@ -342,7 +348,32 @@ class PrisonerIncentiveReviewService(
    * them onto their earlier booking. prisoner-search reports that as `READMISSION_SWITCH_BOOKING`
    * and, by its own definition, only when the booking the prisoner is now on is *not* their
    * highest-numbered one — so the mistaken booking always has the higher id.
+   */
+  private suspend fun reinstateReviewsAfterBookingSwitch(prisonOffenderEvent: HMPPSDomainEvent) {
+    val prisonerNumber = prisonOffenderEvent.additionalInformation?.nomsNumber ?: run {
+      log.warn("prisonerNumber null for prisonOffenderEvent: $prisonOffenderEvent")
+      return
+    }
+    reinstateReviewsAfterBookingSwitch(prisonerNumber, repairedBy = SYSTEM_USERNAME, dryRun = false)
+  }
+
+  /**
+   * Repairs a prisoner whose incentive level was left behind on a booking NOMIS has since switched
+   * away from — for those affected before [reinstateReviewsAfterBookingSwitch] was handling the
+   * event, and for any the event is missed for since.
    *
+   * The repair is the same operation the event triggers, so it also publishes
+   * `incentives.iep-review.updated`, which a database-level fix could not do. Running it against a
+   * prisoner who is already correct is a safe no-op, so it can be re-run freely.
+   */
+  suspend fun repairAfterBookingSwitch(prisonerNumber: String, dryRun: Boolean = false) =
+    reinstateReviewsAfterBookingSwitch(
+      prisonerNumber,
+      repairedBy = authenticationHolder.getPrincipal(),
+      dryRun = dryRun,
+    )
+
+  /**
    * The `NEW_ADMISSION`/`READMISSION` event for the mistaken booking will already have written a
    * default-level review against it. Because `current` is unique only per booking, that review is
    * still current and, being the most recent by review time, wins every prisoner-scoped read —
@@ -350,12 +381,11 @@ class PrisonerIncentiveReviewService(
    *
    * Reviews are only flipped, never deleted, so the prisoner's history stays intact.
    */
-  private suspend fun reinstateReviewsAfterBookingSwitch(prisonOffenderEvent: HMPPSDomainEvent) {
-    val prisonerNumber = prisonOffenderEvent.additionalInformation?.nomsNumber ?: run {
-      log.warn("prisonerNumber null for prisonOffenderEvent: $prisonOffenderEvent")
-      return
-    }
-
+  private suspend fun reinstateReviewsAfterBookingSwitch(
+    prisonerNumber: String,
+    repairedBy: String,
+    dryRun: Boolean,
+  ): BookingSwitchRepairResult {
     val correctBookingId = prisonerSearchService.getPrisonerInfo(prisonerNumber).bookingId
     val before = currentReviewSnapshotFor(prisonerNumber)
 
@@ -371,12 +401,44 @@ class PrisonerIncentiveReviewService(
     }
     // `reviews` is ordered by review time descending, so this is the latest on the correct booking
     val latestOnCorrectBooking = reviews.firstOrNull { it.bookingId == correctBookingId }
+    val reviewToReinstate = latestOnCorrectBooking?.takeUnless { it.current }
 
-    if (supersededReviews.isEmpty() && latestOnCorrectBooking?.current != false) {
-      log.info(
-        "Booking switch for $prisonerNumber: nothing to reinstate on booking $correctBookingId",
+    if (supersededReviews.isEmpty() && reviewToReinstate == null) {
+      val message = "Booking switch for $prisonerNumber: nothing to reinstate on booking $correctBookingId"
+      log.info(message)
+      return BookingSwitchRepairResult(
+        prisonerNumber = prisonerNumber,
+        bookingId = correctBookingId,
+        outcome = BookingSwitchRepairOutcome.NOTHING_TO_DO,
+        dryRun = dryRun,
+        levelCodeBefore = before?.review?.levelCode,
+        levelCodeAfter = before?.review?.levelCode,
+        reviewIdsStoodDown = emptyList(),
+        reviewIdReinstated = null,
+        message = message,
       )
-      return
+    }
+
+    val supersededIds = supersededReviews.map { it.id }
+    val message = "Reinstated incentive level on booking $correctBookingId for $prisonerNumber " +
+      "after booking switch; ${supersededReviews.size} review(s) on later bookings no longer current"
+
+    if (dryRun) {
+      log.info("Dry run — would have $message")
+      return BookingSwitchRepairResult(
+        prisonerNumber = prisonerNumber,
+        bookingId = correctBookingId,
+        outcome = BookingSwitchRepairOutcome.REPAIRED,
+        dryRun = true,
+        levelCodeBefore = before?.review?.levelCode,
+        // of the reviews left current afterwards, the newest is what a prisoner-scoped read picks
+        levelCodeAfter = reviews.firstOrNull {
+          it.id == reviewToReinstate?.id || (it.current && it.id !in supersededIds)
+        }?.levelCode,
+        reviewIdsStoodDown = supersededIds,
+        reviewIdReinstated = reviewToReinstate?.id,
+        message = "Dry run — would have $message",
+      )
     }
 
     val changes = transactionalOperator.executeAndAwait {
@@ -385,22 +447,30 @@ class PrisonerIncentiveReviewService(
       incentiveReviewRepository
         .saveAll(supersededReviews.map { it.copy(current = false, new = false) })
         .collect {}
-      latestOnCorrectBooking
-        ?.takeUnless { it.current }
-        ?.let { incentiveReviewRepository.save(it.copy(current = true, new = false)) }
+      reviewToReinstate?.let { incentiveReviewRepository.save(it.copy(current = true, new = false)) }
       nextReviewDateUpdaterService.updateWriteOnly(correctBookingId)
     }
     nextReviewDateUpdaterService.publishDomainEvents(changes)
 
-    val message = "Reinstated incentive level on booking $correctBookingId for $prisonerNumber " +
-      "after booking switch; ${supersededReviews.size} review(s) on later bookings no longer current"
     log.info(message)
-    publishIfCurrentReviewChanged(prisonerNumber, before)
+    val after = publishIfCurrentReviewChanged(prisonerNumber, before)
     auditService.sendMessage(
       AuditType.PRISONER_BOOKING_SWITCHED,
       prisonerNumber,
       message,
-      SYSTEM_USERNAME,
+      repairedBy,
+    )
+
+    return BookingSwitchRepairResult(
+      prisonerNumber = prisonerNumber,
+      bookingId = correctBookingId,
+      outcome = BookingSwitchRepairOutcome.REPAIRED,
+      dryRun = false,
+      levelCodeBefore = before?.review?.levelCode,
+      levelCodeAfter = after?.review?.levelCode,
+      reviewIdsStoodDown = supersededIds,
+      reviewIdReinstated = reviewToReinstate?.id,
+      message = message,
     )
   }
 
