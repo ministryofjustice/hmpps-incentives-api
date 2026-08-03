@@ -677,6 +677,216 @@ class PrisonerIncentiveReviewServiceTest {
         )
       }
 
+    /**
+     * A mistaken new booking is corrected in NOMIS by releasing the prisoner and re-admitting them
+     * onto their earlier booking, so the reinstated booking always has the *lower* id.
+     */
+    private val switchPrisonerNumber = "A1244AB"
+    private val reinstatedBookingId = 1000000L
+    private val mistakenBookingId = 2000000L
+
+    private val reviewOnReinstatedBooking = IncentiveReview(
+      id = 1L,
+      prisonerNumber = switchPrisonerNumber,
+      bookingId = reinstatedBookingId,
+      prisonId = "LEI",
+      reviewedBy = "TEST_STAFF1",
+      levelCode = "ENH",
+      current = true,
+      reviewTime = LocalDateTime.now(clock).minusDays(100),
+    )
+
+    private val reviewOnMistakenBooking = IncentiveReview(
+      id = 2L,
+      prisonerNumber = switchPrisonerNumber,
+      bookingId = mistakenBookingId,
+      prisonId = "MDI",
+      reviewedBy = "INCENTIVES_API",
+      levelCode = "STD",
+      current = true,
+      reviewType = ReviewType.INITIAL,
+      reviewTime = LocalDateTime.now(clock).minusDays(1),
+    )
+
+    private suspend fun stubBookingSwitch(vararg reviews: IncentiveReview) {
+      whenever(prisonerSearchService.getPrisonerInfo(switchPrisonerNumber))
+        .thenReturn(mockPrisoner(bookingId = reinstatedBookingId, prisonerNumber = switchPrisonerNumber))
+      // before snapshot, the handler's own read, then the after snapshot
+      whenever(incentiveReviewRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(switchPrisonerNumber))
+        .thenReturn(flowOf(*reviews), flowOf(*reviews), flowOf(*reviews))
+      whenever(incentiveReviewRepository.saveAll(any<List<IncentiveReview>>())).thenReturn(flowOf())
+      whenever(incentiveReviewRepository.save(any())).thenAnswer { i -> i.arguments[0] }
+      whenever(nextReviewDateUpdaterService.updateWriteOnly(reinstatedBookingId))
+        .thenReturn(NextReviewDateChanges(emptyMap(), emptyList(), emptyMap()))
+    }
+
+    @Test
+    fun `booking switch stands down the review written against the mistaken later booking`(): Unit = runBlocking {
+      // Given - the prisoner is back on their earlier booking, but the review this service wrote
+      // against the mistaken booking is still current and, being newest, wins prisoner-scoped reads
+      stubBookingSwitch(reviewOnMistakenBooking, reviewOnReinstatedBooking)
+
+      // When
+      prisonerIncentiveReviewService.processOffenderEvent(prisonOffenderEvent("READMISSION_SWITCH_BOOKING"))
+
+      // Then
+      @Suppress("UnusedFlow")
+      verify(incentiveReviewRepository).saveAll(
+        listOf(reviewOnMistakenBooking.copy(current = false, new = false)),
+      )
+      // the reinstated booking's latest review was already current, so it is left untouched
+      verify(incentiveReviewRepository, never()).save(any())
+      verify(nextReviewDateUpdaterService, times(1)).updateWriteOnly(reinstatedBookingId)
+      verify(auditService, times(1)).sendMessage(
+        eq(AuditType.PRISONER_BOOKING_SWITCHED),
+        eq(switchPrisonerNumber),
+        any(),
+        eq("INCENTIVES_API"),
+      )
+    }
+
+    @Test
+    fun `booking switch reinstates the latest review on the correct booking when it is not current`(): Unit =
+      runBlocking {
+        // Given
+        val notCurrentOnReinstatedBooking = reviewOnReinstatedBooking.copy(current = false)
+        stubBookingSwitch(reviewOnMistakenBooking, notCurrentOnReinstatedBooking)
+
+        // When
+        prisonerIncentiveReviewService.processOffenderEvent(prisonOffenderEvent("READMISSION_SWITCH_BOOKING"))
+
+        // Then
+        verify(incentiveReviewRepository, times(1))
+          .save(notCurrentOnReinstatedBooking.copy(current = true, new = false))
+      }
+
+    @Test
+    fun `booking switch does not touch current reviews on earlier bookings`(): Unit = runBlocking {
+      // Given - history from a previous sentence, left current because nothing ever clears it.
+      // It sits on a lower booking than the reinstated one, so it is legitimate and must survive.
+      val previousSentenceReview = IncentiveReview(
+        id = 3L,
+        prisonerNumber = switchPrisonerNumber,
+        bookingId = 500000L,
+        prisonId = "LEI",
+        reviewedBy = "INCENTIVES_API",
+        levelCode = "BAS",
+        current = true,
+        reviewTime = LocalDateTime.now(clock).minusDays(500),
+      )
+      stubBookingSwitch(reviewOnReinstatedBooking, previousSentenceReview)
+
+      // When
+      prisonerIncentiveReviewService.processOffenderEvent(prisonOffenderEvent("READMISSION_SWITCH_BOOKING"))
+
+      // Then - nothing to correct
+      @Suppress("UnusedFlow")
+      verify(incentiveReviewRepository, never()).saveAll(any<List<IncentiveReview>>())
+      verify(incentiveReviewRepository, never()).save(any())
+      verify(nextReviewDateUpdaterService, never()).updateWriteOnly(any())
+      verifyNoInteractions(auditService)
+    }
+
+    @Test
+    fun `booking switch only stands down the newest booking when switched back past an intermediate one`(): Unit =
+      runBlocking {
+        // Given - the prisoner is switched back to the oldest of three bookings. prisoner-search
+        // only requires the reinstated booking not to be the highest, so this is possible. The
+        // intermediate booking's current review is legitimate history and must survive.
+        val intermediateBookingReview = IncentiveReview(
+          id = 4L,
+          prisonerNumber = switchPrisonerNumber,
+          bookingId = 1500000L,
+          prisonId = "LEI",
+          reviewedBy = "INCENTIVES_API",
+          levelCode = "BAS",
+          current = true,
+          reviewType = ReviewType.INITIAL,
+          reviewTime = LocalDateTime.now(clock).minusDays(50),
+        )
+        stubBookingSwitch(reviewOnMistakenBooking, intermediateBookingReview, reviewOnReinstatedBooking)
+
+        // When
+        prisonerIncentiveReviewService.processOffenderEvent(prisonOffenderEvent("READMISSION_SWITCH_BOOKING"))
+
+        // Then - only the newest (mistaken) booking is stood down
+        @Suppress("UnusedFlow")
+        verify(incentiveReviewRepository).saveAll(
+          listOf(reviewOnMistakenBooking.copy(current = false, new = false)),
+        )
+      }
+
+    @Test
+    fun `booking switch leaves a human-authored review on a later booking alone`(): Unit = runBlocking {
+      // Given - only reviews this service wrote can be the mistaken admission
+      stubBookingSwitch(
+        reviewOnMistakenBooking.copy(reviewedBy = "TEST_STAFF1"),
+        reviewOnReinstatedBooking,
+      )
+
+      // When
+      prisonerIncentiveReviewService.processOffenderEvent(prisonOffenderEvent("READMISSION_SWITCH_BOOKING"))
+
+      // Then
+      @Suppress("UnusedFlow")
+      verify(incentiveReviewRepository, never()).saveAll(any<List<IncentiveReview>>())
+      verify(incentiveReviewRepository, never()).save(any())
+      verifyNoInteractions(auditService)
+    }
+
+    @Test
+    fun `booking switch publishes iep-review-updated when the current review changes`(): Unit = runBlocking {
+      // Given
+      whenever(prisonerSearchService.getPrisonerInfo(switchPrisonerNumber))
+        .thenReturn(mockPrisoner(bookingId = reinstatedBookingId, prisonerNumber = switchPrisonerNumber))
+      whenever(incentiveReviewRepository.saveAll(any<List<IncentiveReview>>())).thenReturn(flowOf())
+      whenever(nextReviewDateUpdaterService.updateWriteOnly(reinstatedBookingId))
+        .thenReturn(NextReviewDateChanges(emptyMap(), emptyList(), emptyMap()))
+      // before the switch the mistaken Standard review is current; afterwards only the
+      // reinstated booking's Enhanced review remains current
+      whenever(incentiveReviewRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(switchPrisonerNumber))
+        .thenReturn(
+          flowOf(reviewOnMistakenBooking, reviewOnReinstatedBooking),
+          flowOf(reviewOnMistakenBooking, reviewOnReinstatedBooking),
+          flowOf(reviewOnReinstatedBooking),
+        )
+
+      // When
+      prisonerIncentiveReviewService.processOffenderEvent(prisonOffenderEvent("READMISSION_SWITCH_BOOKING"))
+
+      // Then
+      verify(snsService, times(1)).publishDomainEvent(
+        eventType = IncentivesDomainEventType.IEP_REVIEW_UPDATED,
+        description = "An IEP review has been updated",
+        occurredAt = reviewOnReinstatedBooking.reviewTime,
+        additionalInformation = AdditionalInformation(
+          id = reviewOnReinstatedBooking.id,
+          nomsNumber = switchPrisonerNumber,
+        ),
+      )
+    }
+
+    @Test
+    fun `do not process booking switch if prisoner number is null`(): Unit = runBlocking {
+      // Given
+      val prisonOffenderEvent = HMPPSDomainEvent(
+        eventType = "prisoner-offender-search.prisoner.received",
+        additionalInformation = AdditionalInformation(
+          id = 123,
+          reason = "READMISSION_SWITCH_BOOKING",
+        ),
+        occurredAt = Instant.now(),
+        description = "A prisoner has been received into a prison with reason: " +
+          "re-admission but switched to old booking",
+      )
+
+      // When
+      prisonerIncentiveReviewService.processOffenderEvent(prisonOffenderEvent)
+
+      // Then
+      verifyNoInteractions(incentiveReviewRepository)
+    }
+
     @Test
     fun `do not create review if prisoner number is null`(): Unit = runBlocking {
       // Given
@@ -732,6 +942,7 @@ class PrisonerIncentiveReviewServiceTest {
     description = "A prisoner has been received into a prison with reason: " + when (reason) {
       "NEW_ADMISSION" -> "admission on new charges"
       "READMISSION" -> "re-admission on an existing booking"
+      "READMISSION_SWITCH_BOOKING" -> "re-admission but switched to old booking"
       "TRANSFERRED" -> "transfer from another prison"
       "RETURN_FROM_COURT" -> "returned back to prison from court"
       "TEMPORARY_ABSENCE_RETURN" -> "returned after a temporary absence"

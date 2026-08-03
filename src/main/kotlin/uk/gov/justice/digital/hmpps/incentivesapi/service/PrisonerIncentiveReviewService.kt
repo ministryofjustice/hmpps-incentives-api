@@ -87,6 +87,7 @@ class PrisonerIncentiveReviewService(
       // NOTE: This may NOT be a recall. Someone could be readmitted back to prison for a number of other reasons (e.g., remands)
       "READMISSION" -> createIncentiveReviewForReceivedPrisoner(prisonOffenderEvent, ReviewType.READMISSION)
       "TRANSFERRED" -> createIncentiveReviewForReceivedPrisoner(prisonOffenderEvent, ReviewType.TRANSFER)
+      "READMISSION_SWITCH_BOOKING" -> reinstateReviewsAfterBookingSwitch(prisonOffenderEvent)
       "MERGE" -> mergedPrisonerDetails(prisonOffenderEvent)
       else -> {
         log.debug("Ignoring prisonOffenderEvent with reason ${prisonOffenderEvent.additionalInformation?.reason}")
@@ -331,6 +332,75 @@ class PrisonerIncentiveReviewService(
       incentiveReviewDetail.id.toString(),
       incentiveReviewDetail,
       incentiveReviewDetail.userId,
+    )
+  }
+
+  /**
+   * Handles a `READMISSION_SWITCH_BOOKING` received event.
+   *
+   * NOMIS users correct a mistakenly-created new booking by releasing the prisoner and re-admitting
+   * them onto their earlier booking. prisoner-search reports that as `READMISSION_SWITCH_BOOKING`
+   * and, by its own definition, only when the booking the prisoner is now on is *not* their
+   * highest-numbered one — so the mistaken booking always has the higher id.
+   *
+   * The `NEW_ADMISSION`/`READMISSION` event for the mistaken booking will already have written a
+   * default-level review against it. Because `current` is unique only per booking, that review is
+   * still current and, being the most recent by review time, wins every prisoner-scoped read —
+   * masking the level the prisoner actually holds on the reinstated booking.
+   *
+   * Reviews are only flipped, never deleted, so the prisoner's history stays intact.
+   */
+  private suspend fun reinstateReviewsAfterBookingSwitch(prisonOffenderEvent: HMPPSDomainEvent) {
+    val prisonerNumber = prisonOffenderEvent.additionalInformation?.nomsNumber ?: run {
+      log.warn("prisonerNumber null for prisonOffenderEvent: $prisonOffenderEvent")
+      return
+    }
+
+    val correctBookingId = prisonerSearchService.getPrisonerInfo(prisonerNumber).bookingId
+    val before = currentReviewSnapshotFor(prisonerNumber)
+
+    val reviews = incentiveReviewRepository.findAllByPrisonerNumberOrderByReviewTimeDesc(prisonerNumber).toList()
+    // The mistaken booking is the one NOMIS has just created, so it is the prisoner's newest.
+    // Restricting to the single highest booking above the reinstated one matters when a prisoner is
+    // switched back past an intermediate booking: reviews on earlier bookings are legitimate history
+    // from previous sentences, are routinely left current because nothing ever clears them, and must
+    // survive. Only reviews this service authored can be the mistaken admission.
+    val mistakenBookingId = reviews.mapNotNull { it.bookingId.takeIf { id -> id > correctBookingId } }.maxOrNull()
+    val supersededReviews = reviews.filter {
+      it.current && it.bookingId == mistakenBookingId && it.reviewedBy == SYSTEM_USERNAME
+    }
+    // `reviews` is ordered by review time descending, so this is the latest on the correct booking
+    val latestOnCorrectBooking = reviews.firstOrNull { it.bookingId == correctBookingId }
+
+    if (supersededReviews.isEmpty() && latestOnCorrectBooking?.current != false) {
+      log.info(
+        "Booking switch for $prisonerNumber: nothing to reinstate on booking $correctBookingId",
+      )
+      return
+    }
+
+    val changes = transactionalOperator.executeAndAwait {
+      // Stand the mistaken booking down before reinstating the correct one; they are different
+      // bookings, so the per-booking unique index on current = true is never violated
+      incentiveReviewRepository
+        .saveAll(supersededReviews.map { it.copy(current = false, new = false) })
+        .collect {}
+      latestOnCorrectBooking
+        ?.takeUnless { it.current }
+        ?.let { incentiveReviewRepository.save(it.copy(current = true, new = false)) }
+      nextReviewDateUpdaterService.updateWriteOnly(correctBookingId)
+    }
+    nextReviewDateUpdaterService.publishDomainEvents(changes)
+
+    val message = "Reinstated incentive level on booking $correctBookingId for $prisonerNumber " +
+      "after booking switch; ${supersededReviews.size} review(s) on later bookings no longer current"
+    log.info(message)
+    publishIfCurrentReviewChanged(prisonerNumber, before)
+    auditService.sendMessage(
+      AuditType.PRISONER_BOOKING_SWITCHED,
+      prisonerNumber,
+      message,
+      SYSTEM_USERNAME,
     )
   }
 
