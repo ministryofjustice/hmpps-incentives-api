@@ -63,13 +63,14 @@ jobs:
             *.gradle*
             **/gradle-wrapper.properties
 
-      - name: Initialise database
+      - name: Initialise database and export reference data
         shell: bash
         run: |
           docker compose -f ${{ inputs.docker_compose_file }} up -d --wait
           export JAVA_OPTS="${{ inputs.java_options }}"
-          ./gradlew -Pinit-db=true test \
-            --tests uk.gov.justice.digital.hmpps.incentivesapi.integration.InitialiseDatabase
+          ./gradlew -Pinit-db=true -PreferenceDataOutput="${PWD}/reference-data.csv" test \
+            --tests uk.gov.justice.digital.hmpps.incentivesapi.integration.InitialiseDatabase \
+            --tests uk.gov.justice.digital.hmpps.incentivesapi.integration.ExportReferenceData
 
       - name: Generate database schema report
         uses: ministryofjustice/hmpps-github-shared-actions/.github/actions/database_schema_report@1061afed0f02c82850314e2fc29711523139e574 # v1.1.2
@@ -78,6 +79,17 @@ jobs:
           schema: ${{ inputs.database_schema }}
           user: ${{ inputs.database_user }}
           password: ${{ inputs.database_password }}
+
+      - name: Generate CSV data dictionary
+        shell: bash
+        env:
+          DB_NAME: ${{ inputs.database_name }}
+          DB_USER: ${{ inputs.database_user }}
+          DB_PASSWORD: ${{ inputs.database_password }}
+          DB_SCHEMA: ${{ inputs.database_schema }}
+        run: |
+          scripts/generate-data-dictionary.sh /tmp/schemaspy/data-dictionary.csv
+          cp reference-data.csv /tmp/schemaspy/reference-data.csv
 
       # After the first run, enable GitHub Pages on the repo (Settings > Pages, deploy from the gh-pages
       # branch, root) and add an empty .nojekyll file to the *root* of gh-pages. Without it Pages tries to
