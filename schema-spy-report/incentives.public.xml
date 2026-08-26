@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?><database name="incentives" schema="public" type="PostgreSQL - 16.15 (Debian 16.15-1.pgdg13+2)">
+   <sequences>
+      <sequence increment="1" name="prison_incentive_level_id_seq" startValue="1"/>
+      <sequence increment="1" name="prisoner_iep_level_id_seq" startValue="1"/>
+   </sequences>
+   <tables>
+      <table name="flyway_schema_history" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="installed_rank" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="version" nullable="true" remarks="" size="50" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="description" nullable="false" remarks="" size="200" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="type" nullable="false" remarks="" size="20" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="script" nullable="false" remarks="" size="1000" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="checksum" nullable="true" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="6" name="installed_by" nullable="false" remarks="" size="100" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="7" name="installed_on" nullable="false" remarks="" size="29" type="timestamp" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="8" name="execution_time" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="9" name="success" nullable="false" remarks="" size="1" type="bool" typeCode="-7"/>
+         <primaryKey column="installed_rank" sequenceNumberInPK="1"/>
+         <index name="flyway_schema_history_pk" unique="true">
+            <column ascending="true" name="installed_rank"/>
+         </index>
+         <index name="flyway_schema_history_s_idx" unique="false">
+            <column ascending="true" name="success"/>
+         </index>
+      </table>
+      <table name="incentive_level" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="code" nullable="false" remarks="" size="6" type="varchar" typeCode="12">
+            <child column="level_code" foreignKey="incentive_level_fkey" implied="false" onDeleteCascade="false" schema="public" table="prison_incentive_level"/>
+            <child column="iep_code" foreignKey="incentive_level_fkey" implied="false" onDeleteCascade="false" schema="public" table="prisoner_iep_level"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="name" nullable="false" remarks="" size="30" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="sequence" nullable="false" remarks="" size="5" type="int2" typeCode="5"/>
+         <column autoUpdated="false" defaultValue="true" digits="0" id="3" name="active" nullable="false" remarks="" size="1" type="bool" typeCode="-7"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="4" name="when_created" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="5" name="when_updated" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="false" digits="0" id="6" name="required" nullable="false" remarks="" size="1" type="bool" typeCode="-7"/>
+         <primaryKey column="code" sequenceNumberInPK="1"/>
+         <index name="incentive_level_pkey" unique="true">
+            <column ascending="true" name="code"/>
+         </index>
+         <index name="incentive_level_active_idx" unique="false">
+            <column ascending="true" name="active"/>
+         </index>
+         <index name="incentive_level_sequence_idx" unique="false">
+            <column ascending="true" name="sequence"/>
+         </index>
+         <checkConstraint constraint="((active OR (NOT required)))" name="incentive_level_active_if_required"/>
+         <checkConstraint constraint="((length((code)::text) &gt;= 1))" name="incentive_level_code_check"/>
+         <checkConstraint constraint="((length((name)::text) &gt;= 1))" name="incentive_level_description_check"/>
+      </table>
+      <table name="kpi" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="day" nullable="false" remarks="" size="13" type="date" typeCode="91"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="overdue_reviews" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="previous_month_reviews_conducted" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="previous_month_prisoners_reviewed" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="4" name="when_created" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="5" name="when_updated" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <primaryKey column="day" sequenceNumberInPK="1"/>
+         <index name="kpi_pkey" unique="true">
+            <column ascending="true" name="day"/>
+         </index>
+         <index name="day_idx" unique="false">
+            <column ascending="true" name="day"/>
+         </index>
+         <checkConstraint constraint="((overdue_reviews &gt;= 0))" name="kpi_overdue_reviews_check"/>
+         <checkConstraint constraint="((previous_month_prisoners_reviewed &gt;= 0))" name="kpi_previous_month_prisoners_reviewed_check"/>
+         <checkConstraint constraint="((previous_month_reviews_conducted &gt;= 0))" name="kpi_previous_month_reviews_conducted_check"/>
+      </table>
+      <table name="next_review_date" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="booking_id" nullable="false" remarks="" size="0" type="numeric" typeCode="2">
+            <child column="booking_id" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="prisoner_iep_level"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="next_review_date" nullable="false" remarks="" size="13" type="date" typeCode="91"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="2" name="when_created" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="3" name="when_updated" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <primaryKey column="booking_id" sequenceNumberInPK="1"/>
+         <index name="next_review_date_pkey" unique="true">
+            <column ascending="true" name="booking_id"/>
+         </index>
+         <index name="next_review_date_idx" unique="false">
+            <column ascending="true" name="next_review_date"/>
+         </index>
+      </table>
+      <table name="prison_incentive_level" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('prison_incentive_level_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="10" type="serial" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="level_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12">
+            <parent column="code" foreignKey="incentive_level_fkey" implied="false" onDeleteCascade="false" schema="public" table="incentive_level"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="prison_id" nullable="false" remarks="" size="6" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="true" digits="0" id="3" name="active" nullable="false" remarks="" size="1" type="bool" typeCode="-7"/>
+         <column autoUpdated="false" defaultValue="false" digits="0" id="4" name="default_on_admission" nullable="false" remarks="" size="1" type="bool" typeCode="-7"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="5" name="when_created" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="6" name="when_updated" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="7" name="remand_transfer_limit_in_pence" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="8" name="remand_spend_limit_in_pence" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="9" name="convicted_transfer_limit_in_pence" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="10" name="convicted_spend_limit_in_pence" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="11" name="visit_orders" nullable="false" remarks="" size="5" type="int2" typeCode="5"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="12" name="privileged_visit_orders" nullable="false" remarks="" size="5" type="int2" typeCode="5"/>
+         <primaryKey column="id" sequenceNumberInPK="1"/>
+         <index name="prison_incentive_level_pkey" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+         <index name="prison_incentive_level_active_idx" unique="false">
+            <column ascending="true" name="active"/>
+         </index>
+         <index name="prison_incentive_level_level_code_idx" unique="false">
+            <column ascending="true" name="level_code"/>
+         </index>
+         <index name="prison_incentive_level_pkey_idx" unique="false">
+            <column ascending="true" name="level_code"/>
+            <column ascending="true" name="prison_id"/>
+         </index>
+         <index name="prison_incentive_level_prison_id_idx" unique="false">
+            <column ascending="true" name="prison_id"/>
+         </index>
+         <index name="prison_incentive_level_unique" unique="true">
+            <column ascending="true" name="level_code"/>
+            <column ascending="true" name="prison_id"/>
+         </index>
+         <checkConstraint constraint="((convicted_spend_limit_in_pence &gt;= 0))" name="prison_incentive_level_convicted_spend_limit_in_pence_check"/>
+         <checkConstraint constraint="((convicted_transfer_limit_in_pence &gt;= 0))" name="prison_incentive_level_convicted_transfer_limit_in_pence_check"/>
+         <checkConstraint constraint="((length((prison_id)::text) &gt;= 1))" name="prison_incentive_level_prison_id_check"/>
+         <checkConstraint constraint="((privileged_visit_orders &gt;= 0))" name="prison_incentive_level_privileged_visit_orders_check"/>
+         <checkConstraint constraint="((remand_spend_limit_in_pence &gt;= 0))" name="prison_incentive_level_remand_spend_limit_in_pence_check"/>
+         <checkConstraint constraint="((remand_transfer_limit_in_pence &gt;= 0))" name="prison_incentive_level_remand_transfer_limit_in_pence_check"/>
+         <checkConstraint constraint="((visit_orders &gt;= 0))" name="prison_incentive_level_visit_orders_check"/>
+      </table>
+      <table name="prisoner_iep_level" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('prisoner_iep_level_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="10" type="serial" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="booking_id" nullable="false" remarks="" size="0" type="numeric" typeCode="2">
+            <parent column="booking_id" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="next_review_date"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="prisoner_number" nullable="false" remarks="" size="10" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="prison_id" nullable="false" remarks="" size="6" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="location_id" nullable="true" remarks="" size="240" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="5" name="review_time" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="6" name="iep_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12">
+            <parent column="code" foreignKey="incentive_level_fkey" implied="false" onDeleteCascade="false" schema="public" table="incentive_level"/>
+         </column>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="7" name="comment_text" nullable="true" remarks="" size="2147483647" type="text" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="8" name="reviewed_by" nullable="true" remarks="" size="32" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="true" digits="0" id="9" name="current" nullable="false" remarks="" size="1" type="bool" typeCode="-7"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="10" name="when_created" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="'REVIEW'::character varying" digits="0" id="11" name="review_type" nullable="false" remarks="" size="16" type="varchar" typeCode="12"/>
+         <primaryKey column="id" sequenceNumberInPK="1"/>
+         <index name="prisoner_iep_level_pkey" unique="true">
+            <column ascending="true" name="id"/>
+         </index>
+         <index name="one_booking_id_with_current_true_idx" unique="true">
+            <column ascending="true" name="booking_id"/>
+         </index>
+         <index name="prisoner_iep_level_booking_id_idx" unique="false">
+            <column ascending="true" name="booking_id"/>
+         </index>
+         <index name="prisoner_iep_level_fk_idx" unique="false">
+            <column ascending="true" name="prison_id"/>
+            <column ascending="true" name="iep_code"/>
+         </index>
+         <index name="prisoner_iep_level_idx1" unique="false">
+            <column ascending="true" name="prisoner_number"/>
+         </index>
+         <index name="prisoner_iep_level_loc_idx" unique="false">
+            <column ascending="true" name="location_id"/>
+         </index>
+      </table>
+      <table name="shedlock" remarks="" schema="public" type="TABLE">
+         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="name" nullable="false" remarks="" size="64" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="3" id="1" name="lock_until" nullable="true" remarks="" size="26" type="timestamp" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="3" id="2" name="locked_at" nullable="true" remarks="" size="26" type="timestamp" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="locked_by" nullable="true" remarks="" size="255" type="varchar" typeCode="12"/>
+         <primaryKey column="name" sequenceNumberInPK="1"/>
+         <index name="shedlock_pkey" unique="true">
+            <column ascending="true" name="name"/>
+         </index>
+      </table>
+   </tables>
+</database>
