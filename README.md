@@ -127,6 +127,41 @@ docker run --rm --network host -v /tmp/schemaspy:/output schemaspy/schemaspy:6.2
   -u incentives -p incentives -vizjs
 ```
 
+If you change `V1_35__schema_comments.sql` while the compose database is still up, Flyway will refuse to
+start with a checksum mismatch — the container persists between runs. Recreate it with
+`docker compose -f docker-compose-schema-spy.yml down -v` before re-running.
+
+### Table and column descriptions
+
+Descriptions live in the database as `COMMENT ON` statements, applied by
+`db/migration/V1_35__schema_comments.sql`, so SchemaSpy and any Glue crawl read the same source of
+truth. Each column description ends with a sensitivity classification:
+
+| Tag | Meaning |
+| --- | --- |
+| `[Sensitivity: NONE]` | Not personal data in itself |
+| `[Sensitivity: PERSONAL]` | Personal data about a prisoner — identifies or locates them |
+| `[Sensitivity: STAFF]` | Personal data about a member of staff, typically the username that acted |
+| `[Sensitivity: SPECIAL-CATEGORY]` | UK GDPR Article 9 data, or offence data under Article 10 |
+| `[Sensitivity: OFFICIAL-SENSITIVE]` | Not personal data, but damaging if disclosed |
+
+`STAFF` is still personal data and still in scope for a staff member's own subject access request. It
+is separated from `PERSONAL` so an extract about prisoners can be reasoned about without staff columns
+inflating the count.
+
+The tags describe **the column's own content, not the row's** — every row in `prisoner_iep_level` and
+`next_review_date` belongs to a prisoner, so the whole record is personal data about them whatever an
+individual column is marked.
+
+Most of this schema is not about people at all: `incentive_level`, `prison_incentive_level` and `kpi`
+are reference data, per-prison configuration and daily aggregates, with no personal data in them. Only
+one column is special category — `prisoner_iep_level.comment_text`, the free-text review note, which in
+practice covers behaviour, adjudications, health and third parties. `shedlock` and
+`flyway_schema_history` are infrastructure and should be excluded from any ingestion or catalogue entry.
+
+**Any new table or column needs a `COMMENT ON`** in a migration — `SchemaCommentsTest` fails the build
+otherwise. A later migration can add to or replace any comment at any time.
+
 Note that the compose database binds host port 5432 deliberately: `PostgresContainer.isPostgresRunning()`
 defers to an already-running database, so `InitialiseDatabase` migrates that container and SchemaSpy can
 read the same schema afterwards. Left to Testcontainers the schema would die with the JVM.
