@@ -1,0 +1,94 @@
+name: SchemaSpy report
+
+# Publishes the incentives data dictionary:
+#   https://ministryofjustice.github.io/hmpps-incentives-api/schema-spy-report/
+#
+# The report is generated from a database built by Flyway, so it cannot drift from the migrations.
+
+on:
+  workflow_call:
+    inputs:
+      java_version:
+        description: Java version
+        type: string
+        default: '25'
+      java_options:
+        description: Java options
+        type: string
+        default: '-Xmx512m -XX:ParallelGCThreads=2 -XX:ConcGCThreads=2 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2 -Dorg.gradle.daemon=false -Dkotlin.compiler.execution.strategy=in-process'
+      docker_compose_file:
+        description: Path to Docker Compose file to start required containers
+        type: string
+        default: 'docker-compose-schema-spy.yml'
+      database_name:
+        description: Database name
+        type: string
+        default: 'incentives'
+      database_user:
+        description: Database user name
+        type: string
+        default: 'incentives'
+      database_password:
+        description: Database user password
+        type: string
+        default: 'incentives'
+      database_schema:
+        description: Database schema name
+        type: string
+        default: 'public'
+      publish:
+        description: Publish the report to GitHub Pages
+        type: boolean
+        default: true
+
+jobs:
+  schema-spy:
+    name: Schema Spy report generation
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Setup Java
+        uses: actions/setup-java@0f481fcb613427c0f801b606911222b5b6f3083a # v5
+        with:
+          distribution: temurin
+          java-version: ${{ inputs.java_version }}
+          cache: gradle
+          cache-dependency-path: |
+            *.gradle*
+            **/gradle-wrapper.properties
+
+      - name: Initialise database
+        shell: bash
+        run: |
+          docker compose -f ${{ inputs.docker_compose_file }} up -d --wait
+          export JAVA_OPTS="${{ inputs.java_options }}"
+          ./gradlew -Pinit-db=true test \
+            --tests uk.gov.justice.digital.hmpps.incentivesapi.integration.InitialiseDatabase
+
+      - name: Generate database schema report
+        uses: ministryofjustice/hmpps-github-shared-actions/.github/actions/database_schema_report@1061afed0f02c82850314e2fc29711523139e574 # v1.1.2
+        with:
+          database_name: ${{ inputs.database_name }}
+          schema: ${{ inputs.database_schema }}
+          user: ${{ inputs.database_user }}
+          password: ${{ inputs.database_password }}
+
+      # After the first run, enable GitHub Pages on the repo (Settings > Pages, deploy from the gh-pages
+      # branch, root) and add an empty .nojekyll file to the *root* of gh-pages. Without it Pages tries to
+      # run a Jekyll build over the SchemaSpy output, which this repo's Actions policy does not allow, and
+      # the site never publishes - Settings > Pages says "Actions is currently unavailable for your
+      # repository, and your Pages site requires a Jekyll build step". A root .nojekyll survives later
+      # deployments because this step only replaces schema-spy-report/.
+      - name: Publish to GitHub Pages
+        if: ${{ inputs.publish }}
+        uses: JamesIves/github-pages-deploy-action@d92aa235d04922e8f08b40ce78cc5442fcfbfa2f # v4.8.0
+        with:
+          branch: gh-pages
+          folder: /tmp/schemaspy
+          target-folder: schema-spy-report
