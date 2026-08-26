@@ -104,6 +104,33 @@ or prompt for user input when run.
 
 Both also accept the `--port` argument to choose a different local port, other than the resource’s default.
 
+## Database schema
+
+A browsable schema report is published from `main` to
+[ministryofjustice.github.io/hmpps-incentives-api/schema-spy-report](https://ministryofjustice.github.io/hmpps-incentives-api/schema-spy-report/).
+
+The report shows every table and column, with types, nullability, primary and foreign keys, and ER
+diagrams. Share it rather than a hand-written description when explaining the schema — to the Data Hub
+transition team, or when working out what a subject access request covers. It supersedes the
+hand-maintained table list in [the Data Hub assessment](doc/HMPPS%20Data%20Hub%20Data%20Assessment%20Incentives.md),
+which cannot help going stale.
+
+It is generated from a database built by Flyway, so it cannot drift from the migrations. This service
+reads through R2DBC at runtime, but Flyway still migrates over JDBC on startup, so booting the context
+is all that is needed. To regenerate it locally:
+
+```shell
+docker compose -f docker-compose-schema-spy.yml up -d --wait
+./gradlew -Pinit-db=true test --tests '*InitialiseDatabase'
+docker run --rm --network host -v /tmp/schemaspy:/output schemaspy/schemaspy:6.2.4 \
+  -t pgsql -host localhost -port 5432 -db incentives -s public \
+  -u incentives -p incentives -vizjs
+```
+
+Note that the compose database binds host port 5432 deliberately: `PostgresContainer.isPostgresRunning()`
+defers to an already-running database, so `InitialiseDatabase` migrates that container and SchemaSpy can
+read the same schema afterwards. Left to Testcontainers the schema would die with the JVM.
+
 ## Architecture
 
 Architecture decision records start [here](doc/architecture/decisions/0001-use-adr.md)

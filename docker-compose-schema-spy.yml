@@ -1,0 +1,43 @@
+services:
+  # Postgres must listen on the standard 5432 rather than a random Testcontainers port. PostgresContainer
+  # defers to an already-running database (see isPostgresRunning), so InitialiseDatabase migrates *this*
+  # container and SchemaSpy can then read the same schema. Left to Testcontainers, the schema would be
+  # built in an ephemeral container that dies with the JVM.
+  postgres:
+    image: postgres:16
+    networks:
+      - hmpps
+    container_name: incentives-schema-spy-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=incentives
+      - POSTGRES_USER=incentives
+      - POSTGRES_PASSWORD=incentives
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "incentives", "-d", "incentives"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # The test boots the full Spring context, which wires HmppsQueueService. The test profile groups in
+  # the localstack profile, so without SQS/SNS on 4566 the context fails to start, Flyway never runs and
+  # SchemaSpy has no schema to read.
+  localstack:
+    image: localstack/localstack:4
+    networks:
+      - hmpps
+    container_name: incentives-schema-spy-localstack
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=sns,sqs
+      - DEFAULT_REGION=eu-west-2
+    healthcheck:
+      test: ["CMD", "bash", "-c", "awslocal sns list-topics && awslocal sqs list-queues"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+
+networks:
+  hmpps:
