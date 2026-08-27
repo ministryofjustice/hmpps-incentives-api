@@ -74,6 +74,19 @@
                 <!-- Content Header (Page header) -->
                 <section class="content-header">
                     <h1>shedlock</h1><p><span id="recordNumber">-1</span> rows</p><br />
+                    <div class="box box-primary">
+                        <div class="box-header with-border">
+                            <i class="fa fa-file-text-o"></i>
+                            <h3 id="Description" class="box-title">Description</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                            </div>
+                        </div><!-- /.box-header -->
+                        <div class="box-body clearfix">
+                            <p>ShedLock distributed lock table. Infrastructure: it stops more than one pod running the same scheduled task at once. Contains no business or personal data and should be excluded from any data ingestion or catalogue entry, alongside flyway_schema_history.</p>
+                        </div><!-- /.box-body -->
+                    </div>
                 </section>
                 <!-- Main content -->
                 <section class="content">
@@ -123,7 +136,7 @@
                                         <table border='0' cellspacing='0' cellpadding='0'>
                                         </table>
                                     </td>
-                                    <td></td>
+                                    <td><p>Name of the scheduled task being locked, for example the KPI update. Primary key. <a href="./../null">Sensitivity: NONE</a></p></td>
                                 </tr>
                                 <tr>
                                     <td><span id="lock_until">lock_until</span></td>
@@ -140,7 +153,7 @@
                                         <table border='0' cellspacing='0' cellpadding='0'>
                                         </table>
                                     </td>
-                                    <td></td>
+                                    <td><p>When the lock expires, so a pod that dies mid-task does not hold it forever. <a href="./../null">Sensitivity: NONE</a></p></td>
                                 </tr>
                                 <tr>
                                     <td><span id="locked_at">locked_at</span></td>
@@ -157,7 +170,7 @@
                                         <table border='0' cellspacing='0' cellpadding='0'>
                                         </table>
                                     </td>
-                                    <td></td>
+                                    <td><p>When the lock was taken. <a href="./../null">Sensitivity: NONE</a></p></td>
                                 </tr>
                                 <tr>
                                     <td><span id="locked_by">locked_by</span></td>
@@ -174,7 +187,7 @@
                                         <table border='0' cellspacing='0' cellpadding='0'>
                                         </table>
                                     </td>
-                                    <td></td>
+                                    <td><p>Which instance holds the lock - a pod hostname, not a person. <a href="./../null">Sensitivity: NONE</a></p></td>
                                 </tr>
                                 </tbody>
                             </table>

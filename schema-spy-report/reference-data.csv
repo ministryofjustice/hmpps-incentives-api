@@ -1,0 +1,6 @@
+column_ref,code,description,notes
+"prisoner_iep_level.review_type","INITIAL","The prisoner's first incentive level on entering custody, rather than a review of an existing one.","not counted as a real review for reporting (see IsRealReview)"
+"prisoner_iep_level.review_type","REVIEW","A normal incentive review, scheduled or ad hoc. The only type conducted by a member of staff in DPS.","counts as a real review for reporting (see IsRealReview)"
+"prisoner_iep_level.review_type","TRANSFER","The level was carried over automatically when the prisoner moved establishment. Created by the service in response to a prisoner movement, not by a reviewer.","not counted as a real review for reporting (see IsRealReview)"
+"prisoner_iep_level.review_type","MIGRATED","Loaded from NOMIS, which did not record what prompted the review. The bulk of the historical data has this type.","counts as a real review for reporting (see IsRealReview)"
+"prisoner_iep_level.review_type","READMISSION","The level was set automatically when the prisoner returned to custody. Created by the service in response to a prisoner event, not by a reviewer.","not counted as a real review for reporting (see IsRealReview)"

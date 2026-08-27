@@ -23,17 +23,17 @@
             <column ascending="true" name="success"/>
          </index>
       </table>
-      <table name="incentive_level" remarks="" schema="public" type="TABLE">
-         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="code" nullable="false" remarks="" size="6" type="varchar" typeCode="12">
+      <table name="incentive_level" remarks="The incentive levels available nationally, in display order. Reference data with roughly six rows, mastered here rather than in NOMIS. Levels are deactivated rather than deleted so historical reviews referencing them still resolve." schema="public" type="TABLE">
+         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="code" nullable="false" remarks="Short code for the level and the primary key: BAS (Basic), STD (Standard), ENH (Enhanced), EN2 (Enhanced 2), EN3 (Enhanced 3) or ENT (Entry, retired). Referenced by prisoner_iep_level.iep_code and prison_incentive_level.level_code. [Sensitivity: NONE]" size="6" type="varchar" typeCode="12">
             <child column="level_code" foreignKey="incentive_level_fkey" implied="false" onDeleteCascade="false" schema="public" table="prison_incentive_level"/>
             <child column="iep_code" foreignKey="incentive_level_fkey" implied="false" onDeleteCascade="false" schema="public" table="prisoner_iep_level"/>
          </column>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="name" nullable="false" remarks="" size="30" type="varchar" typeCode="12"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="sequence" nullable="false" remarks="" size="5" type="int2" typeCode="5"/>
-         <column autoUpdated="false" defaultValue="true" digits="0" id="3" name="active" nullable="false" remarks="" size="1" type="bool" typeCode="-7"/>
-         <column autoUpdated="false" defaultValue="now()" digits="6" id="4" name="when_created" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
-         <column autoUpdated="false" defaultValue="now()" digits="6" id="5" name="when_updated" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
-         <column autoUpdated="false" defaultValue="false" digits="0" id="6" name="required" nullable="false" remarks="" size="1" type="bool" typeCode="-7"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="name" nullable="false" remarks="Human-readable name of the level, for example &quot;Enhanced 2&quot;. Renamed from description in V1_30 - the Kotlin property is name. [Sensitivity: NONE]" size="30" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="sequence" nullable="false" remarks="Display order, lowest first. Deliberately not unique, so levels can be reordered without a constraint violation partway through the update. Retired levels sit at the end (ENT is 99). [Sensitivity: NONE]" size="5" type="int2" typeCode="5"/>
+         <column autoUpdated="false" defaultValue="true" digits="0" id="3" name="active" nullable="false" remarks="Whether the level can be used for new reviews. Retired levels stay in the table with active false so historical reviews still resolve. [Sensitivity: NONE]" size="1" type="bool" typeCode="-7"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="4" name="when_created" nullable="false" remarks="When the level was added. [Sensitivity: NONE]" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="5" name="when_updated" nullable="false" remarks="When the level was last changed, including being activated, deactivated or reordered. [Sensitivity: NONE]" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="false" digits="0" id="6" name="required" nullable="false" remarks="Whether every prison must offer this level. True for BAS, STD and ENH - the three levels the national policy framework mandates - and false for the rest, which a prison may choose to offer. A required level cannot be deactivated: a check constraint enforces active OR NOT required. [Sensitivity: NONE]" size="1" type="bool" typeCode="-7"/>
          <primaryKey column="code" sequenceNumberInPK="1"/>
          <index name="incentive_level_pkey" unique="true">
             <column ascending="true" name="code"/>
@@ -48,13 +48,13 @@
          <checkConstraint constraint="((length((code)::text) &gt;= 1))" name="incentive_level_code_check"/>
          <checkConstraint constraint="((length((name)::text) &gt;= 1))" name="incentive_level_description_check"/>
       </table>
-      <table name="kpi" remarks="" schema="public" type="TABLE">
-         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="day" nullable="false" remarks="" size="13" type="date" typeCode="91"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="overdue_reviews" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="previous_month_reviews_conducted" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="previous_month_prisoners_reviewed" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
-         <column autoUpdated="false" defaultValue="now()" digits="6" id="4" name="when_created" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
-         <column autoUpdated="false" defaultValue="now()" digits="6" id="5" name="when_updated" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
+      <table name="kpi" remarks="Daily national aggregate counts about incentive reviews, one row per day, written by a scheduled task. Counts only - no prisoner is identifiable from this table, and it is not a source of truth for anything: the underlying reviews are in prisoner_iep_level." schema="public" type="TABLE">
+         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="day" nullable="false" remarks="The day these counts were calculated for. Primary key, so one row per day. [Sensitivity: NONE]" size="13" type="date" typeCode="91"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="overdue_reviews" nullable="false" remarks="Number of prisoners whose next review date had passed as at this day, across the estate. [Sensitivity: NONE]" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="previous_month_reviews_conducted" nullable="false" remarks="Number of reviews conducted in the calendar month before this day. Counts reviews, so a prisoner reviewed twice counts twice - compare with previous_month_prisoners_reviewed. [Sensitivity: NONE]" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="previous_month_prisoners_reviewed" nullable="false" remarks="Number of distinct prisoners reviewed in the calendar month before this day. Always less than or equal to previous_month_reviews_conducted. [Sensitivity: NONE]" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="4" name="when_created" nullable="false" remarks="When the row was written. [Sensitivity: NONE]" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="5" name="when_updated" nullable="false" remarks="When the row was last recalculated. [Sensitivity: NONE]" size="35" type="timestamptz" typeCode="93"/>
          <primaryKey column="day" sequenceNumberInPK="1"/>
          <index name="kpi_pkey" unique="true">
             <column ascending="true" name="day"/>
@@ -66,13 +66,13 @@
          <checkConstraint constraint="((previous_month_prisoners_reviewed &gt;= 0))" name="kpi_previous_month_prisoners_reviewed_check"/>
          <checkConstraint constraint="((previous_month_reviews_conducted &gt;= 0))" name="kpi_previous_month_reviews_conducted_check"/>
       </table>
-      <table name="next_review_date" remarks="" schema="public" type="TABLE">
-         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="booking_id" nullable="false" remarks="" size="0" type="numeric" typeCode="2">
+      <table name="next_review_date" remarks="When each prisoner's next incentive review is due. Derived rather than entered: recalculated from the review history, the prisoner's age and their current level whenever a review is recorded or a relevant prisoner event arrives, so it is frequently rewritten and is a cache rather than a source of truth. One row per booking, not per review." schema="public" type="TABLE">
+         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="booking_id" nullable="false" remarks="NOMIS booking id - the prisoner's custodial period, not the person. Primary key here, so there is one row per booking. Joins to prisoner_iep_level.booking_id. [Sensitivity: PERSONAL]" size="0" type="numeric" typeCode="2">
             <child column="booking_id" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="prisoner_iep_level"/>
          </column>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="next_review_date" nullable="false" remarks="" size="13" type="date" typeCode="91"/>
-         <column autoUpdated="false" defaultValue="now()" digits="6" id="2" name="when_created" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
-         <column autoUpdated="false" defaultValue="now()" digits="6" id="3" name="when_updated" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="next_review_date" nullable="false" remarks="Date the prisoner's next incentive review is due. Computed from the last review, the prisoner's current level and whether they are a young person, so its value discloses something about their incentive history rather than being a plain scheduling field. [Sensitivity: PERSONAL]" size="13" type="date" typeCode="91"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="2" name="when_created" nullable="false" remarks="When the row was first written. [Sensitivity: NONE]" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="3" name="when_updated" nullable="false" remarks="When the date was last recalculated. Changes often - every review and every relevant prisoner event triggers a recalculation, whether or not the date itself moves. [Sensitivity: NONE]" size="35" type="timestamptz" typeCode="93"/>
          <primaryKey column="booking_id" sequenceNumberInPK="1"/>
          <index name="next_review_date_pkey" unique="true">
             <column ascending="true" name="booking_id"/>
@@ -81,22 +81,22 @@
             <column ascending="true" name="next_review_date"/>
          </index>
       </table>
-      <table name="prison_incentive_level" remarks="" schema="public" type="TABLE">
-         <column autoUpdated="true" defaultValue="nextval('prison_incentive_level_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="10" type="serial" typeCode="4"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="level_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12">
+      <table name="prison_incentive_level" remarks="How one prison configures one incentive level: whether it is offered, whether new arrivals start on it, and the spending and visit entitlements that come with it. One row per prison and level. Configuration about establishments, not about people - there is no personal data in this table." schema="public" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('prison_incentive_level_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="Primary key. Surrogate sequence value; the meaningful key is the unique pair (level_code, prison_id). [Sensitivity: NONE]" size="10" type="serial" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="level_code" nullable="false" remarks="The incentive level being configured. Foreign key to incentive_level.code. [Sensitivity: NONE]" size="6" type="varchar" typeCode="12">
             <parent column="code" foreignKey="incentive_level_fkey" implied="false" onDeleteCascade="false" schema="public" table="incentive_level"/>
          </column>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="prison_id" nullable="false" remarks="" size="6" type="varchar" typeCode="12"/>
-         <column autoUpdated="false" defaultValue="true" digits="0" id="3" name="active" nullable="false" remarks="" size="1" type="bool" typeCode="-7"/>
-         <column autoUpdated="false" defaultValue="false" digits="0" id="4" name="default_on_admission" nullable="false" remarks="" size="1" type="bool" typeCode="-7"/>
-         <column autoUpdated="false" defaultValue="now()" digits="6" id="5" name="when_created" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
-         <column autoUpdated="false" defaultValue="now()" digits="6" id="6" name="when_updated" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="7" name="remand_transfer_limit_in_pence" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="8" name="remand_spend_limit_in_pence" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="9" name="convicted_transfer_limit_in_pence" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="10" name="convicted_spend_limit_in_pence" nullable="false" remarks="" size="10" type="int4" typeCode="4"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="11" name="visit_orders" nullable="false" remarks="" size="5" type="int2" typeCode="5"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="12" name="privileged_visit_orders" nullable="false" remarks="" size="5" type="int2" typeCode="5"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="prison_id" nullable="false" remarks="Agency (prison) code the configuration applies to. Identifies an establishment, not a prisoner. [Sensitivity: NONE]" size="6" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="true" digits="0" id="3" name="active" nullable="false" remarks="Whether this prison offers this level. A level active nationally can be inactive at a given prison. [Sensitivity: NONE]" size="1" type="bool" typeCode="-7"/>
+         <column autoUpdated="false" defaultValue="false" digits="0" id="4" name="default_on_admission" nullable="false" remarks="Whether new arrivals at this prison start on this level. Deliberately not constrained to one row per prison, so a misconfiguration is possible and the service picks a winner rather than the database rejecting it. [Sensitivity: NONE]" size="1" type="bool" typeCode="-7"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="5" name="when_created" nullable="false" remarks="When the configuration row was added. [Sensitivity: NONE]" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="6" name="when_updated" nullable="false" remarks="When the configuration was last changed. Rows loaded in the initial migration carry the original NOMIS timestamp, which is why some are many years old. [Sensitivity: NONE]" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="7" name="remand_transfer_limit_in_pence" nullable="false" remarks="Most a remand prisoner on this level at this prison may transfer into their spends account per week, in pence. [Sensitivity: NONE]" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="8" name="remand_spend_limit_in_pence" nullable="false" remarks="Most a remand prisoner on this level at this prison may hold in their spends account, in pence. [Sensitivity: NONE]" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="9" name="convicted_transfer_limit_in_pence" nullable="false" remarks="Most a convicted prisoner on this level at this prison may transfer into their spends account per week, in pence. [Sensitivity: NONE]" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="10" name="convicted_spend_limit_in_pence" nullable="false" remarks="Most a convicted prisoner on this level at this prison may hold in their spends account, in pence. [Sensitivity: NONE]" size="10" type="int4" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="11" name="visit_orders" nullable="false" remarks="Number of standard visit orders per period for a prisoner on this level at this prison. [Sensitivity: NONE]" size="5" type="int2" typeCode="5"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="12" name="privileged_visit_orders" nullable="false" remarks="Number of privileged visit orders per period for a prisoner on this level at this prison, on top of the standard allowance. [Sensitivity: NONE]" size="5" type="int2" typeCode="5"/>
          <primaryKey column="id" sequenceNumberInPK="1"/>
          <index name="prison_incentive_level_pkey" unique="true">
             <column ascending="true" name="id"/>
@@ -126,23 +126,23 @@
          <checkConstraint constraint="((remand_transfer_limit_in_pence &gt;= 0))" name="prison_incentive_level_remand_transfer_limit_in_pence_check"/>
          <checkConstraint constraint="((visit_orders &gt;= 0))" name="prison_incentive_level_visit_orders_check"/>
       </table>
-      <table name="prisoner_iep_level" remarks="" schema="public" type="TABLE">
-         <column autoUpdated="true" defaultValue="nextval('prisoner_iep_level_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="" size="10" type="serial" typeCode="4"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="booking_id" nullable="false" remarks="" size="0" type="numeric" typeCode="2">
+      <table name="prisoner_iep_level" remarks="One incentive (IEP) review of one prisoner, in an ordered history - not one row per prisoner. A prisoner accumulates a row per review over time and the one that counts today is flagged by current. Holds reviews conducted in DPS alongside the full history migrated from NOMIS, which is why reviewed_by and location_id are nullable and why review_type distinguishes MIGRATED rows. The Kotlin entity is IncentiveReview; the table keeps the legacy NOMIS name." schema="public" type="TABLE">
+         <column autoUpdated="true" defaultValue="nextval('prisoner_iep_level_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="Primary key. Surrogate sequence value; carries no meaning and is not the NOMIS identifier. [Sensitivity: NONE]" size="10" type="serial" typeCode="4"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="booking_id" nullable="false" remarks="NOMIS booking id - the prisoner's custodial period, not the person. A prisoner released and recalled has a new booking id, so this identifies one spell in custody for one prisoner. Used rather than prisoner_number as the join key for next_review_date. [Sensitivity: PERSONAL]" size="0" type="numeric" typeCode="2">
             <parent column="booking_id" foreignKey="Implied Constraint" implied="true" onDeleteCascade="false" schema="public" table="next_review_date"/>
          </column>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="prisoner_number" nullable="false" remarks="" size="10" type="varchar" typeCode="12"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="prison_id" nullable="false" remarks="" size="6" type="varchar" typeCode="12"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="location_id" nullable="true" remarks="" size="240" type="varchar" typeCode="12"/>
-         <column autoUpdated="false" defaultValue="null" digits="6" id="5" name="review_time" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="6" name="iep_code" nullable="false" remarks="" size="6" type="varchar" typeCode="12">
+         <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="prisoner_number" nullable="false" remarks="NOMIS offender number (noms id) of the prisoner reviewed. The link that makes every row here personal data about that prisoner. Updated in place when NOMIS merges two offender records. [Sensitivity: PERSONAL]" size="10" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="prison_id" nullable="false" remarks="Agency (prison) code where the review took place. Read with prisoner_number it indicates where that prisoner was held at the time. [Sensitivity: PERSONAL]" size="6" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="location_id" nullable="true" remarks="Internal location the prisoner was held at when reviewed - a cell or wing description rather than an id, despite the name, which is why it was widened to 240 characters. Nullable, and not populated by current write paths: the field is legacy and no longer mapped onto the Kotlin entity, so treat it as historical. Where set it locates the prisoner within the establishment. [Sensitivity: PERSONAL]" size="240" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="5" name="review_time" nullable="false" remarks="When the review was conducted. For rows migrated from NOMIS this is the original review date, not the migration. This is the column that orders a prisoner's history. [Sensitivity: NONE]" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="6" name="iep_code" nullable="false" remarks="The incentive level the prisoner was placed on by this review. Foreign key to incentive_level.code - BAS, STD, ENH, EN2, EN3 or the retired ENT. Column keeps the legacy NOMIS name; the Kotlin property is levelCode. [Sensitivity: NONE]" size="6" type="varchar" typeCode="12">
             <parent column="code" foreignKey="incentive_level_fkey" implied="false" onDeleteCascade="false" schema="public" table="incentive_level"/>
          </column>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="7" name="comment_text" nullable="true" remarks="" size="2147483647" type="text" typeCode="12"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="8" name="reviewed_by" nullable="true" remarks="" size="32" type="varchar" typeCode="12"/>
-         <column autoUpdated="false" defaultValue="true" digits="0" id="9" name="current" nullable="false" remarks="" size="1" type="bool" typeCode="-7"/>
-         <column autoUpdated="false" defaultValue="now()" digits="6" id="10" name="when_created" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
-         <column autoUpdated="false" defaultValue="'REVIEW'::character varying" digits="0" id="11" name="review_type" nullable="false" remarks="" size="16" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="7" name="comment_text" nullable="true" remarks="The reviewer's free-text note on the review. Unstructured and unbounded - in practice describes behaviour, adjudications, health and third parties, so treat as special category regardless of what any individual comment happens to say. The only special category column in this schema. [Sensitivity: SPECIAL-CATEGORY]" size="2147483647" type="text" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="8" name="reviewed_by" nullable="true" remarks="DPS username of the member of staff who conducted the review, or the system user for reviews created by the service itself in response to a prisoner movement. Null on some rows migrated from NOMIS, which did not always record it. Identifies a member of staff. [Sensitivity: STAFF]" size="32" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="true" digits="0" id="9" name="current" nullable="false" remarks="Whether this is the prisoner's current incentive level. Exactly one row per booking_id may be true, enforced by a partial unique index; all earlier reviews are false. Filter on this rather than taking the latest review_time. [Sensitivity: NONE]" size="1" type="bool" typeCode="-7"/>
+         <column autoUpdated="false" defaultValue="now()" digits="6" id="10" name="when_created" nullable="false" remarks="When the row was written to this service. For reviews migrated from NOMIS this is the migration run, not the review - use review_time for when the review actually happened. [Sensitivity: NONE]" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="'REVIEW'::character varying" digits="0" id="11" name="review_type" nullable="false" remarks="What caused the review: INITIAL (on first entering custody), REVIEW (a normal scheduled or ad-hoc review), TRANSFER (level carried over on moving establishment), READMISSION (returning to custody) or MIGRATED (loaded from NOMIS, where the original cause was not recorded). Only REVIEW and MIGRATED count as real reviews for reporting - see IsRealReview. [Sensitivity: NONE]" size="16" type="varchar" typeCode="12"/>
          <primaryKey column="id" sequenceNumberInPK="1"/>
          <index name="prisoner_iep_level_pkey" unique="true">
             <column ascending="true" name="id"/>
@@ -164,11 +164,11 @@
             <column ascending="true" name="location_id"/>
          </index>
       </table>
-      <table name="shedlock" remarks="" schema="public" type="TABLE">
-         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="name" nullable="false" remarks="" size="64" type="varchar" typeCode="12"/>
-         <column autoUpdated="false" defaultValue="null" digits="3" id="1" name="lock_until" nullable="true" remarks="" size="26" type="timestamp" typeCode="93"/>
-         <column autoUpdated="false" defaultValue="null" digits="3" id="2" name="locked_at" nullable="true" remarks="" size="26" type="timestamp" typeCode="93"/>
-         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="locked_by" nullable="true" remarks="" size="255" type="varchar" typeCode="12"/>
+      <table name="shedlock" remarks="ShedLock distributed lock table. Infrastructure: it stops more than one pod running the same scheduled task at once. Contains no business or personal data and should be excluded from any data ingestion or catalogue entry, alongside flyway_schema_history." schema="public" type="TABLE">
+         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="name" nullable="false" remarks="Name of the scheduled task being locked, for example the KPI update. Primary key. [Sensitivity: NONE]" size="64" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="3" id="1" name="lock_until" nullable="true" remarks="When the lock expires, so a pod that dies mid-task does not hold it forever. [Sensitivity: NONE]" size="26" type="timestamp" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="3" id="2" name="locked_at" nullable="true" remarks="When the lock was taken. [Sensitivity: NONE]" size="26" type="timestamp" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="3" name="locked_by" nullable="true" remarks="Which instance holds the lock - a pod hostname, not a person. [Sensitivity: NONE]" size="255" type="varchar" typeCode="12"/>
          <primaryKey column="name" sequenceNumberInPK="1"/>
          <index name="shedlock_pkey" unique="true">
             <column ascending="true" name="name"/>

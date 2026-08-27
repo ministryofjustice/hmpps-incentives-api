@@ -74,6 +74,19 @@
                 <!-- Content Header (Page header) -->
                 <section class="content-header">
                     <h1>prisoner_iep_level</h1><p><span id="recordNumber">-1</span> rows</p><br />
+                    <div class="box box-primary">
+                        <div class="box-header with-border">
+                            <i class="fa fa-file-text-o"></i>
+                            <h3 id="Description" class="box-title">Description</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                            </div>
+                        </div><!-- /.box-header -->
+                        <div class="box-body clearfix">
+                            <p>One incentive (IEP) review of one prisoner, in an ordered history - not one row per prisoner. A prisoner accumulates a row per review over time and the one that counts today is flagged by current. Holds reviews conducted in DPS alongside the full history migrated from NOMIS, which is why reviewed_by and location_id are nullable and why review_type distinguishes MIGRATED rows. The Kotlin entity is IncentiveReview; the table keeps the legacy NOMIS name.</p>
+                        </div><!-- /.box-body -->
+                    </div>
                 </section>
                 <!-- Main content -->
                 <section class="content">
@@ -123,7 +136,7 @@
                                         <table border='0' cellspacing='0' cellpadding='0'>
                                         </table>
                                     </td>
-                                    <td></td>
+                                    <td><p>Primary key. Surrogate sequence value; carries no meaning and is not the NOMIS identifier. <a href="./../null">Sensitivity: NONE</a></p></td>
                                 </tr>
                                 <tr>
                                     <td class='foreignKey' title='Foreign Key'><i class='icon ion-key iconkey' style='padding-left: 5px;'></i><span id="booking_id">booking_id</span></td>
@@ -145,7 +158,7 @@
                                             </tr>
                                         </table>
                                     </td>
-                                    <td></td>
+                                    <td><p>NOMIS booking id - the prisoner&rsquo;s custodial period, not the person. A prisoner released and recalled has a new booking id, so this identifies one spell in custody for one prisoner. Used rather than prisoner_number as the join key for next_review_date. <a href="./../null">Sensitivity: PERSONAL</a></p></td>
                                 </tr>
                                 <tr>
                                     <td class='indexedColumn' title='Indexed'><i class='fa fa-sitemap fa-rotate-120' style='padding-right: 5px;'></i><span id="prisoner_number">prisoner_number</span></td>
@@ -162,7 +175,7 @@
                                         <table border='0' cellspacing='0' cellpadding='0'>
                                         </table>
                                     </td>
-                                    <td></td>
+                                    <td><p>NOMIS offender number (noms id) of the prisoner reviewed. The link that makes every row here personal data about that prisoner. Updated in place when NOMIS merges two offender records. <a href="./../null">Sensitivity: PERSONAL</a></p></td>
                                 </tr>
                                 <tr>
                                     <td class='indexedColumn' title='Indexed'><i class='fa fa-sitemap fa-rotate-120' style='padding-right: 5px;'></i><span id="prison_id">prison_id</span></td>
@@ -179,7 +192,7 @@
                                         <table border='0' cellspacing='0' cellpadding='0'>
                                         </table>
                                     </td>
-                                    <td></td>
+                                    <td><p>Agency (prison) code where the review took place. Read with prisoner_number it indicates where that prisoner was held at the time. <a href="./../null">Sensitivity: PERSONAL</a></p></td>
                                 </tr>
                                 <tr>
                                     <td class='indexedColumn' title='Indexed'><i class='fa fa-sitemap fa-rotate-120' style='padding-right: 5px;'></i><span id="location_id">location_id</span></td>
@@ -196,7 +209,7 @@
                                         <table border='0' cellspacing='0' cellpadding='0'>
                                         </table>
                                     </td>
-                                    <td></td>
+                                    <td><p>Internal location the prisoner was held at when reviewed - a cell or wing description rather than an id, despite the name, which is why it was widened to 240 characters. Nullable, and not populated by current write paths: the field is legacy and no longer mapped onto the Kotlin entity, so treat it as historical. Where set it locates the prisoner within the establishment. <a href="./../null">Sensitivity: PERSONAL</a></p></td>
                                 </tr>
                                 <tr>
                                     <td><span id="review_time">review_time</span></td>
@@ -213,7 +226,7 @@
                                         <table border='0' cellspacing='0' cellpadding='0'>
                                         </table>
                                     </td>
-                                    <td></td>
+                                    <td><p>When the review was conducted. For rows migrated from NOMIS this is the original review date, not the migration. This is the column that orders a prisoner&rsquo;s history. <a href="./../null">Sensitivity: NONE</a></p></td>
                                 </tr>
                                 <tr>
                                     <td class='foreignKey' title='Foreign Key'><i class='icon ion-key iconkey' style='padding-left: 5px;'></i><span id="iep_code">iep_code</span></td>
@@ -235,7 +248,7 @@
                                             </tr>
                                         </table>
                                     </td>
-                                    <td></td>
+                                    <td><p>The incentive level the prisoner was placed on by this review. Foreign key to incentive_level.code - BAS, STD, ENH, EN2, EN3 or the retired ENT. Column keeps the legacy NOMIS name; the Kotlin property is levelCode. <a href="./../null">Sensitivity: NONE</a></p></td>
                                 </tr>
                                 <tr>
                                     <td><span id="comment_text">comment_text</span></td>
@@ -252,7 +265,7 @@
                                         <table border='0' cellspacing='0' cellpadding='0'>
                                         </table>
                                     </td>
-                                    <td></td>
+                                    <td><p>The reviewer&rsquo;s free-text note on the review. Unstructured and unbounded - in practice describes behaviour, adjudications, health and third parties, so treat as special category regardless of what any individual comment happens to say. The only special category column in this schema. <a href="./../null">Sensitivity: SPECIAL-CATEGORY</a></p></td>
                                 </tr>
                                 <tr>
                                     <td><span id="reviewed_by">reviewed_by</span></td>
@@ -269,7 +282,7 @@
                                         <table border='0' cellspacing='0' cellpadding='0'>
                                         </table>
                                     </td>
-                                    <td></td>
+                                    <td><p>DPS username of the member of staff who conducted the review, or the system user for reviews created by the service itself in response to a prisoner movement. Null on some rows migrated from NOMIS, which did not always record it. Identifies a member of staff. <a href="./../null">Sensitivity: STAFF</a></p></td>
                                 </tr>
                                 <tr>
                                     <td><span id="current">current</span></td>
@@ -286,7 +299,7 @@
                                         <table border='0' cellspacing='0' cellpadding='0'>
                                         </table>
                                     </td>
-                                    <td></td>
+                                    <td><p>Whether this is the prisoner&rsquo;s current incentive level. Exactly one row per booking_id may be true, enforced by a partial unique index; all earlier reviews are false. Filter on this rather than taking the latest review_time. <a href="./../null">Sensitivity: NONE</a></p></td>
                                 </tr>
                                 <tr>
                                     <td><span id="when_created">when_created</span></td>
@@ -303,7 +316,7 @@
                                         <table border='0' cellspacing='0' cellpadding='0'>
                                         </table>
                                     </td>
-                                    <td></td>
+                                    <td><p>When the row was written to this service. For reviews migrated from NOMIS this is the migration run, not the review - use review_time for when the review actually happened. <a href="./../null">Sensitivity: NONE</a></p></td>
                                 </tr>
                                 <tr>
                                     <td><span id="review_type">review_type</span></td>
@@ -320,7 +333,7 @@
                                         <table border='0' cellspacing='0' cellpadding='0'>
                                         </table>
                                     </td>
-                                    <td></td>
+                                    <td><p>What caused the review: INITIAL (on first entering custody), REVIEW (a normal scheduled or ad-hoc review), TRANSFER (level carried over on moving establishment), READMISSION (returning to custody) or MIGRATED (loaded from NOMIS, where the original cause was not recorded). Only REVIEW and MIGRATED count as real reviews for reporting - see IsRealReview. <a href="./../null">Sensitivity: NONE</a></p></td>
                                 </tr>
                                 </tbody>
                             </table>

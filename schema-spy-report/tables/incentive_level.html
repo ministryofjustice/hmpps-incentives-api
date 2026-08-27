@@ -74,6 +74,19 @@
                 <!-- Content Header (Page header) -->
                 <section class="content-header">
                     <h1>incentive_level</h1><p><span id="recordNumber">-1</span> rows</p><br />
+                    <div class="box box-primary">
+                        <div class="box-header with-border">
+                            <i class="fa fa-file-text-o"></i>
+                            <h3 id="Description" class="box-title">Description</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                            </div>
+                        </div><!-- /.box-header -->
+                        <div class="box-body clearfix">
+                            <p>The incentive levels available nationally, in display order. Reference data with roughly six rows, mastered here rather than in NOMIS. Levels are deactivated rather than deleted so historical reviews referencing them still resolve.</p>
+                        </div><!-- /.box-body -->
+                    </div>
                 </section>
                 <!-- Main content -->
                 <section class="content">
@@ -133,7 +146,7 @@
                                         <table border='0' cellspacing='0' cellpadding='0'>
                                         </table>
                                     </td>
-                                    <td></td>
+                                    <td><p>Short code for the level and the primary key: BAS (Basic), STD (Standard), ENH (Enhanced), EN2 (Enhanced 2), EN3 (Enhanced 3) or ENT (Entry, retired). Referenced by prisoner_iep_level.iep_code and prison_incentive_level.level_code. <a href="./../null">Sensitivity: NONE</a></p></td>
                                 </tr>
                                 <tr>
                                     <td><span id="name">name</span></td>
@@ -150,7 +163,7 @@
                                         <table border='0' cellspacing='0' cellpadding='0'>
                                         </table>
                                     </td>
-                                    <td></td>
+                                    <td><p>Human-readable name of the level, for example &ldquo;Enhanced 2&rdquo;. Renamed from description in V1_30 - the Kotlin property is name. <a href="./../null">Sensitivity: NONE</a></p></td>
                                 </tr>
                                 <tr>
                                     <td class='indexedColumn' title='Indexed'><i class='fa fa-sitemap fa-rotate-120' style='padding-right: 5px;'></i><span id="sequence">sequence</span></td>
@@ -167,7 +180,7 @@
                                         <table border='0' cellspacing='0' cellpadding='0'>
                                         </table>
                                     </td>
-                                    <td></td>
+                                    <td><p>Display order, lowest first. Deliberately not unique, so levels can be reordered without a constraint violation partway through the update. Retired levels sit at the end (ENT is 99). <a href="./../null">Sensitivity: NONE</a></p></td>
                                 </tr>
                                 <tr>
                                     <td class='indexedColumn' title='Indexed'><i class='fa fa-sitemap fa-rotate-120' style='padding-right: 5px;'></i><span id="active">active</span></td>
@@ -184,7 +197,7 @@
                                         <table border='0' cellspacing='0' cellpadding='0'>
                                         </table>
                                     </td>
-                                    <td></td>
+                                    <td><p>Whether the level can be used for new reviews. Retired levels stay in the table with active false so historical reviews still resolve. <a href="./../null">Sensitivity: NONE</a></p></td>
                                 </tr>
                                 <tr>
                                     <td><span id="when_created">when_created</span></td>
@@ -201,7 +214,7 @@
                                         <table border='0' cellspacing='0' cellpadding='0'>
                                         </table>
                                     </td>
-                                    <td></td>
+                                    <td><p>When the level was added. <a href="./../null">Sensitivity: NONE</a></p></td>
                                 </tr>
                                 <tr>
                                     <td><span id="when_updated">when_updated</span></td>
@@ -218,7 +231,7 @@
                                         <table border='0' cellspacing='0' cellpadding='0'>
                                         </table>
                                     </td>
-                                    <td></td>
+                                    <td><p>When the level was last changed, including being activated, deactivated or reordered. <a href="./../null">Sensitivity: NONE</a></p></td>
                                 </tr>
                                 <tr>
                                     <td><span id="required">required</span></td>
@@ -235,7 +248,7 @@
                                         <table border='0' cellspacing='0' cellpadding='0'>
                                         </table>
                                     </td>
-                                    <td></td>
+                                    <td><p>Whether every prison must offer this level. True for BAS, STD and ENH - the three levels the national policy framework mandates - and false for the rest, which a prison may choose to offer. A required level cannot be deactivated: a check constraint enforces active OR NOT required. <a href="./../null">Sensitivity: NONE</a></p></td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -314,12 +327,12 @@
                                 </thead>
                                 <tbody>
                                 <tr>
-                                    <td>incentive_level_active_if_required</td>
-                                    <td>((active OR (NOT required)))</td>
-                                </tr>
-                                <tr>
                                     <td>incentive_level_description_check</td>
                                     <td>((length((name)::text) &gt;&#61; 1))</td>
+                                </tr>
+                                <tr>
+                                    <td>incentive_level_active_if_required</td>
+                                    <td>((active OR (NOT required)))</td>
                                 </tr>
                                 <tr>
                                     <td>incentive_level_code_check</td>

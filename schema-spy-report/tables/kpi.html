@@ -74,6 +74,19 @@
                 <!-- Content Header (Page header) -->
                 <section class="content-header">
                     <h1>kpi</h1><p><span id="recordNumber">-1</span> rows</p><br />
+                    <div class="box box-primary">
+                        <div class="box-header with-border">
+                            <i class="fa fa-file-text-o"></i>
+                            <h3 id="Description" class="box-title">Description</h3>
+                            <div class="box-tools pull-right">
+                                <button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>
+                                <button type="button" class="btn btn-box-tool" data-widget="remove"><i class="fa fa-times"></i></button>
+                            </div>
+                        </div><!-- /.box-header -->
+                        <div class="box-body clearfix">
+                            <p>Daily national aggregate counts about incentive reviews, one row per day, written by a scheduled task. Counts only - no prisoner is identifiable from this table, and it is not a source of truth for anything: the underlying reviews are in prisoner_iep_level.</p>
+                        </div><!-- /.box-body -->
+                    </div>
                 </section>
                 <!-- Main content -->
                 <section class="content">
@@ -123,7 +136,7 @@
                                         <table border='0' cellspacing='0' cellpadding='0'>
                                         </table>
                                     </td>
-                                    <td></td>
+                                    <td><p>The day these counts were calculated for. Primary key, so one row per day. <a href="./../null">Sensitivity: NONE</a></p></td>
                                 </tr>
                                 <tr>
                                     <td><span id="overdue_reviews">overdue_reviews</span></td>
@@ -140,7 +153,7 @@
                                         <table border='0' cellspacing='0' cellpadding='0'>
                                         </table>
                                     </td>
-                                    <td></td>
+                                    <td><p>Number of prisoners whose next review date had passed as at this day, across the estate. <a href="./../null">Sensitivity: NONE</a></p></td>
                                 </tr>
                                 <tr>
                                     <td><span id="previous_month_reviews_conducted">previous_month_reviews_conducted</span></td>
@@ -157,7 +170,7 @@
                                         <table border='0' cellspacing='0' cellpadding='0'>
                                         </table>
                                     </td>
-                                    <td></td>
+                                    <td><p>Number of reviews conducted in the calendar month before this day. Counts reviews, so a prisoner reviewed twice counts twice - compare with previous_month_prisoners_reviewed. <a href="./../null">Sensitivity: NONE</a></p></td>
                                 </tr>
                                 <tr>
                                     <td><span id="previous_month_prisoners_reviewed">previous_month_prisoners_reviewed</span></td>
@@ -174,7 +187,7 @@
                                         <table border='0' cellspacing='0' cellpadding='0'>
                                         </table>
                                     </td>
-                                    <td></td>
+                                    <td><p>Number of distinct prisoners reviewed in the calendar month before this day. Always less than or equal to previous_month_reviews_conducted. <a href="./../null">Sensitivity: NONE</a></p></td>
                                 </tr>
                                 <tr>
                                     <td><span id="when_created">when_created</span></td>
@@ -191,7 +204,7 @@
                                         <table border='0' cellspacing='0' cellpadding='0'>
                                         </table>
                                     </td>
-                                    <td></td>
+                                    <td><p>When the row was written. <a href="./../null">Sensitivity: NONE</a></p></td>
                                 </tr>
                                 <tr>
                                     <td><span id="when_updated">when_updated</span></td>
@@ -208,7 +221,7 @@
                                         <table border='0' cellspacing='0' cellpadding='0'>
                                         </table>
                                     </td>
-                                    <td></td>
+                                    <td><p>When the row was last recalculated. <a href="./../null">Sensitivity: NONE</a></p></td>
                                 </tr>
                                 </tbody>
                             </table>
@@ -281,16 +294,16 @@
                                 </thead>
                                 <tbody>
                                 <tr>
+                                    <td>kpi_previous_month_prisoners_reviewed_check</td>
+                                    <td>((previous_month_prisoners_reviewed &gt;&#61; 0))</td>
+                                </tr>
+                                <tr>
                                     <td>kpi_previous_month_reviews_conducted_check</td>
                                     <td>((previous_month_reviews_conducted &gt;&#61; 0))</td>
                                 </tr>
                                 <tr>
                                     <td>kpi_overdue_reviews_check</td>
                                     <td>((overdue_reviews &gt;&#61; 0))</td>
-                                </tr>
-                                <tr>
-                                    <td>kpi_previous_month_prisoners_reviewed_check</td>
-                                    <td>((previous_month_prisoners_reviewed &gt;&#61; 0))</td>
                                 </tr>
                                 </tbody>
                             </table>

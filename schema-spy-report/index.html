@@ -78,7 +78,7 @@
                         <div class="col-md-12">
                             <div class="callout callout-info">
                                 <h4>SchemaSpy Analysis of incentives.public</h4>
-                                <p>Generated on Wed Aug 26 15:04 UTC 2026</p>
+                                <p>Generated on Thu Aug 27 07:55 UTC 2026</p>
                             </div>
                         </div>
                     </div>
@@ -212,7 +212,7 @@
                                         <td class="detail" align="right">4</td>
                                         <td class="detail" align="right">-1</td>
                                         <td class="detail" align="right">Table</td>
-                                        <td class="comment detail" style="display: table-cell;"></td>
+                                        <td class="comment detail" style="display: table-cell;"><p>When each prisoner&rsquo;s next incentive review is due. Derived rather than entered: recalculated from the review history, the prisoner&rsquo;s age and their current level whenever a review is recorded or a relevant prisoner event arrives, so it is frequently rewritten and is a cache rather than a source of truth. One row per booking, not per review.</p></td>
                                     </tr>
                                     <tr class="tbl even" valign="top">
                                         <td class="detail"><a href="tables/prison_incentive_level.html">prison_incentive_level</a></td>
@@ -221,7 +221,7 @@
                                         <td class="detail" align="right">13</td>
                                         <td class="detail" align="right">-1</td>
                                         <td class="detail" align="right">Table</td>
-                                        <td class="comment detail" style="display: table-cell;"></td>
+                                        <td class="comment detail" style="display: table-cell;"><p>How one prison configures one incentive level: whether it is offered, whether new arrivals start on it, and the spending and visit entitlements that come with it. One row per prison and level. Configuration about establishments, not about people - there is no personal data in this table.</p></td>
                                     </tr>
                                     <tr class="tbl even" valign="top">
                                         <td class="detail"><a href="tables/kpi.html">kpi</a></td>
@@ -230,7 +230,7 @@
                                         <td class="detail" align="right">6</td>
                                         <td class="detail" align="right">-1</td>
                                         <td class="detail" align="right">Table</td>
-                                        <td class="comment detail" style="display: table-cell;"></td>
+                                        <td class="comment detail" style="display: table-cell;"><p>Daily national aggregate counts about incentive reviews, one row per day, written by a scheduled task. Counts only - no prisoner is identifiable from this table, and it is not a source of truth for anything: the underlying reviews are in prisoner_iep_level.</p></td>
                                     </tr>
                                     <tr class="tbl even" valign="top">
                                         <td class="detail"><a href="tables/flyway_schema_history.html">flyway_schema_history</a></td>
@@ -248,7 +248,7 @@
                                         <td class="detail" align="right">7</td>
                                         <td class="detail" align="right">-1</td>
                                         <td class="detail" align="right">Table</td>
-                                        <td class="comment detail" style="display: table-cell;"></td>
+                                        <td class="comment detail" style="display: table-cell;"><p>The incentive levels available nationally, in display order. Reference data with roughly six rows, mastered here rather than in NOMIS. Levels are deactivated rather than deleted so historical reviews referencing them still resolve.</p></td>
                                     </tr>
                                     <tr class="tbl even" valign="top">
                                         <td class="detail"><a href="tables/prisoner_iep_level.html">prisoner_iep_level</a></td>
@@ -257,7 +257,7 @@
                                         <td class="detail" align="right">12</td>
                                         <td class="detail" align="right">-1</td>
                                         <td class="detail" align="right">Table</td>
-                                        <td class="comment detail" style="display: table-cell;"></td>
+                                        <td class="comment detail" style="display: table-cell;"><p>One incentive (IEP) review of one prisoner, in an ordered history - not one row per prisoner. A prisoner accumulates a row per review over time and the one that counts today is flagged by current. Holds reviews conducted in DPS alongside the full history migrated from NOMIS, which is why reviewed_by and location_id are nullable and why review_type distinguishes MIGRATED rows. The Kotlin entity is IncentiveReview; the table keeps the legacy NOMIS name.</p></td>
                                     </tr>
                                     <tr class="tbl even" valign="top">
                                         <td class="detail"><a href="tables/shedlock.html">shedlock</a></td>
@@ -266,7 +266,7 @@
                                         <td class="detail" align="right">4</td>
                                         <td class="detail" align="right">-1</td>
                                         <td class="detail" align="right">Table</td>
-                                        <td class="comment detail" style="display: table-cell;"></td>
+                                        <td class="comment detail" style="display: table-cell;"><p>ShedLock distributed lock table. Infrastructure: it stops more than one pod running the same scheduled task at once. Contains no business or personal data and should be excluded from any data ingestion or catalogue entry, alongside flyway_schema_history.</p></td>
                                     </tr>
                             </table>
                         </div>
