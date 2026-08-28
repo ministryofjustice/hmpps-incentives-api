@@ -327,16 +327,16 @@
                                 </thead>
                                 <tbody>
                                 <tr>
-                                    <td>incentive_level_description_check</td>
-                                    <td>((length((name)::text) &gt;&#61; 1))</td>
-                                </tr>
-                                <tr>
                                     <td>incentive_level_active_if_required</td>
                                     <td>((active OR (NOT required)))</td>
                                 </tr>
                                 <tr>
                                     <td>incentive_level_code_check</td>
                                     <td>((length((code)::text) &gt;&#61; 1))</td>
+                                </tr>
+                                <tr>
+                                    <td>incentive_level_description_check</td>
+                                    <td>((length((name)::text) &gt;&#61; 1))</td>
                                 </tr>
                                 </tbody>
                             </table>
