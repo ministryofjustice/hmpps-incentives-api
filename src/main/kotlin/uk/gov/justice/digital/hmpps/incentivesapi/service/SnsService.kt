@@ -66,6 +66,8 @@ data class AdditionalInformation(
   val alertsAdded: List<String>? = null,
   val alertsRemoved: List<String>? = null,
   val incentiveLevel: String? = null,
+  val previousIncentiveLevel: String? = null,
+  val incentiveLevelChanged: Boolean? = null,
   val prisonId: String? = null,
 )
 

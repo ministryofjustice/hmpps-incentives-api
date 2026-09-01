@@ -133,6 +133,7 @@ class PrisonerIncentiveReviewService(
       val prisonerInfo = prisonerSearchService.getPrisonerInfo(it)
       val iepLevel = getIncentiveLevelForReviewType(prisonerInfo, reviewType)
       val comment = getReviewCommentForEvent(prisonOffenderEvent)
+      val previousLevelCode = currentReviewSnapshotFor(prisonerInfo.prisonerNumber)?.review?.levelCode
 
       val incentiveReview = incentiveStoreService.saveIncentiveReview(
         IncentiveReview(
@@ -152,6 +153,7 @@ class PrisonerIncentiveReviewService(
       publishReviewDomainEvent(
         iepDetail,
         IncentivesDomainEventType.IEP_REVIEW_INSERTED,
+        previousLevelCode = previousLevelCode,
       )
       publishAuditEvent(
         iepDetail,
@@ -252,6 +254,7 @@ class PrisonerIncentiveReviewService(
 
     val reviewTime = createIncentiveReviewRequest.reviewTime ?: LocalDateTime.now(clock)
     val reviewerUserName = createIncentiveReviewRequest.reviewedBy ?: authenticationHolder.getPrincipal()
+    val previousLevelCode = currentReviewSnapshotFor(prisonerInfo.prisonerNumber)?.review?.levelCode
 
     val newIepReview = incentiveStoreService.saveIncentiveReview(
       IncentiveReview(
@@ -268,7 +271,11 @@ class PrisonerIncentiveReviewService(
     ).toIncentiveReviewDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
 
     // Propagate the new IEP review to other services
-    publishReviewDomainEvent(newIepReview, IncentivesDomainEventType.IEP_REVIEW_INSERTED)
+    publishReviewDomainEvent(
+      newIepReview,
+      IncentivesDomainEventType.IEP_REVIEW_INSERTED,
+      previousLevelCode = previousLevelCode,
+    )
 
     publishAuditEvent(newIepReview, AuditType.IEP_REVIEW_ADDED)
 
@@ -312,7 +319,11 @@ class PrisonerIncentiveReviewService(
       before.nextReviewDate != after.nextReviewDate
     if (changed) {
       val detail = after.review.toIncentiveReviewDetail(incentiveLevelService.getAllIncentiveLevelsMapByCode())
-      publishReviewDomainEvent(detail, IncentivesDomainEventType.IEP_REVIEW_UPDATED)
+      publishReviewDomainEvent(
+        detail,
+        IncentivesDomainEventType.IEP_REVIEW_UPDATED,
+        previousLevelCode = before?.review?.levelCode,
+      )
     }
     return after
   }
@@ -320,6 +331,7 @@ class PrisonerIncentiveReviewService(
   private suspend fun publishReviewDomainEvent(
     incentiveReviewDetail: IncentiveReviewDetail,
     eventType: IncentivesDomainEventType,
+    previousLevelCode: String? = null,
   ) {
     val description: String = when (eventType) {
       IncentivesDomainEventType.IEP_REVIEW_INSERTED -> "An IEP review has been added"
@@ -337,6 +349,9 @@ class PrisonerIncentiveReviewService(
       AdditionalInformation(
         id = incentiveReviewDetail.id,
         nomsNumber = incentiveReviewDetail.prisonerNumber,
+        incentiveLevel = incentiveReviewDetail.iepCode,
+        previousIncentiveLevel = previousLevelCode,
+        incentiveLevelChanged = previousLevelCode?.let { it != incentiveReviewDetail.iepCode },
       ),
     )
   }
