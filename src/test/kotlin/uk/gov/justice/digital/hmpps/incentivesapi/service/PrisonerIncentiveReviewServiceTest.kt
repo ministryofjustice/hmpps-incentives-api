@@ -211,6 +211,7 @@ class PrisonerIncentiveReviewServiceTest {
         additionalInformation = AdditionalInformation(
           id = 42,
           nomsNumber = prisonerNumber,
+          incentiveLevel = "ENH",
         ),
       )
 
@@ -383,6 +384,7 @@ class PrisonerIncentiveReviewServiceTest {
         additionalInformation = AdditionalInformation(
           id = 0,
           nomsNumber = prisonerNumber,
+          incentiveLevel = "ENH",
         ),
       )
       verify(auditService, times(1))
@@ -628,6 +630,9 @@ class PrisonerIncentiveReviewServiceTest {
         additionalInformation = AdditionalInformation(
           id = 100L,
           nomsNumber = "A1244AB",
+          incentiveLevel = "ENH",
+          previousIncentiveLevel = "STD",
+          incentiveLevelChanged = true,
         ),
       )
     }
@@ -675,6 +680,9 @@ class PrisonerIncentiveReviewServiceTest {
         additionalInformation = AdditionalInformation(
           id = 3L,
           nomsNumber = "A1244AB",
+          incentiveLevel = "STD",
+          previousIncentiveLevel = "STD",
+          incentiveLevelChanged = false,
         ),
       )
     }
@@ -758,6 +766,9 @@ class PrisonerIncentiveReviewServiceTest {
           additionalInformation = AdditionalInformation(
             id = 10L,
             nomsNumber = "A1244AB",
+            incentiveLevel = "ENH",
+            previousIncentiveLevel = "STD",
+            incentiveLevelChanged = true,
           ),
         )
       }
@@ -921,6 +932,9 @@ class PrisonerIncentiveReviewServiceTest {
         additionalInformation = AdditionalInformation(
           id = reviewOnReinstatedBooking.id,
           nomsNumber = switchPrisonerNumber,
+          incentiveLevel = "ENH",
+          previousIncentiveLevel = "STD",
+          incentiveLevelChanged = true,
         ),
       )
     }
@@ -1039,6 +1053,9 @@ class PrisonerIncentiveReviewServiceTest {
         additionalInformation = AdditionalInformation(
           id = reviewOnReinstatedBooking.id,
           nomsNumber = switchPrisonerNumber,
+          incentiveLevel = "ENH",
+          previousIncentiveLevel = "STD",
+          incentiveLevelChanged = true,
         ),
       )
       // audited against the caller rather than the service, since a person asked for this
