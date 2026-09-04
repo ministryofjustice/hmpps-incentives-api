@@ -73,7 +73,7 @@
             <div class="content-wrapper">
                 <!-- Content Header (Page header) -->
                 <section class="content-header">
-                    <h1>prison_incentive_level</h1><p><span id="recordNumber">591</span> rows</p><br />
+                    <h1>prison_incentive_level</h1><p><span id="recordNumber">-1</span> rows</p><br />
                     <div class="box box-primary">
                         <div class="box-header with-border">
                             <i class="fa fa-file-text-o"></i>
@@ -442,20 +442,24 @@
                                 </thead>
                                 <tbody>
                                 <tr>
-                                    <td>prison_incentive_level_visit_orders_check</td>
-                                    <td>((visit_orders &gt;&#61; 0))</td>
-                                </tr>
-                                <tr>
-                                    <td>prison_incentive_level_prison_id_check</td>
-                                    <td>((length((prison_id)::text) &gt;&#61; 1))</td>
-                                </tr>
-                                <tr>
                                     <td>prison_incentive_level_privileged_visit_orders_check</td>
                                     <td>((privileged_visit_orders &gt;&#61; 0))</td>
                                 </tr>
                                 <tr>
+                                    <td>prison_incentive_level_visit_orders_check</td>
+                                    <td>((visit_orders &gt;&#61; 0))</td>
+                                </tr>
+                                <tr>
                                     <td>prison_incentive_level_remand_spend_limit_in_pence_check</td>
                                     <td>((remand_spend_limit_in_pence &gt;&#61; 0))</td>
+                                </tr>
+                                <tr>
+                                    <td>prison_incentive_level_convicted_transfer_limit_in_pence_check</td>
+                                    <td>((convicted_transfer_limit_in_pence &gt;&#61; 0))</td>
+                                </tr>
+                                <tr>
+                                    <td>prison_incentive_level_prison_id_check</td>
+                                    <td>((length((prison_id)::text) &gt;&#61; 1))</td>
                                 </tr>
                                 <tr>
                                     <td>prison_incentive_level_convicted_spend_limit_in_pence_check</td>
@@ -464,10 +468,6 @@
                                 <tr>
                                     <td>prison_incentive_level_remand_transfer_limit_in_pence_check</td>
                                     <td>((remand_transfer_limit_in_pence &gt;&#61; 0))</td>
-                                </tr>
-                                <tr>
-                                    <td>prison_incentive_level_convicted_transfer_limit_in_pence_check</td>
-                                    <td>((convicted_transfer_limit_in_pence &gt;&#61; 0))</td>
                                 </tr>
                                 </tbody>
                             </table>
