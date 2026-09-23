@@ -21,14 +21,14 @@
 <text text-anchor="start" x="374.5219" y="-415.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">[table]</text>
 <polygon fill="none" stroke="#000000" points="221,-388.2 221,-407.2 409,-407.2 409,-388.2 221,-388.2"/>
 <text text-anchor="start" x="224" y="-394.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">...</text>
-<polygon fill="#ffffff" stroke="transparent" points="221,-369.2 221,-388.2 294,-388.2 294,-369.2 221,-369.2"/>
-<polygon fill="none" stroke="#000000" points="221,-369.2 221,-388.2 294,-388.2 294,-369.2 221,-369.2"/>
+<polygon fill="#ffffff" stroke="transparent" points="221,-369.2 221,-388.2 313,-388.2 313,-369.2 221,-369.2"/>
+<polygon fill="none" stroke="#000000" points="221,-369.2 221,-388.2 313,-388.2 313,-369.2 221,-369.2"/>
 <text text-anchor="start" x="224" y="-375.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">&lt; 1</text>
-<polygon fill="#ffffff" stroke="transparent" points="294,-369.2 294,-388.2 370,-388.2 370,-369.2 294,-369.2"/>
-<polygon fill="none" stroke="#000000" points="294,-369.2 294,-388.2 370,-388.2 370,-369.2 294,-369.2"/>
-<text text-anchor="start" x="322.3807" y="-375.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">591 rows</text>
-<polygon fill="#ffffff" stroke="transparent" points="370,-369.2 370,-388.2 409,-388.2 409,-369.2 370,-369.2"/>
-<polygon fill="none" stroke="#000000" points="370,-369.2 370,-388.2 409,-388.2 409,-369.2 370,-369.2"/>
+<polygon fill="#ffffff" stroke="transparent" points="313,-369.2 313,-388.2 361,-388.2 361,-369.2 313,-369.2"/>
+<polygon fill="none" stroke="#000000" points="313,-369.2 313,-388.2 361,-388.2 361,-369.2 313,-369.2"/>
+<text text-anchor="start" x="351.8862" y="-375.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
+<polygon fill="#ffffff" stroke="transparent" points="361,-369.2 361,-388.2 409,-388.2 409,-369.2 361,-369.2"/>
+<polygon fill="none" stroke="#000000" points="361,-369.2 361,-388.2 409,-388.2 409,-369.2 361,-369.2"/>
 <text text-anchor="start" x="399.8862" y="-375.3" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
 </a>
 </g>

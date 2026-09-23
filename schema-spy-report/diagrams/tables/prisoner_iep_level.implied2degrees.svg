@@ -21,14 +21,14 @@
 <text text-anchor="start" x="391.5219" y="-83.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">[table]</text>
 <polygon fill="none" stroke="#000000" points="238,-56.7 238,-75.7 426,-75.7 426,-56.7 238,-56.7"/>
 <text text-anchor="start" x="241" y="-62.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">...</text>
-<polygon fill="#ffffff" stroke="transparent" points="238,-37.7 238,-56.7 311,-56.7 311,-37.7 238,-37.7"/>
-<polygon fill="none" stroke="#000000" points="238,-37.7 238,-56.7 311,-56.7 311,-37.7 238,-37.7"/>
+<polygon fill="#ffffff" stroke="transparent" points="238,-37.7 238,-56.7 330,-56.7 330,-37.7 238,-37.7"/>
+<polygon fill="none" stroke="#000000" points="238,-37.7 238,-56.7 330,-56.7 330,-37.7 238,-37.7"/>
 <text text-anchor="start" x="241" y="-43.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">&lt; 1</text>
-<polygon fill="#ffffff" stroke="transparent" points="311,-37.7 311,-56.7 387,-56.7 387,-37.7 311,-37.7"/>
-<polygon fill="none" stroke="#000000" points="311,-37.7 311,-56.7 387,-56.7 387,-37.7 311,-37.7"/>
-<text text-anchor="start" x="339.3807" y="-43.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">591 rows</text>
-<polygon fill="#ffffff" stroke="transparent" points="387,-37.7 387,-56.7 426,-56.7 426,-37.7 387,-37.7"/>
-<polygon fill="none" stroke="#000000" points="387,-37.7 387,-56.7 426,-56.7 426,-37.7 387,-37.7"/>
+<polygon fill="#ffffff" stroke="transparent" points="330,-37.7 330,-56.7 378,-56.7 378,-37.7 330,-37.7"/>
+<polygon fill="none" stroke="#000000" points="330,-37.7 330,-56.7 378,-56.7 378,-37.7 330,-37.7"/>
+<text text-anchor="start" x="368.8862" y="-43.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
+<polygon fill="#ffffff" stroke="transparent" points="378,-37.7 378,-56.7 426,-56.7 426,-37.7 378,-37.7"/>
+<polygon fill="none" stroke="#000000" points="378,-37.7 378,-56.7 426,-56.7 426,-37.7 378,-37.7"/>
 <text text-anchor="start" x="416.8862" y="-43.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
 </a>
 </g>

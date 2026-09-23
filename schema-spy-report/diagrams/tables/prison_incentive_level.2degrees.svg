@@ -76,12 +76,12 @@
 <text text-anchor="start" x="218" y="-148.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">privileged_visit_orders</text>
 <polygon fill="none" stroke="#000000" points="446,-141.7 446,-163.7 538,-163.7 538,-141.7 446,-141.7"/>
 <text text-anchor="start" x="449" y="-149.4" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">int2[5]</text>
-<polygon fill="#ffffff" stroke="transparent" points="198,-122.7 198,-141.7 307,-141.7 307,-122.7 198,-122.7"/>
-<polygon fill="none" stroke="#000000" points="198,-122.7 198,-141.7 307,-141.7 307,-122.7 198,-122.7"/>
+<polygon fill="#ffffff" stroke="transparent" points="198,-122.7 198,-141.7 326,-141.7 326,-122.7 198,-122.7"/>
+<polygon fill="none" stroke="#000000" points="198,-122.7 198,-141.7 326,-141.7 326,-122.7 198,-122.7"/>
 <text text-anchor="start" x="201" y="-128.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">&lt; 1</text>
-<polygon fill="#ffffff" stroke="transparent" points="307,-122.7 307,-141.7 446,-141.7 446,-122.7 307,-122.7"/>
-<polygon fill="none" stroke="#000000" points="307,-122.7 307,-141.7 446,-141.7 446,-122.7 307,-122.7"/>
-<text text-anchor="start" x="398.3807" y="-128.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">591 rows</text>
+<polygon fill="#ffffff" stroke="transparent" points="326,-122.7 326,-141.7 446,-141.7 446,-122.7 326,-122.7"/>
+<polygon fill="none" stroke="#000000" points="326,-122.7 326,-141.7 446,-141.7 446,-122.7 326,-122.7"/>
+<text text-anchor="start" x="436.8862" y="-128.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000"> &#160;</text>
 <polygon fill="#ffffff" stroke="transparent" points="446,-122.7 446,-141.7 538,-141.7 538,-122.7 446,-122.7"/>
 <polygon fill="none" stroke="#000000" points="446,-122.7 446,-141.7 538,-141.7 538,-122.7 446,-122.7"/>
 <text text-anchor="start" x="519.4053" y="-128.8" font-family="Helvetica,sans-Serif" font-size="11.00" fill="#000000">0 &gt;</text>
