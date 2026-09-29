@@ -81,7 +81,7 @@
             <column ascending="true" name="next_review_date"/>
          </index>
       </table>
-      <table name="prison_incentive_level" remarks="How one prison configures one incentive level: whether it is offered, whether new arrivals start on it, and the spending and visit entitlements that come with it. One row per prison and level. Configuration about establishments, not about people - there is no personal data in this table." schema="public" type="TABLE">
+      <table name="prison_incentive_level" numRows="591" remarks="How one prison configures one incentive level: whether it is offered, whether new arrivals start on it, and the spending and visit entitlements that come with it. One row per prison and level. Configuration about establishments, not about people - there is no personal data in this table." schema="public" type="TABLE">
          <column autoUpdated="true" defaultValue="nextval('prison_incentive_level_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="Primary key. Surrogate sequence value; the meaningful key is the unique pair (level_code, prison_id). [Sensitivity: NONE]" size="10" type="serial" typeCode="4"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="level_code" nullable="false" remarks="The incentive level being configured. Foreign key to incentive_level.code. [Sensitivity: NONE]" size="6" type="varchar" typeCode="12">
             <parent column="code" foreignKey="incentive_level_fkey" implied="false" onDeleteCascade="false" schema="public" table="incentive_level"/>
