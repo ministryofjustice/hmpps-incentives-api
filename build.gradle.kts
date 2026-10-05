@@ -5,13 +5,16 @@ import uk.gov.justice.digital.hmpps.gradle.PortForwardRedisTask
 import uk.gov.justice.digital.hmpps.gradle.RevealSecretsTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.6"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.11"
   kotlin("plugin.jpa") version "2.3.21"
   kotlin("plugin.spring") version "2.3.21"
   id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
   id("jacoco")
   id("org.sonarqube") version "7.3.0.8198"
 }
+
+// CVE-2026-19880: align Logback core and classic on the patched release.
+extra["logback.version"] = "1.6.3"
 
 dependencyCheck {
   suppressionFiles.add("reactive-suppressions.xml")
