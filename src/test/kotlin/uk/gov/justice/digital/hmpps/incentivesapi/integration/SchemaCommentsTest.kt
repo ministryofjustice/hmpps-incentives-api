@@ -8,7 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.r2dbc.core.DatabaseClient
 
 /**
- * Guards the data dictionary published to GitHub Pages (see db/migration/V1_35__schema_comments.sql).
+ * Guards the data dictionary published to GitHub Pages (see db/migration/V1_35__schema_comments.sql) and the
+ * SAR Data Requirements extract generated from the same comments (V1_36__sar_data_requirements.sql).
  *
  * Descriptions live in the database as COMMENT ON statements so SchemaSpy, the CSV export and any Glue
  * crawl share one source of truth. Nothing else would notice a new column arriving undocumented.
@@ -62,6 +63,32 @@ class SchemaCommentsTest : SqsIntegrationTestBase() {
       .isEmpty()
   }
 
+  /**
+   * The answer matters more than the tag. A new column defaults to nothing, so whoever adds one has to decide
+   * whether its value reaches a prisoner's subject access request report.
+   */
+  @Test
+  fun `every column description says whether it is disclosed in a subject access request`() = runTest {
+    val unclassified = columnComments()
+      .filter { it.comment != null && !SAR_IMPACT.containsMatchIn(it.comment) }
+      .map { it.name }
+
+    assertThat(unclassified)
+      .describedAs("column comments need a [SAR: Y] or [SAR: N] tag - see V1_36__sar_data_requirements.sql")
+      .isEmpty()
+  }
+
+  @Test
+  fun `every column description carries an example value`() = runTest {
+    val missing = columnComments()
+      .filter { it.comment != null && !EXAMPLE.containsMatchIn(it.comment) }
+      .map { it.name }
+
+    assertThat(missing)
+      .describedAs("column comments need an [Example: ...] tag - see V1_36__sar_data_requirements.sql")
+      .isEmpty()
+  }
+
   private data class ColumnComment(
     val name: String,
     val comment: String?,
@@ -89,5 +116,10 @@ class SchemaCommentsTest : SqsIntegrationTestBase() {
 
   private companion object {
     val SENSITIVITY = Regex("""\[Sensitivity: (NONE|PERSONAL|STAFF|SPECIAL-CATEGORY|OFFICIAL-SENSITIVE)]$""")
+
+    // Both sit before the sensitivity tag, which SENSITIVITY anchors to the end of the comment. The SAR Data
+    // Requirements extract the Offender SAR team review needs both for every element.
+    val EXAMPLE = Regex("""\[Example: [^]]+]""")
+    val SAR_IMPACT = Regex("""\[SAR: [YN]]""")
   }
 }
