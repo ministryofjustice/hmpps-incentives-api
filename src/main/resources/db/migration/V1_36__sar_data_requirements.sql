@@ -10,15 +10,19 @@
 --
 --   '... description text. [Example: ENH] [SAR: Y] [Sensitivity: NONE]'
 --
--- [SAR: Y] means the value reaches the report under the response proposed for the re-baseline (IR-2044),
--- whether it is rendered from this column or used to decode one that is. [SAR: N] is for internal keys, the
--- NOMIS booking id, bookkeeping timestamps, the legacy location_id the service no longer returns, the per-prison
--- configuration, the daily aggregates and the lock table. This is a proposal for the Offender SAR team to confirm
--- or change; their decision goes in a later migration rather than an edit to this one.
+-- [SAR: Y] means the value reaches the report under the response proposed for the re-baseline (IR-2044), whether
+-- it is rendered from this column or used to decode one that is. [SAR: N] is for internal keys, the requester's
+-- own prison number, the NOMIS booking id, bookkeeping timestamps, the legacy location_id the service no longer
+-- returns, the per-prison configuration, the daily aggregates and the lock table. This is a proposal for the
+-- Offender SAR team to confirm or change; their decision goes in a later migration rather than an edit to this
+-- one.
 --
--- Two differences from the report as it stands, which the re-baseline is expected to make:
+-- Three differences from the report as it stands, which the re-baseline is expected to make:
 --
 --   * prisoner_iep_level.id and booking_id are returned today but are internal and NOMIS identifiers, so N.
+--   * prisoner_iep_level.prisoner_number is N. It only ever holds the requester's own number, which the SAR
+--     tool already prints at the top of every page, so the report body does not repeat it. This follows the
+--     Offender SAR team's decision for prisoner property.
 --   * incentive_level.name is Y: the report shows the level code (BAS, STD, ENH) today, and should show the
 --     level's name instead.
 --
@@ -35,7 +39,7 @@ BEGIN
       -- The review history. What level, when, where, why and by whom reaches the report.
       ('prisoner_iep_level', 'id', '123456', 'N'),
       ('prisoner_iep_level', 'booking_id', '1234567', 'N'),
-      ('prisoner_iep_level', 'prisoner_number', 'A1234BC', 'Y'),
+      ('prisoner_iep_level', 'prisoner_number', 'A1234BC', 'N'),
       ('prisoner_iep_level', 'prison_id', 'MDI', 'Y'),
       ('prisoner_iep_level', 'location_id', '1-2-003', 'N'),
       ('prisoner_iep_level', 'review_time', '2026-03-14T10:15:00', 'Y'),
