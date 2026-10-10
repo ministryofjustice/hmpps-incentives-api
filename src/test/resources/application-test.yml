@@ -65,3 +65,15 @@ hmpps.sqs:
   topics:
     domainevents:
       arn: arn:aws:sns:eu-west-2:000000000000:${random.uuid}
+
+# The SAR test library's approval files. See SubjectAccessRequestLibraryTest for what each check guards.
+hmpps.sar:
+  tests:
+    attachments-expected: false
+    # Bump only after checking the new migration against what a prisoner's SAR report should contain, and telling
+    # the Offender SAR team if it does. V1_35 adds column comments only.
+    expected-flyway-schema-version: 1.35
+    expected-api-response:
+      path: /sar/expected-api-response.json
+    expected-render-result:
+      path: /sar/expected-render-result.html
