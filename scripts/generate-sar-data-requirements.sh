@@ -50,12 +50,24 @@ PRODUCT_NAME="${PRODUCT_NAME:-Incentives}"
 CHANGE_TYPE="${CHANGE_TYPE:-RE-BASELINING}"
 IMPACT="${IMPACT:-NO CHANGE}"
 
+# The values above go into the query as SQL string literals, so quote them properly: an override such as
+# PRODUCT_NAME="People's Incentives" would otherwise end the literal early and break the query.
+sql_literal() {
+  local quote="'"
+  printf "'%s'" "${1//$quote/$quote$quote}"
+}
+
+PRODUCT_NAME_SQL="$(sql_literal "$PRODUCT_NAME")"
+CHANGE_TYPE_SQL="$(sql_literal "$CHANGE_TYPE")"
+IMPACT_SQL="$(sql_literal "$IMPACT")"
+DB_SCHEMA_SQL="$(sql_literal "$DB_SCHEMA")"
+
 export PGPASSWORD="$DB_PASSWORD"
 
 read -r -d '' QUERY <<SQL || true
 SELECT
-  '${PRODUCT_NAME}'                                      AS "Product Name",
-  '${CHANGE_TYPE}'                                       AS "Type of Change",
+  ${PRODUCT_NAME_SQL}                                    AS "Product Name",
+  ${CHANGE_TYPE_SQL}                                     AS "Type of Change",
   c.table_name                                           AS "Entity",
   c.column_name                                          AS "Element",
   regexp_replace(
@@ -71,13 +83,13 @@ SELECT
     col_description(pc.oid, c.ordinal_position)
     from '\[SAR: ([YN])\]'
   )                                                      AS "SAR Impact",
-  '${IMPACT}'                                            AS "Impact"
+  ${IMPACT_SQL}                                          AS "Impact"
 FROM information_schema.columns c
 JOIN pg_class pc
   ON pc.relname = c.table_name
- AND pc.relnamespace = '${DB_SCHEMA}'::regnamespace
+ AND pc.relnamespace = ${DB_SCHEMA_SQL}::regnamespace
  AND pc.relkind = 'r'
-WHERE c.table_schema = '${DB_SCHEMA}'
+WHERE c.table_schema = ${DB_SCHEMA_SQL}
   AND c.table_name NOT IN ('flyway_schema_history', 'shedlock')
 ORDER BY c.table_name, c.ordinal_position
 SQL
