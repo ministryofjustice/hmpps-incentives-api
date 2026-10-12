@@ -3,9 +3,11 @@
 # Exports the incentives schema as a flat CSV data dictionary.
 #
 # The descriptions come from the COMMENT ON statements in db/migration/V1_35__schema_comments.sql, so this
-# is the same source of truth as the SchemaSpy report. The sensitivity classification is pulled out of
-# the trailing [Sensitivity: ...] tag on each column comment into its own column, and stripped from the
-# description so the text reads cleanly. The output is intended for the MOJ Data Catalogue / AWS Glue.
+# is the same source of truth as the SchemaSpy report. Each column comment ends with three tags - an example
+# value, a subject access request classification (added in V1_36) and a sensitivity classification. Each is
+# pulled out into its own column and all three are stripped from the description so the text reads cleanly.
+# The two newer columns go at the end so existing consumers of the CSV are not disturbed. The output is
+# intended for the MOJ Data Catalogue / AWS Glue.
 #
 # shedlock and flyway_schema_history are excluded: both are infrastructure rather than business data.
 # They are still described in the SchemaSpy report, which documents the database as it is, but a data
@@ -44,14 +46,22 @@ SELECT
   c.column_default,
   regexp_replace(
     col_description(pc.oid, c.ordinal_position),
-    '\s*\[Sensitivity: [A-Z-]+\]$', ''
+    '\s*\[(Example|SAR|Sensitivity): [^\]]*\]', '', 'g'
   )                                                      AS column_description,
   substring(
     col_description(pc.oid, c.ordinal_position)
     from '\[Sensitivity: ([A-Z-]+)\]'
   )                                                      AS sensitivity,
   CASE WHEN pk.column_name IS NOT NULL THEN 'Y' ELSE 'N' END AS is_primary_key,
-  fk.references_table                                    AS foreign_key_references
+  fk.references_table                                    AS foreign_key_references,
+  substring(
+    col_description(pc.oid, c.ordinal_position)
+    from '\[Example: ([^\]]*)\]'
+  )                                                      AS example_value,
+  substring(
+    col_description(pc.oid, c.ordinal_position)
+    from '\[SAR: ([YN])\]'
+  )                                                      AS sar_impact
 FROM information_schema.columns c
 JOIN pg_class pc
   ON pc.relname = c.table_name

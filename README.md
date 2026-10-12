@@ -104,16 +104,42 @@ or prompt for user input when run.
 
 Both also accept the `--port` argument to choose a different local port, other than the resource’s default.
 
+## Subject access requests
+
+Incentives is in the SAR tool in every environment, but its report template is still held centrally by the
+HAA team in `hmpps-subject-access-request-html-renderer`, and the report has never been through a data review
+with the Offender SAR team. Under epic IR-2036 it follows the
+[Central SAR Change Control Process](https://dsdmoj.atlassian.net/wiki/spaces/NDSS/pages/6057492803) in two
+steps: the template is moved into this repo unchanged (IR-2039), then the report is re-baselined with the
+Offender SAR team (IR-2042, IR-2044).
+
+`scripts/generate-sar-data-requirements.sh` produces the SAR Data Requirements extract they review, and it is
+published with the schema report. It is generated from the column comments, so it cannot drift from the
+schema: every column carries an example value and a SAR classification as well as its sensitivity, and
+`SchemaCommentsTest` fails the build if a new column is missing any of them.
+
+`[SAR: Y]` means the value reaches the report under the response proposed for the re-baseline, `[SAR: N]`
+that it does not. It is set deliberately per column in `V1_36__sar_data_requirements.sql` and is not derived
+from the sensitivity tag, which answers a different question. The outcome of the Offender SAR team's review
+goes in a later migration, and any new column needs the same decision.
+
+Two ordering rules apply to every change that affects the SAR response or template:
+
+1. No code or template reaches preprod or prod until the Offender SAR team have signed off the test report.
+2. The template must be registered with the SAR tool in an environment **before** the code deploys there,
+   or the product is suspended. Ask the HAA team on `#haa-sar-functionality-change-request`.
+
 ## Database schema
 
 A browsable schema report is published from `main` to
 [ministryofjustice.github.io/hmpps-incentives-api/schema-spy-report](https://ministryofjustice.github.io/hmpps-incentives-api/schema-spy-report/),
-along with two CSV exports for the MOJ Data Catalogue:
+along with three CSV exports:
 
 | File | Contents |
 |------|----------|
-| `data-dictionary.csv` | Every table and column, with its description, sensitivity classification, type, nullability, PK and FK. Excludes `shedlock` and `flyway_schema_history` |
+| `data-dictionary.csv` | Every table and column, with its description, sensitivity classification, type, nullability, PK and FK, example value and SAR classification. Excludes `shedlock` and `flyway_schema_history`. For the MOJ Data Catalogue |
 | `reference-data.csv` | The code lists that exist only in Kotlin. Most reference data here is a real table (`incentive_level`), so this covers only `review_type` |
+| `sar-data-requirements.csv` | The SAR Data Requirements extract the Offender SAR team review — see [Subject access requests](#subject-access-requests) |
 
 The report shows every table and column, with types, nullability, primary and foreign keys, and ER
 diagrams. Share it rather than a hand-written description when explaining the schema — to the Data Hub
@@ -132,6 +158,7 @@ docker run --rm --network host -v /tmp/schemaspy:/output schemaspy/schemaspy:6.2
   -t pgsql -host localhost -port 5432 -db incentives -s public \
   -u incentives -p incentives -vizjs
 scripts/generate-data-dictionary.sh
+scripts/generate-sar-data-requirements.sh
 ```
 
 If you change `V1_35__schema_comments.sql` while the compose database is still up, Flyway will refuse to
@@ -166,8 +193,10 @@ one column is special category — `prisoner_iep_level.comment_text`, the free-t
 practice covers behaviour, adjudications, health and third parties. `shedlock` and
 `flyway_schema_history` are infrastructure and should be excluded from any ingestion or catalogue entry.
 
-The tag is split into its own `sensitivity` column in `data-dictionary.csv`, and stripped from the
-description there so the text reads cleanly.
+Two more tags sit between the description and the sensitivity tag: an example value (`[Example: ENH]`)
+and whether the column's value reaches a prisoner's subject access request report (`[SAR: Y]` or
+`[SAR: N]`), both added in `V1_36`. Each tag is split into its own column in `data-dictionary.csv`, and
+stripped from the description there so the text reads cleanly.
 
 **Any new table or column needs a `COMMENT ON`** in a migration — `SchemaCommentsTest` fails the build
 otherwise. A later migration can add to or replace any comment at any time. Likewise a new `ReviewType`
