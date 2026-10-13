@@ -1,0 +1,43 @@
+<h1 class="title">Incentives</h1>
+{{#.}}
+    <h2>Incentive</h2>
+    <br>
+    <table class="data-table">
+        <tr>
+            <td class="data-column-25">Next review date</td>
+            <td class="data-column-25">Review type</td>
+            <td class="data-column-25">Prison name</td>
+        </tr>
+        <tr>
+            <td>{{ optionalValue (formatDate nextReviewDate)}}</td>
+            <td>{{ optionalValue reviewType }}</td>
+            <td>{{ getPrisonName prisonId }}</td>
+        </tr>
+    </table>
+    <table class="data-table">
+        <tr>
+            <td class="data-column-25">Cell location</td>
+            <td class="data-column-25">Review time</td>
+            <td class="data-column-25">Current</td>
+        </tr>
+        <tr>
+            <td>{{ optionalValue locationId }}</td>
+            <td>{{ optionalValue (formatDate reviewTime) }}</td>
+            <td>{{ convertBoolean current }}</td>
+        </tr>
+    </table>
+    <table class="data-table">
+        <tr>
+            <td class="data-column-25">Level code</td>
+            <td class="data-column-50">Comment text</td>
+        </tr>
+        <tr>
+            <td>{{ optionalValue levelCode }}</td>
+            <td>{{ optionalValue commentText }}</td>
+        </tr>
+    </table>
+    <br>
+{{/.}}
+{{^.}}
+    <p>No data held</p>
+{{/.}}

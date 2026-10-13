@@ -16,6 +16,7 @@ generic-service:
     API_BASE_URL_LOCATIONS: https://locations-inside-prison-api-preprod.hmpps.service.justice.gov.uk
     # First weekday of the month at 10:00am - Offender Search API is turned off during non-working hours in dev/preprod
     TASK_UPDATE_KPIS_CRON: "0 0 10 1W * *"
+    HMPPS_SAR_TEMPLATE_PATH: "/sar/templates/V1__sar_template.mustache"
 
 generic-prometheus-alerts:
   alertSeverity: hmpps-incentives-preprod

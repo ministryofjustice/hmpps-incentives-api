@@ -86,6 +86,17 @@ hmpps:
   sqs:
     reactiveApi: true
     queueAdminRole: ROLE_INCENTIVES_API_QUEUE_ADMIN
+  # The subject access request report template, served from GET /subject-access-request/template to the SAR tool,
+  # which renders it against the data endpoint's response. Moved here unchanged from the HAA team's central copy
+  # (IR-2039). Enabled here rather than only in helm so that every profile, including the one the tests run under,
+  # validates the path on startup - the library resolves it as a classpath resource and fails to start if it is
+  # wrong, which is far better found in CI than in a deploy. The path is overridden per environment in helm so a new
+  # template version can be rolled out one environment at a time: the SAR tool must have a template registered in an
+  # environment before code serving it deploys there.
+  sar:
+    template:
+      enabled: true
+      path: ${HMPPS_SAR_TEMPLATE_PATH:/sar/templates/V1__sar_template.mustache}
 
 management:
   endpoints:

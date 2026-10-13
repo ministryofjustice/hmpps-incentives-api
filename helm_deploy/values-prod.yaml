@@ -12,6 +12,7 @@ generic-service:
     API_BASE_URL_PRISONER_SEARCH: https://prisoner-search.prison.service.justice.gov.uk
     API_BASE_URL_CASE_NOTES: https://offender-case-notes.service.justice.gov.uk
     API_BASE_URL_LOCATIONS: https://locations-inside-prison-api.hmpps.service.justice.gov.uk
+    HMPPS_SAR_TEMPLATE_PATH: "/sar/templates/V1__sar_template.mustache"
 
   postgresDatabaseRestore:
     enabled: true
