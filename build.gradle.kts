@@ -32,7 +32,7 @@ repositories {
 }
 
 dependencies {
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:3.0.0")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:3.0.3")
   implementation("org.springframework.boot:spring-boot-starter-webclient")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
   implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
@@ -50,11 +50,11 @@ dependencies {
   runtimeOnly("org.postgresql:r2dbc-postgresql:1.1.1.RELEASE")
   runtimeOnly("com.ongres.scram:scram-client:3.3")
   runtimeOnly("org.springframework.boot:spring-boot-starter-jdbc")
-  runtimeOnly("org.postgresql:postgresql:42.7.12")
+  runtimeOnly("org.postgresql:postgresql:42.7.13")
 
   // Shedlock dependencies
-  implementation("net.javacrumbs.shedlock:shedlock-spring:7.7.0")
-  implementation("net.javacrumbs.shedlock:shedlock-provider-r2dbc:7.7.0")
+  implementation("net.javacrumbs.shedlock:shedlock-spring:7.10.1")
+  implementation("net.javacrumbs.shedlock:shedlock-provider-r2dbc:7.10.1")
 
   implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:3.0.3")
 
@@ -68,7 +68,7 @@ dependencies {
 
   implementation("com.pauldijou:jwt-core_2.11:5.0.0")
 
-  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:3.0.0")
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:3.0.3")
   testImplementation("uk.gov.justice.service.hmpps:hmpps-subject-access-request-test-support:2.8.3")
   testImplementation("org.springframework.boot:spring-boot-starter-data-r2dbc-test")
   testImplementation("org.springframework.boot:spring-boot-starter-security-test")
@@ -76,7 +76,7 @@ dependencies {
   testImplementation("org.springframework.boot:spring-boot-starter-webflux-test")
   testImplementation("org.awaitility:awaitility-kotlin:4.3.0")
   testImplementation("org.mockito:mockito-inline:5.2.0")
-  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.42") {
+  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.48") {
     exclude(group = "io.swagger.core.v3")
   }
 
