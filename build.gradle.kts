@@ -58,8 +58,8 @@ dependencies {
 
   implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:3.0.3")
 
-  implementation("io.opentelemetry:opentelemetry-extension-kotlin:1.62.0")
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.28.1")
+  implementation("io.opentelemetry:opentelemetry-extension-kotlin:1.66.0")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.32.0")
 
   implementation("org.apache.commons:commons-lang3")
   implementation("org.apache.commons:commons-text:1.15.0")
@@ -86,10 +86,10 @@ dependencies {
   testImplementation("io.projectreactor:reactor-test")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
   testImplementation("javax.xml.bind:jaxb-api:2.3.1")
-  testImplementation("io.opentelemetry:opentelemetry-sdk:1.61.0")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-common:1.61.0")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-metrics:1.61.0")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.61.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk:1.66.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-common:1.66.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-metrics:1.66.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.66.0")
 
   if (project.hasProperty("docs")) {
     implementation("com.h2database:h2")
