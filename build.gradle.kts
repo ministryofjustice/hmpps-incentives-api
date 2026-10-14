@@ -43,12 +43,12 @@ dependencies {
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:7.3.2")
   implementation("org.springframework.retry:spring-retry:2.0.13")
 
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.10.2")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.11.0")
 
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
-  runtimeOnly("org.postgresql:r2dbc-postgresql:1.1.1.RELEASE")
-  runtimeOnly("com.ongres.scram:scram-client:3.3")
+  runtimeOnly("org.postgresql:r2dbc-postgresql:1.1.3.RELEASE")
+  runtimeOnly("com.ongres.scram:scram-client:3.4")
   runtimeOnly("org.springframework.boot:spring-boot-starter-jdbc")
   runtimeOnly("org.postgresql:postgresql:42.7.13")
 
@@ -56,7 +56,7 @@ dependencies {
   implementation("net.javacrumbs.shedlock:shedlock-spring:7.10.1")
   implementation("net.javacrumbs.shedlock:shedlock-provider-r2dbc:7.10.1")
 
-  implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:3.0.3")
+  implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:3.1.1")
 
   implementation("io.opentelemetry:opentelemetry-extension-kotlin:1.66.0")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.32.0")
