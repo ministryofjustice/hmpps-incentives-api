@@ -19,7 +19,6 @@ generic-service:
     HMPPS_SAR_TEMPLATE_PATH: "/sar/templates/V1__sar_template.mustache"
 
 generic-prometheus-alerts:
-  alertSeverity: hmpps-incentives-preprod
   businessHoursOnly: true
   rdsAlertsDatabases:
     cloud-platform-6b3b723b359a69e2: "incentives api"
