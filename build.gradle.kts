@@ -5,9 +5,9 @@ import uk.gov.justice.digital.hmpps.gradle.PortForwardRedisTask
 import uk.gov.justice.digital.hmpps.gradle.RevealSecretsTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.11"
-  kotlin("plugin.jpa") version "2.4.20"
-  kotlin("plugin.spring") version "2.4.20"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.12"
+  kotlin("plugin.jpa") version "2.4.21"
+  kotlin("plugin.spring") version "2.4.21"
   id("org.springdoc.openapi-gradle-plugin") version "1.9.0"
   id("jacoco")
   id("org.sonarqube") version "7.5.0.8588"
@@ -43,14 +43,14 @@ dependencies {
   implementation("uk.gov.justice.service.hmpps:hmpps-sqs-spring-boot-starter:7.4.1")
   implementation("org.springframework.retry:spring-retry:2.0.13")
 
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.10.2")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
+  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.11.0")
 
   runtimeOnly("org.flywaydb:flyway-database-postgresql")
   runtimeOnly("org.postgresql:r2dbc-postgresql:1.1.3.RELEASE")
   runtimeOnly("com.ongres.scram:scram-client:3.4")
   runtimeOnly("org.springframework.boot:spring-boot-starter-jdbc")
-  runtimeOnly("org.postgresql:postgresql:42.7.13")
+  runtimeOnly("org.postgresql:postgresql:42.7.14")
 
   // Shedlock dependencies
   implementation("net.javacrumbs.shedlock:shedlock-spring:7.10.1")
@@ -58,7 +58,7 @@ dependencies {
 
   implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:3.1.1")
 
-  implementation("io.opentelemetry:opentelemetry-extension-kotlin:1.66.0")
+  implementation("io.opentelemetry:opentelemetry-extension-kotlin:1.67.0")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.32.0")
 
   implementation("org.apache.commons:commons-lang3")
@@ -84,12 +84,12 @@ dependencies {
   testImplementation("org.testcontainers:testcontainers-localstack:2.0.5")
   testImplementation("org.testcontainers:testcontainers-postgresql:2.0.5")
   testImplementation("io.projectreactor:reactor-test")
-  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
+  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
   testImplementation("javax.xml.bind:jaxb-api:2.3.1")
-  testImplementation("io.opentelemetry:opentelemetry-sdk:1.66.0")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-common:1.66.0")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-metrics:1.66.0")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.66.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk:1.67.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-common:1.67.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-metrics:1.67.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.67.0")
 
   if (project.hasProperty("docs")) {
     implementation("com.h2database:h2")
