@@ -13,8 +13,16 @@ plugins {
   id("org.sonarqube") version "7.5.0.8588"
 }
 
-// CVE-2026-19880: align Logback core and classic on the patched release.
-extra["logback.version"] = "1.6.3"
+// Keep security-sensitive dependencies on patched releases.
+extra["logback.version"] = "1.6.6"
+extra["opentelemetry.version"] = "1.67.0"
+extra["json-smart.version"] = "2.6.1"
+// Keep the core module aligned with the already upgraded coroutine modules.
+extra["kotlin-coroutines.version"] = "1.11.0"
+
+jacoco {
+  toolVersion = "0.8.16"
+}
 
 dependencyCheck {
   suppressionFiles.add("reactive-suppressions.xml")
@@ -32,6 +40,11 @@ repositories {
 }
 
 dependencies {
+  constraints {
+    implementation("org.ow2.asm:asm:9.11.1")
+    testImplementation("org.objenesis:objenesis:3.6")
+  }
+
   implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:3.0.3")
   implementation("org.springframework.boot:spring-boot-starter-webclient")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
@@ -76,7 +89,7 @@ dependencies {
   testImplementation("org.springframework.boot:spring-boot-starter-webflux-test")
   testImplementation("org.awaitility:awaitility-kotlin:4.3.0")
   testImplementation("org.mockito:mockito-inline:5.2.0")
-  testImplementation("io.swagger.parser.v3:swagger-parser:2.1.48") {
+  testImplementation("io.swagger.parser.v3:swagger-parser-v3:2.1.48") {
     exclude(group = "io.swagger.core.v3")
   }
 
