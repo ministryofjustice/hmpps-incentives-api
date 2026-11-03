@@ -19,7 +19,6 @@ on:
 
 permissions:
   contents: read
-  packages: write
 
 concurrency:
   # Only cancel in progress when on a branch - use SHA on main to ensure uniqueness.
@@ -39,22 +38,34 @@ jobs:
     secrets: inherit
     with:
       environment: ${{ matrix.environments }}
-  kotlin_validate:
+  app_version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.app_version.outputs.version }}
+    steps:
+      - id: app_version
+        name: Application version creators
+        uses: ministryofjustice/hmpps-github-shared-actions/.github/actions/build-test-and-deploy/create_app_version@aff6180015ac5ddbec7eff2e1f63266ce97462c4 # v1.1.9
+  gradle_verify:
     name: Validate the kotlin
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/gradle_verify.yml@v2 # WORKFLOW_VERSION
     secrets: inherit
     with:
+      gradle-command: 'BUILD_NUMBER=${{ needs.app_version.outputs.version }} ./gradlew assemble check'
+      upload-build-artifacts: ${{ github.ref == 'refs/heads/main' }}
       postgres-tag: '16'
       postgres-db: incentives
       postgres-username: incentives
       postgres-password: incentives
       localstack-tag: '4'
       java-version: '25'
+    needs:
+      - app_version
   schema-spy:
     name: Publish the data dictionary
     if: github.ref == 'refs/heads/main'
     needs:
-      - kotlin_validate
+      - gradle_verify
     # top-level permissions grant contents: read; the reusable workflow needs write to publish to gh-pages
     permissions:
       contents: write
@@ -62,16 +73,28 @@ jobs:
     secrets: inherit
   build:
     name: Build docker image from hmpps-github-actions
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
     if: github.ref == 'refs/heads/main'
     uses: ministryofjustice/hmpps-github-actions/.github/workflows/docker_build.yml@v2 # WORKFLOW_VERSION
     needs:
-      - kotlin_validate
+      - app_version
+      - gradle_verify
     with:
       docker_registry: 'ghcr.io'
       registry_org: 'ministryofjustice'
       additional_docker_tag: ${{ inputs.additional_docker_tag }}
-      push: ${{ inputs.push || true }}
+      push: ${{ inputs.push || inputs.push == null }}
       docker_multiplatform: false
+      # the Dockerfile copies the jar named with this version, so the image must be tagged with the same one
+      image_version: ${{ needs.app_version.outputs.version }}
+      download_build_artifacts: true
+      generate_sbom: true
+      attach_sbom_to_registry: true
+      sign_image: true
   deploy_dev:
     name: Deploy to the development environment
     needs:

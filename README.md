@@ -21,9 +21,28 @@ docker compose up --scale hmpps-incentives-api=0
 
 ### Running all services including this service
 
+This runs the latest published image of this service:
+
 ```shell
-docker compose up
+docker compose pull && docker compose up
 ```
+
+### Building and running the docker image locally
+
+The `Dockerfile` relies on the application being built first. To build the docker image:
+
+1. Build the jar files; the jar is named with `BUILD_NUMBER`
+    ```shell
+    BUILD_NUMBER=1_0_0 ./gradlew clean assemble
+    ```
+2. Copy the jar files to the base directory so that the docker build can find them
+    ```shell
+    cp build/libs/*.jar .
+    ```
+3. Build the docker image, passing the same `BUILD_NUMBER`
+    ```shell
+    docker build --build-arg BUILD_NUMBER=1_0_0 -t hmpps-incentives-api:local .
+    ```
 
 ### Running locally against dev/T3 services
 
