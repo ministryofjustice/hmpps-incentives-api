@@ -10,6 +10,12 @@ RUN java -Djarmode=tools -jar app.jar extract --layers --destination extracted
 
 FROM ${BASE_IMAGE}
 
+USER root
+RUN apt-get update && \
+    apt-get install -y --only-upgrade libbrotli1 && \
+    rm -rf /var/lib/apt/lists/*
+USER 2000
+
 ARG BUILD_NUMBER
 ENV BUILD_NUMBER=${BUILD_NUMBER:-1_0_0}
 
