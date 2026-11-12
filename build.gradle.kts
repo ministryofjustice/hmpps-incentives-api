@@ -5,7 +5,7 @@ import uk.gov.justice.digital.hmpps.gradle.PortForwardRedisTask
 import uk.gov.justice.digital.hmpps.gradle.RevealSecretsTask
 
 plugins {
-  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.14"
+  id("uk.gov.justice.hmpps.gradle-spring-boot") version "11.0.15"
   kotlin("plugin.jpa") version "2.4.21"
   kotlin("plugin.spring") version "2.4.21"
   id("org.springdoc.openapi-gradle-plugin") version "2.1.0"
