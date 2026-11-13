@@ -45,7 +45,7 @@ dependencies {
     testImplementation("org.objenesis:objenesis:3.6")
   }
 
-  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:3.0.3")
+  implementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter:3.1.0")
   implementation("org.springframework.boot:spring-boot-starter-webclient")
   implementation("org.springframework.boot:spring-boot-starter-webflux")
   implementation("org.springframework.boot:spring-boot-starter-data-r2dbc")
@@ -71,7 +71,7 @@ dependencies {
 
   implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:3.2.0")
 
-  implementation("io.opentelemetry:opentelemetry-extension-kotlin:1.67.0")
+  implementation("io.opentelemetry:opentelemetry-extension-kotlin:1.68.0")
   implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.33.1")
 
   implementation("org.apache.commons:commons-lang3")
@@ -81,7 +81,7 @@ dependencies {
 
   implementation("com.pauldijou:jwt-core_2.11:5.0.0")
 
-  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:3.0.3")
+  testImplementation("uk.gov.justice.service.hmpps:hmpps-kotlin-spring-boot-starter-test:3.1.0")
   testImplementation("uk.gov.justice.service.hmpps:hmpps-subject-access-request-test-support:2.8.6")
   testImplementation("org.springframework.boot:spring-boot-starter-data-r2dbc-test")
   testImplementation("org.springframework.boot:spring-boot-starter-security-test")
@@ -99,10 +99,10 @@ dependencies {
   testImplementation("io.projectreactor:reactor-test")
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0")
   testImplementation("javax.xml.bind:jaxb-api:2.3.1")
-  testImplementation("io.opentelemetry:opentelemetry-sdk:1.67.0")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-common:1.67.0")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-metrics:1.67.0")
-  testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.67.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk:1.68.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-common:1.68.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-metrics:1.68.0")
+  testImplementation("io.opentelemetry:opentelemetry-sdk-testing:1.68.0")
 
   if (project.hasProperty("docs")) {
     implementation("com.h2database:h2")
