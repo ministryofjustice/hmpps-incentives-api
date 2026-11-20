@@ -228,3 +228,7 @@ read the same schema afterwards. Left to Testcontainers the schema would die wit
 ## Architecture
 
 Architecture decision records start [here](doc/architecture/decisions/0001-use-adr.md)
+
+## Support
+
+Known issues and how to handle them are in the [support runbook](doc/runbook.md).
