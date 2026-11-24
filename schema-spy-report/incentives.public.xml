@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?><database name="incentives" schema="public" type="PostgreSQL - 16.16 (Debian 16.16-1.pgdg13+1)">
+<?xml version="1.0" encoding="UTF-8"?><database name="incentives" schema="public" type="PostgreSQL - 18.7 (Debian 18.7-1.pgdg13+5)">
    <sequences>
       <sequence increment="1" name="prison_incentive_level_id_seq" startValue="1"/>
       <sequence increment="1" name="prisoner_iep_level_id_seq" startValue="1"/>
@@ -44,9 +44,9 @@
          <index name="incentive_level_sequence_idx" unique="false">
             <column ascending="true" name="sequence"/>
          </index>
-         <checkConstraint constraint="((active OR (NOT required)))" name="incentive_level_active_if_required"/>
-         <checkConstraint constraint="((length((code)::text) &gt;= 1))" name="incentive_level_code_check"/>
-         <checkConstraint constraint="((length((name)::text) &gt;= 1))" name="incentive_level_description_check"/>
+         <checkConstraint constraint="(active OR (NOT required))" name="incentive_level_active_if_required"/>
+         <checkConstraint constraint="(length((code)::text) &gt;= 1)" name="incentive_level_code_check"/>
+         <checkConstraint constraint="(length((name)::text) &gt;= 1)" name="incentive_level_description_check"/>
       </table>
       <table name="kpi" remarks="Daily national aggregate counts about incentive reviews, one row per day, written by a scheduled task. Counts only - no prisoner is identifiable from this table, and it is not a source of truth for anything: the underlying reviews are in prisoner_iep_level." schema="public" type="TABLE">
          <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="day" nullable="false" remarks="The day these counts were calculated for. Primary key, so one row per day. [Example: 2026-03-01] [SAR: N] [Sensitivity: NONE]" size="13" type="date" typeCode="91"/>
@@ -62,9 +62,9 @@
          <index name="day_idx" unique="false">
             <column ascending="true" name="day"/>
          </index>
-         <checkConstraint constraint="((overdue_reviews &gt;= 0))" name="kpi_overdue_reviews_check"/>
-         <checkConstraint constraint="((previous_month_prisoners_reviewed &gt;= 0))" name="kpi_previous_month_prisoners_reviewed_check"/>
-         <checkConstraint constraint="((previous_month_reviews_conducted &gt;= 0))" name="kpi_previous_month_reviews_conducted_check"/>
+         <checkConstraint constraint="(overdue_reviews &gt;= 0)" name="kpi_overdue_reviews_check"/>
+         <checkConstraint constraint="(previous_month_prisoners_reviewed &gt;= 0)" name="kpi_previous_month_prisoners_reviewed_check"/>
+         <checkConstraint constraint="(previous_month_reviews_conducted &gt;= 0)" name="kpi_previous_month_reviews_conducted_check"/>
       </table>
       <table name="next_review_date" remarks="When each prisoner's next incentive review is due. Derived rather than entered: recalculated from the review history, the prisoner's age and their current level whenever a review is recorded or a relevant prisoner event arrives, so it is frequently rewritten and is a cache rather than a source of truth. One row per booking, not per review." schema="public" type="TABLE">
          <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="booking_id" nullable="false" remarks="NOMIS booking id - the prisoner's custodial period, not the person. Primary key here, so there is one row per booking. Joins to prisoner_iep_level.booking_id. [Example: 1234567] [SAR: N] [Sensitivity: PERSONAL]" size="0" type="numeric" typeCode="2">
@@ -81,7 +81,7 @@
             <column ascending="true" name="next_review_date"/>
          </index>
       </table>
-      <table name="prison_incentive_level" remarks="How one prison configures one incentive level: whether it is offered, whether new arrivals start on it, and the spending and visit entitlements that come with it. One row per prison and level. Configuration about establishments, not about people - there is no personal data in this table." schema="public" type="TABLE">
+      <table name="prison_incentive_level" numRows="591" remarks="How one prison configures one incentive level: whether it is offered, whether new arrivals start on it, and the spending and visit entitlements that come with it. One row per prison and level. Configuration about establishments, not about people - there is no personal data in this table." schema="public" type="TABLE">
          <column autoUpdated="true" defaultValue="nextval('prison_incentive_level_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="Primary key. Surrogate sequence value; the meaningful key is the unique pair (level_code, prison_id). [Example: 42] [SAR: N] [Sensitivity: NONE]" size="10" type="serial" typeCode="4"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="level_code" nullable="false" remarks="The incentive level being configured. Foreign key to incentive_level.code. [Example: ENH] [SAR: N] [Sensitivity: NONE]" size="6" type="varchar" typeCode="12">
             <parent column="code" foreignKey="incentive_level_fkey" implied="false" onDeleteCascade="false" schema="public" table="incentive_level"/>
@@ -118,13 +118,13 @@
             <column ascending="true" name="level_code"/>
             <column ascending="true" name="prison_id"/>
          </index>
-         <checkConstraint constraint="((convicted_spend_limit_in_pence &gt;= 0))" name="prison_incentive_level_convicted_spend_limit_in_pence_check"/>
-         <checkConstraint constraint="((convicted_transfer_limit_in_pence &gt;= 0))" name="prison_incentive_level_convicted_transfer_limit_in_pence_check"/>
-         <checkConstraint constraint="((length((prison_id)::text) &gt;= 1))" name="prison_incentive_level_prison_id_check"/>
-         <checkConstraint constraint="((privileged_visit_orders &gt;= 0))" name="prison_incentive_level_privileged_visit_orders_check"/>
-         <checkConstraint constraint="((remand_spend_limit_in_pence &gt;= 0))" name="prison_incentive_level_remand_spend_limit_in_pence_check"/>
-         <checkConstraint constraint="((remand_transfer_limit_in_pence &gt;= 0))" name="prison_incentive_level_remand_transfer_limit_in_pence_check"/>
-         <checkConstraint constraint="((visit_orders &gt;= 0))" name="prison_incentive_level_visit_orders_check"/>
+         <checkConstraint constraint="(convicted_spend_limit_in_pence &gt;= 0)" name="prison_incentive_level_convicted_spend_limit_in_pence_check"/>
+         <checkConstraint constraint="(convicted_transfer_limit_in_pence &gt;= 0)" name="prison_incentive_level_convicted_transfer_limit_in_pence_check"/>
+         <checkConstraint constraint="(length((prison_id)::text) &gt;= 1)" name="prison_incentive_level_prison_id_check"/>
+         <checkConstraint constraint="(privileged_visit_orders &gt;= 0)" name="prison_incentive_level_privileged_visit_orders_check"/>
+         <checkConstraint constraint="(remand_spend_limit_in_pence &gt;= 0)" name="prison_incentive_level_remand_spend_limit_in_pence_check"/>
+         <checkConstraint constraint="(remand_transfer_limit_in_pence &gt;= 0)" name="prison_incentive_level_remand_transfer_limit_in_pence_check"/>
+         <checkConstraint constraint="(visit_orders &gt;= 0)" name="prison_incentive_level_visit_orders_check"/>
       </table>
       <table name="prisoner_iep_level" remarks="One incentive (IEP) review of one prisoner, in an ordered history - not one row per prisoner. A prisoner accumulates a row per review over time and the one that counts today is flagged by current. Holds reviews conducted in DPS alongside the full history migrated from NOMIS, which is why reviewed_by and location_id are nullable and why review_type distinguishes MIGRATED rows. The Kotlin entity is IncentiveReview; the table keeps the legacy NOMIS name." schema="public" type="TABLE">
          <column autoUpdated="true" defaultValue="nextval('prisoner_iep_level_id_seq'::regclass)" digits="0" id="0" name="id" nullable="false" remarks="Primary key. Surrogate sequence value; carries no meaning and is not the NOMIS identifier. [Example: 123456] [SAR: N] [Sensitivity: NONE]" size="10" type="serial" typeCode="4"/>
