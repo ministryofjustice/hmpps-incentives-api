@@ -3,6 +3,7 @@ package uk.gov.justice.digital.hmpps.incentivesapi.config
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.postgresql.PostgreSQLContainer
+import org.testcontainers.utility.DockerImageName
 import java.io.IOException
 import java.net.ServerSocket
 
@@ -15,7 +16,9 @@ object PostgresContainer {
       return null
     }
     log.info("Creating a Postgres database")
-    return PostgreSQLContainer("postgres").apply {
+    return PostgreSQLContainer(
+      DockerImageName.parse("postgres").withTag("18"),
+    ).apply {
       withEnv("HOSTNAME_EXTERNAL", "localhost")
       withDatabaseName("incentives")
       withUsername("incentives")

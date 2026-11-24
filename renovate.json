@@ -15,6 +15,11 @@
       "matchFileNames": ["**/.github/workflows/**/*.ya?ml"],
       "matchUpdateTypes": ["minor", "patch"],
       "enabled": false
+    },
+    {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["postgres"],
+      "allowedVersions": "/^18$/"
     }
   ],
   "platformCommit": "enabled"

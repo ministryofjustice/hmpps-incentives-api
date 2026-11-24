@@ -103,7 +103,7 @@ else
   # No local client - use the postgres image. host.docker.internal resolves on Docker Desktop,
   # and --add-host makes it resolve on Linux too.
   docker run --rm --add-host=host.docker.internal:host-gateway \
-    -e PGPASSWORD="$DB_PASSWORD" postgres:16 \
+    -e PGPASSWORD="$DB_PASSWORD" postgres:18 \
     psql -h "$([ "$DB_HOST" = "localhost" ] && echo host.docker.internal || echo "$DB_HOST")" \
     -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" \
     -v ON_ERROR_STOP=1 -c "$COPY_COMMAND" > "$OUTPUT"
