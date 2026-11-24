@@ -89,7 +89,7 @@ dependencies {
   testImplementation("org.springframework.boot:spring-boot-starter-webflux-test")
   testImplementation("org.awaitility:awaitility-kotlin:4.3.0")
   testImplementation("org.mockito:mockito-inline:5.2.0")
-  testImplementation("io.swagger.parser.v3:swagger-parser-v3:2.1.48") {
+  testImplementation("io.swagger.parser.v3:swagger-parser-v3:2.1.49") {
     exclude(group = "io.swagger.core.v3")
   }
 
