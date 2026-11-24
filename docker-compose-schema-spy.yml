@@ -4,7 +4,7 @@ services:
   # container and SchemaSpy can then read the same schema. Left to Testcontainers, the schema would be
   # built in an ephemeral container that dies with the JVM.
   postgres:
-    image: postgres:16
+    image: postgres:18
     networks:
       - hmpps
     container_name: incentives-schema-spy-postgres

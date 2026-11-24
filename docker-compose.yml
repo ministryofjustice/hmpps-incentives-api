@@ -109,7 +109,7 @@ services:
       - SPRING_PROFILES_ACTIVE=dev
 
   incentives-db:
-    image: postgres:16
+    image: postgres:18
     networks:
       - hmpps
     # network_mode: "host"

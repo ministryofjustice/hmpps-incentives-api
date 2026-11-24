@@ -53,7 +53,7 @@ jobs:
     with:
       gradle-command: 'BUILD_NUMBER=${{ needs.app_version.outputs.version }} ./gradlew assemble check'
       upload-build-artifacts: ${{ github.ref == 'refs/heads/main' }}
-      postgres-tag: '16'
+      postgres-tag: '18'
       postgres-db: incentives
       postgres-username: incentives
       postgres-password: incentives
