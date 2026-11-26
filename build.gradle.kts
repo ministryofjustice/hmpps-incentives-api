@@ -72,7 +72,7 @@ dependencies {
   implementation("org.springdoc:springdoc-openapi-starter-webflux-ui:3.2.0")
 
   implementation("io.opentelemetry:opentelemetry-extension-kotlin:1.68.0")
-  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.33.1")
+  implementation("io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.34.0")
 
   implementation("org.apache.commons:commons-lang3")
   implementation("org.apache.commons:commons-text:1.15.0")
